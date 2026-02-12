@@ -228,6 +228,12 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 None currently.
 
 ## Changelog
+- **Feb 12, 2026**: Dividend Income module fully implemented
+  - 3 pages: My Dividend (list with category badges), Dividend Income (create/edit)
+  - 5 source categories: Direct Stocks, Mutual Funds (IDCW), REITs, InvITs, Others
+  - REITs/InvITs show info note about regulated distributions
+  - Optional Units/Holdings field with decimal support
+  - 4 frequency options: Quarterly, Half-Yearly, Yearly, Irregular
 - **Feb 12, 2026**: Commission Income module fully implemented
   - 3 pages: My Commission (list), Commission Income (create/edit)
   - Fixed/Variable toggle (default: Variable)
