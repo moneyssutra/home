@@ -126,7 +126,9 @@ function App() {
         <Routes>
           <Route path="/" element={<IncomeSource />} />
           <Route path="/home" element={<HomePlaceholder />} />
+          <Route path="/my-business" element={<MyBusiness />} />
           <Route path="/business-income" element={<BusinessIncome />} />
+          <Route path="/business-income/:id" element={<BusinessIncome />} />
         </Routes>
       </BrowserRouter>
     </div>
