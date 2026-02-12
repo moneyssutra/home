@@ -140,6 +140,9 @@ function App() {
           <Route path="/my-job" element={<MyJob />} />
           <Route path="/job-income" element={<JobIncome />} />
           <Route path="/job-income/:id" element={<JobIncome />} />
+          <Route path="/my-interest" element={<MyInterest />} />
+          <Route path="/interest-income" element={<InterestIncome />} />
+          <Route path="/interest-income/:id" element={<InterestIncome />} />
         </Routes>
       </BrowserRouter>
     </div>
