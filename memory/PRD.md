@@ -47,7 +47,9 @@ Build an income tracking application with modular income type support. Initial f
 #### Interest Income Module (COMPLETED - Feb 12, 2026)
 - **My Interest Income Page** (`/my-interest`)
   - List all interest income entries filtered by type="Interest"
-  - Display: Source Name, Principal (₹), Rate (%), Expected Income, Frequency, Next Date
+  - Display: Source Name, Principal (₹), Rate (%), Current Amount, End Date, Frequency, Next Payment
+  - **Current Amount** highlighted box showing Principal + Interest earned
+  - **Matured Badge** (yellow) for entries past end date
   - Empty state with "Add New Interest Income" CTA
   - Click card to edit entry
   
@@ -56,14 +58,20 @@ Build an income tracking application with modular income type support. Initial f
     - Interest Source Name (required)
     - Principal Amount (required)
     - Rate of Interest % (required)
+    - **Start Date** (required, can be past date - when loan/FD started)
+    - **End Date / Maturity** (required, must be after start date)
     - Interest Type: Simple Interest / Compound Interest
     - Compounding Frequency: Monthly/Quarterly/Half-Yearly/Yearly (only for Compound)
     - Income Frequency: Monthly/Quarterly/Half-Yearly/Yearly/Others
     - Date fields based on frequency selection
     - Expected Income (auto-calculated with manual override toggle)
+  - **Current Amount Display**: Shows Principal + Accrued Interest
+    - Calculates from Start Date to min(today, End Date)
+    - Shows "Matured on [date]" when past end date
+    - Interest stops accruing after maturity
   - Auto-calculation formula:
-    - Simple Interest: P × R / 100 / FrequencyDivisor
-    - Compound Interest: P × (1 + R/(100×n))^n - P / FrequencyDivisor
+    - Simple Interest: P × R × T / 100 (where T is years from start to calc date)
+    - Compound Interest: P × (1 + R/(100×n))^(n×T) - P
   - Manual Override toggle allows custom expected income entry
   - Full CRUD operations with confirmation dialogs
   - Duplicate entry check
