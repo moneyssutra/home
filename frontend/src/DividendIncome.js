@@ -273,6 +273,7 @@ const DividendIncome = () => {
         units: units ? parseFloat(units) : null,
         expectedAmount: parseFloat(expectedAmount),
         frequency,
+        selectedDay: selectedDay || null,
         selectedQuarter: selectedQuarter || null,
         selectedHalf: selectedHalf || null,
         selectedMonth: selectedMonth || null,
