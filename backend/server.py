@@ -101,6 +101,9 @@ class IncomeSourceCreate(BaseModel):
     securityDeposit: Optional[float] = None
     # Commission-specific fields
     isVariable: Optional[bool] = None
+    # Dividend-specific fields
+    sourceCategory: Optional[str] = None
+    units: Optional[float] = None
 
 # Loan Model
 class Loan(BaseModel):
