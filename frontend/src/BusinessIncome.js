@@ -239,7 +239,7 @@ const BusinessIncome = () => {
       };
 
       await axios.post(`${backendUrl}/api/income`, payload);
-      navigate("/");
+      navigate("/my-business");
     } catch (error) {
       console.error("Error saving business income:", error);
       setErrors({ submit: "Failed to save. Please try again." });
