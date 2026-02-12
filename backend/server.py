@@ -66,6 +66,8 @@ class IncomeSource(BaseModel):
     # Rental with Asset link
     assetId: Optional[str] = None
     securityDeposit: Optional[float] = None
+    # Commission-specific fields
+    isVariable: Optional[bool] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class IncomeSourceCreate(BaseModel):
@@ -94,6 +96,8 @@ class IncomeSourceCreate(BaseModel):
     # Rental with Asset link
     assetId: Optional[str] = None
     securityDeposit: Optional[float] = None
+    # Commission-specific fields
+    isVariable: Optional[bool] = None
 
 # Loan Model
 class Loan(BaseModel):
