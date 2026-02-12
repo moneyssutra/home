@@ -30,8 +30,8 @@ const MyJob = () => {
     }
   };
 
-  const getNextPaymentDate = (business) => {
-    const { frequency, selectedDay, selectedDate, selectedQuarter, selectedHalf, selectedMonth } = business;
+  const getNextPaymentDate = (job) => {
+    const { frequency, selectedDay, selectedDate, selectedQuarter, selectedHalf, selectedMonth } = job;
     const today = new Date();
     
     switch (frequency) {
