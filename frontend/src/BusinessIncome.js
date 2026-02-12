@@ -772,7 +772,11 @@ const BusinessIncome = () => {
                   </label>
                   <div 
                     className="relative cursor-pointer"
-                    onClick={() => document.getElementById('yearlyDate')?.showPicker?.()}
+                    onClick={(e) => {
+                      if (e.target.tagName !== 'INPUT') {
+                        document.getElementById('yearlyDate')?.click();
+                      }
+                    }}
                   >
                     <input
                       id="yearlyDate"
