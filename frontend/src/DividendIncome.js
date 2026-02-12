@@ -599,21 +599,20 @@ const DividendIncome = () => {
                 {selectedMonth && (
                   <div className="w-full">
                     <label htmlFor="yearlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                      Select Date (Day of Month)
+                      Select Date
                     </label>
-                    <select
-                      id="yearlyDate"
-                      ref={dateFieldRef}
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                      data-testid="date-select"
-                    >
-                      <option value="">Select a Date</option>
-                      {days.map((day) => (
-                        <option key={day} value={day}>{day}</option>
-                      ))}
-                    </select>
+                    <label htmlFor="yearlyDate" className="relative block cursor-pointer">
+                      <input
+                        id="yearlyDate"
+                        ref={dateFieldRef}
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                        data-testid="date-select"
+                      />
+                      <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                    </label>
                     {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
                   </div>
                 )}
