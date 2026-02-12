@@ -666,7 +666,7 @@ const BusinessIncome = () => {
             {/* Conditional Fields - Others */}
             {frequency === "Others" && (
               <div
-                className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-300"
+                className="flex flex-col space-y-5 w-full animate-in fade-in slide-in-from-top-2 duration-300"
                 data-testid="others-fields"
               >
                 <div className="space-y-2">
