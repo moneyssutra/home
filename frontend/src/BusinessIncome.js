@@ -277,12 +277,12 @@ const BusinessIncome = () => {
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="mx-auto w-full max-w-[620px] px-6">
-          <div className="flex flex-col space-y-5 w-full">
+          <div className="space-y-6">
             {/* Business Name */}
-            <div className="space-y-2 w-full" data-testid="business-name-field">
+            <div className="w-full">
               <label
                 htmlFor="businessName"
-                className="block text-sm font-medium text-[#0B3D2E]"
+                className="block text-sm font-medium text-[#0B3D2E] mb-2"
               >
                 Business Name
               </label>
@@ -297,15 +297,15 @@ const BusinessIncome = () => {
                 data-testid="business-name-input"
               />
               {errors.businessName && (
-                <p className="text-sm text-red-500">{errors.businessName}</p>
+                <p className="text-sm text-red-500 mt-1">{errors.businessName}</p>
               )}
             </div>
 
             {/* Expected Amount */}
-            <div className="space-y-2 w-full" data-testid="expected-amount-field">
+            <div className="w-full">
               <label
                 htmlFor="expectedAmount"
-                className="block text-sm font-medium text-[#0B3D2E]"
+                className="block text-sm font-medium text-[#0B3D2E] mb-2"
               >
                 Expected Amount
               </label>
@@ -324,15 +324,15 @@ const BusinessIncome = () => {
                 />
               </div>
               {errors.expectedAmount && (
-                <p className="text-sm text-red-500">{errors.expectedAmount}</p>
+                <p className="text-sm text-red-500 mt-1">{errors.expectedAmount}</p>
               )}
             </div>
 
             {/* Frequency */}
-            <div className="space-y-2 w-full" data-testid="frequency-field">
+            <div className="w-full">
               <label
                 htmlFor="frequency"
-                className="block text-sm font-medium text-[#0B3D2E]"
+                className="block text-sm font-medium text-[#0B3D2E] mb-2"
               >
                 Frequency
               </label>
@@ -351,20 +351,21 @@ const BusinessIncome = () => {
                 ))}
               </select>
               {errors.frequency && (
-                <p className="text-sm text-red-500">{errors.frequency}</p>
+                <p className="text-sm text-red-500 mt-1">{errors.frequency}</p>
               )}
             </div>
 
             {/* Conditional Fields - Weekly */}
             {frequency === "Weekly" && (
               <div
-                className="space-y-2 w-full animate-in fade-in slide-in-from-top-2 duration-300"
+                className="w-full animate-in fade-in slide-in-from-top-2 duration-300"
                 data-testid="weekly-fields"
               >
-                <label className="block text-sm font-medium text-[#0B3D2E]">
+                <label htmlFor="weekDay" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                   Select Day
                 </label>
                 <select
+                  id="weekDay"
                   value={selectedDay}
                   onChange={(e) => setSelectedDay(e.target.value)}
                   className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
@@ -378,7 +379,7 @@ const BusinessIncome = () => {
                   ))}
                 </select>
                 {errors.selectedDay && (
-                  <p className="text-sm text-red-500">{errors.selectedDay}</p>
+                  <p className="text-sm text-red-500 mt-1">{errors.selectedDay}</p>
                 )}
               </div>
             )}
@@ -386,24 +387,26 @@ const BusinessIncome = () => {
             {/* Conditional Fields - Monthly */}
             {frequency === "Monthly" && (
               <div
-                className="space-y-2 w-full animate-in fade-in slide-in-from-top-2 duration-300"
+                className="w-full animate-in fade-in slide-in-from-top-2 duration-300"
                 data-testid="monthly-fields"
               >
-                <label className="block text-sm font-medium text-[#0B3D2E]">
+                <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                   Select Date
                 </label>
                 <div className="relative">
                   <input
+                    id="monthlyDate"
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
+                    min={today}
                     className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                     data-testid="date-select"
                   />
                   <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
                 </div>
                 {errors.selectedDate && (
-                  <p className="text-sm text-red-500">{errors.selectedDate}</p>
+                  <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>
                 )}
               </div>
             )}
@@ -411,20 +414,21 @@ const BusinessIncome = () => {
             {/* Conditional Fields - Quarterly */}
             {frequency === "Quarterly" && (
               <div
-                className="flex flex-col space-y-5 w-full animate-in fade-in slide-in-from-top-2 duration-300"
+                className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300"
                 data-testid="quarterly-fields"
               >
                 {/* Quarter Selection */}
-                <div className="space-y-2 w-full">
-                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                <div className="w-full">
+                  <label htmlFor="quarter" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                     Select Quarter
                   </label>
                   <select
+                    id="quarter"
                     value={selectedQuarter}
                     onChange={(e) => {
                       setSelectedQuarter(e.target.value);
-                      setSelectedMonth(""); // Reset month when quarter changes
-                      setSelectedDate(""); // Reset date when quarter changes
+                      setSelectedMonth("");
+                      setSelectedDate("");
                     }}
                     className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                     data-testid="quarter-select"
@@ -437,21 +441,22 @@ const BusinessIncome = () => {
                     ))}
                   </select>
                   {errors.selectedQuarter && (
-                    <p className="text-sm text-red-500">{errors.selectedQuarter}</p>
+                    <p className="text-sm text-red-500 mt-1">{errors.selectedQuarter}</p>
                   )}
                 </div>
 
                 {/* Month Selection (based on quarter) */}
                 {selectedQuarter && (
-                  <div className="space-y-2 w-full">
-                    <label className="block text-sm font-medium text-[#0B3D2E]">
+                  <div className="w-full">
+                    <label htmlFor="quarterMonth" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                       Select Month
                     </label>
                     <select
+                      id="quarterMonth"
                       value={selectedMonth}
                       onChange={(e) => {
                         setSelectedMonth(e.target.value);
-                        setSelectedDate(""); // Reset date when month changes
+                        setSelectedDate("");
                       }}
                       className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                       data-testid="month-select"
@@ -464,19 +469,20 @@ const BusinessIncome = () => {
                       ))}
                     </select>
                     {errors.selectedMonth && (
-                      <p className="text-sm text-red-500">{errors.selectedMonth}</p>
+                      <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>
                     )}
                   </div>
                 )}
 
                 {/* Date Selection */}
                 {selectedMonth && (
-                  <div className="space-y-2 w-full">
-                    <label className="block text-sm font-medium text-[#0B3D2E]">
+                  <div className="w-full">
+                    <label htmlFor="quarterDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                       Select Date
                     </label>
                     <div className="relative">
                       <input
+                        id="quarterDate"
                         type="date"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
@@ -488,14 +494,14 @@ const BusinessIncome = () => {
                       <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
                     </div>
                     {errors.selectedDate && (
-                      <p className="text-sm text-red-500">{errors.selectedDate}</p>
+                      <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>
                     )}
                   </div>
                 )}
 
                 {/* Show Next Recurring Dates */}
                 {calculateQuarterlyDates.length > 0 && (
-                  <div className="rounded-xl bg-[#E8F8F4] border border-[#00D09C]/30 p-4">
+                  <div className="w-full rounded-xl bg-[#E8F8F4] border border-[#00D09C]/30 p-4">
                     <div className="flex items-start gap-2">
                       <Calendar className="h-5 w-5 text-[#00D09C] mt-0.5 flex-shrink-0" />
                       <div>
@@ -517,20 +523,21 @@ const BusinessIncome = () => {
             {/* Conditional Fields - Half-Yearly */}
             {frequency === "Half-Yearly" && (
               <div
-                className="flex flex-col space-y-5 w-full animate-in fade-in slide-in-from-top-2 duration-300"
+                className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300"
                 data-testid="half-yearly-fields"
               >
                 {/* Half Selection */}
-                <div className="space-y-2 w-full">
-                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                <div className="w-full">
+                  <label htmlFor="half" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                     Select Half
                   </label>
                   <select
+                    id="half"
                     value={selectedHalf}
                     onChange={(e) => {
                       setSelectedHalf(e.target.value);
-                      setSelectedMonth(""); // Reset month when half changes
-                      setSelectedDate(""); // Reset date when half changes
+                      setSelectedMonth("");
+                      setSelectedDate("");
                     }}
                     className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                     data-testid="half-select"
@@ -543,21 +550,22 @@ const BusinessIncome = () => {
                     ))}
                   </select>
                   {errors.selectedHalf && (
-                    <p className="text-sm text-red-500">{errors.selectedHalf}</p>
+                    <p className="text-sm text-red-500 mt-1">{errors.selectedHalf}</p>
                   )}
                 </div>
 
                 {/* Month Selection (based on half) */}
                 {selectedHalf && (
-                  <div className="space-y-2 w-full">
-                    <label className="block text-sm font-medium text-[#0B3D2E]">
+                  <div className="w-full">
+                    <label htmlFor="halfMonth" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                       Select Month
                     </label>
                     <select
+                      id="halfMonth"
                       value={selectedMonth}
                       onChange={(e) => {
                         setSelectedMonth(e.target.value);
-                        setSelectedDate(""); // Reset date when month changes
+                        setSelectedDate("");
                       }}
                       className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                       data-testid="month-select"
@@ -570,19 +578,20 @@ const BusinessIncome = () => {
                       ))}
                     </select>
                     {errors.selectedMonth && (
-                      <p className="text-sm text-red-500">{errors.selectedMonth}</p>
+                      <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>
                     )}
                   </div>
                 )}
 
                 {/* Date Selection */}
                 {selectedMonth && (
-                  <div className="space-y-2 w-full">
-                    <label className="block text-sm font-medium text-[#0B3D2E]">
+                  <div className="w-full">
+                    <label htmlFor="halfDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                       Select Date
                     </label>
                     <div className="relative">
                       <input
+                        id="halfDate"
                         type="date"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
@@ -594,14 +603,14 @@ const BusinessIncome = () => {
                       <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
                     </div>
                     {errors.selectedDate && (
-                      <p className="text-sm text-red-500">{errors.selectedDate}</p>
+                      <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>
                     )}
                   </div>
                 )}
 
                 {/* Show Next Recurring Date */}
                 {calculateHalfYearlyDate && (
-                  <div className="rounded-xl bg-[#E8F8F4] border border-[#00D09C]/30 p-4">
+                  <div className="w-full rounded-xl bg-[#E8F8F4] border border-[#00D09C]/30 p-4">
                     <div className="flex items-start gap-2">
                       <Calendar className="h-5 w-5 text-[#00D09C] mt-0.5 flex-shrink-0" />
                       <div>
@@ -621,14 +630,15 @@ const BusinessIncome = () => {
             {/* Conditional Fields - Yearly */}
             {frequency === "Yearly" && (
               <div
-                className="flex flex-col space-y-5 w-full animate-in fade-in slide-in-from-top-2 duration-300"
+                className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300"
                 data-testid="yearly-fields"
               >
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                <div className="w-full">
+                  <label htmlFor="yearlyMonth" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                     Select Month
                   </label>
                   <select
+                    id="yearlyMonth"
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
                     className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
@@ -642,25 +652,27 @@ const BusinessIncome = () => {
                     ))}
                   </select>
                   {errors.selectedMonth && (
-                    <p className="text-sm text-red-500">{errors.selectedMonth}</p>
+                    <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                <div className="w-full">
+                  <label htmlFor="yearlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                     Select Date
                   </label>
                   <div className="relative">
                     <input
+                      id="yearlyDate"
                       type="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
+                      min={today}
                       className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                       data-testid="date-select"
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
                   </div>
                   {errors.selectedDate && (
-                    <p className="text-sm text-red-500">{errors.selectedDate}</p>
+                    <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>
                   )}
                 </div>
               </div>
@@ -669,14 +681,15 @@ const BusinessIncome = () => {
             {/* Conditional Fields - Others */}
             {frequency === "Others" && (
               <div
-                className="flex flex-col space-y-5 w-full animate-in fade-in slide-in-from-top-2 duration-300"
+                className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300"
                 data-testid="others-fields"
               >
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                <div className="w-full">
+                  <label htmlFor="customFreq" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                     Enter Custom Frequency
                   </label>
                   <input
+                    id="customFreq"
                     type="text"
                     value={customFrequency}
                     onChange={(e) => setCustomFrequency(e.target.value)}
@@ -685,25 +698,27 @@ const BusinessIncome = () => {
                     data-testid="custom-frequency-input"
                   />
                   {errors.customFrequency && (
-                    <p className="text-sm text-red-500">{errors.customFrequency}</p>
+                    <p className="text-sm text-red-500 mt-1">{errors.customFrequency}</p>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                <div className="w-full">
+                  <label htmlFor="customDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                     Select Date
                   </label>
                   <div className="relative">
                     <input
+                      id="customDate"
                       type="date"
                       value={customDate}
                       onChange={(e) => setCustomDate(e.target.value)}
+                      min={today}
                       className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                       data-testid="custom-date-input"
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
                   </div>
                   {errors.customDate && (
-                    <p className="text-sm text-red-500">{errors.customDate}</p>
+                    <p className="text-sm text-red-500 mt-1">{errors.customDate}</p>
                   )}
                 </div>
               </div>
