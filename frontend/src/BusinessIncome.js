@@ -266,6 +266,21 @@ const BusinessIncome = () => {
       return;
     }
 
+    // Check for duplicate business name when creating new
+    try {
+      const response = await axios.get(`${backendUrl}/api/income`);
+      const businesses = response.data.filter(item => item.type === "Business");
+      const duplicate = businesses.find(b => b.name.toLowerCase() === businessName.trim().toLowerCase());
+      
+      if (duplicate) {
+        setExistingBusiness(duplicate);
+        setShowDuplicateDialog(true);
+        return;
+      }
+    } catch (error) {
+      console.error("Error checking duplicates:", error);
+    }
+
     // Proceed with save
     await performSave();
   };
