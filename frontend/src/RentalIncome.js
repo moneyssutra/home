@@ -551,6 +551,29 @@ const RentalIncome = () => {
               {errors.frequency && <p className="text-sm text-red-500 mt-1">{errors.frequency}</p>}
             </div>
 
+            {/* Daily Day Selection */}
+            {frequency === "Daily" && (
+              <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="daily-fields">
+                <label htmlFor="dailyDay" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  Select Day of Week
+                </label>
+                <select
+                  id="dailyDay"
+                  ref={dayFieldRef}
+                  value={selectedDay}
+                  onChange={(e) => setSelectedDay(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="day-select"
+                >
+                  <option value="">Select a Day</option>
+                  {daysOfWeek.map((day) => (
+                    <option key={day} value={day}>{day}</option>
+                  ))}
+                </select>
+                {errors.selectedDay && <p className="text-sm text-red-500 mt-1">{errors.selectedDay}</p>}
+              </div>
+            )}
+
             {/* Monthly Date Selection */}
             {frequency === "Monthly" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
