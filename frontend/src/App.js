@@ -11,6 +11,7 @@ import {
   PieChart,
   TrendingUp,
 } from "lucide-react";
+import BusinessIncome from "@/BusinessIncome";
 
 const HomePlaceholder = () => {
   return (
