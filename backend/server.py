@@ -120,6 +120,65 @@ async def get_income_sources():
     
     return income_sources
 
+@api_router.get("/income/{income_id}", response_model=IncomeSource)
+async def get_income_source(income_id: str):
+    # Get a single income source by ID
+    income_source = await db.income_sources.find_one({"id": income_id}, {"_id": 0})
+    
+    if not income_source:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Income source not found")
+    
+    # Convert ISO string timestamp back to datetime object
+    if isinstance(income_source['createdAt'], str):
+        income_source['createdAt'] = datetime.fromisoformat(income_source['createdAt'])
+    
+    return income_source
+
+@api_router.put("/income/{income_id}", response_model=IncomeSource)
+async def update_income_source(income_id: str, input: IncomeSourceCreate):
+    # Check if income source exists
+    existing = await db.income_sources.find_one({"id": income_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Income source not found")
+    
+    # Update the income source
+    income_dict = input.model_dump()
+    income_dict['id'] = income_id
+    income_dict['createdAt'] = existing['createdAt']  # Keep original creation time
+    
+    # Convert datetime to ISO string for MongoDB
+    if isinstance(income_dict['createdAt'], str):
+        pass  # Already a string
+    else:
+        income_dict['createdAt'] = income_dict['createdAt'].isoformat()
+    
+    # Update in database
+    await db.income_sources.replace_one({"id": income_id}, income_dict)
+    
+    # Return updated object
+    income_obj = IncomeSource(**income_dict)
+    if isinstance(income_obj.createdAt, str):
+        income_obj.createdAt = datetime.fromisoformat(income_obj.createdAt)
+    
+    return income_obj
+
+@api_router.delete("/income/{income_id}")
+async def delete_income_source(income_id: str):
+    # Check if income source exists
+    existing = await db.income_sources.find_one({"id": income_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Income source not found")
+    
+    # Delete the income source
+    await db.income_sources.delete_one({"id": income_id})
+    
+    return {"message": "Income source deleted successfully", "id": income_id}
+
 # Include the router in the main app
 app.include_router(api_router)
 
