@@ -272,4 +272,4 @@ const MyJob = () => {
   );
 };
 
-export default MyBusiness;
+export default MyJob;
