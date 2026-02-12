@@ -57,8 +57,8 @@ const JobIncome = () => {
       setCustomFrequency(data.customFrequency || "");
       setCustomDate(data.customDate || "");
     } catch (error) {
-      console.error("Error fetching business data:", error);
-      setErrors({ submit: "Failed to load business data" });
+      console.error("Error fetching job data:", error);
+      setErrors({ submit: "Failed to load job data" });
     } finally {
       setLoading(false);
     }
@@ -314,7 +314,7 @@ const JobIncome = () => {
       
       navigate("/my-job");
     } catch (error) {
-      console.error("Error saving business income:", error);
+      console.error("Error saving job income:", error);
       setErrors({ submit: "Failed to save. Please try again." });
     } finally {
       setIsSubmitting(false);
@@ -331,7 +331,7 @@ const JobIncome = () => {
       await axios.delete(`${backendUrl}/api/income/${id}`);
       navigate("/my-job");
     } catch (error) {
-      console.error("Error deleting business:", error);
+      console.error("Error deleting job:", error);
       setErrors({ submit: "Failed to delete. Please try again." });
     } finally {
       setIsSubmitting(false);
@@ -872,7 +872,7 @@ const JobIncome = () => {
               Confirm Changes
             </h3>
             <p className="text-[#0B3D2E]/70 mb-6">
-              Are you sure you want to update this business income? This will replace the existing information.
+              Are you sure you want to update this job income? This will replace the existing information.
             </p>
             <div className="flex gap-3">
               <button
@@ -932,14 +932,14 @@ const JobIncome = () => {
               Job Already Exists
             </h3>
             <p className="text-[#0B3D2E]/70 mb-6">
-              A business with the name "{companyName}" already exists. Would you like to edit the existing business or create a new one anyway?
+              A job with the name "{companyName}" already exists. Would you like to edit the existing job or create a new one anyway?
             </p>
             <div className="flex flex-col gap-3">
               <button
                 type="button"
                 onClick={() => {
                   setShowDuplicateDialog(false);
-                  navigate(`/business-income/${existingJob.id}`);
+                  navigate(`/job-income/${existingJob.id}`);
                 }}
                 className="w-full rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium transition-colors hover:bg-[#00BA89]"
               >
