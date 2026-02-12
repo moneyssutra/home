@@ -30,7 +30,7 @@ const IncomeSource = () => {
   const incomeTypes = useMemo(
     () => [
       { id: "business", label: "Business", Icon: Briefcase },
-      { id: "salary", label: "Salary", Icon: Banknote },
+      { id: "job", label: "Job", Icon: Banknote },
       { id: "rental", label: "Rental", Icon: Home },
       { id: "commission", label: "Commission", Icon: Percent },
       { id: "interest", label: "Interest", Icon: TrendingUp },
