@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import { ChevronLeft, Calendar } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ChevronLeft, Calendar, Trash2 } from "lucide-react";
 import axios from "axios";
 
 const BusinessIncome = () => {
