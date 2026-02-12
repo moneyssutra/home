@@ -685,7 +685,10 @@ const BusinessIncome = () => {
                     <label htmlFor="halfDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                       Select Date
                     </label>
-                    <div className="relative cursor-pointer">
+                    <div 
+                      className="relative cursor-pointer"
+                      onClick={() => document.getElementById('halfDate')?.showPicker?.()}
+                    >
                       <input
                         id="halfDate"
                         type="date"
