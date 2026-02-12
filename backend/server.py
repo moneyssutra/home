@@ -68,6 +68,9 @@ class IncomeSource(BaseModel):
     securityDeposit: Optional[float] = None
     # Commission-specific fields
     isVariable: Optional[bool] = None
+    # Dividend-specific fields
+    sourceCategory: Optional[str] = None
+    units: Optional[float] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class IncomeSourceCreate(BaseModel):
