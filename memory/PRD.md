@@ -1,12 +1,13 @@
 # Income Tracker Application - Product Requirements Document
 
 ## Original Problem Statement
-Build an income tracking application with modular income type support. Initial focus on "Business Income" and "Job Income" modules with full CRUD functionality.
+Build an income tracking application with modular income type support. Initial focus on "Business Income", "Job Income", and "Interest Income" modules with full CRUD functionality.
 
 ## User Personas
 - Users who need to track multiple income sources
 - Individuals managing business and employment income
 - People who need to monitor recurring payment schedules
+- Investors tracking interest income from FDs, loans, P2P lending
 
 ## Core Requirements
 
@@ -38,20 +39,38 @@ Build an income tracking application with modular income type support. Initial f
   - Click card to edit entry
   
 - **Job Income Form** (`/job-income`, `/job-income/:id`)
-  - Fields: Company Name (replaces Business Name), Expected Amount, Frequency
-  - Dynamic fields based on frequency selection:
-    - Daily: No additional fields
-    - Weekly: Day selector
-    - Monthly: Date picker
-    - Quarterly: Quarter → Month → Date cascade
-    - Half-Yearly: Half → Month → Date cascade
-    - Yearly: Month → Date selectors
-    - Others: Custom frequency text + date
+  - Fields: Company Name, Expected Amount, Frequency
+  - Dynamic fields based on frequency selection
+  - Full CRUD operations with confirmation dialogs
+  - Duplicate entry check
+
+#### Interest Income Module (COMPLETED - Feb 12, 2026)
+- **My Interest Income Page** (`/my-interest`)
+  - List all interest income entries filtered by type="Interest"
+  - Display: Source Name, Principal (₹), Rate (%), Expected Income, Frequency, Next Date
+  - Empty state with "Add New Interest Income" CTA
+  - Click card to edit entry
+  
+- **Interest Income Form** (`/interest-income`, `/interest-income/:id`)
+  - Fields:
+    - Interest Source Name (required)
+    - Principal Amount (required)
+    - Rate of Interest % (required)
+    - Interest Type: Simple Interest / Compound Interest
+    - Compounding Frequency: Monthly/Quarterly/Half-Yearly/Yearly (only for Compound)
+    - Income Frequency: Monthly/Quarterly/Half-Yearly/Yearly/Others
+    - Date fields based on frequency selection
+    - Expected Income (auto-calculated with manual override toggle)
+  - Auto-calculation formula:
+    - Simple Interest: P × R / 100 / FrequencyDivisor
+    - Compound Interest: P × (1 + R/(100×n))^n - P / FrequencyDivisor
+  - Manual Override toggle allows custom expected income entry
   - Full CRUD operations with confirmation dialogs
   - Duplicate entry check
 
 ### Frequency Options
-All modules support: Daily, Weekly, Monthly, Quarterly, Half-Yearly, Yearly, Others
+All modules support: Monthly, Quarterly, Half-Yearly, Yearly, Others
+Business/Job also support: Daily, Weekly
 
 ### Next Payment Date Calculation
 - Daily: Current date
@@ -70,6 +89,8 @@ All modules support: Daily, Weekly, Monthly, Quarterly, Half-Yearly, Yearly, Oth
 - `/app/frontend/src/MyBusiness.js` - Business list page
 - `/app/frontend/src/JobIncome.js` - Job income form
 - `/app/frontend/src/MyJob.js` - Job list page
+- `/app/frontend/src/InterestIncome.js` - Interest income form with auto-calculation
+- `/app/frontend/src/MyInterest.js` - Interest list page
 
 ### Backend (FastAPI)
 - `/app/backend/server.py` - All API endpoints
@@ -88,7 +109,7 @@ All modules support: Daily, Weekly, Monthly, Quarterly, Half-Yearly, Yearly, Oth
 ```json
 {
   "id": "uuid string",
-  "type": "Business|Job",
+  "type": "Business|Job|Interest",
   "name": "string",
   "expectedAmount": "number",
   "frequency": "string",
@@ -99,15 +120,19 @@ All modules support: Daily, Weekly, Monthly, Quarterly, Half-Yearly, Yearly, Oth
   "selectedMonth": "string|null",
   "customFrequency": "string|null",
   "customDate": "string|null",
+  "principal": "number|null (Interest only)",
+  "rate": "number|null (Interest only)",
+  "interestType": "string|null (Interest only)",
+  "compoundingFrequency": "string|null (Interest only)",
+  "manualOverride": "boolean|null (Interest only)",
   "createdAt": "ISO datetime string"
 }
 ```
 
 ## Testing Status
-- Backend API: 100% pass (12/12 tests)
-- Frontend UI: 100% pass (12/12 tests)
-- Test file: `/app/backend/tests/test_job_income_api.py`
-- Report: `/app/test_reports/iteration_1.json`
+- Job Module: Backend 100%, Frontend 100% (iteration_1.json)
+- Interest Module: Backend 100%, Frontend 100% (iteration_2.json)
+- Test files: `/app/backend/tests/`
 
 ## Backlog / Future Tasks
 
@@ -115,8 +140,8 @@ All modules support: Daily, Weekly, Monthly, Quarterly, Half-Yearly, Yearly, Oth
 - None currently
 
 ### P2 - Medium Priority
-- Refactor Business/Job components into single reusable component
-- Add Rental, Commission, Interest, Dividend income modules
+- Add Rental, Commission, Dividend income modules
+- Refactor Business/Job/Interest components into single reusable component
 - Dashboard/Summary view of all income sources
 
 ### P3 - Low Priority
@@ -128,5 +153,6 @@ All modules support: Daily, Weekly, Monthly, Quarterly, Half-Yearly, Yearly, Oth
 None currently.
 
 ## Changelog
+- **Feb 12, 2026**: Completed Interest Income module with auto-calculation and manual override
 - **Feb 12, 2026**: Completed Job Income module implementation and testing
 - Initial: Project setup with Business Income module
