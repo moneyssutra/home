@@ -53,11 +53,8 @@ const RentalIncome = () => {
   const fetchAssets = async () => {
     try {
       const response = await axios.get(`${backendUrl}/api/assets`);
-      // Filter to only show real estate and land assets
-      const rentalAssets = response.data.filter(a => 
-        ["Residential Property", "Commercial Property", "Land"].includes(a.assetType)
-      );
-      setAvailableAssets(rentalAssets);
+      // Show ALL assets - user can link any asset to rental income
+      setAvailableAssets(response.data);
     } catch (error) {
       console.error("Error fetching assets:", error);
     }
