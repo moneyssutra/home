@@ -133,6 +133,9 @@ Business/Job also support: Daily, Weekly
   "interestType": "string|null (Interest only)",
   "compoundingFrequency": "string|null (Interest only)",
   "manualOverride": "boolean|null (Interest only)",
+  "startDate": "string|null (Interest only - loan/FD start)",
+  "endDate": "string|null (Interest only - maturity date)",
+  "currentAmount": "number|null (Interest only - auto-calculated)",
   "createdAt": "ISO datetime string"
 }
 ```
