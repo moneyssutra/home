@@ -252,6 +252,140 @@ async def delete_income_source(income_id: str):
     
     return {"message": "Income source deleted successfully", "id": income_id}
 
+# ============ LOAN ENDPOINTS ============
+
+@api_router.post("/loans", response_model=Loan)
+async def create_loan(input: LoanCreate):
+    loan_dict = input.model_dump()
+    loan_obj = Loan(**loan_dict)
+    
+    doc = loan_obj.model_dump()
+    doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    await db.loans.insert_one(doc)
+    return loan_obj
+
+@api_router.get("/loans", response_model=List[Loan])
+async def get_loans():
+    loans = await db.loans.find({}, {"_id": 0}).to_list(1000)
+    
+    for loan in loans:
+        if isinstance(loan['createdAt'], str):
+            loan['createdAt'] = datetime.fromisoformat(loan['createdAt'])
+    
+    return loans
+
+@api_router.get("/loans/{loan_id}", response_model=Loan)
+async def get_loan(loan_id: str):
+    loan = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    
+    if not loan:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    if isinstance(loan['createdAt'], str):
+        loan['createdAt'] = datetime.fromisoformat(loan['createdAt'])
+    
+    return loan
+
+@api_router.put("/loans/{loan_id}", response_model=Loan)
+async def update_loan(loan_id: str, input: LoanCreate):
+    existing = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    loan_dict = input.model_dump()
+    loan_dict['id'] = loan_id
+    loan_dict['createdAt'] = existing['createdAt']
+    
+    await db.loans.replace_one({"id": loan_id}, loan_dict)
+    
+    loan_obj = Loan(**loan_dict)
+    if isinstance(loan_obj.createdAt, str):
+        loan_obj.createdAt = datetime.fromisoformat(loan_obj.createdAt)
+    
+    return loan_obj
+
+@api_router.delete("/loans/{loan_id}")
+async def delete_loan(loan_id: str):
+    existing = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Loan not found")
+    
+    await db.loans.delete_one({"id": loan_id})
+    return {"message": "Loan deleted successfully", "id": loan_id}
+
+# ============ ASSET ENDPOINTS ============
+
+@api_router.post("/assets", response_model=Asset)
+async def create_asset(input: AssetCreate):
+    asset_dict = input.model_dump()
+    asset_obj = Asset(**asset_dict)
+    
+    doc = asset_obj.model_dump()
+    doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    await db.assets.insert_one(doc)
+    return asset_obj
+
+@api_router.get("/assets", response_model=List[Asset])
+async def get_assets():
+    assets = await db.assets.find({}, {"_id": 0}).to_list(1000)
+    
+    for asset in assets:
+        if isinstance(asset['createdAt'], str):
+            asset['createdAt'] = datetime.fromisoformat(asset['createdAt'])
+    
+    return assets
+
+@api_router.get("/assets/{asset_id}", response_model=Asset)
+async def get_asset(asset_id: str):
+    asset = await db.assets.find_one({"id": asset_id}, {"_id": 0})
+    
+    if not asset:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Asset not found")
+    
+    if isinstance(asset['createdAt'], str):
+        asset['createdAt'] = datetime.fromisoformat(asset['createdAt'])
+    
+    return asset
+
+@api_router.put("/assets/{asset_id}", response_model=Asset)
+async def update_asset(asset_id: str, input: AssetCreate):
+    existing = await db.assets.find_one({"id": asset_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Asset not found")
+    
+    asset_dict = input.model_dump()
+    asset_dict['id'] = asset_id
+    asset_dict['createdAt'] = existing['createdAt']
+    
+    await db.assets.replace_one({"id": asset_id}, asset_dict)
+    
+    asset_obj = Asset(**asset_dict)
+    if isinstance(asset_obj.createdAt, str):
+        asset_obj.createdAt = datetime.fromisoformat(asset_obj.createdAt)
+    
+    return asset_obj
+
+@api_router.delete("/assets/{asset_id}")
+async def delete_asset(asset_id: str):
+    existing = await db.assets.find_one({"id": asset_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Asset not found")
+    
+    await db.assets.delete_one({"id": asset_id})
+    return {"message": "Asset deleted successfully", "id": asset_id}
+
 # Include the router in the main app
 app.include_router(api_router)
 
