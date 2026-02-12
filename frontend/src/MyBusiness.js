@@ -234,15 +234,13 @@ const MyBusiness = () => {
                           </span>
                         </div>
 
-                        {/* Schedule Info */}
-                        {business.frequency !== "Daily" && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-[#0B3D2E]/60">Schedule:</span>
-                            <span className="text-sm font-medium text-[#00D09C]">
-                              {getScheduleInfo(business)}
-                            </span>
-                          </div>
-                        )}
+                        {/* Next Payment Date */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-[#0B3D2E]/60">Date:</span>
+                          <span className="text-sm font-medium text-[#00D09C]">
+                            {getNextPaymentDate(business)}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
