@@ -45,13 +45,13 @@ class IncomeSource(BaseModel):
     name: str
     expectedAmount: float
     frequency: str
-    selectedDay: str = None
-    selectedDate: int = None
-    selectedQuarter: str = None
-    selectedHalf: str = None
-    selectedMonth: str = None
-    customFrequency: str = None
-    customDate: str = None
+    selectedDay: Optional[str] = None
+    selectedDate: Optional[int] = None
+    selectedQuarter: Optional[str] = None
+    selectedHalf: Optional[str] = None
+    selectedMonth: Optional[str] = None
+    customFrequency: Optional[str] = None
+    customDate: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class IncomeSourceCreate(BaseModel):
@@ -59,13 +59,13 @@ class IncomeSourceCreate(BaseModel):
     name: str
     expectedAmount: float
     frequency: str
-    selectedDay: str = None
-    selectedDate: int = None
-    selectedQuarter: str = None
-    selectedHalf: str = None
-    selectedMonth: str = None
-    customFrequency: str = None
-    customDate: str = None
+    selectedDay: Optional[str] = None
+    selectedDate: Optional[int] = None
+    selectedQuarter: Optional[str] = None
+    selectedHalf: Optional[str] = None
+    selectedMonth: Optional[str] = None
+    customFrequency: Optional[str] = None
+    customDate: Optional[str] = None
 
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
