@@ -224,6 +224,11 @@ Business/Job also support: Daily, Weekly
 None currently.
 
 ## Changelog
+- **Feb 12, 2026**: Major architecture update - Asset, Loan, and enhanced Rental modules
+  - **Asset Module**: 6 asset types, current/purchase value tracking, appreciation %, loan linking
+  - **Loan Module**: EMI auto-calculation, payment progress tracking, outstanding balance
+  - **Rental Update**: Link to Assets, Rental Yield % calculation (Annual Rent / Asset Value × 100), Security Deposit
+  - Rental Yield now displayed on rental cards (not just in form)
 - **Feb 12, 2026**: Added Rental Income module with 3 pages (My Rental, Rental Income form, Edit/Delete)
   - Property Name, Tenant Name (optional), Rental Amount, Frequency, Date fields
   - Full CRUD with confirmation dialogs
