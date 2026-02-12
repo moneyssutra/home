@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Calendar } from "lucide-react";
 import axios from "axios";
 
 const BusinessIncome = () => {
@@ -55,30 +55,65 @@ const BusinessIncome = () => {
   ];
 
   const quarters = [
-    "Q1 (Jan–Mar)",
-    "Q2 (Apr–Jun)",
-    "Q3 (Jul–Sep)",
-    "Q4 (Oct–Dec)",
+    { id: "Q1", label: "Q1 (Jan–Mar)", months: ["January", "February", "March"] },
+    { id: "Q2", label: "Q2 (Apr–Jun)", months: ["April", "May", "June"] },
+    { id: "Q3", label: "Q3 (Jul–Sep)", months: ["July", "August", "September"] },
+    { id: "Q4", label: "Q4 (Oct–Dec)", months: ["October", "November", "December"] },
   ];
 
-  const halves = ["Jan–Jun", "Jul–Dec"];
-
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+  const halves = [
+    { id: "H1", label: "Jan–Jun", months: ["January", "February", "March", "April", "May", "June"] },
+    { id: "H2", label: "Jul–Dec", months: ["July", "August", "September", "October", "November", "December"] },
   ];
 
-  const dates = Array.from({ length: 31 }, (_, i) => i + 1);
+  const allMonths = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+
+  // Get months based on selected quarter
+  const quarterMonths = useMemo(() => {
+    const quarter = quarters.find(q => q.label === selectedQuarter);
+    return quarter ? quarter.months : [];
+  }, [selectedQuarter]);
+
+  // Get months based on selected half
+  const halfMonths = useMemo(() => {
+    const half = halves.find(h => h.label === selectedHalf);
+    return half ? half.months : [];
+  }, [selectedHalf]);
+
+  // Calculate next recurring dates for Quarterly
+  const calculateQuarterlyDates = useMemo(() => {
+    if (!selectedMonth || !selectedDate) return [];
+    
+    const monthIndex = allMonths.indexOf(selectedMonth);
+    const day = new Date(selectedDate).getDate();
+    const dates = [];
+    
+    // Add 3 months for each quarter
+    for (let i = 1; i <= 3; i++) {
+      const nextMonthIndex = (monthIndex + (i * 3)) % 12;
+      const nextMonth = allMonths[nextMonthIndex];
+      dates.push(`${nextMonth} ${day}`);
+    }
+    
+    return dates;
+  }, [selectedMonth, selectedDate]);
+
+  // Calculate next recurring date for Half-Yearly
+  const calculateHalfYearlyDate = useMemo(() => {
+    if (!selectedMonth || !selectedDate) return null;
+    
+    const monthIndex = allMonths.indexOf(selectedMonth);
+    const day = new Date(selectedDate).getDate();
+    
+    // Add 6 months
+    const nextMonthIndex = (monthIndex + 6) % 12;
+    const nextMonth = allMonths[nextMonthIndex];
+    
+    return `${nextMonth} ${day}`;
+  }, [selectedMonth, selectedDate]);
 
   const handleAmountChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
@@ -115,6 +150,9 @@ const BusinessIncome = () => {
       if (!selectedQuarter) {
         newErrors.selectedQuarter = "Please select a quarter";
       }
+      if (!selectedMonth) {
+        newErrors.selectedMonth = "Please select a month";
+      }
       if (!selectedDate) {
         newErrors.selectedDate = "Please select a date";
       }
@@ -123,6 +161,9 @@ const BusinessIncome = () => {
     if (frequency === "Half-Yearly") {
       if (!selectedHalf) {
         newErrors.selectedHalf = "Please select a half";
+      }
+      if (!selectedMonth) {
+        newErrors.selectedMonth = "Please select a month";
       }
       if (!selectedDate) {
         newErrors.selectedDate = "Please select a date";
@@ -162,7 +203,7 @@ const BusinessIncome = () => {
         expectedAmount: parseFloat(expectedAmount),
         frequency,
         selectedDay: selectedDay || null,
-        selectedDate: selectedDate ? parseInt(selectedDate) : null,
+        selectedDate: selectedDate || null,
         selectedQuarter: selectedQuarter || null,
         selectedHalf: selectedHalf || null,
         selectedMonth: selectedMonth || null,
@@ -208,338 +249,441 @@ const BusinessIncome = () => {
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-24">
-        <div className="mx-auto max-w-[620px] space-y-6 px-6">
-          {/* Business Name */}
-          <div className="space-y-2" data-testid="business-name-field">
-            <label
-              htmlFor="businessName"
-              className="block text-sm font-medium text-[#0B3D2E]"
-            >
-              Business Name
-            </label>
-            <input
-              id="businessName"
-              type="text"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="Enter Business Name"
-              maxLength={50}
-              className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-              data-testid="business-name-input"
-            />
-            {errors.businessName && (
-              <p className="text-sm text-red-500">{errors.businessName}</p>
-            )}
-          </div>
-
-          {/* Expected Amount */}
-          <div className="space-y-2" data-testid="expected-amount-field">
-            <label
-              htmlFor="expectedAmount"
-              className="block text-sm font-medium text-[#0B3D2E]"
-            >
-              Expected Amount
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">
-                ₹
-              </span>
+        <div className="mx-auto max-w-[620px] px-6">
+          <div className="space-y-5">
+            {/* Business Name */}
+            <div className="space-y-2" data-testid="business-name-field">
+              <label
+                htmlFor="businessName"
+                className="block text-sm font-medium text-[#0B3D2E]"
+              >
+                Business Name
+              </label>
               <input
-                id="expectedAmount"
+                id="businessName"
                 type="text"
-                value={expectedAmount}
-                onChange={handleAmountChange}
-                placeholder="0"
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                data-testid="expected-amount-input"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+                placeholder="Enter Business Name"
+                maxLength={50}
+                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                data-testid="business-name-input"
               />
-            </div>
-            {errors.expectedAmount && (
-              <p className="text-sm text-red-500">{errors.expectedAmount}</p>
-            )}
-          </div>
-
-          {/* Frequency */}
-          <div className="space-y-2" data-testid="frequency-field">
-            <label
-              htmlFor="frequency"
-              className="block text-sm font-medium text-[#0B3D2E]"
-            >
-              Frequency
-            </label>
-            <select
-              id="frequency"
-              value={frequency}
-              onChange={(e) => setFrequency(e.target.value)}
-              className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-              data-testid="frequency-select"
-            >
-              <option value="">Select Frequency</option>
-              {frequencyOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-            {errors.frequency && (
-              <p className="text-sm text-red-500">{errors.frequency}</p>
-            )}
-          </div>
-
-          {/* Conditional Fields - Weekly */}
-          {frequency === "Weekly" && (
-            <div
-              className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300"
-              data-testid="weekly-fields"
-            >
-              <label className="block text-sm font-medium text-[#0B3D2E]">
-                Select Day
-              </label>
-              <select
-                value={selectedDay}
-                onChange={(e) => setSelectedDay(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                data-testid="day-select"
-              >
-                <option value="">Select Day</option>
-                {weekDays.map((day) => (
-                  <option key={day} value={day}>
-                    {day}
-                  </option>
-                ))}
-              </select>
-              {errors.selectedDay && (
-                <p className="text-sm text-red-500">{errors.selectedDay}</p>
+              {errors.businessName && (
+                <p className="text-sm text-red-500">{errors.businessName}</p>
               )}
             </div>
-          )}
 
-          {/* Conditional Fields - Monthly */}
-          {frequency === "Monthly" && (
-            <div
-              className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300"
-              data-testid="monthly-fields"
-            >
-              <label className="block text-sm font-medium text-[#0B3D2E]">
-                Select Date
-              </label>
-              <select
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                data-testid="date-select"
+            {/* Expected Amount */}
+            <div className="space-y-2" data-testid="expected-amount-field">
+              <label
+                htmlFor="expectedAmount"
+                className="block text-sm font-medium text-[#0B3D2E]"
               >
-                <option value="">Select Date</option>
-                {dates.map((date) => (
-                  <option key={date} value={date}>
-                    Day {date}
-                  </option>
-                ))}
-              </select>
-              {errors.selectedDate && (
-                <p className="text-sm text-red-500">{errors.selectedDate}</p>
-              )}
-            </div>
-          )}
-
-          {/* Conditional Fields - Quarterly */}
-          {frequency === "Quarterly" && (
-            <div
-              className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300"
-              data-testid="quarterly-fields"
-            >
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[#0B3D2E]">
-                  Select Quarter
-                </label>
-                <select
-                  value={selectedQuarter}
-                  onChange={(e) => setSelectedQuarter(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="quarter-select"
-                >
-                  <option value="">Select Quarter</option>
-                  {quarters.map((q) => (
-                    <option key={q} value={q}>
-                      {q}
-                    </option>
-                  ))}
-                </select>
-                {errors.selectedQuarter && (
-                  <p className="text-sm text-red-500">{errors.selectedQuarter}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[#0B3D2E]">
-                  Select Date
-                </label>
-                <select
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="date-select"
-                >
-                  <option value="">Select Date</option>
-                  {dates.map((date) => (
-                    <option key={date} value={date}>
-                      Day {date}
-                    </option>
-                  ))}
-                </select>
-                {errors.selectedDate && (
-                  <p className="text-sm text-red-500">{errors.selectedDate}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Conditional Fields - Half-Yearly */}
-          {frequency === "Half-Yearly" && (
-            <div
-              className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300"
-              data-testid="half-yearly-fields"
-            >
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[#0B3D2E]">
-                  Select Half
-                </label>
-                <select
-                  value={selectedHalf}
-                  onChange={(e) => setSelectedHalf(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="half-select"
-                >
-                  <option value="">Select Half</option>
-                  {halves.map((h) => (
-                    <option key={h} value={h}>
-                      {h}
-                    </option>
-                  ))}
-                </select>
-                {errors.selectedHalf && (
-                  <p className="text-sm text-red-500">{errors.selectedHalf}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[#0B3D2E]">
-                  Select Date
-                </label>
-                <select
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="date-select"
-                >
-                  <option value="">Select Date</option>
-                  {dates.map((date) => (
-                    <option key={date} value={date}>
-                      Day {date}
-                    </option>
-                  ))}
-                </select>
-                {errors.selectedDate && (
-                  <p className="text-sm text-red-500">{errors.selectedDate}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Conditional Fields - Yearly */}
-          {frequency === "Yearly" && (
-            <div
-              className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300"
-              data-testid="yearly-fields"
-            >
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[#0B3D2E]">
-                  Select Month
-                </label>
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="month-select"
-                >
-                  <option value="">Select Month</option>
-                  {months.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))}
-                </select>
-                {errors.selectedMonth && (
-                  <p className="text-sm text-red-500">{errors.selectedMonth}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[#0B3D2E]">
-                  Select Date
-                </label>
-                <select
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="date-select"
-                >
-                  <option value="">Select Date</option>
-                  {dates.map((date) => (
-                    <option key={date} value={date}>
-                      Day {date}
-                    </option>
-                  ))}
-                </select>
-                {errors.selectedDate && (
-                  <p className="text-sm text-red-500">{errors.selectedDate}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Conditional Fields - Others */}
-          {frequency === "Others" && (
-            <div
-              className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300"
-              data-testid="others-fields"
-            >
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-[#0B3D2E]">
-                  Enter Custom Frequency
-                </label>
+                Expected Amount
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">
+                  ₹
+                </span>
                 <input
+                  id="expectedAmount"
                   type="text"
-                  value={customFrequency}
-                  onChange={(e) => setCustomFrequency(e.target.value)}
-                  placeholder="e.g., Every 2 weeks"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="custom-frequency-input"
+                  value={expectedAmount}
+                  onChange={handleAmountChange}
+                  placeholder="0"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="expected-amount-input"
                 />
-                {errors.customFrequency && (
-                  <p className="text-sm text-red-500">{errors.customFrequency}</p>
+              </div>
+              {errors.expectedAmount && (
+                <p className="text-sm text-red-500">{errors.expectedAmount}</p>
+              )}
+            </div>
+
+            {/* Frequency */}
+            <div className="space-y-2" data-testid="frequency-field">
+              <label
+                htmlFor="frequency"
+                className="block text-sm font-medium text-[#0B3D2E]"
+              >
+                Frequency
+              </label>
+              <select
+                id="frequency"
+                value={frequency}
+                onChange={(e) => setFrequency(e.target.value)}
+                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                data-testid="frequency-select"
+              >
+                <option value="">Select Frequency</option>
+                {frequencyOptions.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </select>
+              {errors.frequency && (
+                <p className="text-sm text-red-500">{errors.frequency}</p>
+              )}
+            </div>
+
+            {/* Conditional Fields - Weekly */}
+            {frequency === "Weekly" && (
+              <div
+                className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300"
+                data-testid="weekly-fields"
+              >
+                <label className="block text-sm font-medium text-[#0B3D2E]">
+                  Select Day
+                </label>
+                <select
+                  value={selectedDay}
+                  onChange={(e) => setSelectedDay(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="day-select"
+                >
+                  <option value="">Select Day</option>
+                  {weekDays.map((day) => (
+                    <option key={day} value={day}>
+                      {day}
+                    </option>
+                  ))}
+                </select>
+                {errors.selectedDay && (
+                  <p className="text-sm text-red-500">{errors.selectedDay}</p>
                 )}
               </div>
-              <div className="space-y-2">
+            )}
+
+            {/* Conditional Fields - Monthly */}
+            {frequency === "Monthly" && (
+              <div
+                className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300"
+                data-testid="monthly-fields"
+              >
                 <label className="block text-sm font-medium text-[#0B3D2E]">
                   Select Date
                 </label>
-                <input
-                  type="date"
-                  value={customDate}
-                  onChange={(e) => setCustomDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="custom-date-input"
-                />
-                {errors.customDate && (
-                  <p className="text-sm text-red-500">{errors.customDate}</p>
+                <div className="relative">
+                  <input
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="date-select"
+                  />
+                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                </div>
+                {errors.selectedDate && (
+                  <p className="text-sm text-red-500">{errors.selectedDate}</p>
                 )}
               </div>
-            </div>
-          )}
+            )}
 
-          {errors.submit && (
-            <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
-              {errors.submit}
-            </div>
-          )}
+            {/* Conditional Fields - Quarterly */}
+            {frequency === "Quarterly" && (
+              <div
+                className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-300"
+                data-testid="quarterly-fields"
+              >
+                {/* Quarter Selection */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                    Select Quarter
+                  </label>
+                  <select
+                    value={selectedQuarter}
+                    onChange={(e) => {
+                      setSelectedQuarter(e.target.value);
+                      setSelectedMonth(""); // Reset month when quarter changes
+                      setSelectedDate(""); // Reset date when quarter changes
+                    }}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="quarter-select"
+                  >
+                    <option value="">Select Quarter</option>
+                    {quarters.map((q) => (
+                      <option key={q.id} value={q.label}>
+                        {q.label}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.selectedQuarter && (
+                    <p className="text-sm text-red-500">{errors.selectedQuarter}</p>
+                  )}
+                </div>
+
+                {/* Month Selection (based on quarter) */}
+                {selectedQuarter && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-[#0B3D2E]">
+                      Select Month
+                    </label>
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => {
+                        setSelectedMonth(e.target.value);
+                        setSelectedDate(""); // Reset date when month changes
+                      }}
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="month-select"
+                    >
+                      <option value="">Select Month</option>
+                      {quarterMonths.map((month) => (
+                        <option key={month} value={month}>
+                          {month}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.selectedMonth && (
+                      <p className="text-sm text-red-500">{errors.selectedMonth}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Date Selection */}
+                {selectedMonth && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-[#0B3D2E]">
+                      Select Date
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                        data-testid="date-select"
+                      />
+                      <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                    </div>
+                    {errors.selectedDate && (
+                      <p className="text-sm text-red-500">{errors.selectedDate}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Show Next Recurring Dates */}
+                {calculateQuarterlyDates.length > 0 && (
+                  <div className="rounded-xl bg-[#E8F8F4] border border-[#00D09C]/30 p-4">
+                    <div className="flex items-start gap-2">
+                      <Calendar className="h-5 w-5 text-[#00D09C] mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-[#0B3D2E] mb-1">
+                          Next Recurring Dates:
+                        </p>
+                        <div className="text-sm text-[#0B3D2E]/80 space-y-1">
+                          {calculateQuarterlyDates.map((date, idx) => (
+                            <div key={idx}>• {date}</div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Conditional Fields - Half-Yearly */}
+            {frequency === "Half-Yearly" && (
+              <div
+                className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-300"
+                data-testid="half-yearly-fields"
+              >
+                {/* Half Selection */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                    Select Half
+                  </label>
+                  <select
+                    value={selectedHalf}
+                    onChange={(e) => {
+                      setSelectedHalf(e.target.value);
+                      setSelectedMonth(""); // Reset month when half changes
+                      setSelectedDate(""); // Reset date when half changes
+                    }}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="half-select"
+                  >
+                    <option value="">Select Half</option>
+                    {halves.map((h) => (
+                      <option key={h.id} value={h.label}>
+                        {h.label}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.selectedHalf && (
+                    <p className="text-sm text-red-500">{errors.selectedHalf}</p>
+                  )}
+                </div>
+
+                {/* Month Selection (based on half) */}
+                {selectedHalf && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-[#0B3D2E]">
+                      Select Month
+                    </label>
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => {
+                        setSelectedMonth(e.target.value);
+                        setSelectedDate(""); // Reset date when month changes
+                      }}
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="month-select"
+                    >
+                      <option value="">Select Month</option>
+                      {halfMonths.map((month) => (
+                        <option key={month} value={month}>
+                          {month}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.selectedMonth && (
+                      <p className="text-sm text-red-500">{errors.selectedMonth}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Date Selection */}
+                {selectedMonth && (
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-[#0B3D2E]">
+                      Select Date
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                        data-testid="date-select"
+                      />
+                      <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                    </div>
+                    {errors.selectedDate && (
+                      <p className="text-sm text-red-500">{errors.selectedDate}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Show Next Recurring Date */}
+                {calculateHalfYearlyDate && (
+                  <div className="rounded-xl bg-[#E8F8F4] border border-[#00D09C]/30 p-4">
+                    <div className="flex items-start gap-2">
+                      <Calendar className="h-5 w-5 text-[#00D09C] mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-[#0B3D2E] mb-1">
+                          Next Recurring Date:
+                        </p>
+                        <div className="text-sm text-[#0B3D2E]/80">
+                          • {calculateHalfYearlyDate}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Conditional Fields - Yearly */}
+            {frequency === "Yearly" && (
+              <div
+                className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-300"
+                data-testid="yearly-fields"
+              >
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                    Select Month
+                  </label>
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="month-select"
+                  >
+                    <option value="">Select Month</option>
+                    {allMonths.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.selectedMonth && (
+                    <p className="text-sm text-red-500">{errors.selectedMonth}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                    Select Date
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="date-select"
+                    />
+                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                  </div>
+                  {errors.selectedDate && (
+                    <p className="text-sm text-red-500">{errors.selectedDate}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Conditional Fields - Others */}
+            {frequency === "Others" && (
+              <div
+                className="space-y-5 animate-in fade-in slide-in-from-top-2 duration-300"
+                data-testid="others-fields"
+              >
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                    Enter Custom Frequency
+                  </label>
+                  <input
+                    type="text"
+                    value={customFrequency}
+                    onChange={(e) => setCustomFrequency(e.target.value)}
+                    placeholder="e.g., Every 2 weeks"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="custom-frequency-input"
+                  />
+                  {errors.customFrequency && (
+                    <p className="text-sm text-red-500">{errors.customFrequency}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-[#0B3D2E]">
+                    Select Date
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={customDate}
+                      onChange={(e) => setCustomDate(e.target.value)}
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="custom-date-input"
+                    />
+                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                  </div>
+                  {errors.customDate && (
+                    <p className="text-sm text-red-500">{errors.customDate}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {errors.submit && (
+              <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
+                {errors.submit}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -549,7 +693,7 @@ const BusinessIncome = () => {
           type="button"
           onClick={handleSave}
           disabled={isSubmitting}
-          className="w-full rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+          className="w-full max-w-[620px] mx-auto block rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
           data-testid="save-button"
         >
           {isSubmitting ? "Saving..." : "Save Business Income"}
