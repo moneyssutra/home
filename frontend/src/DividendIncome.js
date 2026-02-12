@@ -23,6 +23,7 @@ const DividendIncome = () => {
   const [frequency, setFrequency] = useState("");
   
   // Conditional date fields
+  const [selectedDay, setSelectedDay] = useState("");
   const [selectedQuarter, setSelectedQuarter] = useState("");
   const [selectedHalf, setSelectedHalf] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
