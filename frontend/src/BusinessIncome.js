@@ -331,8 +331,8 @@ const BusinessIncome = () => {
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D09C]"
-          onClick={() => navigate("/")}
-          aria-label="Back to income source"
+          onClick={() => navigate("/my-business")}
+          aria-label="Back to my business"
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
