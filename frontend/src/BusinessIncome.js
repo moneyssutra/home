@@ -299,7 +299,7 @@ const BusinessIncome = () => {
             </div>
 
             {/* Expected Amount */}
-            <div className="space-y-2" data-testid="expected-amount-field">
+            <div className="space-y-2 w-full" data-testid="expected-amount-field">
               <label
                 htmlFor="expectedAmount"
                 className="block text-sm font-medium text-[#0B3D2E]"
