@@ -77,6 +77,7 @@ const DividendIncome = () => {
   // Reset conditional fields when frequency changes and auto-scroll
   useEffect(() => {
     if (!id) {
+      setSelectedDay("");
       setSelectedQuarter("");
       setSelectedHalf("");
       setSelectedMonth("");
@@ -87,7 +88,13 @@ const DividendIncome = () => {
     // Auto-scroll to new fields based on frequency
     if (frequency) {
       setTimeout(() => {
-        if (frequency === "Quarterly" && quarterFieldRef.current) {
+        if (frequency === "Weekly" && dayFieldRef.current) {
+          dayFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          dayFieldRef.current.focus();
+        } else if (frequency === "Monthly" && dateFieldRef.current) {
+          dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          dateFieldRef.current.focus();
+        } else if (frequency === "Quarterly" && quarterFieldRef.current) {
           quarterFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
           quarterFieldRef.current.focus();
         } else if (frequency === "Half-Yearly" && halfFieldRef.current) {
