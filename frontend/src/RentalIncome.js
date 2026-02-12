@@ -448,7 +448,7 @@ const RentalIncome = () => {
                   </div>
                   <div className="text-right text-white/60 text-xs">
                     <p>Asset Value: ₹{formatAmount(selectedAsset.currentValue)}</p>
-                    <p className="text-[#00D09C]">Annual Rent: ₹{formatAmount(parseFloat(rentalAmount || 0) * (frequency === "Monthly" ? 12 : frequency === "Quarterly" ? 4 : frequency === "Half-Yearly" ? 2 : 1))}</p>
+                    <p className="text-[#00D09C]">Annual Rent: ₹{formatAmount(parseFloat(rentalAmount || 0) * (frequency === "Daily" ? 365 : frequency === "Monthly" ? 12 : frequency === "Quarterly" ? 4 : frequency === "Half-Yearly" ? 2 : 1))}</p>
                   </div>
                 </div>
               </div>
@@ -472,20 +472,20 @@ const RentalIncome = () => {
               {errors.propertyName && <p className="text-sm text-red-500 mt-1">{errors.propertyName}</p>}
             </div>
 
-            {/* Tenant Name (Optional) */}
+            {/* Renter Name (Optional) */}
             <div className="w-full">
-              <label htmlFor="tenantName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                Tenant Name <span className="text-[#94A3B8] font-normal">(Optional)</span>
+              <label htmlFor="renterName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Renter Name <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <input
-                id="tenantName"
+                id="renterName"
                 type="text"
-                value={tenantName}
-                onChange={(e) => setTenantName(e.target.value)}
+                value={renterName}
+                onChange={(e) => setRenterName(e.target.value)}
                 placeholder="e.g., Rahul Sharma"
                 maxLength={50}
                 className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                data-testid="tenant-name-input"
+                data-testid="renter-name-input"
               />
             </div>
 
