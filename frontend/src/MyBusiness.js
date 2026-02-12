@@ -137,11 +137,6 @@ const MyBusiness = () => {
           ) : (
             /* Business List */
             <div className="space-y-4">
-              {/* Section Label */}
-              <h2 className="text-sm font-medium text-[#0B3D2E]/70 mb-4">
-                Your Businesses
-              </h2>
-
               {/* Business Cards */}
               <div className="space-y-3">
                 {businesses.map((business) => (
