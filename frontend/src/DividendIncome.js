@@ -137,7 +137,7 @@ const DividendIncome = () => {
     "Others"
   ];
 
-  const frequencyOptions = ["Quarterly", "Half-Yearly", "Yearly", "Irregular"];
+  const frequencyOptions = ["Daily", "Weekly", "Monthly", "Quarterly", "Half-Yearly", "Yearly", "Irregular"];
 
   const quarters = [
     { id: "Q1", label: "Q1 (Jan–Mar)" },
