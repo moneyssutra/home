@@ -176,44 +176,44 @@ const MyJob = () => {
             <div className="flex items-center justify-center py-12">
               <div className="text-[#0B3D2E]/60">Loading...</div>
             </div>
-          ) : businesses.length === 0 ? (
+          ) : jobs.length === 0 ? (
             /* Empty State */
             <div className="flex flex-col items-center justify-center py-16 px-6">
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F4] mb-6">
                 <Briefcase className="h-12 w-12 text-[#00D09C]" />
               </div>
               <h2 className="text-xl font-semibold text-[#0B3D2E] mb-2">
-                No Businesses Added Yet
+                No Jobs Added Yet
               </h2>
               <p className="text-[#0B3D2E]/60 text-center mb-8">
-                Start by adding your first business income source
+                Start by adding your first job income source
               </p>
               <button
                 type="button"
-                onClick={() => navigate("/business-income")}
+                onClick={() => navigate("/job-income")}
                 className="flex items-center gap-2 rounded-xl bg-[#00D09C] px-6 py-3 text-white font-medium transition-all hover:bg-[#00BA89] active:scale-[0.98] shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
-                data-testid="add-business-empty-button"
+                data-testid="add-job-empty-button"
               >
                 <Plus className="h-5 w-5" />
-                Add New Business
+                Add New Job
               </button>
             </div>
           ) : (
-            /* Business List */
+            /* Job List */
             <div className="space-y-4">
-              {/* Business Cards */}
+              {/* Job Cards */}
               <div className="space-y-3">
-                {businesses.map((business) => (
+                {jobs.map((job) => (
                   <div
-                    key={business.id}
+                    key={job.id}
                     className="flex items-center justify-between rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
-                    onClick={() => navigate(`/business-income/${business.id}`)}
-                    data-testid={`business-card-${business.id}`}
+                    onClick={() => navigate(`/job-income/${job.id}`)}
+                    data-testid={`job-card-${job.id}`}
                   >
                     <div className="flex-1">
-                      {/* Business Name */}
+                      {/* Company Name */}
                       <h3 className="text-lg font-semibold text-[#0B3D2E] mb-3">
-                        {business.name}
+                        {job.name}
                       </h3>
 
                       {/* Details Grid */}
@@ -222,7 +222,7 @@ const MyJob = () => {
                         <div className="flex items-baseline gap-2">
                           <span className="text-sm text-[#0B3D2E]/60">Expected Amount:</span>
                           <span className="text-base font-semibold text-[#0B3D2E]">
-                            ₹ {formatAmount(business.expectedAmount)}
+                            ₹ {formatAmount(job.expectedAmount)}
                           </span>
                         </div>
 
@@ -230,7 +230,7 @@ const MyJob = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-[#0B3D2E]/60">Frequency:</span>
                           <span className="text-sm font-medium text-[#0B3D2E]">
-                            {business.frequency}
+                            {job.frequency}
                           </span>
                         </div>
 
@@ -238,7 +238,7 @@ const MyJob = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-[#0B3D2E]/60">Date:</span>
                           <span className="text-sm font-medium text-[#00D09C]">
-                            {getNextPaymentDate(business)}
+                            {getNextPaymentDate(job)}
                           </span>
                         </div>
                       </div>
@@ -252,16 +252,16 @@ const MyJob = () => {
                 ))}
               </div>
 
-              {/* Add New Business Button */}
+              {/* Add New Job Button */}
               <div className="pt-4">
                 <button
                   type="button"
-                  onClick={() => navigate("/business-income")}
+                  onClick={() => navigate("/job-income")}
                   className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#00D09C] bg-[#E8F8F4] px-6 py-4 text-[#00D09C] font-semibold transition-all hover:bg-[#00D09C] hover:text-white active:scale-[0.98]"
-                  data-testid="add-business-button"
+                  data-testid="add-job-button"
                 >
                   <Plus className="h-5 w-5" />
-                  Add New Business
+                  Add New Job
                 </button>
               </div>
             </div>
