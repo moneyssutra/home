@@ -583,6 +583,8 @@ const BusinessIncome = () => {
                         type="date"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
+                        min={halfYearlyDateRange.min}
+                        max={halfYearlyDateRange.max}
                         className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                         data-testid="date-select"
                       />
