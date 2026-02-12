@@ -518,7 +518,7 @@ const BusinessIncome = () => {
                 data-testid="half-yearly-fields"
               >
                 {/* Half Selection */}
-                <div className="space-y-2">
+                <div className="space-y-2 w-full">
                   <label className="block text-sm font-medium text-[#0B3D2E]">
                     Select Half
                   </label>
