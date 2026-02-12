@@ -442,6 +442,52 @@ const DividendIncome = () => {
               {errors.frequency && <p className="text-sm text-red-500 mt-1">{errors.frequency}</p>}
             </div>
 
+            {/* Weekly - Day Selection */}
+            {frequency === "Weekly" && (
+              <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="weekly-fields">
+                <label htmlFor="weeklyDay" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  Select Day
+                </label>
+                <select
+                  id="weeklyDay"
+                  ref={dayFieldRef}
+                  value={selectedDay}
+                  onChange={(e) => setSelectedDay(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="day-select"
+                >
+                  <option value="">Select a Day</option>
+                  {weekDays.map((day) => (
+                    <option key={day} value={day}>{day}</option>
+                  ))}
+                </select>
+                {errors.selectedDay && <p className="text-sm text-red-500 mt-1">{errors.selectedDay}</p>}
+              </div>
+            )}
+
+            {/* Monthly - Date Selection (1-31) */}
+            {frequency === "Monthly" && (
+              <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
+                <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  Select Date (Day of Month)
+                </label>
+                <select
+                  id="monthlyDate"
+                  ref={dateFieldRef}
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="date-select"
+                >
+                  <option value="">Select a Date</option>
+                  {days.map((day) => (
+                    <option key={day} value={day}>{day}</option>
+                  ))}
+                </select>
+                {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
+              </div>
+            )}
+
             {/* Quarterly Fields */}
             {frequency === "Quarterly" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="quarterly-fields">
