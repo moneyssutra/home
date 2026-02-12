@@ -46,7 +46,7 @@ class IncomeSource(BaseModel):
     expectedAmount: float
     frequency: str
     selectedDay: Optional[str] = None
-    selectedDate: Optional[int] = None
+    selectedDate: Optional[str] = None  # Changed from int to str to handle date strings
     selectedQuarter: Optional[str] = None
     selectedHalf: Optional[str] = None
     selectedMonth: Optional[str] = None
@@ -60,7 +60,7 @@ class IncomeSourceCreate(BaseModel):
     expectedAmount: float
     frequency: str
     selectedDay: Optional[str] = None
-    selectedDate: Optional[int] = None
+    selectedDate: Optional[str] = None  # Changed from int to str to handle date strings
     selectedQuarter: Optional[str] = None
     selectedHalf: Optional[str] = None
     selectedMonth: Optional[str] = None
