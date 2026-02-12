@@ -8,6 +8,7 @@ const DividendIncome = () => {
   const { id } = useParams();
   
   // Refs for auto-scroll
+  const dayFieldRef = useRef(null);
   const quarterFieldRef = useRef(null);
   const halfFieldRef = useRef(null);
   const monthFieldRef = useRef(null);
