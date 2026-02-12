@@ -76,6 +76,23 @@ Build an income tracking application with modular income type support. Initial f
   - Full CRUD operations with confirmation dialogs
   - Duplicate entry check
 
+#### Rental Income Module (COMPLETED - Feb 12, 2026)
+- **My Rental Page** (`/my-rental`)
+  - List all rental income entries filtered by type="Rental"
+  - Display: Property Name, Tenant Name (if set), Amount (₹), Frequency, Due Date, Next Due
+  - Empty state with "Add New Rental" CTA
+  - Click card to edit entry
+  
+- **Rental Income Form** (`/rental-income`, `/rental-income/:id`)
+  - Fields:
+    - Property Name (required) - e.g., "Green Villa – Flat 302"
+    - Tenant Name (optional) - e.g., "Rahul Sharma"
+    - Rental Amount (required)
+    - Frequency: Monthly/Quarterly/Half-Yearly/Yearly/Others
+    - Conditional date fields based on frequency
+  - Full CRUD operations with confirmation dialogs
+  - Duplicate property check
+
 ### Frequency Options
 All modules support: Monthly, Quarterly, Half-Yearly, Yearly, Others
 Business/Job also support: Daily, Weekly
