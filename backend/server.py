@@ -61,6 +61,8 @@ class IncomeSource(BaseModel):
     startDate: Optional[str] = None
     endDate: Optional[str] = None
     currentAmount: Optional[float] = None
+    # Rental-specific fields
+    tenantName: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class IncomeSourceCreate(BaseModel):
@@ -84,6 +86,8 @@ class IncomeSourceCreate(BaseModel):
     startDate: Optional[str] = None
     endDate: Optional[str] = None
     currentAmount: Optional[float] = None
+    # Rental-specific fields
+    tenantName: Optional[str] = None
 
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
