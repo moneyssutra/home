@@ -191,16 +191,6 @@ const InterestIncome = () => {
     }
   }, [calculatedAmount, manualOverride]);
 
-  const getCompoundingPeriodsPerYear = () => {
-    switch (compoundingFrequency) {
-      case "Monthly": return 12;
-      case "Quarterly": return 4;
-      case "Half-Yearly": return 2;
-      case "Yearly": return 1;
-      default: return 1;
-    }
-  };
-
   const frequencyOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly", "Others"];
   const compoundingOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly"];
 
