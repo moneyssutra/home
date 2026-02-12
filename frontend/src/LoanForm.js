@@ -370,11 +370,32 @@ const LoanIncome = () => {
               {errors.startDate && <p className="text-sm text-red-500 mt-1">{errors.startDate}</p>}
             </div>
 
-            {/* Outstanding Amount */}
+            {/* Outstanding Amount - Auto Calculated */}
             <div className="w-full">
               <label htmlFor="outstandingAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                Outstanding Amount
+                Outstanding Amount <span className="text-[#00D09C] font-normal">(Auto-calculated)</span>
               </label>
+              
+              {/* EMIs Paid Info */}
+              {startDate && emiAmount && parseFloat(emiAmount) > 0 && (
+                <div className="mb-2 p-3 rounded-lg bg-[#E8F8F4] border border-[#00D09C]/30">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-[#0B3D2E]/70">EMIs Paid:</span>
+                    <span className="font-medium text-[#0B3D2E]">
+                      {(() => {
+                        const start = new Date(startDate);
+                        const today = new Date();
+                        if (start > today) return "0 (starts in future)";
+                        const monthsElapsed = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
+                        const tenure = parseInt(tenureMonths) || 0;
+                        const paid = Math.min(Math.max(0, monthsElapsed), tenure);
+                        return `${paid} of ${tenure} months`;
+                      })()}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
                 <input
@@ -383,10 +404,16 @@ const LoanIncome = () => {
                   value={outstandingAmount}
                   onChange={handleAmountChange(setOutstandingAmount)}
                   placeholder="0"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  readOnly={!!startDate && !!emiAmount}
+                  className={`w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 ${
+                    startDate && emiAmount ? "bg-[#F8FAF9] cursor-not-allowed" : ""
+                  }`}
                   data-testid="outstanding-input"
                 />
               </div>
+              <p className="text-xs text-[#0B3D2E]/50 mt-1">
+                Calculated based on EMIs paid since start date
+              </p>
               {errors.outstandingAmount && <p className="text-sm text-red-500 mt-1">{errors.outstandingAmount}</p>}
             </div>
 
