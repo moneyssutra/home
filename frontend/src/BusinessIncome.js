@@ -115,6 +115,30 @@ const BusinessIncome = () => {
     return `${nextMonth} ${day}`;
   }, [selectedMonth, selectedDate]);
 
+  // Get date range for selected month (for Quarterly)
+  const getDateRangeForMonth = (monthName) => {
+    if (!monthName) return { min: "", max: "" };
+    
+    const monthIndex = allMonths.indexOf(monthName);
+    const year = 2026; // Using 2026 as base year
+    const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+    
+    const min = `${year}-${String(monthIndex + 1).padStart(2, '0')}-01`;
+    const max = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${lastDay}`;
+    
+    return { min, max };
+  };
+
+  // Get date range for Quarterly
+  const quarterlyDateRange = useMemo(() => {
+    return getDateRangeForMonth(selectedMonth);
+  }, [selectedMonth]);
+
+  // Get date range for Half-Yearly
+  const halfYearlyDateRange = useMemo(() => {
+    return getDateRangeForMonth(selectedMonth);
+  }, [selectedMonth]);
+
   const handleAmountChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
     setExpectedAmount(value);
