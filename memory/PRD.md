@@ -169,8 +169,8 @@ Business/Job also support: Daily, Weekly
 - None currently
 
 ### P2 - Medium Priority
-- Add Rental, Commission, Dividend income modules
-- Refactor Business/Job/Interest components into single reusable component
+- Add Commission and Dividend income modules
+- Refactor all income components into single reusable component
 - Dashboard/Summary view of all income sources
 
 ### P3 - Low Priority
