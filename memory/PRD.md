@@ -208,7 +208,7 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 ## Backlog / Future Tasks
 
 ### P1 - High Priority
-- Implement Dividend income module
+- Create central Dashboard page showing total Dividend Income (aggregate across all categories)
 
 ### P2 - Medium Priority
 - Add Commission and Dividend income modules
