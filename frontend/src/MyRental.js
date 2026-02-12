@@ -1,32 +1,58 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, Home } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Home, TrendingUp } from "lucide-react";
 import axios from "axios";
 
 const MyRental = () => {
   const navigate = useNavigate();
   const [rentals, setRentals] = useState([]);
+  const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
-    fetchRentals();
+    fetchData();
   }, []);
 
-  const fetchRentals = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/income`);
-      const rentalData = response.data
+      const [incomeRes, assetsRes] = await Promise.all([
+        axios.get(`${backendUrl}/api/income`),
+        axios.get(`${backendUrl}/api/assets`)
+      ]);
+      const rentalData = incomeRes.data
         .filter(item => item.type === "Rental")
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setRentals(rentalData);
+      setAssets(assetsRes.data);
     } catch (error) {
-      console.error("Error fetching rentals:", error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Calculate rental yield for a rental
+  const getRentalYield = (rental) => {
+    if (!rental.assetId) return null;
+    const asset = assets.find(a => a.id === rental.assetId);
+    if (!asset || !asset.currentValue) return null;
+    
+    const annualRent = rental.expectedAmount * (
+      rental.frequency === "Monthly" ? 12 :
+      rental.frequency === "Quarterly" ? 4 :
+      rental.frequency === "Half-Yearly" ? 2 :
+      rental.frequency === "Yearly" ? 1 : 12
+    );
+    
+    return (annualRent / asset.currentValue) * 100;
+  };
+
+  // Get linked asset info
+  const getLinkedAsset = (assetId) => {
+    return assets.find(a => a.id === assetId);
   };
 
   const getNextPaymentDate = (rental) => {
