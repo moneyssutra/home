@@ -273,10 +273,10 @@ const BusinessIncome = () => {
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-24">
-        <div className="mx-auto max-w-[620px] px-6">
-          <div className="space-y-5">
+        <div className="mx-auto w-full max-w-[620px] px-6">
+          <div className="flex flex-col space-y-5 w-full">
             {/* Business Name */}
-            <div className="space-y-2" data-testid="business-name-field">
+            <div className="space-y-2 w-full" data-testid="business-name-field">
               <label
                 htmlFor="businessName"
                 className="block text-sm font-medium text-[#0B3D2E]"
