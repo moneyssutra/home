@@ -96,6 +96,30 @@ async def get_status_checks():
     
     return status_checks
 
+@api_router.post("/income", response_model=IncomeSource)
+async def create_income_source(input: IncomeSourceCreate):
+    income_dict = input.model_dump()
+    income_obj = IncomeSource(**income_dict)
+    
+    # Convert to dict and serialize datetime to ISO string for MongoDB
+    doc = income_obj.model_dump()
+    doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    _ = await db.income_sources.insert_one(doc)
+    return income_obj
+
+@api_router.get("/income", response_model=List[IncomeSource])
+async def get_income_sources():
+    # Exclude MongoDB's _id field from the query results
+    income_sources = await db.income_sources.find({}, {"_id": 0}).to_list(1000)
+    
+    # Convert ISO string timestamps back to datetime objects
+    for source in income_sources:
+        if isinstance(source['createdAt'], str):
+            source['createdAt'] = datetime.fromisoformat(source['createdAt'])
+    
+    return income_sources
+
 # Include the router in the main app
 app.include_router(api_router)
 
