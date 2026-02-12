@@ -164,6 +164,11 @@ Business/Job also support: Daily, Weekly
 None currently.
 
 ## Changelog
+- **Feb 12, 2026**: Added Start Date, End Date, and Current Amount to Interest Income module
+  - Start Date: Can be past date (when loan/FD started)
+  - End Date: Maturity date (interest stops calculating after this)
+  - Current Amount: Auto-calculated Principal + Accrued Interest
+  - Matured badge for entries past end date
 - **Feb 12, 2026**: Completed Interest Income module with auto-calculation and manual override
 - **Feb 12, 2026**: Completed Job Income module implementation and testing
 - Initial: Project setup with Business Income module
