@@ -228,6 +228,11 @@ Business/Job also support: Daily, Weekly
 None currently.
 
 ## Changelog
+- **Feb 12, 2026**: Completed 4-point UX improvement list
+  - "Tenant Name" renamed to "Renter Name" in Rental Income module
+  - Added "Daily" frequency option with day-of-week selector
+  - Auto-scroll to conditional fields when frequency changes
+  - Fixed redirect flow: Asset form → Add Loan → Save → Returns to Asset form with state preserved
 - **Feb 12, 2026**: Major architecture update - Asset, Loan, and enhanced Rental modules
   - **Asset Module**: 6 asset types, current/purchase value tracking, appreciation %, loan linking
   - **Loan Module**: EMI auto-calculation, payment progress tracking, outstanding balance
