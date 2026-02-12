@@ -17,6 +17,8 @@ import JobIncome from "@/JobIncome";
 import MyJob from "@/MyJob";
 import InterestIncome from "@/InterestIncome";
 import MyInterest from "@/MyInterest";
+import RentalIncome from "@/RentalIncome";
+import MyRental from "@/MyRental";
 
 const HomePlaceholder = () => {
   return (
