@@ -154,6 +154,12 @@ function App() {
           <Route path="/my-rental" element={<MyRental />} />
           <Route path="/rental-income" element={<RentalIncome />} />
           <Route path="/rental-income/:id" element={<RentalIncome />} />
+          <Route path="/my-loans" element={<MyLoans />} />
+          <Route path="/loan" element={<LoanForm />} />
+          <Route path="/loan/:id" element={<LoanForm />} />
+          <Route path="/my-assets" element={<MyAssets />} />
+          <Route path="/asset" element={<AssetForm />} />
+          <Route path="/asset/:id" element={<AssetForm />} />
         </Routes>
       </BrowserRouter>
     </div>
