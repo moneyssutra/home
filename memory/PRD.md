@@ -137,7 +137,7 @@ Build an income tracking application with modular income type support. Initial f
 
 ### Frequency Options
 All modules support: Monthly, Quarterly, Half-Yearly, Yearly, Others
-Business/Job also support: Daily, Weekly
+Business/Job/Rental also support: Daily (with day-of-week selector)
 
 ### Next Payment Date Calculation
 - Daily: Current date
