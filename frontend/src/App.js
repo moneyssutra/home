@@ -19,6 +19,10 @@ import InterestIncome from "@/InterestIncome";
 import MyInterest from "@/MyInterest";
 import RentalIncome from "@/RentalIncome";
 import MyRental from "@/MyRental";
+import LoanForm from "@/LoanForm";
+import MyLoans from "@/MyLoans";
+import AssetForm from "@/AssetForm";
+import MyAssets from "@/MyAssets";
 
 const HomePlaceholder = () => {
   return (
