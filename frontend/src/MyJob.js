@@ -80,8 +80,8 @@ const MyJob = () => {
         return formatDate(nextYearlyDate);
         
       case "Others":
-        if (business.customDate) {
-          return formatDate(new Date(business.customDate));
+        if (job.customDate) {
+          return formatDate(new Date(job.customDate));
         }
         return "Custom";
         
