@@ -125,6 +125,7 @@ function App() {
         <Routes>
           <Route path="/" element={<IncomeSource />} />
           <Route path="/home" element={<HomePlaceholder />} />
+          <Route path="/business-income" element={<BusinessIncome />} />
         </Routes>
       </BrowserRouter>
     </div>
