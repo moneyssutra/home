@@ -67,12 +67,50 @@ const LoanIncome = () => {
     }
   }, [principalAmount, interestRate, tenureMonths]);
 
-  // Auto-set outstanding amount to principal for new loans
+  // Auto-calculate Outstanding Amount based on EMIs paid since start date
   useEffect(() => {
-    if (!id && principalAmount && !outstandingAmount) {
+    if (!principalAmount || !startDate || !emiAmount || !interestRate) return;
+    
+    const p = parseFloat(principalAmount) || 0;
+    const emi = parseFloat(emiAmount) || 0;
+    const monthlyRate = (parseFloat(interestRate) || 0) / 12 / 100;
+    
+    if (p <= 0 || emi <= 0) return;
+    
+    // Calculate months elapsed since start date
+    const start = new Date(startDate);
+    const today = new Date();
+    
+    // If start date is in future, outstanding = principal
+    if (start > today) {
       setOutstandingAmount(principalAmount);
+      return;
     }
-  }, [principalAmount, id]);
+    
+    const monthsElapsed = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
+    const emisPaid = Math.max(0, monthsElapsed);
+    
+    if (emisPaid === 0) {
+      setOutstandingAmount(principalAmount);
+      return;
+    }
+    
+    // Calculate outstanding using amortization formula
+    // Outstanding = P * [(1+r)^n - (1+r)^p] / [(1+r)^n - 1]
+    // Where p = payments made, n = total tenure
+    const n = parseInt(tenureMonths) || 0;
+    const r = monthlyRate;
+    
+    if (n > 0 && r > 0) {
+      const paidMonths = Math.min(emisPaid, n);
+      const outstanding = p * (Math.pow(1 + r, n) - Math.pow(1 + r, paidMonths)) / (Math.pow(1 + r, n) - 1);
+      setOutstandingAmount(Math.max(0, outstanding).toFixed(2));
+    } else {
+      // Simple calculation if no rate/tenure
+      const outstanding = p - (emi * emisPaid);
+      setOutstandingAmount(Math.max(0, outstanding).toFixed(2));
+    }
+  }, [principalAmount, startDate, emiAmount, interestRate, tenureMonths]);
 
   const handleAmountChange = (setter) => (e) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
