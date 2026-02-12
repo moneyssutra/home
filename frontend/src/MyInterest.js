@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, TrendingUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, TrendingUp, Calendar } from "lucide-react";
 import axios from "axios";
 
 const MyInterest = () => {
@@ -29,9 +29,62 @@ const MyInterest = () => {
     }
   };
 
-  const getNextPaymentDate = (interest) => {
-    const { frequency, selectedDate, selectedQuarter, selectedHalf, selectedMonth } = interest;
+  // Calculate current amount for an interest entry
+  const calculateCurrentAmount = (interest) => {
+    const p = parseFloat(interest.principal) || 0;
+    const r = parseFloat(interest.rate) || 0;
+    const startDate = interest.startDate ? new Date(interest.startDate) : null;
+    const endDate = interest.endDate ? new Date(interest.endDate) : null;
+    
+    if (p <= 0 || r <= 0 || !startDate) return p;
+    
     const today = new Date();
+    
+    // If start date is in future, no interest accrued yet
+    if (startDate > today) return p;
+    
+    // Calculate up to today or end date (whichever is earlier)
+    const calcEndDate = endDate && endDate < today ? endDate : today;
+    
+    // Calculate days/years between dates
+    const diffTime = calcEndDate - startDate;
+    const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    const years = diffDays / 365;
+    
+    let totalInterest = 0;
+    
+    if (interest.interestType === "Simple Interest") {
+      totalInterest = (p * r * years) / 100;
+    } else {
+      // Compound Interest
+      const n = getCompoundingPeriods(interest.compoundingFrequency);
+      const periods = years * n;
+      const amount = p * Math.pow(1 + r / (100 * n), periods);
+      totalInterest = amount - p;
+    }
+    
+    return p + totalInterest;
+  };
+
+  const getCompoundingPeriods = (compoundingFrequency) => {
+    switch (compoundingFrequency) {
+      case "Monthly": return 12;
+      case "Quarterly": return 4;
+      case "Half-Yearly": return 2;
+      case "Yearly": return 1;
+      default: return 1;
+    }
+  };
+
+  const getNextPaymentDate = (interest) => {
+    const { frequency, selectedDate, selectedQuarter, selectedHalf, selectedMonth, endDate } = interest;
+    const today = new Date();
+    const maturityDate = endDate ? new Date(endDate) : null;
+    
+    // If already matured, show "Matured"
+    if (maturityDate && maturityDate < today) {
+      return "Matured";
+    }
     
     switch (frequency) {
       case "Monthly":
@@ -41,15 +94,17 @@ const MyInterest = () => {
         if (nextMonthlyDate <= today) {
           nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);
         }
+        // Check if next payment is after maturity
+        if (maturityDate && nextMonthlyDate > maturityDate) return "Matured";
         return formatDate(nextMonthlyDate);
         
       case "Quarterly":
         if (!selectedMonth || !selectedDate) return "Not set";
-        return calculateQuarterlyNextDate(selectedMonth, selectedDate);
+        return calculateQuarterlyNextDate(selectedMonth, selectedDate, maturityDate);
         
       case "Half-Yearly":
         if (!selectedMonth || !selectedDate) return "Not set";
-        return calculateHalfYearlyNextDate(selectedMonth, selectedDate);
+        return calculateHalfYearlyNextDate(selectedMonth, selectedDate, maturityDate);
         
       case "Yearly":
         if (!selectedMonth || !selectedDate) return "Not set";
@@ -60,11 +115,14 @@ const MyInterest = () => {
         if (nextYearlyDate <= today) {
           nextYearlyDate.setFullYear(nextYearlyDate.getFullYear() + 1);
         }
+        if (maturityDate && nextYearlyDate > maturityDate) return "Matured";
         return formatDate(nextYearlyDate);
         
       case "Others":
         if (interest.customDate) {
-          return formatDate(new Date(interest.customDate));
+          const customDateObj = new Date(interest.customDate);
+          if (maturityDate && customDateObj > maturityDate) return "Matured";
+          return formatDate(customDateObj);
         }
         return "Custom";
         
@@ -73,7 +131,7 @@ const MyInterest = () => {
     }
   };
 
-  const calculateQuarterlyNextDate = (month, dateStr) => {
+  const calculateQuarterlyNextDate = (month, dateStr, maturityDate) => {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const monthIndex = months.indexOf(month);
     const day = new Date(dateStr).getDate();
@@ -84,15 +142,17 @@ const MyInterest = () => {
     for (let qMonth of quarterMonths) {
       const nextDate = new Date(today.getFullYear(), qMonth, day);
       if (nextDate > today) {
+        if (maturityDate && nextDate > maturityDate) return "Matured";
         return formatDate(nextDate);
       }
     }
     
     const nextYearDate = new Date(today.getFullYear() + 1, monthIndex, day);
+    if (maturityDate && nextYearDate > maturityDate) return "Matured";
     return formatDate(nextYearDate);
   };
 
-  const calculateHalfYearlyNextDate = (month, dateStr) => {
+  const calculateHalfYearlyNextDate = (month, dateStr, maturityDate) => {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const monthIndex = months.indexOf(month);
     const day = new Date(dateStr).getDate();
@@ -100,15 +160,18 @@ const MyInterest = () => {
     
     const currentYearDate = new Date(today.getFullYear(), monthIndex, day);
     if (currentYearDate > today) {
+      if (maturityDate && currentYearDate > maturityDate) return "Matured";
       return formatDate(currentYearDate);
     }
     
     const nextHalfDate = new Date(today.getFullYear(), monthIndex + 6, day);
     if (nextHalfDate > today) {
+      if (maturityDate && nextHalfDate > maturityDate) return "Matured";
       return formatDate(nextHalfDate);
     }
     
     const nextYearDate = new Date(today.getFullYear() + 1, monthIndex, day);
+    if (maturityDate && nextYearDate > maturityDate) return "Matured";
     return formatDate(nextYearDate);
   };
 
@@ -119,6 +182,11 @@ const MyInterest = () => {
 
   const formatAmount = (amount) => {
     return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+  };
+
+  const isMatured = (interest) => {
+    if (!interest.endDate) return false;
+    return new Date(interest.endDate) < new Date();
   };
 
   return (
@@ -177,72 +245,129 @@ const MyInterest = () => {
             /* Interest List */
             <div className="space-y-4">
               <div className="space-y-3">
-                {interests.map((interest) => (
-                  <div
-                    key={interest.id}
-                    className="flex items-center justify-between rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
-                    onClick={() => navigate(`/interest-income/${interest.id}`)}
-                    data-testid={`interest-card-${interest.id}`}
-                  >
-                    <div className="flex-1">
-                      {/* Interest Source Name */}
-                      <h3 className="text-lg font-semibold text-[#0B3D2E] mb-3">
-                        {interest.name}
-                      </h3>
-
-                      {/* Details Grid */}
-                      <div className="space-y-2">
-                        {/* Principal Amount */}
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-sm text-[#0B3D2E]/60">Principal:</span>
-                          <span className="text-base font-semibold text-[#0B3D2E]">
-                            ₹ {formatAmount(interest.principal || 0)}
+                {interests.map((interest) => {
+                  const currentAmt = calculateCurrentAmount(interest);
+                  const matured = isMatured(interest);
+                  
+                  return (
+                    <div
+                      key={interest.id}
+                      className={`rounded-2xl border bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer ${
+                        matured ? "border-yellow-300" : "border-[#E2E8F0]"
+                      }`}
+                      onClick={() => navigate(`/interest-income/${interest.id}`)}
+                      data-testid={`interest-card-${interest.id}`}
+                    >
+                      {/* Matured Badge */}
+                      {matured && (
+                        <div className="mb-3">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
+                            <Calendar className="h-3 w-3" />
+                            Matured
                           </span>
                         </div>
+                      )}
+                      
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          {/* Interest Source Name */}
+                          <h3 className="text-lg font-semibold text-[#0B3D2E] mb-3">
+                            {interest.name}
+                          </h3>
 
-                        {/* Rate of Interest */}
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-[#0B3D2E]/60">Rate:</span>
-                          <span className="text-sm font-medium text-[#0B3D2E]">
-                            {interest.rate}%
-                          </span>
-                          <span className="text-xs text-[#0B3D2E]/50">
-                            ({interest.interestType})
-                          </span>
-                        </div>
+                          {/* Details Grid */}
+                          <div className="space-y-2">
+                            {/* Principal & Rate Row */}
+                            <div className="flex items-center gap-4 flex-wrap">
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-sm text-[#0B3D2E]/60">Principal:</span>
+                                <span className="text-sm font-semibold text-[#0B3D2E]">
+                                  ₹{formatAmount(interest.principal || 0)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-sm text-[#0B3D2E]/60">Rate:</span>
+                                <span className="text-sm font-medium text-[#0B3D2E]">
+                                  {interest.rate}%
+                                </span>
+                                <span className="text-xs text-[#0B3D2E]/50">
+                                  ({interest.interestType === "Simple Interest" ? "SI" : "CI"})
+                                </span>
+                              </div>
+                            </div>
 
-                        {/* Expected Income */}
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-sm text-[#0B3D2E]/60">Expected Income:</span>
-                          <span className="text-base font-semibold text-[#00D09C]">
-                            ₹ {formatAmount(interest.expectedAmount)}
-                          </span>
-                        </div>
+                            {/* Current Amount - Highlighted */}
+                            <div className="rounded-lg bg-gradient-to-r from-[#E8F8F4] to-[#F0FDF9] p-3 mt-2">
+                              <div className="flex items-baseline justify-between">
+                                <span className="text-sm text-[#0B3D2E]/70">Current Amount:</span>
+                                <span className="text-lg font-bold text-[#00D09C]">
+                                  ₹{formatAmount(currentAmt)}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between mt-1">
+                                <span className="text-xs text-[#0B3D2E]/50">Interest earned:</span>
+                                <span className="text-xs font-medium text-[#00D09C]">
+                                  +₹{formatAmount(currentAmt - (interest.principal || 0))}
+                                </span>
+                              </div>
+                            </div>
 
-                        {/* Frequency & Date */}
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-[#0B3D2E]/60">Frequency:</span>
-                            <span className="text-sm font-medium text-[#0B3D2E]">
-                              {interest.frequency}
-                            </span>
+                            {/* Dates Row */}
+                            <div className="flex items-center gap-4 flex-wrap mt-2">
+                              {interest.startDate && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-[#0B3D2E]/60">Start:</span>
+                                  <span className="text-xs font-medium text-[#0B3D2E]">
+                                    {formatDate(new Date(interest.startDate))}
+                                  </span>
+                                </div>
+                              )}
+                              {interest.endDate && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-[#0B3D2E]/60">End:</span>
+                                  <span className={`text-xs font-medium ${matured ? "text-yellow-600" : "text-[#0B3D2E]"}`}>
+                                    {formatDate(new Date(interest.endDate))}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Frequency & Next Payment */}
+                            <div className="flex items-center gap-4 flex-wrap pt-1 border-t border-[#E2E8F0]/50 mt-2">
+                              <div className="flex items-center gap-1">
+                                <span className="text-sm text-[#0B3D2E]/60">Frequency:</span>
+                                <span className="text-sm font-medium text-[#0B3D2E]">
+                                  {interest.frequency}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-sm text-[#0B3D2E]/60">Next:</span>
+                                <span className={`text-sm font-medium ${
+                                  getNextPaymentDate(interest) === "Matured" ? "text-yellow-600" : "text-[#00D09C]"
+                                }`}>
+                                  {getNextPaymentDate(interest)}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Expected Income */}
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-sm text-[#0B3D2E]/60">Expected ({interest.frequency}):</span>
+                              <span className="text-sm font-semibold text-[#0B3D2E]">
+                                ₹{formatAmount(interest.expectedAmount)}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-[#0B3D2E]/60">Next:</span>
-                            <span className="text-sm font-medium text-[#00D09C]">
-                              {getNextPaymentDate(interest)}
-                            </span>
-                          </div>
+                        </div>
+
+                        {/* Chevron */}
+                        <div className="ml-4 mt-2">
+                          <ChevronRight className="h-6 w-6 text-[#0B3D2E]/40" />
                         </div>
                       </div>
                     </div>
-
-                    {/* Chevron */}
-                    <div className="ml-4">
-                      <ChevronRight className="h-6 w-6 text-[#0B3D2E]/40" />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Add New Interest Button */}
