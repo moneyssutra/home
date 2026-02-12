@@ -806,18 +806,106 @@ const BusinessIncome = () => {
         </div>
       </div>
 
-      {/* Sticky Save Button */}
+      {/* Sticky Action Buttons */}
       <div className="fixed bottom-0 left-0 right-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-sm px-6 py-4">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isSubmitting}
-          className="w-full max-w-[620px] mx-auto block rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
-          data-testid="save-button"
-        >
-          {isSubmitting ? "Saving..." : "Save Business Income"}
-        </button>
+        <div className="mx-auto max-w-[620px]">
+          {id ? (
+            /* Edit Mode - Show Update and Delete */
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={isSubmitting}
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-white px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                data-testid="delete-button"
+              >
+                <Trash2 className="h-5 w-5" />
+                Delete
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isSubmitting}
+                className="flex-1 rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+                data-testid="update-button"
+              >
+                {isSubmitting ? "Updating..." : "Update Business Income"}
+              </button>
+            </div>
+          ) : (
+            /* Create Mode - Show Save Only */
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSubmitting}
+              className="w-full rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+              data-testid="save-button"
+            >
+              {isSubmitting ? "Saving..." : "Save Business Income"}
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Update Confirmation Dialog */}
+      {showUpdateConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">
+              Confirm Changes
+            </h3>
+            <p className="text-[#0B3D2E]/70 mb-6">
+              Are you sure you want to update this business income? This will replace the existing information.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowUpdateConfirm(false)}
+                className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium transition-colors hover:bg-[#F8FAF9]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={performSave}
+                className="flex-1 rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium transition-colors hover:bg-[#00BA89]"
+              >
+                Yes, Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold text-red-600 mb-3">
+              Delete Business?
+            </h3>
+            <p className="text-[#0B3D2E]/70 mb-6">
+              Are you sure you want to delete "{businessName}"? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium transition-colors hover:bg-[#F8FAF9]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium transition-colors hover:bg-red-600"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
