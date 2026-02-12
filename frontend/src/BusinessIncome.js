@@ -383,7 +383,7 @@ const BusinessIncome = () => {
             {/* Conditional Fields - Monthly */}
             {frequency === "Monthly" && (
               <div
-                className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300"
+                className="space-y-2 w-full animate-in fade-in slide-in-from-top-2 duration-300"
                 data-testid="monthly-fields"
               >
                 <label className="block text-sm font-medium text-[#0B3D2E]">
