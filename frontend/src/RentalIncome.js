@@ -262,6 +262,10 @@ const RentalIncome = () => {
     }
 
     // Date validation based on frequency
+    if (frequency === "Daily" && !selectedDay) {
+      newErrors.selectedDay = "Please select a day";
+    }
+
     if (frequency === "Monthly" && !selectedDate) {
       newErrors.selectedDate = "Please select a date";
     }
