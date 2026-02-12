@@ -208,7 +208,7 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 ## Backlog / Future Tasks
 
 ### P1 - High Priority
-- None currently
+- Implement Dividend income module
 
 ### P2 - Medium Priority
 - Add Commission and Dividend income modules
