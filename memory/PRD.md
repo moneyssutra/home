@@ -76,22 +76,64 @@ Build an income tracking application with modular income type support. Initial f
   - Full CRUD operations with confirmation dialogs
   - Duplicate entry check
 
-#### Rental Income Module (COMPLETED - Feb 12, 2026)
+#### Rental Income Module (UPDATED - Feb 12, 2026)
 - **My Rental Page** (`/my-rental`)
   - List all rental income entries filtered by type="Rental"
-  - Display: Property Name, Tenant Name (if set), Amount (₹), Frequency, Due Date, Next Due
+  - Display: Property Name, Tenant Name (if set), Amount (₹), **Rental Yield % badge**, Frequency, Due Date, Next Due, Security Deposit
+  - **Rental Yield badge** shows yield % when linked to asset
+  - Linked Asset info displayed on cards
   - Empty state with "Add New Rental" CTA
   - Click card to edit entry
   
 - **Rental Income Form** (`/rental-income`, `/rental-income/:id`)
-  - Fields:
-    - Property Name (required) - e.g., "Green Villa – Flat 302"
-    - Tenant Name (optional) - e.g., "Rahul Sharma"
-    - Rental Amount (required)
-    - Frequency: Monthly/Quarterly/Half-Yearly/Yearly/Others
-    - Conditional date fields based on frequency
+  - **Link to Asset** dropdown (optional - enables Rental Yield calculation)
+  - Property Name (auto-fills from selected asset)
+  - Tenant Name (optional)
+  - **Rental Amount & Security Deposit** side by side
+  - Frequency: Monthly/Quarterly/Half-Yearly/Yearly/Others
+  - Conditional date fields based on frequency
+  - **Rental Yield Display** (dark box) when asset linked
   - Full CRUD operations with confirmation dialogs
   - Duplicate property check
+
+#### Loan/Liability Module (NEW - Feb 12, 2026)
+- **My Loans Page** (`/my-loans`)
+  - List all loans with payment progress
+  - **Total Outstanding summary** card (yellow/amber theme)
+  - Display: Loan Name, Lender, Outstanding Amount, EMI, Rate, Start Date
+  - **Progress bar** showing repayment progress (%)
+  - Empty state with "Add New Loan" CTA
+  
+- **Loan Form** (`/loan`, `/loan/:id`)
+  - Loan Name (required)
+  - Lender Name (optional)
+  - Principal Amount (required)
+  - Interest Rate % (required)
+  - Tenure in Months (required)
+  - **EMI Auto-Calculation** (displayed in dark box when all inputs provided)
+  - Start Date (required)
+  - Outstanding Amount (required)
+  - Full CRUD operations with confirmation dialogs
+
+#### Asset Module (NEW - Feb 12, 2026)
+- **My Assets Page** (`/my-assets`)
+  - List all assets with type icons
+  - **Summary cards**: Total Asset Value, Net Worth (after loan deduction)
+  - **Asset Allocation** breakdown by type (%)
+  - Display: Asset Type badge, Name, Value, Loan Outstanding (if financed), Net Value, Appreciation %
+  - Empty state with "Add New Asset" CTA
+  - Click card to edit entry
+  
+- **Asset Form** (`/asset`, `/asset/:id`)
+  - Asset Type dropdown: Residential Property, Commercial Property, Land, Vehicle, Equipment, Other
+  - Asset Name (required)
+  - Current Market Value (required)
+  - **Purchase Information** (optional) - Date and Value
+  - **Appreciation %** calculated when purchase info provided
+  - **Is Financed toggle** - shows loan dropdown when enabled
+  - Linked Loan dropdown (lists available loans)
+  - "Add New Loan" quick link
+  - Full CRUD operations with confirmation dialogs
 
 ### Frequency Options
 All modules support: Monthly, Quarterly, Half-Yearly, Yearly, Others
