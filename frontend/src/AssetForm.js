@@ -392,7 +392,19 @@ const AssetForm = () => {
                   
                   <button
                     type="button"
-                    onClick={() => navigate("/loan")}
+                    onClick={() => navigate("/loan", { 
+                      state: { 
+                        returnTo: id ? `/asset/${id}` : '/asset',
+                        assetFormData: {
+                          assetType,
+                          assetName,
+                          currentValue,
+                          isFinanced,
+                          purchaseDate,
+                          purchaseValue
+                        }
+                      } 
+                    })}
                     className="mt-3 flex items-center gap-2 text-sm text-[#F59E0B] font-medium hover:text-[#D97706]"
                     data-testid="add-loan-link"
                   >
