@@ -100,6 +100,17 @@ const InterestIncome = () => {
     
     if (p <= 0 || r <= 0) return 0;
     
+    // Helper to get compounding periods
+    const getCompoundingPeriods = () => {
+      switch (compoundingFrequency) {
+        case "Monthly": return 12;
+        case "Quarterly": return 4;
+        case "Half-Yearly": return 2;
+        case "Yearly": return 1;
+        default: return 1;
+      }
+    };
+    
     let yearlyInterest = 0;
     
     if (interestType === "Simple Interest") {
@@ -136,16 +147,6 @@ const InterestIncome = () => {
       setExpectedAmount(calculatedAmount.toFixed(2));
     }
   }, [calculatedAmount, manualOverride]);
-
-  const getCompoundingPeriods = () => {
-    switch (compoundingFrequency) {
-      case "Monthly": return 12;
-      case "Quarterly": return 4;
-      case "Half-Yearly": return 2;
-      case "Yearly": return 1;
-      default: return 1;
-    }
-  };
 
   const frequencyOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly", "Others"];
   const compoundingOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly"];
