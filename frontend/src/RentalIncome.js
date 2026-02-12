@@ -77,10 +77,11 @@ const RentalIncome = () => {
       
       setAssetId(data.assetId || "");
       setPropertyName(data.name || "");
-      setTenantName(data.tenantName || "");
+      setRenterName(data.tenantName || "");
       setRentalAmount(data.expectedAmount?.toString() || "");
       setSecurityDeposit(data.securityDeposit?.toString() || "");
       setFrequency(data.frequency || "");
+      setSelectedDay(data.selectedDay || "");
       setSelectedDate(data.selectedDate || "");
       setSelectedQuarter(data.selectedQuarter || "");
       setSelectedHalf(data.selectedHalf || "");
@@ -105,9 +106,10 @@ const RentalIncome = () => {
     }
   }, [assetId, availableAssets, id]);
 
-  // Reset date fields when frequency changes
+  // Reset date fields when frequency changes and auto-scroll
   useEffect(() => {
     if (!id) {
+      setSelectedDay("");
       setSelectedDate("");
       setSelectedQuarter("");
       setSelectedHalf("");
@@ -115,7 +117,60 @@ const RentalIncome = () => {
       setCustomFrequency("");
       setCustomDate("");
     }
+    
+    // Auto-scroll to new fields based on frequency
+    if (frequency) {
+      setTimeout(() => {
+        if (frequency === "Daily" && dayFieldRef.current) {
+          dayFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          dayFieldRef.current.focus();
+        } else if (frequency === "Monthly" && dateFieldRef.current) {
+          dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          dateFieldRef.current.focus();
+        } else if (frequency === "Quarterly" && quarterFieldRef.current) {
+          quarterFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          quarterFieldRef.current.focus();
+        } else if (frequency === "Half-Yearly" && halfFieldRef.current) {
+          halfFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          halfFieldRef.current.focus();
+        } else if (frequency === "Yearly" && monthFieldRef.current) {
+          monthFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          monthFieldRef.current.focus();
+        } else if (frequency === "Others" && customFreqFieldRef.current) {
+          customFreqFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          customFreqFieldRef.current.focus();
+        }
+      }, 100);
+    }
   }, [frequency]);
+
+  // Auto-scroll when quarter/half/month is selected
+  useEffect(() => {
+    if (selectedQuarter && monthFieldRef.current) {
+      setTimeout(() => {
+        monthFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        monthFieldRef.current.focus();
+      }, 100);
+    }
+  }, [selectedQuarter]);
+
+  useEffect(() => {
+    if (selectedHalf && monthFieldRef.current) {
+      setTimeout(() => {
+        monthFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        monthFieldRef.current.focus();
+      }, 100);
+    }
+  }, [selectedHalf]);
+
+  useEffect(() => {
+    if (selectedMonth && dateFieldRef.current) {
+      setTimeout(() => {
+        dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        dateFieldRef.current.focus();
+      }, 100);
+    }
+  }, [selectedMonth]);
 
   // Calculate rental yield if asset is linked
   const rentalYield = useMemo(() => {
