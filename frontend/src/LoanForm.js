@@ -240,7 +240,18 @@ const LoanIncome = () => {
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9]"
-          onClick={() => navigate("/my-loans")}
+          onClick={() => {
+            // If we came from asset form, return there preserving the form data
+            if (location.state?.returnTo && location.state?.assetFormData) {
+              navigate(location.state.returnTo, {
+                state: {
+                  assetFormData: location.state.assetFormData
+                }
+              });
+            } else {
+              navigate("/my-loans");
+            }
+          }}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
