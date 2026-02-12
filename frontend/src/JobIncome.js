@@ -368,23 +368,23 @@ const JobIncome = () => {
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="mx-auto w-full max-w-[620px] px-6">
           <div className="space-y-6">
-            {/* Job Name */}
+            {/* Company Name */}
             <div className="w-full">
               <label
                 htmlFor="companyName"
                 className="block text-sm font-medium text-[#0B3D2E] mb-2"
               >
-                Job Name
+                Company Name
               </label>
               <input
                 id="companyName"
                 type="text"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="Enter Job Name"
+                placeholder="Enter Company Name"
                 maxLength={50}
                 className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                data-testid="business-name-input"
+                data-testid="company-name-input"
               />
               {errors.companyName && (
                 <p className="text-sm text-red-500 mt-1">{errors.companyName}</p>
