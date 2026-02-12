@@ -22,6 +22,9 @@ const BusinessIncome = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  
+  // Get today's date for minimum date restriction
+  const today = new Date().toISOString().split('T')[0];
 
   // Reset conditional fields when frequency changes
   useEffect(() => {
