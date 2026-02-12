@@ -795,14 +795,14 @@ const BusinessIncome = () => {
                   <label htmlFor="customDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                     Select Date
                   </label>
-                  <div className="relative">
+                  <div className="relative cursor-pointer">
                     <input
                       id="customDate"
                       type="date"
                       value={customDate}
                       onChange={(e) => setCustomDate(e.target.value)}
                       min={today}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
                       data-testid="custom-date-input"
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
