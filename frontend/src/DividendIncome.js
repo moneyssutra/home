@@ -60,6 +60,7 @@ const DividendIncome = () => {
       setUnits(data.units?.toString() || "");
       setExpectedAmount(data.expectedAmount?.toString() || "");
       setFrequency(data.frequency || "");
+      setSelectedDay(data.selectedDay || "");
       setSelectedQuarter(data.selectedQuarter || "");
       setSelectedHalf(data.selectedHalf || "");
       setSelectedMonth(data.selectedMonth || "");
