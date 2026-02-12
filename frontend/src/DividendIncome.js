@@ -149,6 +149,8 @@ const DividendIncome = () => {
 
   const frequencyOptions = ["Daily", "Weekly", "Monthly", "Quarterly", "Half-Yearly", "Yearly", "Irregular"];
 
+  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
   const quarters = [
     { id: "Q1", label: "Q1 (Jan–Mar)" },
     { id: "Q2", label: "Q2 (Apr–Jun)" },
