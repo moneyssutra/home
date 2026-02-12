@@ -465,25 +465,24 @@ const DividendIncome = () => {
               </div>
             )}
 
-            {/* Monthly - Date Selection (1-31) */}
+            {/* Monthly - Date Selection */}
             {frequency === "Monthly" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
                 <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                  Select Date (Day of Month)
+                  Select Date
                 </label>
-                <select
-                  id="monthlyDate"
-                  ref={dateFieldRef}
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="date-select"
-                >
-                  <option value="">Select a Date</option>
-                  {days.map((day) => (
-                    <option key={day} value={day}>{day}</option>
-                  ))}
-                </select>
+                <label htmlFor="monthlyDate" className="relative block cursor-pointer">
+                  <input
+                    id="monthlyDate"
+                    ref={dateFieldRef}
+                    type="date"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                    data-testid="date-select"
+                  />
+                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                </label>
                 {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
               </div>
             )}
