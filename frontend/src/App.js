@@ -25,6 +25,8 @@ import AssetForm from "@/AssetForm";
 import MyAssets from "@/MyAssets";
 import CommissionIncome from "@/CommissionIncome";
 import MyCommission from "@/MyCommission";
+import DividendIncome from "@/DividendIncome";
+import MyDividend from "@/MyDividend";
 
 const HomePlaceholder = () => {
   return (
@@ -63,6 +65,8 @@ const IncomeSource = () => {
       navigate("/my-rental");
     } else if (id === "commission") {
       navigate("/my-commission");
+    } else if (id === "dividend") {
+      navigate("/my-dividend");
     } else {
       setSelected((prev) => (prev === id ? null : id));
     }
@@ -167,6 +171,9 @@ function App() {
           <Route path="/my-commission" element={<MyCommission />} />
           <Route path="/commission-income" element={<CommissionIncome />} />
           <Route path="/commission-income/:id" element={<CommissionIncome />} />
+          <Route path="/my-dividend" element={<MyDividend />} />
+          <Route path="/dividend-income" element={<DividendIncome />} />
+          <Route path="/dividend-income/:id" element={<DividendIncome />} />
         </Routes>
       </BrowserRouter>
     </div>
