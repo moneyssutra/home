@@ -133,6 +133,9 @@ function App() {
           <Route path="/my-business" element={<MyBusiness />} />
           <Route path="/business-income" element={<BusinessIncome />} />
           <Route path="/business-income/:id" element={<BusinessIncome />} />
+          <Route path="/my-job" element={<MyJob />} />
+          <Route path="/job-income" element={<JobIncome />} />
+          <Route path="/job-income/:id" element={<JobIncome />} />
         </Routes>
       </BrowserRouter>
     </div>
