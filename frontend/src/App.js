@@ -23,6 +23,8 @@ import LoanForm from "@/LoanForm";
 import MyLoans from "@/MyLoans";
 import AssetForm from "@/AssetForm";
 import MyAssets from "@/MyAssets";
+import CommissionIncome from "@/CommissionIncome";
+import MyCommission from "@/MyCommission";
 
 const HomePlaceholder = () => {
   return (
@@ -59,6 +61,8 @@ const IncomeSource = () => {
       navigate("/my-interest");
     } else if (id === "rental") {
       navigate("/my-rental");
+    } else if (id === "commission") {
+      navigate("/my-commission");
     } else {
       setSelected((prev) => (prev === id ? null : id));
     }
@@ -160,6 +164,9 @@ function App() {
           <Route path="/my-assets" element={<MyAssets />} />
           <Route path="/asset" element={<AssetForm />} />
           <Route path="/asset/:id" element={<AssetForm />} />
+          <Route path="/my-commission" element={<MyCommission />} />
+          <Route path="/commission-income" element={<CommissionIncome />} />
+          <Route path="/commission-income/:id" element={<CommissionIncome />} />
         </Routes>
       </BrowserRouter>
     </div>
