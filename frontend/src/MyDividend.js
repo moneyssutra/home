@@ -31,10 +31,33 @@ const MyDividend = () => {
   };
 
   const getNextPaymentDate = (dividend) => {
-    const { frequency, selectedQuarter, selectedHalf, selectedMonth, selectedDate, customDate } = dividend;
+    const { frequency, selectedDay, selectedDate, selectedQuarter, selectedHalf, selectedMonth, customDate } = dividend;
     const today = new Date();
     
     switch (frequency) {
+      case "Daily":
+        return "Daily";
+        
+      case "Weekly":
+        if (!selectedDay) return "Not set";
+        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const targetDay = daysOfWeek.indexOf(selectedDay);
+        const currentDay = today.getDay();
+        let daysUntilTarget = targetDay - currentDay;
+        if (daysUntilTarget <= 0) daysUntilTarget += 7;
+        const nextWeeklyDate = new Date(today);
+        nextWeeklyDate.setDate(today.getDate() + daysUntilTarget);
+        return formatDate(nextWeeklyDate);
+        
+      case "Monthly":
+        if (!selectedDate) return "Not set";
+        const day = parseInt(selectedDate);
+        const nextMonthlyDate = new Date(today.getFullYear(), today.getMonth(), day);
+        if (nextMonthlyDate <= today) {
+          nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);
+        }
+        return formatDate(nextMonthlyDate);
+        
       case "Quarterly":
         if (!selectedQuarter) return "Not set";
         return calculateQuarterlyNextDate(selectedQuarter, selectedDate);
