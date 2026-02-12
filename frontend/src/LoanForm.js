@@ -184,13 +184,26 @@ const LoanIncome = () => {
         outstandingAmount: parseFloat(outstandingAmount),
       };
 
+      let savedLoanId = id;
+      
       if (id) {
         await axios.put(`${backendUrl}/api/loans/${id}`, payload);
       } else {
-        await axios.post(`${backendUrl}/api/loans`, payload);
+        const response = await axios.post(`${backendUrl}/api/loans`, payload);
+        savedLoanId = response.data.id;
       }
       
-      navigate("/my-loans");
+      // If we came from asset form, return there with the new loan ID
+      if (location.state?.returnTo && location.state?.assetFormData) {
+        navigate(location.state.returnTo, {
+          state: {
+            assetFormData: location.state.assetFormData,
+            newLoanId: savedLoanId
+          }
+        });
+      } else {
+        navigate("/my-loans");
+      }
     } catch (error) {
       console.error("Error saving loan:", error);
       setErrors({ submit: "Failed to save. Please try again." });
