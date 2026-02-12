@@ -312,7 +312,7 @@ const JobIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
-      navigate("/my-business");
+      navigate("/my-job");
     } catch (error) {
       console.error("Error saving business income:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -329,7 +329,7 @@ const JobIncome = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/income/${id}`);
-      navigate("/my-business");
+      navigate("/my-job");
     } catch (error) {
       console.error("Error deleting business:", error);
       setErrors({ submit: "Failed to delete. Please try again." });
@@ -341,14 +341,14 @@ const JobIncome = () => {
   return (
     <div
       className="min-h-screen honeycomb-bg flex flex-col"
-      data-testid="business-income-page"
+      data-testid="job-income-page"
     >
       {/* Header */}
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D09C]"
-          onClick={() => navigate("/my-business")}
+          onClick={() => navigate("/my-job")}
           aria-label="Back to my business"
           data-testid="back-button"
         >
