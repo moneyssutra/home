@@ -326,7 +326,7 @@ const BusinessIncome = () => {
             </div>
 
             {/* Frequency */}
-            <div className="space-y-2" data-testid="frequency-field">
+            <div className="space-y-2 w-full" data-testid="frequency-field">
               <label
                 htmlFor="frequency"
                 className="block text-sm font-medium text-[#0B3D2E]"
