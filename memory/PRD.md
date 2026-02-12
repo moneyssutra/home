@@ -212,12 +212,16 @@ Business/Job also support: Daily, Weekly
 
 ### P2 - Medium Priority
 - Add Commission and Dividend income modules
-- Refactor all income components into single reusable component
-- Dashboard/Summary view of all income sources
+- Dashboard/Summary view showing:
+  - Total Income by category
+  - Net Worth (Assets - Liabilities)
+  - Cash Flow analysis
+  - Asset Allocation pie chart
 
 ### P3 - Low Priority
 - Data export functionality
 - Income analytics/charts
+- Refactor income components into single reusable component
 - Mobile app version
 
 ## Known Issues
