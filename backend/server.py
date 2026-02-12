@@ -63,6 +63,9 @@ class IncomeSource(BaseModel):
     currentAmount: Optional[float] = None
     # Rental-specific fields
     tenantName: Optional[str] = None
+    # Rental with Asset link
+    assetId: Optional[str] = None
+    securityDeposit: Optional[float] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class IncomeSourceCreate(BaseModel):
