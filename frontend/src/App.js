@@ -43,6 +43,8 @@ const IncomeSource = () => {
   const handleSelect = (id) => {
     if (id === "business") {
       navigate("/my-business");
+    } else if (id === "job") {
+      navigate("/my-job");
     } else {
       setSelected((prev) => (prev === id ? null : id));
     }
