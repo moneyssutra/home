@@ -204,6 +204,14 @@ const DividendIncome = () => {
     }
 
     // Date validation based on frequency
+    if (frequency === "Weekly" && !selectedDay) {
+      newErrors.selectedDay = "Please select a day";
+    }
+
+    if (frequency === "Monthly" && !selectedDate) {
+      newErrors.selectedDate = "Please select a date";
+    }
+
     if (frequency === "Quarterly") {
       if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter";
       if (!selectedDate) newErrors.selectedDate = "Please select a date";
