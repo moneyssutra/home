@@ -246,59 +246,96 @@ const MyRental = () => {
             /* Rental List */
             <div className="space-y-4">
               <div className="space-y-3">
-                {rentals.map((rental) => (
-                  <div
-                    key={rental.id}
-                    className="flex items-center justify-between rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
-                    onClick={() => navigate(`/rental-income/${rental.id}`)}
-                    data-testid={`rental-card-${rental.id}`}
-                  >
-                    <div className="flex-1">
-                      {/* Property Name */}
-                      <h3 className="text-lg font-semibold text-[#0B3D2E] mb-1">
-                        {rental.name}
-                      </h3>
+                {rentals.map((rental) => {
+                  const rentalYield = getRentalYield(rental);
+                  const linkedAsset = rental.assetId ? getLinkedAsset(rental.assetId) : null;
+                  
+                  return (
+                    <div
+                      key={rental.id}
+                      className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
+                      onClick={() => navigate(`/rental-income/${rental.id}`)}
+                      data-testid={`rental-card-${rental.id}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          {/* Property Name */}
+                          <h3 className="text-lg font-semibold text-[#0B3D2E] mb-1">
+                            {rental.name}
+                          </h3>
 
-                      {/* Tenant Name if exists */}
-                      {rental.tenantName && (
-                        <p className="text-sm text-[#0B3D2E]/60 mb-2">
-                          Tenant: {rental.tenantName}
-                        </p>
-                      )}
+                          {/* Tenant Name if exists */}
+                          {rental.tenantName && (
+                            <p className="text-sm text-[#0B3D2E]/60 mb-2">
+                              Tenant: {rental.tenantName}
+                            </p>
+                          )}
 
-                      {/* Amount and Frequency */}
-                      <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-xl font-bold text-[#00D09C]">
-                          ₹ {formatAmount(rental.expectedAmount)}
-                        </span>
-                      </div>
+                          {/* Amount Row */}
+                          <div className="flex items-center gap-4 mb-2 flex-wrap">
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-xl font-bold text-[#00D09C]">
+                                ₹ {formatAmount(rental.expectedAmount)}
+                              </span>
+                              <span className="text-sm text-[#0B3D2E]/60">/{rental.frequency?.toLowerCase()}</span>
+                            </div>
+                            
+                            {/* Rental Yield Badge */}
+                            {rentalYield !== null && (
+                              <div className="flex items-center gap-1 bg-gradient-to-r from-[#0B3D2E] to-[#145A3E] px-3 py-1 rounded-full">
+                                <TrendingUp className="h-3 w-3 text-[#00D09C]" />
+                                <span className="text-xs font-bold text-white">{rentalYield.toFixed(1)}% Yield</span>
+                              </div>
+                            )}
+                          </div>
 
-                      {/* Frequency and Due Date */}
-                      <div className="flex items-center gap-2 text-sm text-[#0B3D2E]/70">
-                        <span className="font-medium">{rental.frequency}</span>
-                        {getDueDisplay(rental) && (
-                          <>
-                            <span>–</span>
-                            <span>{getDueDisplay(rental)}</span>
-                          </>
-                        )}
-                      </div>
+                          {/* Linked Asset Info */}
+                          {linkedAsset && (
+                            <div className="flex items-center gap-2 text-xs text-[#0B3D2E]/60 mb-2">
+                              <span>Asset: {linkedAsset.assetName}</span>
+                              <span>•</span>
+                              <span>₹{formatAmount(linkedAsset.currentValue)}</span>
+                            </div>
+                          )}
 
-                      {/* Next Due Date */}
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-sm text-[#0B3D2E]/60">Next Due:</span>
-                        <span className="text-sm font-medium text-[#00D09C]">
-                          {getNextPaymentDate(rental)}
-                        </span>
+                          {/* Frequency and Due Date */}
+                          <div className="flex items-center gap-2 text-sm text-[#0B3D2E]/70">
+                            <span className="font-medium">{rental.frequency}</span>
+                            {getDueDisplay(rental) && (
+                              <>
+                                <span>–</span>
+                                <span>{getDueDisplay(rental)}</span>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Next Due Date & Security Deposit */}
+                          <div className="flex items-center gap-4 mt-2 flex-wrap">
+                            <div className="flex items-center gap-1">
+                              <span className="text-sm text-[#0B3D2E]/60">Next Due:</span>
+                              <span className="text-sm font-medium text-[#00D09C]">
+                                {getNextPaymentDate(rental)}
+                              </span>
+                            </div>
+                            {rental.securityDeposit && (
+                              <div className="flex items-center gap-1">
+                                <span className="text-sm text-[#0B3D2E]/60">Deposit:</span>
+                                <span className="text-sm font-medium text-[#0B3D2E]">
+                                  ₹{formatAmount(rental.securityDeposit)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Chevron */}
+                        <div className="ml-4 mt-2">
+                          <ChevronRight className="h-6 w-6 text-[#0B3D2E]/40" />
+                        </div>
                       </div>
                     </div>
-
-                    {/* Chevron */}
-                    <div className="ml-4">
-                      <ChevronRight className="h-6 w-6 text-[#0B3D2E]/40" />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Add New Rental Button */}
