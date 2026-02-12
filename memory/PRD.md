@@ -134,7 +134,7 @@ Business/Job also support: Daily, Weekly
 ```json
 {
   "id": "uuid string",
-  "type": "Business|Job|Interest",
+  "type": "Business|Job|Interest|Rental",
   "name": "string",
   "expectedAmount": "number",
   "frequency": "string",
@@ -153,6 +153,7 @@ Business/Job also support: Daily, Weekly
   "startDate": "string|null (Interest only - loan/FD start)",
   "endDate": "string|null (Interest only - maturity date)",
   "currentAmount": "number|null (Interest only - auto-calculated)",
+  "tenantName": "string|null (Rental only)",
   "createdAt": "ISO datetime string"
 }
 ```
