@@ -3,10 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Calendar, Trash2 } from "lucide-react";
 import axios from "axios";
 
-const BusinessIncome = () => {
+const JobIncome = () => {
   const navigate = useNavigate();
   const { id } = useParams(); // Get ID from URL if editing
-  const [businessName, setBusinessName] = useState("");
+  const [companyName, setJobName] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
   const [frequency, setFrequency] = useState("");
   
@@ -25,7 +25,7 @@ const BusinessIncome = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
-  const [existingBusiness, setExistingBusiness] = useState(null);
+  const [existingJob, setExistingJob] = useState(null);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   
@@ -35,18 +35,18 @@ const BusinessIncome = () => {
   // Fetch business data if editing
   useEffect(() => {
     if (id) {
-      fetchBusinessData();
+      fetchJobData();
     }
   }, [id]);
 
-  const fetchBusinessData = async () => {
+  const fetchJobData = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${backendUrl}/api/income/${id}`);
       const data = response.data;
       
       // Pre-fill all fields
-      setBusinessName(data.name || "");
+      setJobName(data.name || "");
       setExpectedAmount(data.expectedAmount?.toString() || "");
       setFrequency(data.frequency || "");
       setSelectedDay(data.selectedDay || "");
@@ -188,10 +188,10 @@ const BusinessIncome = () => {
   const validate = () => {
     const newErrors = {};
 
-    if (!businessName.trim()) {
-      newErrors.businessName = "Business name is required";
-    } else if (businessName.length > 50) {
-      newErrors.businessName = "Business name must be 50 characters or less";
+    if (!companyName.trim()) {
+      newErrors.companyName = "Job name is required";
+    } else if (companyName.length > 50) {
+      newErrors.companyName = "Job name must be 50 characters or less";
     }
 
     if (!expectedAmount || parseFloat(expectedAmount) <= 0) {
@@ -269,11 +269,11 @@ const BusinessIncome = () => {
     // Check for duplicate business name when creating new
     try {
       const response = await axios.get(`${backendUrl}/api/income`);
-      const businesses = response.data.filter(item => item.type === "Business");
-      const duplicate = businesses.find(b => b.name.toLowerCase() === businessName.trim().toLowerCase());
+      const businesses = response.data.filter(item => item.type === "Job");
+      const duplicate = businesses.find(b => b.name.toLowerCase() === companyName.trim().toLowerCase());
       
       if (duplicate) {
-        setExistingBusiness(duplicate);
+        setExistingJob(duplicate);
         setShowDuplicateDialog(true);
         return;
       }
@@ -291,8 +291,8 @@ const BusinessIncome = () => {
     
     try {
       const payload = {
-        type: "Business",
-        name: businessName,
+        type: "Job",
+        name: companyName,
         expectedAmount: parseFloat(expectedAmount),
         frequency,
         selectedDay: selectedDay || null,
@@ -359,7 +359,7 @@ const BusinessIncome = () => {
           style={{ fontFamily: "'Manrope', sans-serif" }}
           data-testid="page-title"
         >
-          Business Income
+          Job Income
         </h1>
         <div className="h-10 w-10" aria-hidden="true" />
       </header>
@@ -368,26 +368,26 @@ const BusinessIncome = () => {
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="mx-auto w-full max-w-[620px] px-6">
           <div className="space-y-6">
-            {/* Business Name */}
+            {/* Job Name */}
             <div className="w-full">
               <label
-                htmlFor="businessName"
+                htmlFor="companyName"
                 className="block text-sm font-medium text-[#0B3D2E] mb-2"
               >
-                Business Name
+                Job Name
               </label>
               <input
-                id="businessName"
+                id="companyName"
                 type="text"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="Enter Business Name"
+                value={companyName}
+                onChange={(e) => setJobName(e.target.value)}
+                placeholder="Enter Job Name"
                 maxLength={50}
                 className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                 data-testid="business-name-input"
               />
-              {errors.businessName && (
-                <p className="text-sm text-red-500 mt-1">{errors.businessName}</p>
+              {errors.companyName && (
+                <p className="text-sm text-red-500 mt-1">{errors.companyName}</p>
               )}
             </div>
 
@@ -846,7 +846,7 @@ const BusinessIncome = () => {
                 className="flex-1 rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
                 data-testid="update-button"
               >
-                {isSubmitting ? "Updating..." : "Update Business Income"}
+                {isSubmitting ? "Updating..." : "Update Job Income"}
               </button>
             </div>
           ) : (
@@ -858,7 +858,7 @@ const BusinessIncome = () => {
               className="w-full rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
               data-testid="save-button"
             >
-              {isSubmitting ? "Saving..." : "Save Business Income"}
+              {isSubmitting ? "Saving..." : "Save Job Income"}
             </button>
           )}
         </div>
@@ -899,10 +899,10 @@ const BusinessIncome = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-red-600 mb-3">
-              Delete Business?
+              Delete Job?
             </h3>
             <p className="text-[#0B3D2E]/70 mb-6">
-              Are you sure you want to delete "{businessName}"? This action cannot be undone.
+              Are you sure you want to delete "{companyName}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
@@ -924,26 +924,26 @@ const BusinessIncome = () => {
         </div>
       )}
 
-      {/* Duplicate Business Dialog */}
-      {showDuplicateDialog && existingBusiness && (
+      {/* Duplicate Job Dialog */}
+      {showDuplicateDialog && existingJob && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">
-              Business Already Exists
+              Job Already Exists
             </h3>
             <p className="text-[#0B3D2E]/70 mb-6">
-              A business with the name "{businessName}" already exists. Would you like to edit the existing business or create a new one anyway?
+              A business with the name "{companyName}" already exists. Would you like to edit the existing business or create a new one anyway?
             </p>
             <div className="flex flex-col gap-3">
               <button
                 type="button"
                 onClick={() => {
                   setShowDuplicateDialog(false);
-                  navigate(`/business-income/${existingBusiness.id}`);
+                  navigate(`/business-income/${existingJob.id}`);
                 }}
                 className="w-full rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium transition-colors hover:bg-[#00BA89]"
               >
-                Edit Existing Business
+                Edit Existing Job
               </button>
               <button
                 type="button"
@@ -970,4 +970,4 @@ const BusinessIncome = () => {
   );
 };
 
-export default BusinessIncome;
+export default JobIncome;
