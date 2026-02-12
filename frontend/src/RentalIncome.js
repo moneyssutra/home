@@ -179,6 +179,7 @@ const RentalIncome = () => {
     if (!selectedAsset || !selectedAsset.currentValue) return null;
     
     const annualRent = parseFloat(rentalAmount) * (
+      frequency === "Daily" ? 365 :
       frequency === "Monthly" ? 12 :
       frequency === "Quarterly" ? 4 :
       frequency === "Half-Yearly" ? 2 :
@@ -192,7 +193,9 @@ const RentalIncome = () => {
     return availableAssets.find(a => a.id === assetId);
   }, [assetId, availableAssets]);
 
-  const frequencyOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly", "Others"];
+  const frequencyOptions = ["Daily", "Monthly", "Quarterly", "Half-Yearly", "Yearly", "Others"];
+
+  const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   const quarters = [
     { id: "Q1", label: "Q1 (Jan–Mar)", months: ["January", "February", "March"] },
