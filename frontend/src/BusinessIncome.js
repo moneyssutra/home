@@ -258,7 +258,20 @@ const BusinessIncome = () => {
   const handleSave = async () => {
     if (!validate()) return;
 
+    // Show confirmation dialog if editing
+    if (id) {
+      setShowUpdateConfirm(true);
+      return;
+    }
+
+    // Proceed with save
+    await performSave();
+  };
+
+  const performSave = async () => {
     setIsSubmitting(true);
+    setShowUpdateConfirm(false);
+    
     try {
       const payload = {
         type: "Business",
@@ -274,11 +287,35 @@ const BusinessIncome = () => {
         customDate: customDate || null,
       };
 
-      await axios.post(`${backendUrl}/api/income`, payload);
+      if (id) {
+        // Update existing business
+        await axios.put(`${backendUrl}/api/income/${id}`, payload);
+      } else {
+        // Create new business
+        await axios.post(`${backendUrl}/api/income`, payload);
+      }
+      
       navigate("/my-business");
     } catch (error) {
       console.error("Error saving business income:", error);
       setErrors({ submit: "Failed to save. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+    
+    setIsSubmitting(true);
+    setShowDeleteConfirm(false);
+    
+    try {
+      await axios.delete(`${backendUrl}/api/income/${id}`);
+      navigate("/my-business");
+    } catch (error) {
+      console.error("Error deleting business:", error);
+      setErrors({ submit: "Failed to delete. Please try again." });
     } finally {
       setIsSubmitting(false);
     }
