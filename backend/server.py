@@ -88,6 +88,57 @@ class IncomeSourceCreate(BaseModel):
     currentAmount: Optional[float] = None
     # Rental-specific fields
     tenantName: Optional[str] = None
+    # Rental with Asset link
+    assetId: Optional[str] = None
+    securityDeposit: Optional[float] = None
+
+# Loan Model
+class Loan(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    loanName: str
+    lenderName: Optional[str] = None
+    principalAmount: float
+    interestRate: float
+    tenureMonths: int
+    emiAmount: float
+    startDate: str
+    outstandingAmount: float
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class LoanCreate(BaseModel):
+    loanName: str
+    lenderName: Optional[str] = None
+    principalAmount: float
+    interestRate: float
+    tenureMonths: int
+    emiAmount: float
+    startDate: str
+    outstandingAmount: float
+
+# Asset Model
+class Asset(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    assetType: str
+    assetName: str
+    currentValue: float
+    isFinanced: bool = False
+    linkedLoanId: Optional[str] = None
+    purchaseDate: Optional[str] = None
+    purchaseValue: Optional[float] = None
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class AssetCreate(BaseModel):
+    assetType: str
+    assetName: str
+    currentValue: float
+    isFinanced: bool = False
+    linkedLoanId: Optional[str] = None
+    purchaseDate: Optional[str] = None
+    purchaseValue: Optional[float] = None
 
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
