@@ -440,7 +440,7 @@ const BusinessIncome = () => {
 
                 {/* Month Selection (based on quarter) */}
                 {selectedQuarter && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 w-full">
                     <label className="block text-sm font-medium text-[#0B3D2E]">
                       Select Month
                     </label>
