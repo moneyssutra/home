@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Calendar, Trash2, Calculator } from "lucide-react";
+import { ChevronLeft, Calendar, Trash2, Calculator, Info } from "lucide-react";
 import axios from "axios";
 
 const InterestIncome = () => {
@@ -15,7 +15,11 @@ const InterestIncome = () => {
   const [compoundingFrequency, setCompoundingFrequency] = useState("");
   const [frequency, setFrequency] = useState("");
   
-  // Date fields
+  // New date fields for loan period
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  
+  // Payment schedule date fields (when interest is received)
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedQuarter, setSelectedQuarter] = useState("");
   const [selectedHalf, setSelectedHalf] = useState("");
@@ -58,6 +62,8 @@ const InterestIncome = () => {
       setInterestType(data.interestType || "Simple Interest");
       setCompoundingFrequency(data.compoundingFrequency || "");
       setFrequency(data.frequency || "");
+      setStartDate(data.startDate || "");
+      setEndDate(data.endDate || "");
       setSelectedDate(data.selectedDate || "");
       setSelectedQuarter(data.selectedQuarter || "");
       setSelectedHalf(data.selectedHalf || "");
@@ -74,7 +80,7 @@ const InterestIncome = () => {
     }
   };
 
-  // Reset date fields when frequency changes
+  // Reset payment schedule fields when frequency changes
   useEffect(() => {
     if (!id) {
       setSelectedDate("");
@@ -93,31 +99,57 @@ const InterestIncome = () => {
     }
   }, [interestType]);
 
-  // Auto-calculate expected amount
+  // Calculate Current Amount (Principal + Accrued Interest)
+  const currentAmount = useMemo(() => {
+    const p = parseFloat(principal) || 0;
+    const r = parseFloat(rate) || 0;
+    
+    if (p <= 0 || r <= 0 || !startDate) return 0;
+    
+    const start = new Date(startDate);
+    const todayDate = new Date();
+    const end = endDate ? new Date(endDate) : null;
+    
+    // Calculate up to today or end date (whichever is earlier)
+    const calcEndDate = end && end < todayDate ? end : todayDate;
+    
+    // If start date is in future, no interest accrued yet
+    if (start > todayDate) return p;
+    
+    // Calculate days/years between dates
+    const diffTime = calcEndDate - start;
+    const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+    const years = diffDays / 365;
+    
+    let totalInterest = 0;
+    
+    if (interestType === "Simple Interest") {
+      totalInterest = (p * r * years) / 100;
+    } else {
+      // Compound Interest
+      const n = getCompoundingPeriodsPerYear();
+      const periods = years * n;
+      const amount = p * Math.pow(1 + r / (100 * n), periods);
+      totalInterest = amount - p;
+    }
+    
+    return p + totalInterest;
+  }, [principal, rate, startDate, endDate, interestType, compoundingFrequency]);
+
+  // Auto-calculate expected amount per frequency
   const calculatedAmount = useMemo(() => {
     const p = parseFloat(principal) || 0;
     const r = parseFloat(rate) || 0;
     
     if (p <= 0 || r <= 0) return 0;
     
-    // Helper to get compounding periods
-    const getCompoundingPeriods = () => {
-      switch (compoundingFrequency) {
-        case "Monthly": return 12;
-        case "Quarterly": return 4;
-        case "Half-Yearly": return 2;
-        case "Yearly": return 1;
-        default: return 1;
-      }
-    };
-    
     let yearlyInterest = 0;
     
     if (interestType === "Simple Interest") {
       yearlyInterest = (p * r) / 100;
     } else {
-      // Compound Interest calculation
-      const n = getCompoundingPeriods();
+      // Compound Interest calculation for one year
+      const n = getCompoundingPeriodsPerYear();
       if (n > 0) {
         const amount = p * Math.pow(1 + r / (100 * n), n);
         yearlyInterest = amount - p;
@@ -147,6 +179,16 @@ const InterestIncome = () => {
       setExpectedAmount(calculatedAmount.toFixed(2));
     }
   }, [calculatedAmount, manualOverride]);
+
+  const getCompoundingPeriodsPerYear = () => {
+    switch (compoundingFrequency) {
+      case "Monthly": return 12;
+      case "Quarterly": return 4;
+      case "Half-Yearly": return 2;
+      case "Yearly": return 1;
+      default: return 1;
+    }
+  };
 
   const frequencyOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly", "Others"];
   const compoundingOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly"];
@@ -198,7 +240,6 @@ const InterestIncome = () => {
 
   const handleRateChange = (e) => {
     const value = e.target.value.replace(/[^0-9.]/g, "");
-    // Allow only one decimal point
     const parts = value.split(".");
     if (parts.length > 2) return;
     if (parts[1]?.length > 2) return;
@@ -232,6 +273,16 @@ const InterestIncome = () => {
       newErrors.rate = "Rate cannot exceed 100%";
     }
 
+    if (!startDate) {
+      newErrors.startDate = "Start date is required";
+    }
+
+    if (!endDate) {
+      newErrors.endDate = "End date is required";
+    } else if (startDate && new Date(endDate) <= new Date(startDate)) {
+      newErrors.endDate = "End date must be after start date";
+    }
+
     if (interestType === "Compound Interest" && !compoundingFrequency) {
       newErrors.compoundingFrequency = "Please select compounding frequency";
     }
@@ -240,9 +291,9 @@ const InterestIncome = () => {
       newErrors.frequency = "Please select income frequency";
     }
 
-    // Date validation based on frequency
+    // Payment schedule date validation based on frequency
     if (frequency === "Monthly" && !selectedDate) {
-      newErrors.selectedDate = "Please select a date";
+      newErrors.selectedDate = "Please select a payment date";
     }
 
     if (frequency === "Quarterly") {
@@ -313,6 +364,9 @@ const InterestIncome = () => {
         rate: parseFloat(rate),
         interestType,
         compoundingFrequency: interestType === "Compound Interest" ? compoundingFrequency : null,
+        startDate,
+        endDate,
+        currentAmount: currentAmount,
         expectedAmount: parseFloat(expectedAmount),
         frequency,
         selectedDay: null,
@@ -359,6 +413,12 @@ const InterestIncome = () => {
 
   const formatAmount = (amount) => {
     return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+  };
+
+  const formatDateDisplay = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
   return (
@@ -446,6 +506,48 @@ const InterestIncome = () => {
               {errors.rate && <p className="text-sm text-red-500 mt-1">{errors.rate}</p>}
             </div>
 
+            {/* Start Date & End Date Row */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Start Date */}
+              <div className="w-full">
+                <label htmlFor="startDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  Start Date
+                </label>
+                <label htmlFor="startDate" className="relative block cursor-pointer">
+                  <input
+                    id="startDate"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                    data-testid="start-date-input"
+                  />
+                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                </label>
+                {errors.startDate && <p className="text-sm text-red-500 mt-1">{errors.startDate}</p>}
+              </div>
+
+              {/* End Date */}
+              <div className="w-full">
+                <label htmlFor="endDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  End Date (Maturity)
+                </label>
+                <label htmlFor="endDate" className="relative block cursor-pointer">
+                  <input
+                    id="endDate"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    min={startDate || undefined}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                    data-testid="end-date-input"
+                  />
+                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                </label>
+                {errors.endDate && <p className="text-sm text-red-500 mt-1">{errors.endDate}</p>}
+              </div>
+            </div>
+
             {/* Interest Type */}
             <div className="w-full">
               <label htmlFor="interestType" className="block text-sm font-medium text-[#0B3D2E] mb-2">
@@ -485,10 +587,34 @@ const InterestIncome = () => {
               </div>
             )}
 
+            {/* Current Amount Display (Auto-calculated) */}
+            {startDate && principal && rate && (
+              <div className="w-full rounded-xl bg-gradient-to-r from-[#0B3D2E] to-[#145A3E] p-5 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="current-amount-section">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-white/70 text-sm mb-1">Current Amount (Principal + Interest)</p>
+                    <p className="text-white text-2xl font-bold">₹ {formatAmount(currentAmount)}</p>
+                    <p className="text-[#00D09C] text-sm mt-1">
+                      +₹ {formatAmount(currentAmount - parseFloat(principal || 0))} interest accrued
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center gap-1 text-white/70 text-xs">
+                      <Info className="h-3 w-3" />
+                      <span>As of today</span>
+                    </div>
+                    {endDate && new Date(endDate) < new Date() && (
+                      <p className="text-yellow-300 text-xs mt-1">Matured on {formatDateDisplay(endDate)}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Income Frequency */}
             <div className="w-full">
               <label htmlFor="frequency" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                Income Frequency
+                Interest Payment Frequency
               </label>
               <select
                 id="frequency"
@@ -497,7 +623,7 @@ const InterestIncome = () => {
                 className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                 data-testid="frequency-select"
               >
-                <option value="">Select Income Frequency</option>
+                <option value="">Select Payment Frequency</option>
                 {frequencyOptions.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
@@ -509,7 +635,7 @@ const InterestIncome = () => {
             {frequency === "Monthly" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
                 <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                  Select Date
+                  Payment Date (Day of Month)
                 </label>
                 <label htmlFor="monthlyDate" className="relative block cursor-pointer">
                   <input
@@ -517,7 +643,6 @@ const InterestIncome = () => {
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    min={today}
                     className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
                     data-testid="date-select"
                   />
@@ -682,7 +807,6 @@ const InterestIncome = () => {
                       type="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      min={today}
                       className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
                       data-testid="date-select"
                     />
@@ -721,7 +845,6 @@ const InterestIncome = () => {
                       type="date"
                       value={customDate}
                       onChange={(e) => setCustomDate(e.target.value)}
-                      min={today}
                       className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
                       data-testid="custom-date-input"
                     />
@@ -741,11 +864,11 @@ const InterestIncome = () => {
                     <div className="flex items-start gap-2">
                       <Calculator className="h-5 w-5 text-[#00D09C] mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-[#0B3D2E] mb-1">Auto-Calculated</p>
+                        <p className="text-sm font-medium text-[#0B3D2E] mb-1">Auto-Calculated ({frequency})</p>
                         <p className="text-xs text-[#0B3D2E]/70">
                           {interestType === "Simple Interest" 
-                            ? `Simple Interest: ₹${formatAmount(parseFloat(principal) || 0)} × ${rate}% / {frequency divisor}`
-                            : `Compound Interest: ${compoundingFrequency} compounding`
+                            ? `₹${formatAmount(parseFloat(principal) || 0)} × ${rate}% ÷ ${frequency === "Monthly" ? 12 : frequency === "Quarterly" ? 4 : frequency === "Half-Yearly" ? 2 : 1}`
+                            : `Compound: ${compoundingFrequency} compounding`
                           }
                         </p>
                       </div>
@@ -779,7 +902,7 @@ const InterestIncome = () => {
                 {/* Expected Income Field */}
                 <div className="w-full">
                   <label htmlFor="expectedAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                    Expected Income ({frequency})
+                    Expected Interest Income ({frequency})
                   </label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
