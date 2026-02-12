@@ -99,6 +99,17 @@ const InterestIncome = () => {
     }
   }, [interestType]);
 
+  // Helper function to get compounding periods per year
+  const getCompoundingPeriodsPerYear = () => {
+    switch (compoundingFrequency) {
+      case "Monthly": return 12;
+      case "Quarterly": return 4;
+      case "Half-Yearly": return 2;
+      case "Yearly": return 1;
+      default: return 1;
+    }
+  };
+
   // Calculate Current Amount (Principal + Accrued Interest)
   const currentAmount = useMemo(() => {
     const p = parseFloat(principal) || 0;
