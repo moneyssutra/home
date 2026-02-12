@@ -38,6 +38,23 @@ const AssetForm = () => {
     "Other"
   ];
 
+  // Restore form state if returning from loan creation
+  useEffect(() => {
+    if (location.state?.assetFormData) {
+      const data = location.state.assetFormData;
+      setAssetType(data.assetType || "");
+      setAssetName(data.assetName || "");
+      setCurrentValue(data.currentValue || "");
+      setIsFinanced(data.isFinanced || false);
+      setPurchaseDate(data.purchaseDate || "");
+      setPurchaseValue(data.purchaseValue || "");
+      // If a new loan was just created, set it as linked
+      if (location.state?.newLoanId) {
+        setLinkedLoanId(location.state.newLoanId);
+      }
+    }
+  }, [location.state]);
+
   // Fetch loans for linking
   useEffect(() => {
     fetchLoans();
