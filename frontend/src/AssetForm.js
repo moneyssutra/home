@@ -106,9 +106,8 @@ const AssetForm = () => {
       newErrors.currentValue = "Current value must be greater than 0";
     }
 
-    if (isFinanced && !linkedLoanId) {
-      newErrors.linkedLoanId = "Please select a loan or add a new one";
-    }
+    // Linked loan is optional - user can add it later
+    // Removed: if (isFinanced && !linkedLoanId) validation
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
