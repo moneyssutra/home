@@ -182,6 +182,9 @@ Business/Job also support: Daily, Weekly
 None currently.
 
 ## Changelog
+- **Feb 12, 2026**: Added Rental Income module with 3 pages (My Rental, Rental Income form, Edit/Delete)
+  - Property Name, Tenant Name (optional), Rental Amount, Frequency, Date fields
+  - Full CRUD with confirmation dialogs
 - **Feb 12, 2026**: Added Start Date, End Date, and Current Amount to Interest Income module
   - Start Date: Can be past date (when loan/FD started)
   - End Date: Maturity date (interest stops calculating after this)
