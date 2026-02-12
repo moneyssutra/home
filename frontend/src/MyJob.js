@@ -146,7 +146,7 @@ const MyJob = () => {
   return (
     <div
       className="min-h-screen honeycomb-bg flex flex-col"
-      data-testid="my-business-page"
+      data-testid="my-job-page"
     >
       {/* Header */}
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
@@ -164,7 +164,7 @@ const MyJob = () => {
           style={{ fontFamily: "'Manrope', sans-serif" }}
           data-testid="page-title"
         >
-          My Business
+          My Job
         </h1>
         <div className="h-10 w-10" aria-hidden="true" />
       </header>
