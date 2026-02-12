@@ -30,49 +30,113 @@ const MyBusiness = () => {
     }
   };
 
-  const getScheduleInfo = (business) => {
-    const { frequency, selectedDay, selectedDate, selectedQuarter, selectedHalf, selectedMonth, customFrequency } = business;
+  const getNextPaymentDate = (business) => {
+    const { frequency, selectedDay, selectedDate, selectedQuarter, selectedHalf, selectedMonth } = business;
+    const today = new Date();
     
     switch (frequency) {
       case "Daily":
-        return "Every Day";
+        // Return today's date
+        return formatDate(today);
+        
       case "Weekly":
-        return selectedDay || "Weekly";
+        if (!selectedDay) return "Not set";
+        // Find next occurrence of selected day
+        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const targetDay = daysOfWeek.indexOf(selectedDay);
+        const currentDay = today.getDay();
+        let daysUntilTarget = targetDay - currentDay;
+        if (daysUntilTarget <= 0) daysUntilTarget += 7;
+        const nextDate = new Date(today);
+        nextDate.setDate(today.getDate() + daysUntilTarget);
+        return formatDate(nextDate);
+        
       case "Monthly":
-        return selectedDate ? `${new Date(selectedDate).getDate()}${getOrdinalSuffix(new Date(selectedDate).getDate())}` : "Monthly";
+        if (!selectedDate) return "Not set";
+        const day = new Date(selectedDate).getDate();
+        const nextMonthlyDate = new Date(today.getFullYear(), today.getMonth(), day);
+        if (nextMonthlyDate <= today) {
+          nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);
+        }
+        return formatDate(nextMonthlyDate);
+        
       case "Quarterly":
-        if (selectedQuarter && selectedDate) {
-          const day = new Date(selectedDate).getDate();
-          return `${selectedQuarter} – ${day}${getOrdinalSuffix(day)}`;
-        }
-        return "Quarterly";
+        if (!selectedMonth || !selectedDate) return "Not set";
+        return calculateQuarterlyNextDate(selectedMonth, selectedDate);
+        
       case "Half-Yearly":
-        if (selectedHalf && selectedDate) {
-          const day = new Date(selectedDate).getDate();
-          return `${selectedHalf} – ${day}${getOrdinalSuffix(day)}`;
-        }
-        return "Half-Yearly";
+        if (!selectedMonth || !selectedDate) return "Not set";
+        return calculateHalfYearlyNextDate(selectedMonth, selectedDate);
+        
       case "Yearly":
-        if (selectedMonth && selectedDate) {
-          const day = new Date(selectedDate).getDate();
-          return `${selectedMonth} ${day}${getOrdinalSuffix(day)}`;
+        if (!selectedMonth || !selectedDate) return "Not set";
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const monthIndex = months.indexOf(selectedMonth);
+        const yearlyDay = new Date(selectedDate).getDate();
+        const nextYearlyDate = new Date(today.getFullYear(), monthIndex, yearlyDay);
+        if (nextYearlyDate <= today) {
+          nextYearlyDate.setFullYear(nextYearlyDate.getFullYear() + 1);
         }
-        return "Yearly";
+        return formatDate(nextYearlyDate);
+        
       case "Others":
-        return customFrequency || "Custom";
+        if (business.customDate) {
+          return formatDate(new Date(business.customDate));
+        }
+        return "Custom";
+        
       default:
-        return frequency;
+        return "Not set";
     }
   };
 
-  const getOrdinalSuffix = (day) => {
-    if (day > 3 && day < 21) return "th";
-    switch (day % 10) {
-      case 1: return "st";
-      case 2: return "nd";
-      case 3: return "rd";
-      default: return "th";
+  const calculateQuarterlyNextDate = (month, dateStr) => {
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthIndex = months.indexOf(month);
+    const day = new Date(dateStr).getDate();
+    const today = new Date();
+    
+    // Find next occurrence in the quarterly cycle
+    const quarterMonths = [monthIndex, monthIndex + 3, monthIndex + 6, monthIndex + 9].map(m => m % 12);
+    
+    for (let qMonth of quarterMonths) {
+      const nextDate = new Date(today.getFullYear(), qMonth, day);
+      if (nextDate > today) {
+        return formatDate(nextDate);
+      }
     }
+    
+    // If all dates in current year have passed, return first quarter date next year
+    const nextYearDate = new Date(today.getFullYear() + 1, monthIndex, day);
+    return formatDate(nextYearDate);
+  };
+
+  const calculateHalfYearlyNextDate = (month, dateStr) => {
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthIndex = months.indexOf(month);
+    const day = new Date(dateStr).getDate();
+    const today = new Date();
+    
+    // Check current half-year date
+    const currentYearDate = new Date(today.getFullYear(), monthIndex, day);
+    if (currentYearDate > today) {
+      return formatDate(currentYearDate);
+    }
+    
+    // Check next half-year date (6 months later)
+    const nextHalfDate = new Date(today.getFullYear(), monthIndex + 6, day);
+    if (nextHalfDate > today) {
+      return formatDate(nextHalfDate);
+    }
+    
+    // Next year
+    const nextYearDate = new Date(today.getFullYear() + 1, monthIndex, day);
+    return formatDate(nextYearDate);
+  };
+
+  const formatDate = (date) => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   };
 
   const formatAmount = (amount) => {
