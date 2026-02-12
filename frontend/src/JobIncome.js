@@ -6,7 +6,7 @@ import axios from "axios";
 const JobIncome = () => {
   const navigate = useNavigate();
   const { id } = useParams(); // Get ID from URL if editing
-  const [companyName, setJobName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
   const [frequency, setFrequency] = useState("");
   
@@ -46,7 +46,7 @@ const JobIncome = () => {
       const data = response.data;
       
       // Pre-fill all fields
-      setJobName(data.name || "");
+      setCompanyName(data.name || "");
       setExpectedAmount(data.expectedAmount?.toString() || "");
       setFrequency(data.frequency || "");
       setSelectedDay(data.selectedDay || "");
@@ -189,9 +189,9 @@ const JobIncome = () => {
     const newErrors = {};
 
     if (!companyName.trim()) {
-      newErrors.companyName = "Job name is required";
+      newErrors.companyName = "Company name is required";
     } else if (companyName.length > 50) {
-      newErrors.companyName = "Job name must be 50 characters or less";
+      newErrors.companyName = "Company name must be 50 characters or less";
     }
 
     if (!expectedAmount || parseFloat(expectedAmount) <= 0) {
@@ -380,7 +380,7 @@ const JobIncome = () => {
                 id="companyName"
                 type="text"
                 value={companyName}
-                onChange={(e) => setJobName(e.target.value)}
+                onChange={(e) => setCompanyName(e.target.value)}
                 placeholder="Enter Job Name"
                 maxLength={50}
                 className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
