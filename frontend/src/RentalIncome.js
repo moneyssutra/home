@@ -1,16 +1,21 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Calendar, Trash2 } from "lucide-react";
+import { ChevronLeft, Calendar, Trash2, Plus, TrendingUp } from "lucide-react";
 import axios from "axios";
 
 const RentalIncome = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   
+  // Asset link
+  const [assetId, setAssetId] = useState("");
+  const [availableAssets, setAvailableAssets] = useState([]);
+  
   // Form fields
   const [propertyName, setPropertyName] = useState("");
   const [tenantName, setTenantName] = useState("");
   const [rentalAmount, setRentalAmount] = useState("");
+  const [securityDeposit, setSecurityDeposit] = useState("");
   const [frequency, setFrequency] = useState("");
   
   // Date fields
@@ -33,6 +38,11 @@ const RentalIncome = () => {
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   const today = new Date().toISOString().split('T')[0];
 
+  // Fetch assets for linking
+  useEffect(() => {
+    fetchAssets();
+  }, []);
+
   // Fetch data if editing
   useEffect(() => {
     if (id) {
@@ -40,15 +50,30 @@ const RentalIncome = () => {
     }
   }, [id]);
 
+  const fetchAssets = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/assets`);
+      // Filter to only show real estate and land assets
+      const rentalAssets = response.data.filter(a => 
+        ["Residential Property", "Commercial Property", "Land"].includes(a.assetType)
+      );
+      setAvailableAssets(rentalAssets);
+    } catch (error) {
+      console.error("Error fetching assets:", error);
+    }
+  };
+
   const fetchRentalData = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${backendUrl}/api/income/${id}`);
       const data = response.data;
       
+      setAssetId(data.assetId || "");
       setPropertyName(data.name || "");
       setTenantName(data.tenantName || "");
       setRentalAmount(data.expectedAmount?.toString() || "");
+      setSecurityDeposit(data.securityDeposit?.toString() || "");
       setFrequency(data.frequency || "");
       setSelectedDate(data.selectedDate || "");
       setSelectedQuarter(data.selectedQuarter || "");
@@ -64,6 +89,16 @@ const RentalIncome = () => {
     }
   };
 
+  // When asset is selected, auto-fill property name
+  useEffect(() => {
+    if (assetId && !id) {
+      const selectedAsset = availableAssets.find(a => a.id === assetId);
+      if (selectedAsset) {
+        setPropertyName(selectedAsset.assetName);
+      }
+    }
+  }, [assetId, availableAssets, id]);
+
   // Reset date fields when frequency changes
   useEffect(() => {
     if (!id) {
@@ -75,6 +110,26 @@ const RentalIncome = () => {
       setCustomDate("");
     }
   }, [frequency]);
+
+  // Calculate rental yield if asset is linked
+  const rentalYield = useMemo(() => {
+    if (!assetId || !rentalAmount) return null;
+    const selectedAsset = availableAssets.find(a => a.id === assetId);
+    if (!selectedAsset || !selectedAsset.currentValue) return null;
+    
+    const annualRent = parseFloat(rentalAmount) * (
+      frequency === "Monthly" ? 12 :
+      frequency === "Quarterly" ? 4 :
+      frequency === "Half-Yearly" ? 2 :
+      frequency === "Yearly" ? 1 : 12
+    );
+    
+    return (annualRent / selectedAsset.currentValue) * 100;
+  }, [assetId, rentalAmount, frequency, availableAssets]);
+
+  const selectedAsset = useMemo(() => {
+    return availableAssets.find(a => a.id === assetId);
+  }, [assetId, availableAssets]);
 
   const frequencyOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly", "Others"];
 
@@ -118,9 +173,13 @@ const RentalIncome = () => {
   const quarterlyDateRange = useMemo(() => getDateRangeForMonth(selectedMonth), [selectedMonth]);
   const halfYearlyDateRange = useMemo(() => getDateRangeForMonth(selectedMonth), [selectedMonth]);
 
-  const handleAmountChange = (e) => {
+  const handleAmountChange = (setter) => (e) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
-    setRentalAmount(value);
+    setter(value);
+  };
+
+  const formatAmount = (amount) => {
+    return new Intl.NumberFormat('en-IN').format(amount);
   };
 
   const validate = () => {
@@ -128,8 +187,6 @@ const RentalIncome = () => {
 
     if (!propertyName.trim()) {
       newErrors.propertyName = "Property name is required";
-    } else if (propertyName.length > 50) {
-      newErrors.propertyName = "Name must be 50 characters or less";
     }
 
     if (!rentalAmount || parseFloat(rentalAmount) <= 0) {
@@ -205,8 +262,10 @@ const RentalIncome = () => {
       const payload = {
         type: "Rental",
         name: propertyName,
+        assetId: assetId || null,
         tenantName: tenantName || null,
         expectedAmount: parseFloat(rentalAmount),
+        securityDeposit: securityDeposit ? parseFloat(securityDeposit) : null,
         frequency,
         selectedDay: null,
         selectedDate: selectedDate || null,
@@ -255,27 +314,78 @@ const RentalIncome = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D09C]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9]"
           onClick={() => navigate("/my-rental")}
-          aria-label="Back to my rental"
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1
-          className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#0B3D2E]"
-          style={{ fontFamily: "'Manrope', sans-serif" }}
-          data-testid="page-title"
-        >
+        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           Rental Income
         </h1>
-        <div className="h-10 w-10" aria-hidden="true" />
+        <div className="h-10 w-10" />
       </header>
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="mx-auto w-full max-w-[620px] px-6">
           <div className="space-y-6">
+            
+            {/* Link to Asset (Optional) */}
+            <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
+              <label htmlFor="assetId" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Link to Asset <span className="text-[#94A3B8] font-normal">(Optional - enables Rental Yield calculation)</span>
+              </label>
+              
+              {availableAssets.length > 0 ? (
+                <select
+                  id="assetId"
+                  value={assetId}
+                  onChange={(e) => setAssetId(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="asset-select"
+                >
+                  <option value="">Select an Asset (Optional)</option>
+                  {availableAssets.map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.assetName} - ₹{formatAmount(asset.currentValue)}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="text-sm text-[#0B3D2E]/60 mb-2">No assets available. Add an asset first to enable linking.</p>
+              )}
+              
+              <button
+                type="button"
+                onClick={() => navigate("/asset")}
+                className="mt-3 flex items-center gap-2 text-sm text-[#0EA5E9] font-medium hover:text-[#0284C7]"
+              >
+                <Plus className="h-4 w-4" />
+                Add New Asset
+              </button>
+            </div>
+
+            {/* Rental Yield Display */}
+            {rentalYield !== null && selectedAsset && (
+              <div className="w-full rounded-xl bg-gradient-to-r from-[#0B3D2E] to-[#145A3E] p-5">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <TrendingUp className="h-4 w-4 text-[#00D09C]" />
+                      <p className="text-white/70 text-sm">Rental Yield</p>
+                    </div>
+                    <p className="text-white text-3xl font-bold">{rentalYield.toFixed(2)}%</p>
+                    <p className="text-white/60 text-xs mt-1">Annual return on asset value</p>
+                  </div>
+                  <div className="text-right text-white/60 text-xs">
+                    <p>Asset Value: ₹{formatAmount(selectedAsset.currentValue)}</p>
+                    <p className="text-[#00D09C]">Annual Rent: ₹{formatAmount(parseFloat(rentalAmount || 0) * (frequency === "Monthly" ? 12 : frequency === "Quarterly" ? 4 : frequency === "Half-Yearly" ? 2 : 1))}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Property Name */}
             <div className="w-full">
               <label htmlFor="propertyName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
@@ -311,24 +421,46 @@ const RentalIncome = () => {
               />
             </div>
 
-            {/* Rental Amount */}
-            <div className="w-full">
-              <label htmlFor="rentalAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                Rental Amount
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
-                <input
-                  id="rentalAmount"
-                  type="text"
-                  value={rentalAmount}
-                  onChange={handleAmountChange}
-                  placeholder="0"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="rental-amount-input"
-                />
+            {/* Rental Amount & Security Deposit Row */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Rental Amount */}
+              <div className="w-full">
+                <label htmlFor="rentalAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  Rental Amount
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                  <input
+                    id="rentalAmount"
+                    type="text"
+                    value={rentalAmount}
+                    onChange={handleAmountChange(setRentalAmount)}
+                    placeholder="0"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="rental-amount-input"
+                  />
+                </div>
+                {errors.rentalAmount && <p className="text-sm text-red-500 mt-1">{errors.rentalAmount}</p>}
               </div>
-              {errors.rentalAmount && <p className="text-sm text-red-500 mt-1">{errors.rentalAmount}</p>}
+
+              {/* Security Deposit */}
+              <div className="w-full">
+                <label htmlFor="securityDeposit" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  Security Deposit <span className="text-[#94A3B8] font-normal">(Opt)</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                  <input
+                    id="securityDeposit"
+                    type="text"
+                    value={securityDeposit}
+                    onChange={handleAmountChange(setSecurityDeposit)}
+                    placeholder="0"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="security-deposit-input"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Frequency */}
@@ -594,7 +726,7 @@ const RentalIncome = () => {
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isSubmitting}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-white px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-white px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
                 data-testid="delete-button"
               >
                 <Trash2 className="h-5 w-5" />
@@ -604,7 +736,7 @@ const RentalIncome = () => {
                 type="button"
                 onClick={handleSave}
                 disabled={isSubmitting}
-                className="flex-1 rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+                className="flex-1 rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
                 data-testid="update-button"
               >
                 {isSubmitting ? "Updating..." : "Update Rental Income"}
@@ -615,7 +747,7 @@ const RentalIncome = () => {
               type="button"
               onClick={handleSave}
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+              className="w-full rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
               data-testid="save-button"
             >
               {isSubmitting ? "Saving..." : "Save Rental Income"}
@@ -630,21 +762,13 @@ const RentalIncome = () => {
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">Confirm Changes</h3>
             <p className="text-[#0B3D2E]/70 mb-6">
-              Are you sure you want to update this rental income? This will replace the existing information.
+              Are you sure you want to update this rental income?
             </p>
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowUpdateConfirm(false)}
-                className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium transition-colors hover:bg-[#F8FAF9]"
-              >
+              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
                 Cancel
               </button>
-              <button
-                type="button"
-                onClick={performSave}
-                className="flex-1 rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium transition-colors hover:bg-[#00BA89]"
-              >
+              <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium">
                 Yes, Update
               </button>
             </div>
@@ -661,18 +785,10 @@ const RentalIncome = () => {
               Are you sure you want to delete "{propertyName}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium transition-colors hover:bg-[#F8FAF9]"
-              >
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
                 Cancel
               </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium transition-colors hover:bg-red-600"
-              >
+              <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">
                 Yes, Delete
               </button>
             </div>
@@ -689,25 +805,13 @@ const RentalIncome = () => {
               A property with the name "{propertyName}" already exists. Would you like to edit the existing one or create a new one anyway?
             </p>
             <div className="flex flex-col gap-3">
-              <button
-                type="button"
-                onClick={() => { setShowDuplicateDialog(false); navigate(`/rental-income/${existingRental.id}`); }}
-                className="w-full rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium transition-colors hover:bg-[#00BA89]"
-              >
+              <button type="button" onClick={() => { setShowDuplicateDialog(false); navigate(`/rental-income/${existingRental.id}`); }} className="w-full rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium">
                 Edit Existing Property
               </button>
-              <button
-                type="button"
-                onClick={() => { setShowDuplicateDialog(false); performSave(); }}
-                className="w-full rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium transition-colors hover:bg-[#F8FAF9]"
-              >
+              <button type="button" onClick={() => { setShowDuplicateDialog(false); performSave(); }} className="w-full rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
                 Create New Anyway
               </button>
-              <button
-                type="button"
-                onClick={() => setShowDuplicateDialog(false)}
-                className="w-full rounded-xl bg-white px-4 py-3 text-[#0B3D2E]/60 font-medium transition-colors hover:text-[#0B3D2E]"
-              >
+              <button type="button" onClick={() => setShowDuplicateDialog(false)} className="w-full rounded-xl bg-white px-4 py-3 text-[#0B3D2E]/60 font-medium">
                 Cancel
               </button>
             </div>
