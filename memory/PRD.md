@@ -228,6 +228,11 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 None currently.
 
 ## Changelog
+- **Feb 12, 2026**: Commission Income module fully implemented
+  - 3 pages: My Commission (list), Commission Income (create/edit)
+  - Fixed/Variable toggle (default: Variable)
+  - 7 frequency options: Daily, Weekly, Monthly, Quarterly, Half-Yearly, Yearly, Irregular
+  - Conditional fields: Daily=no date, Weekly=day selector, Monthly=date (1-31), Irregular=full date picker
 - **Feb 12, 2026**: Completed 4-point UX improvement list
   - "Tenant Name" renamed to "Renter Name" in Rental Income module
   - Added "Daily" frequency option with day-of-week selector
