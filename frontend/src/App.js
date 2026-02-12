@@ -40,7 +40,11 @@ const IncomeSource = () => {
   );
 
   const handleSelect = (id) => {
-    setSelected((prev) => (prev === id ? null : id));
+    if (id === "business") {
+      navigate("/business-income");
+    } else {
+      setSelected((prev) => (prev === id ? null : id));
+    }
   };
 
   return (
