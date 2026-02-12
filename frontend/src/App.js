@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import BusinessIncome from "@/BusinessIncome";
 import MyBusiness from "@/MyBusiness";
+import JobIncome from "@/JobIncome";
+import MyJob from "@/MyJob";
 
 const HomePlaceholder = () => {
   return (
