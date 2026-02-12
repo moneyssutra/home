@@ -923,6 +923,49 @@ const BusinessIncome = () => {
           </div>
         </div>
       )}
+
+      {/* Duplicate Business Dialog */}
+      {showDuplicateDialog && existingBusiness && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">
+              Business Already Exists
+            </h3>
+            <p className="text-[#0B3D2E]/70 mb-6">
+              A business with the name "{businessName}" already exists. Would you like to edit the existing business or create a new one anyway?
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDuplicateDialog(false);
+                  navigate(`/business-income/${existingBusiness.id}`);
+                }}
+                className="w-full rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium transition-colors hover:bg-[#00BA89]"
+              >
+                Edit Existing Business
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDuplicateDialog(false);
+                  performSave();
+                }}
+                className="w-full rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium transition-colors hover:bg-[#F8FAF9]"
+              >
+                Create New Anyway
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDuplicateDialog(false)}
+                className="w-full rounded-xl bg-white px-4 py-3 text-[#0B3D2E]/60 font-medium transition-colors hover:text-[#0B3D2E]"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
