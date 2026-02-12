@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Calendar, Trash2, Plus } from "lucide-react";
 import axios from "axios";
 
 const AssetForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   
   // Form fields
   const [assetType, setAssetType] = useState("");
