@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Calendar, Trash2, Plus, TrendingUp } from "lucide-react";
 import axios from "axios";
@@ -7,18 +7,27 @@ const RentalIncome = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   
+  // Refs for auto-scroll
+  const dateFieldRef = useRef(null);
+  const quarterFieldRef = useRef(null);
+  const halfFieldRef = useRef(null);
+  const monthFieldRef = useRef(null);
+  const customFreqFieldRef = useRef(null);
+  const dayFieldRef = useRef(null);
+  
   // Asset link
   const [assetId, setAssetId] = useState("");
   const [availableAssets, setAvailableAssets] = useState([]);
   
   // Form fields
   const [propertyName, setPropertyName] = useState("");
-  const [tenantName, setTenantName] = useState("");
+  const [renterName, setRenterName] = useState("");
   const [rentalAmount, setRentalAmount] = useState("");
   const [securityDeposit, setSecurityDeposit] = useState("");
   const [frequency, setFrequency] = useState("");
   
   // Date fields
+  const [selectedDay, setSelectedDay] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedQuarter, setSelectedQuarter] = useState("");
   const [selectedHalf, setSelectedHalf] = useState("");
