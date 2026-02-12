@@ -5,6 +5,7 @@ import axios from "axios";
 
 const BusinessIncome = () => {
   const navigate = useNavigate();
+  const { id } = useParams(); // Get ID from URL if editing
   const [businessName, setBusinessName] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
   const [frequency, setFrequency] = useState("");
@@ -20,11 +21,46 @@ const BusinessIncome = () => {
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   
   // Get today's date for minimum date restriction
   const today = new Date().toISOString().split('T')[0];
+
+  // Fetch business data if editing
+  useEffect(() => {
+    if (id) {
+      fetchBusinessData();
+    }
+  }, [id]);
+
+  const fetchBusinessData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${backendUrl}/api/income/${id}`);
+      const data = response.data;
+      
+      // Pre-fill all fields
+      setBusinessName(data.name || "");
+      setExpectedAmount(data.expectedAmount?.toString() || "");
+      setFrequency(data.frequency || "");
+      setSelectedDay(data.selectedDay || "");
+      setSelectedDate(data.selectedDate || "");
+      setSelectedQuarter(data.selectedQuarter || "");
+      setSelectedHalf(data.selectedHalf || "");
+      setSelectedMonth(data.selectedMonth || "");
+      setCustomFrequency(data.customFrequency || "");
+      setCustomDate(data.customDate || "");
+    } catch (error) {
+      console.error("Error fetching business data:", error);
+      setErrors({ submit: "Failed to load business data" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Reset conditional fields when frequency changes
   useEffect(() => {
