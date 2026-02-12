@@ -468,7 +468,7 @@ const BusinessIncome = () => {
 
                 {/* Date Selection */}
                 {selectedMonth && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 w-full">
                     <label className="block text-sm font-medium text-[#0B3D2E]">
                       Select Date
                     </label>
@@ -574,7 +574,7 @@ const BusinessIncome = () => {
 
                 {/* Date Selection */}
                 {selectedMonth && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 w-full">
                     <label className="block text-sm font-medium text-[#0B3D2E]">
                       Select Date
                     </label>
