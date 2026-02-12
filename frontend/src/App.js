@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import BusinessIncome from "@/BusinessIncome";
+import MyBusiness from "@/MyBusiness";
 
 const HomePlaceholder = () => {
   return (
