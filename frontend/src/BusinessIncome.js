@@ -483,14 +483,7 @@ const BusinessIncome = () => {
                 <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                   Select Date
                 </label>
-                <div 
-                  className="relative cursor-pointer"
-                  onClick={(e) => {
-                    if (e.target.tagName !== 'INPUT') {
-                      document.getElementById('monthlyDate')?.click();
-                    }
-                  }}
-                >
+                <label htmlFor="monthlyDate" className="relative block cursor-pointer">
                   <input
                     id="monthlyDate"
                     type="date"
@@ -501,7 +494,7 @@ const BusinessIncome = () => {
                     data-testid="date-select"
                   />
                   <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                </div>
+                </label>
                 {errors.selectedDate && (
                   <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>
                 )}
