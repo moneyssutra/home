@@ -3,28 +3,28 @@ import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Plus, Briefcase } from "lucide-react";
 import axios from "axios";
 
-const MyBusiness = () => {
+const MyJob = () => {
   const navigate = useNavigate();
-  const [businesses, setBusinesses] = useState([]);
+  const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
-    fetchBusinesses();
+    fetchJobs();
   }, []);
 
-  const fetchBusinesses = async () => {
+  const fetchJobs = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${backendUrl}/api/income`);
-      // Filter only Business type and sort by createdAt DESC
-      const businessData = response.data
-        .filter(item => item.type === "Business")
+      // Filter only Job type and sort by createdAt DESC
+      const jobData = response.data
+        .filter(item => item.type === "Job")
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setBusinesses(businessData);
+      setJobs(jobData);
     } catch (error) {
-      console.error("Error fetching businesses:", error);
+      console.error("Error fetching jobs:", error);
     } finally {
       setLoading(false);
     }
