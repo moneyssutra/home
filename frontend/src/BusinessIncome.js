@@ -412,7 +412,7 @@ const BusinessIncome = () => {
                 data-testid="quarterly-fields"
               >
                 {/* Quarter Selection */}
-                <div className="space-y-2">
+                <div className="space-y-2 w-full">
                   <label className="block text-sm font-medium text-[#0B3D2E]">
                     Select Quarter
                   </label>
