@@ -37,6 +37,36 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
+class IncomeSource(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    type: str
+    name: str
+    expectedAmount: float
+    frequency: str
+    selectedDay: str = None
+    selectedDate: int = None
+    selectedQuarter: str = None
+    selectedHalf: str = None
+    selectedMonth: str = None
+    customFrequency: str = None
+    customDate: str = None
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class IncomeSourceCreate(BaseModel):
+    type: str
+    name: str
+    expectedAmount: float
+    frequency: str
+    selectedDay: str = None
+    selectedDate: int = None
+    selectedQuarter: str = None
+    selectedHalf: str = None
+    selectedMonth: str = None
+    customFrequency: str = None
+    customDate: str = None
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
