@@ -76,11 +76,13 @@ const MyAssets = () => {
       const type = asset.assetType || "Other";
       allocation[type] = (allocation[type] || 0) + asset.currentValue;
     });
-    return Object.entries(allocation).map(([type, value]) => ({
-      type,
-      value,
-      percentage: ((value / totalAssetValue) * 100).toFixed(1)
-    }));
+    return Object.entries(allocation)
+      .map(([type, value]) => ({
+        type,
+        value,
+        percentage: ((value / totalAssetValue) * 100).toFixed(1)
+      }))
+      .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage)); // Sort by percentage descending
   };
 
   return (
