@@ -94,7 +94,7 @@ const MyLoans = () => {
             /* Loan List */
             <div className="space-y-4">
               {/* Summary Card */}
-              <div className="rounded-2xl bg-gradient-to-r from-[#F59E0B] to-[#D97706] p-5 text-white mb-4">
+              <div className="rounded-2xl bg-gradient-to-r from-[#F59E0B] to-[#D97706] p-5 text-white mb-3">
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-white/80 text-sm">Total Outstanding</span>
                   <Landmark className="h-6 w-6 text-white/60" />
@@ -106,6 +106,31 @@ const MyLoans = () => {
                   {loans.length} active loan{loans.length !== 1 ? 's' : ''}
                 </p>
               </div>
+
+              {/* Loan Allocation */}
+              {loans.length > 0 && (
+                <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 mb-3">
+                  <p className="text-sm font-medium text-[#0B3D2E] mb-3">Loan Allocation</p>
+                  <div className="space-y-2">
+                    {getLoanAllocation().map(({ type, value, percentage }) => (
+                      <div key={type} className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-[#0B3D2E]/70">{type}</span>
+                            <span className="font-medium text-[#0B3D2E]">{percentage}%</span>
+                          </div>
+                          <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-[#F59E0B] rounded-full"
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-3">
                 {loans.map((loan) => (
