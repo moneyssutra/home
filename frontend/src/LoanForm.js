@@ -9,14 +9,24 @@ const LoanIncome = () => {
   const location = useLocation();
   
   // Form fields
+  const [loanType, setLoanType] = useState("");
   const [loanName, setLoanName] = useState("");
   const [lenderName, setLenderName] = useState("");
   const [principalAmount, setPrincipalAmount] = useState("");
-  const [interestRate, setInterestRate] = useState("");
-  const [tenureMonths, setTenureMonths] = useState("");
-  const [emiAmount, setEmiAmount] = useState("");
-  const [startDate, setStartDate] = useState("");
   const [outstandingAmount, setOutstandingAmount] = useState("");
+  const [interestRate, setInterestRate] = useState("");
+  const [emiAmount, setEmiAmount] = useState("");
+  const [emiFrequency, setEmiFrequency] = useState("Monthly");
+  const [tenureMonths, setTenureMonths] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [linkedAssetId, setLinkedAssetId] = useState("");
+  const [linkedAccountId, setLinkedAccountId] = useState("");
+  const [autoCreateExpense, setAutoCreateExpense] = useState(true);
+  
+  // Assets and Accounts for linking
+  const [assets, setAssets] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   
   // UI state
   const [errors, setErrors] = useState({});
@@ -27,12 +37,46 @@ const LoanIncome = () => {
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
-  // Fetch data if editing
+  const loanTypeOptions = [
+    "Home Loan",
+    "Vehicle Loan",
+    "Personal Loan",
+    "Education Loan",
+    "Business Loan",
+    "Gold Loan",
+    "Credit Card Dues",
+    "Hand Loan Taken",
+    "Other"
+  ];
+
+  const emiFrequencyOptions = ["Monthly", "Quarterly", "Half-Yearly"];
+
+  // Fetch assets, accounts and loan data
   useEffect(() => {
+    fetchAssets();
+    fetchAccounts();
     if (id) {
       fetchLoanData();
     }
   }, [id]);
+
+  const fetchAssets = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/assets`);
+      setAssets(response.data);
+    } catch (error) {
+      console.error("Error fetching assets:", error);
+    }
+  };
+
+  const fetchAccounts = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/accounts`);
+      setAccounts(response.data);
+    } catch (error) {
+      console.error("Error fetching accounts:", error);
+    }
+  };
 
   const fetchLoanData = async () => {
     try {
@@ -40,14 +84,20 @@ const LoanIncome = () => {
       const response = await axios.get(`${backendUrl}/api/loans/${id}`);
       const data = response.data;
       
+      setLoanType(data.loanType || "");
       setLoanName(data.loanName || "");
       setLenderName(data.lenderName || "");
       setPrincipalAmount(data.principalAmount?.toString() || "");
-      setInterestRate(data.interestRate?.toString() || "");
-      setTenureMonths(data.tenureMonths?.toString() || "");
-      setEmiAmount(data.emiAmount?.toString() || "");
-      setStartDate(data.startDate || "");
       setOutstandingAmount(data.outstandingAmount?.toString() || "");
+      setInterestRate(data.interestRate?.toString() || "");
+      setEmiAmount(data.emiAmount?.toString() || "");
+      setEmiFrequency(data.emiFrequency || "Monthly");
+      setTenureMonths(data.tenureMonths?.toString() || "");
+      setStartDate(data.startDate || "");
+      setEndDate(data.endDate || "");
+      setLinkedAssetId(data.linkedAssetId || "");
+      setLinkedAccountId(data.linkedAccountId || "");
+      setAutoCreateExpense(data.autoCreateExpense !== false);
     } catch (error) {
       console.error("Error fetching loan data:", error);
       setErrors({ submit: "Failed to load loan data" });
@@ -59,7 +109,7 @@ const LoanIncome = () => {
   // Auto-calculate EMI when principal, rate, tenure change
   useEffect(() => {
     const p = parseFloat(principalAmount) || 0;
-    const r = (parseFloat(interestRate) || 0) / 12 / 100; // Monthly rate
+    const r = (parseFloat(interestRate) || 0) / 12 / 100;
     const n = parseInt(tenureMonths) || 0;
     
     if (p > 0 && r > 0 && n > 0) {
@@ -78,79 +128,72 @@ const LoanIncome = () => {
     
     if (p <= 0 || emi <= 0) return;
     
-    // Calculate months elapsed since start date
     const start = new Date(startDate);
     const today = new Date();
+    const monthsDiff = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
+    const emiPaid = Math.max(0, monthsDiff);
     
-    // If start date is in future, outstanding = principal
-    if (start > today) {
-      setOutstandingAmount(principalAmount);
+    if (emiPaid === 0) {
+      setOutstandingAmount(p.toFixed(2));
       return;
     }
     
-    const monthsElapsed = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
-    const emisPaid = Math.max(0, monthsElapsed);
-    
-    if (emisPaid === 0) {
-      setOutstandingAmount(principalAmount);
-      return;
+    let balance = p;
+    for (let i = 0; i < emiPaid && balance > 0; i++) {
+      const interestForMonth = balance * monthlyRate;
+      const principalForMonth = emi - interestForMonth;
+      balance = Math.max(0, balance - principalForMonth);
     }
     
-    // Calculate outstanding using amortization formula
-    // Outstanding = P * [(1+r)^n - (1+r)^p] / [(1+r)^n - 1]
-    // Where p = payments made, n = total tenure
-    const n = parseInt(tenureMonths) || 0;
-    const r = monthlyRate;
-    
-    if (n > 0 && r > 0) {
-      const paidMonths = Math.min(emisPaid, n);
-      const outstanding = p * (Math.pow(1 + r, n) - Math.pow(1 + r, paidMonths)) / (Math.pow(1 + r, n) - 1);
-      setOutstandingAmount(Math.max(0, outstanding).toFixed(2));
-    } else {
-      // Simple calculation if no rate/tenure
-      const outstanding = p - (emi * emisPaid);
-      setOutstandingAmount(Math.max(0, outstanding).toFixed(2));
+    setOutstandingAmount(balance.toFixed(2));
+  }, [principalAmount, startDate, emiAmount, interestRate]);
+
+  // Auto-calculate End Date based on start date and tenure
+  useEffect(() => {
+    if (startDate && tenureMonths) {
+      const start = new Date(startDate);
+      const tenure = parseInt(tenureMonths) || 0;
+      if (tenure > 0) {
+        start.setMonth(start.getMonth() + tenure);
+        setEndDate(start.toISOString().split('T')[0]);
+      }
     }
-  }, [principalAmount, startDate, emiAmount, interestRate, tenureMonths]);
+  }, [startDate, tenureMonths]);
 
   const handleAmountChange = (setter) => (e) => {
-    const value = e.target.value.replace(/[^0-9]/g, "");
-    setter(value);
-  };
-
-  const handleRateChange = (e) => {
     const value = e.target.value.replace(/[^0-9.]/g, "");
-    const parts = value.split(".");
-    if (parts.length > 2) return;
-    if (parts[1]?.length > 2) return;
-    setInterestRate(value);
+    setter(value);
   };
 
   const validate = () => {
     const newErrors = {};
+
+    if (!loanType) {
+      newErrors.loanType = "Please select a loan type";
+    }
 
     if (!loanName.trim()) {
       newErrors.loanName = "Loan name is required";
     }
 
     if (!principalAmount || parseFloat(principalAmount) <= 0) {
-      newErrors.principalAmount = "Principal amount must be greater than 0";
-    }
-
-    if (!interestRate || parseFloat(interestRate) <= 0) {
-      newErrors.interestRate = "Interest rate must be greater than 0";
-    }
-
-    if (!tenureMonths || parseInt(tenureMonths) <= 0) {
-      newErrors.tenureMonths = "Tenure must be greater than 0";
-    }
-
-    if (!startDate) {
-      newErrors.startDate = "Start date is required";
+      newErrors.principalAmount = "Principal amount is required";
     }
 
     if (!outstandingAmount || parseFloat(outstandingAmount) < 0) {
       newErrors.outstandingAmount = "Outstanding amount is required";
+    }
+
+    if (!interestRate || parseFloat(interestRate) <= 0) {
+      newErrors.interestRate = "Interest rate is required";
+    }
+
+    if (!emiAmount || parseFloat(emiAmount) <= 0) {
+      newErrors.emiAmount = "EMI amount is required";
+    }
+
+    if (!startDate) {
+      newErrors.startDate = "Start date is required";
     }
 
     setErrors(newErrors);
@@ -174,14 +217,20 @@ const LoanIncome = () => {
     
     try {
       const payload = {
+        loanType,
         loanName,
         lenderName: lenderName || null,
         principalAmount: parseFloat(principalAmount),
-        interestRate: parseFloat(interestRate),
-        tenureMonths: parseInt(tenureMonths),
-        emiAmount: parseFloat(emiAmount),
-        startDate,
         outstandingAmount: parseFloat(outstandingAmount),
+        interestRate: parseFloat(interestRate),
+        emiAmount: parseFloat(emiAmount),
+        emiFrequency,
+        tenureMonths: parseInt(tenureMonths) || null,
+        startDate,
+        endDate: endDate || null,
+        linkedAssetId: linkedAssetId || null,
+        linkedAccountId: linkedAccountId || null,
+        autoCreateExpense,
       };
 
       let savedLoanId = id;
@@ -230,7 +279,7 @@ const LoanIncome = () => {
   };
 
   const formatAmount = (amount) => {
-    return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+    return new Intl.NumberFormat('en-IN').format(amount);
   };
 
   return (
@@ -241,12 +290,9 @@ const LoanIncome = () => {
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9]"
           onClick={() => {
-            // If we came from asset form, return there preserving the form data
             if (location.state?.returnTo && location.state?.assetFormData) {
               navigate(location.state.returnTo, {
-                state: {
-                  assetFormData: location.state.assetFormData
-                }
+                state: { assetFormData: location.state.assetFormData }
               });
             } else {
               navigate("/my-loans");
@@ -262,10 +308,30 @@ const LoanIncome = () => {
         <div className="h-10 w-10" />
       </header>
 
-      {/* Content */}
+      {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="mx-auto w-full max-w-[620px] px-6">
           <div className="space-y-6">
+            {/* Loan Type */}
+            <div className="w-full">
+              <label htmlFor="loanType" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Loan Type
+              </label>
+              <select
+                id="loanType"
+                value={loanType}
+                onChange={(e) => setLoanType(e.target.value)}
+                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                data-testid="loan-type-select"
+              >
+                <option value="">Select Loan Type</option>
+                {loanTypeOptions.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              {errors.loanType && <p className="text-sm text-red-500 mt-1">{errors.loanType}</p>}
+            </div>
+
             {/* Loan Name */}
             <div className="w-full">
               <label htmlFor="loanName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
@@ -276,7 +342,7 @@ const LoanIncome = () => {
                 type="text"
                 value={loanName}
                 onChange={(e) => setLoanName(e.target.value)}
-                placeholder="e.g., Home Loan – HDFC, Car Loan – SBI"
+                placeholder="e.g., HDFC Home Loan, SBI Car Loan"
                 maxLength={50}
                 className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                 data-testid="loan-name-input"
@@ -294,7 +360,7 @@ const LoanIncome = () => {
                 type="text"
                 value={lenderName}
                 onChange={(e) => setLenderName(e.target.value)}
-                placeholder="e.g., HDFC Bank, SBI, ICICI"
+                placeholder="e.g., HDFC Bank, SBI"
                 maxLength={50}
                 className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                 data-testid="lender-name-input"
@@ -315,66 +381,106 @@ const LoanIncome = () => {
                   onChange={handleAmountChange(setPrincipalAmount)}
                   placeholder="0"
                   className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="principal-input"
+                  data-testid="principal-amount-input"
                 />
               </div>
               {errors.principalAmount && <p className="text-sm text-red-500 mt-1">{errors.principalAmount}</p>}
             </div>
 
-            {/* Interest Rate & Tenure Row */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Interest Rate */}
-              <div className="w-full">
-                <label htmlFor="interestRate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                  Interest Rate (%)
-                </label>
-                <div className="relative">
-                  <input
-                    id="interestRate"
-                    type="text"
-                    value={interestRate}
-                    onChange={handleRateChange}
-                    placeholder="e.g., 8.5"
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 pr-10 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                    data-testid="interest-rate-input"
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0B3D2E]/60">%</span>
-                </div>
-                {errors.interestRate && <p className="text-sm text-red-500 mt-1">{errors.interestRate}</p>}
-              </div>
-
-              {/* Tenure */}
-              <div className="w-full">
-                <label htmlFor="tenureMonths" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                  Tenure (Months)
-                </label>
+            {/* Outstanding Amount */}
+            <div className="w-full">
+              <label htmlFor="outstandingAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Current Outstanding Amount
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
                 <input
-                  id="tenureMonths"
+                  id="outstandingAmount"
                   type="text"
-                  value={tenureMonths}
-                  onChange={handleAmountChange(setTenureMonths)}
-                  placeholder="e.g., 240"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="tenure-input"
+                  value={outstandingAmount}
+                  onChange={handleAmountChange(setOutstandingAmount)}
+                  placeholder="Auto-calculated or enter manually"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="outstanding-amount-input"
                 />
-                {errors.tenureMonths && <p className="text-sm text-red-500 mt-1">{errors.tenureMonths}</p>}
               </div>
+              {errors.outstandingAmount && <p className="text-sm text-red-500 mt-1">{errors.outstandingAmount}</p>}
+              <p className="text-xs text-[#0B3D2E]/60 mt-1">This affects your Net Worth calculation</p>
             </div>
 
-            {/* EMI Display */}
-            {emiAmount && parseFloat(emiAmount) > 0 && (
-              <div className="w-full rounded-xl bg-gradient-to-r from-[#0B3D2E] to-[#145A3E] p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-white/70 text-sm mb-1">Calculated EMI</p>
-                    <p className="text-white text-2xl font-bold">₹ {formatAmount(parseFloat(emiAmount))}</p>
-                  </div>
-                  <div className="text-right text-white/70 text-xs">
-                    Per Month
-                  </div>
-                </div>
+            {/* Interest Rate */}
+            <div className="w-full">
+              <label htmlFor="interestRate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Interest Rate (% per annum)
+              </label>
+              <div className="relative">
+                <input
+                  id="interestRate"
+                  type="text"
+                  value={interestRate}
+                  onChange={handleAmountChange(setInterestRate)}
+                  placeholder="e.g., 8.5"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 pr-10 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="interest-rate-input"
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0B3D2E]/60">%</span>
               </div>
-            )}
+              {errors.interestRate && <p className="text-sm text-red-500 mt-1">{errors.interestRate}</p>}
+            </div>
+
+            {/* Tenure */}
+            <div className="w-full">
+              <label htmlFor="tenureMonths" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Tenure (Months) <span className="text-[#94A3B8] font-normal">(Optional)</span>
+              </label>
+              <input
+                id="tenureMonths"
+                type="text"
+                value={tenureMonths}
+                onChange={handleAmountChange(setTenureMonths)}
+                placeholder="e.g., 240 for 20 years"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                data-testid="tenure-input"
+              />
+            </div>
+
+            {/* EMI Amount */}
+            <div className="w-full">
+              <label htmlFor="emiAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                EMI Amount
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                <input
+                  id="emiAmount"
+                  type="text"
+                  value={emiAmount}
+                  onChange={handleAmountChange(setEmiAmount)}
+                  placeholder="Auto-calculated"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="emi-amount-input"
+                />
+              </div>
+              {errors.emiAmount && <p className="text-sm text-red-500 mt-1">{errors.emiAmount}</p>}
+            </div>
+
+            {/* EMI Frequency */}
+            <div className="w-full">
+              <label htmlFor="emiFrequency" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                EMI Frequency
+              </label>
+              <select
+                id="emiFrequency"
+                value={emiFrequency}
+                onChange={(e) => setEmiFrequency(e.target.value)}
+                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                data-testid="emi-frequency-select"
+              >
+                {emiFrequencyOptions.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
 
             {/* Start Date */}
             <div className="w-full">
@@ -395,51 +501,92 @@ const LoanIncome = () => {
               {errors.startDate && <p className="text-sm text-red-500 mt-1">{errors.startDate}</p>}
             </div>
 
-            {/* Outstanding Amount - Auto Calculated */}
+            {/* End Date */}
             <div className="w-full">
-              <label htmlFor="outstandingAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                Outstanding Amount <span className="text-[#00D09C] font-normal">(Auto-calculated)</span>
+              <label htmlFor="endDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Loan End Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
-              
-              {/* EMIs Paid Info */}
-              {startDate && emiAmount && parseFloat(emiAmount) > 0 && (
-                <div className="mb-2 p-3 rounded-lg bg-[#E8F8F4] border border-[#00D09C]/30">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-[#0B3D2E]/70">EMIs Paid:</span>
-                    <span className="font-medium text-[#0B3D2E]">
-                      {(() => {
-                        const start = new Date(startDate);
-                        const today = new Date();
-                        if (start > today) return "0 (starts in future)";
-                        const monthsElapsed = (today.getFullYear() - start.getFullYear()) * 12 + (today.getMonth() - start.getMonth());
-                        const tenure = parseInt(tenureMonths) || 0;
-                        const paid = Math.min(Math.max(0, monthsElapsed), tenure);
-                        return `${paid} of ${tenure} months`;
-                      })()}
-                    </span>
-                  </div>
-                </div>
-              )}
-              
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+              <label htmlFor="endDate" className="relative block cursor-pointer">
                 <input
-                  id="outstandingAmount"
-                  type="text"
-                  value={outstandingAmount}
-                  onChange={handleAmountChange(setOutstandingAmount)}
-                  placeholder="0"
-                  readOnly={!!startDate && !!emiAmount}
-                  className={`w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 ${
-                    startDate && emiAmount ? "bg-[#F8FAF9] cursor-not-allowed" : ""
-                  }`}
-                  data-testid="outstanding-input"
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                  data-testid="end-date-input"
                 />
+                <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+              </label>
+              <p className="text-xs text-[#0B3D2E]/60 mt-1">Auto-calculated from start date + tenure</p>
+            </div>
+
+            {/* Linked Asset */}
+            {assets.length > 0 && (
+              <div className="w-full">
+                <label htmlFor="linkedAsset" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  Linked Asset <span className="text-[#94A3B8] font-normal">(Optional)</span>
+                </label>
+                <select
+                  id="linkedAsset"
+                  value={linkedAssetId}
+                  onChange={(e) => setLinkedAssetId(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="linked-asset-select"
+                >
+                  <option value="">Select Asset (Optional)</option>
+                  {assets.map((asset) => (
+                    <option key={asset.id} value={asset.id}>{asset.assetName} - {asset.assetType}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-[#0B3D2E]/60 mt-1">Link to Property, Vehicle, or other financed asset</p>
               </div>
-              <p className="text-xs text-[#0B3D2E]/50 mt-1">
-                Calculated based on EMIs paid since start date
-              </p>
-              {errors.outstandingAmount && <p className="text-sm text-red-500 mt-1">{errors.outstandingAmount}</p>}
+            )}
+
+            {/* Linked Account */}
+            {accounts.length > 0 && (
+              <div className="w-full">
+                <label htmlFor="linkedAccount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  EMI Debit Account <span className="text-[#94A3B8] font-normal">(Optional)</span>
+                </label>
+                <select
+                  id="linkedAccount"
+                  value={linkedAccountId}
+                  onChange={(e) => setLinkedAccountId(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="linked-account-select"
+                >
+                  <option value="">Select Account (Optional)</option>
+                  {accounts.map((acc) => (
+                    <option key={acc.id} value={acc.id}>{acc.accountName} - {acc.accountType}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Auto Create EMI Expense */}
+            <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-[#0B3D2E]">
+                    Auto Create EMI Expense
+                  </label>
+                  <p className="text-xs text-[#0B3D2E]/60 mt-0.5">Automatically add EMI to your expense list</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAutoCreateExpense(!autoCreateExpense)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    autoCreateExpense ? "bg-[#00D09C]" : "bg-[#E2E8F0]"
+                  }`}
+                  data-testid="auto-expense-toggle"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      autoCreateExpense ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
 
             {errors.submit && (
@@ -494,7 +641,7 @@ const LoanIncome = () => {
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">Confirm Changes</h3>
             <p className="text-[#0B3D2E]/70 mb-6">
-              Are you sure you want to update this loan? This will replace the existing information.
+              Are you sure you want to update this loan?
             </p>
             <div className="flex gap-3">
               <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
