@@ -207,13 +207,13 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 
 ## Backlog / Future Tasks
 
-### P1 - High Priority
-- Credit Card separate page module (with limit tracking, outstanding dues, due date reminders, statement cycle)
-- Asset Form fixes (Income generation toggle shows rental fields, enhanced card display)
-- Loan Form toggle for Linked Asset (Yes/No with dropdown)
+### P1 - High Priority (Remaining)
 - Investment Form fixes (frequency date selection, SIP options)
-- Expense Form fixes (calendar date picker, fixed expense deduction logic)
+- Expense Form fixes (calendar date picker, fixed expense deduction logic, EMI→Loan linking)
 - Insurance Page fixes (rename toggle, Premium End Date field, One-Time frequency, Term Insurance type, Coverage summary box)
+- Other Income Module (Gift, Bonus, Capital Gain, etc.)
+- Back button navigation to previous page (partially done)
+- Amount in words below all currency inputs (partially done)
 
 ### P2 - Medium Priority
 - Expense Transaction Module (actual spending tracker against budgeted expenses)
