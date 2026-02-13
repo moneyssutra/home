@@ -20,6 +20,7 @@ const LoanIncome = () => {
   const [tenureMonths, setTenureMonths] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [hasLinkedAsset, setHasLinkedAsset] = useState(false);
   const [linkedAssetId, setLinkedAssetId] = useState("");
   const [linkedAccountId, setLinkedAccountId] = useState("");
   const [autoCreateExpense, setAutoCreateExpense] = useState(true);
