@@ -1,16 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import {
-  Banknote,
-  Briefcase,
-  ChevronLeft,
-  Home,
-  MoreHorizontal,
-  Percent,
-  PieChart,
-  TrendingUp,
-} from "lucide-react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+// Pages
+import Dashboard from "@/Dashboard";
+import Welcome from "@/Welcome";
+import BasicSetup from "@/BasicSetup";
+import MyIncome from "@/MyIncome";
+import Portfolio from "@/Portfolio";
+
+// Income Pages
 import BusinessIncome from "@/BusinessIncome";
 import MyBusiness from "@/MyBusiness";
 import JobIncome from "@/JobIncome";
@@ -19,14 +18,16 @@ import InterestIncome from "@/InterestIncome";
 import MyInterest from "@/MyInterest";
 import RentalIncome from "@/RentalIncome";
 import MyRental from "@/MyRental";
-import LoanForm from "@/LoanForm";
-import MyLoans from "@/MyLoans";
-import AssetForm from "@/AssetForm";
-import MyAssets from "@/MyAssets";
 import CommissionIncome from "@/CommissionIncome";
 import MyCommission from "@/MyCommission";
 import DividendIncome from "@/DividendIncome";
 import MyDividend from "@/MyDividend";
+
+// Financial Pages
+import LoanForm from "@/LoanForm";
+import MyLoans from "@/MyLoans";
+import AssetForm from "@/AssetForm";
+import MyAssets from "@/MyAssets";
 import AccountForm from "@/AccountForm";
 import MyAccounts from "@/MyAccounts";
 import ExpenseForm from "@/ExpenseForm";
@@ -35,112 +36,6 @@ import InsuranceForm from "@/InsuranceForm";
 import MyInsurance from "@/MyInsurance";
 import InvestmentForm from "@/InvestmentForm";
 import MyInvestments from "@/MyInvestments";
-import Dashboard from "@/Dashboard";
-
-const HomePlaceholder = () => {
-  return (
-    <Dashboard />
-  );
-};
-
-const IncomeSource = () => {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState(null);
-
-  const incomeTypes = useMemo(
-    () => [
-      { id: "business", label: "Business", Icon: Briefcase },
-      { id: "job", label: "Job", Icon: Banknote },
-      { id: "rental", label: "Rental", Icon: Home },
-      { id: "commission", label: "Commission", Icon: Percent },
-      { id: "interest", label: "Interest", Icon: TrendingUp },
-      { id: "dividend", label: "Dividend", Icon: PieChart },
-      { id: "other", label: "Other", Icon: MoreHorizontal },
-    ],
-    [],
-  );
-
-  const handleSelect = (id) => {
-    if (id === "business") {
-      navigate("/my-business");
-    } else if (id === "job") {
-      navigate("/my-job");
-    } else if (id === "interest") {
-      navigate("/my-interest");
-    } else if (id === "rental") {
-      navigate("/my-rental");
-    } else if (id === "commission") {
-      navigate("/my-commission");
-    } else if (id === "dividend") {
-      navigate("/my-dividend");
-    } else {
-      setSelected((prev) => (prev === id ? null : id));
-    }
-  };
-
-  return (
-    <div
-      className="min-h-screen honeycomb-bg text-[#0B3D2E]"
-      data-testid="income-source-page"
-    >
-      <header className="flex items-center px-6 pt-8 pb-6">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D09C]"
-          onClick={() => navigate("/home")}
-          aria-label="Back to home"
-          data-testid="back-arrow-button"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <h1
-          className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#0B3D2E]"
-          style={{ fontFamily: "'Manrope', sans-serif" }}
-          data-testid="income-type-title"
-        >
-          Income Type
-        </h1>
-        <div className="h-10 w-10" aria-hidden="true" />
-      </header>
-
-      <section
-        className="mx-auto grid w-full max-w-[620px] grid-cols-2 gap-4 px-6 pb-8"
-        data-testid="income-type-grid"
-      >
-        {incomeTypes.map(({ id, label, Icon }) => {
-          const isSelected = selected === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => handleSelect(id)}
-              className={`flex h-32 flex-col items-center justify-center rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_6px_16px_rgba(15,23,42,0.08)] transition-colors transition-shadow hover:bg-[#F8FAF9] hover:shadow-[0_12px_20px_rgba(15,23,42,0.12)] active:scale-95 ${
-                isSelected
-                  ? "border-[#00D09C] shadow-[0_0_0_1px_#00D09C,0_12px_20px_rgba(0,208,156,0.2)]"
-                  : ""
-              }`}
-              aria-pressed={isSelected}
-              data-testid={`income-card-${id}`}
-            >
-              <Icon
-                className={`mb-3 h-12 w-12 ${
-                  isSelected ? "text-[#00D09C]" : "text-[#0B3D2E]"
-                }`}
-              />
-              <span
-                className="text-[26px] font-medium tracking-wide leading-tight whitespace-nowrap"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-                data-testid={`income-card-label-${id}`}
-              >
-                {label}
-              </span>
-            </button>
-          );
-        })}
-      </section>
-    </div>
-  );
-};
 
 function App() {
   useEffect(() => {
@@ -154,41 +49,71 @@ function App() {
     <div className="App">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<IncomeSource />} />
-          <Route path="/home" element={<HomePlaceholder />} />
+          {/* Main Routes */}
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/setup" element={<BasicSetup />} />
+          
+          {/* Navigation Routes */}
+          <Route path="/my-income" element={<MyIncome />} />
+          <Route path="/portfolio" element={<Portfolio />} />
+          
+          {/* Business Income */}
           <Route path="/my-business" element={<MyBusiness />} />
           <Route path="/business-income" element={<BusinessIncome />} />
           <Route path="/business-income/:id" element={<BusinessIncome />} />
+          
+          {/* Job Income */}
           <Route path="/my-job" element={<MyJob />} />
           <Route path="/job-income" element={<JobIncome />} />
           <Route path="/job-income/:id" element={<JobIncome />} />
+          
+          {/* Interest Income */}
           <Route path="/my-interest" element={<MyInterest />} />
           <Route path="/interest-income" element={<InterestIncome />} />
           <Route path="/interest-income/:id" element={<InterestIncome />} />
+          
+          {/* Rental Income */}
           <Route path="/my-rental" element={<MyRental />} />
           <Route path="/rental-income" element={<RentalIncome />} />
           <Route path="/rental-income/:id" element={<RentalIncome />} />
-          <Route path="/my-loans" element={<MyLoans />} />
-          <Route path="/loan" element={<LoanForm />} />
-          <Route path="/loan/:id" element={<LoanForm />} />
-          <Route path="/my-assets" element={<MyAssets />} />
-          <Route path="/asset" element={<AssetForm />} />
-          <Route path="/asset/:id" element={<AssetForm />} />
+          
+          {/* Commission Income */}
           <Route path="/my-commission" element={<MyCommission />} />
           <Route path="/commission-income" element={<CommissionIncome />} />
           <Route path="/commission-income/:id" element={<CommissionIncome />} />
+          
+          {/* Dividend Income */}
           <Route path="/my-dividend" element={<MyDividend />} />
           <Route path="/dividend-income" element={<DividendIncome />} />
           <Route path="/dividend-income/:id" element={<DividendIncome />} />
+          
+          {/* Loans */}
+          <Route path="/my-loans" element={<MyLoans />} />
+          <Route path="/loan" element={<LoanForm />} />
+          <Route path="/loan/:id" element={<LoanForm />} />
+          
+          {/* Assets */}
+          <Route path="/my-assets" element={<MyAssets />} />
+          <Route path="/asset" element={<AssetForm />} />
+          <Route path="/asset/:id" element={<AssetForm />} />
+          
+          {/* Accounts */}
           <Route path="/my-accounts" element={<MyAccounts />} />
           <Route path="/account" element={<AccountForm />} />
           <Route path="/account/:id" element={<AccountForm />} />
+          
+          {/* Expenses */}
           <Route path="/my-expenses" element={<MyExpenses />} />
           <Route path="/expense" element={<ExpenseForm />} />
           <Route path="/expense/:id" element={<ExpenseForm />} />
+          
+          {/* Insurance */}
           <Route path="/my-insurance" element={<MyInsurance />} />
           <Route path="/insurance" element={<InsuranceForm />} />
           <Route path="/insurance/:id" element={<InsuranceForm />} />
+          
+          {/* Investments */}
           <Route path="/my-investments" element={<MyInvestments />} />
           <Route path="/investment" element={<InvestmentForm />} />
           <Route path="/investment/:id" element={<InvestmentForm />} />
