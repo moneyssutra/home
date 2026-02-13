@@ -734,6 +734,36 @@ async def get_expenses():
     
     return expenses
 
+@api_router.get("/expenses/with-next-date")
+async def get_expenses_with_next_date():
+    """Get all expenses with calculated next deduction dates"""
+    expenses = await db.expenses.find({}, {"_id": 0}).to_list(1000)
+    
+    result = []
+    for expense in expenses:
+        if isinstance(expense.get('createdAt'), str):
+            expense['createdAt'] = datetime.fromisoformat(expense['createdAt'])
+        
+        # Calculate next deduction date
+        next_date = calculate_next_deduction_date(expense)
+        expense['nextDeductionDate'] = next_date
+        
+        # Check if linked to loan and get loan details
+        if expense.get('linkedLoanId'):
+            loan = await db.loans.find_one({"id": expense['linkedLoanId']}, {"_id": 0})
+            if loan:
+                expense['linkedLoanName'] = loan.get('loanName')
+        
+        # Check if linked to insurance and get insurance details
+        if expense.get('linkedInsuranceId'):
+            insurance = await db.insurances.find_one({"id": expense['linkedInsuranceId']}, {"_id": 0})
+            if insurance:
+                expense['linkedInsuranceName'] = insurance.get('policyName')
+        
+        result.append(expense)
+    
+    return result
+
 @api_router.get("/expenses/{expense_id}", response_model=Expense)
 async def get_expense(expense_id: str):
     expense = await db.expenses.find_one({"id": expense_id}, {"_id": 0})
