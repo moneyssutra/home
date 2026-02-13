@@ -228,6 +228,16 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 None currently.
 
 ## Changelog
+- **Feb 13, 2026**: Account Module implemented
+  - 3 pages: My Accounts, Add/Edit Account
+  - Account types: Bank, Cash, Credit Card, Digital Wallet, UPI, Brokerage, Business
+  - Credit Card specific fields: Credit Limit, Outstanding, Due Date, Minimum Due
+  - Primary account toggle, Summary cards (Liquid Balance, Credit Outstanding)
+- **Feb 13, 2026**: Expense Module implemented  
+  - 3 pages: My Expenses, Add/Edit Expense
+  - 13 categories: Housing, Utilities, Food, Transport, Shopping, Medical, Education, Insurance, Subscriptions, EMI, Business Expense, Salary Paid, Other
+  - Fixed/Variable toggle, 7 frequency options
+  - Linked Account support
 - **Feb 12, 2026**: Dividend Income module fully implemented
   - 3 pages: My Dividend (list with category badges), Dividend Income (create/edit)
   - 5 source categories: Direct Stocks, Mutual Funds (IDCW), REITs, InvITs, Others
