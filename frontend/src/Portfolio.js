@@ -91,7 +91,7 @@ const Portfolio = () => {
     },
     {
       title: "Loans",
-      icon: CreditCard,
+      icon: Landmark,
       color: "from-amber-500 to-orange-600",
       bgColor: "bg-amber-500/10",
       textColor: "text-amber-600",
@@ -99,6 +99,18 @@ const Portfolio = () => {
       count: data.loans.length,
       path: "/my-loans",
       isLiability: true,
+    },
+    {
+      title: "Credit Cards",
+      icon: CreditCard,
+      color: "from-fuchsia-500 to-pink-600",
+      bgColor: "bg-fuchsia-500/10",
+      textColor: "text-fuchsia-600",
+      value: totalCreditCardOutstanding,
+      count: data.creditCards.length,
+      path: "/my-credit-cards",
+      isLiability: true,
+      extra: totalCreditLimit > 0 ? `${((totalCreditCardOutstanding / totalCreditLimit) * 100).toFixed(0)}% used` : null,
     },
     {
       title: "Insurance",
