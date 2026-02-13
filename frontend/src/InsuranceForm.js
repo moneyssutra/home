@@ -455,12 +455,12 @@ const InsuranceForm = () => {
               </div>
             )}
 
-            {/* Auto Create Premium Expense */}
+            {/* Auto Add to Expense */}
             <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <label className="text-sm font-medium text-[#0B3D2E]">
-                    Auto Create Premium Expense
+                    Auto Add to Expense
                   </label>
                   <p className="text-xs text-[#0B3D2E]/60 mt-0.5">Automatically add premium to your expense list</p>
                 </div>
@@ -479,6 +479,24 @@ const InsuranceForm = () => {
                   />
                 </button>
               </div>
+              
+              {/* Premium End Date - only visible when toggle is ON */}
+              {autoCreateExpense && (
+                <div className="mt-4 pt-4 border-t border-[#E2E8F0]">
+                  <label htmlFor="premiumEndDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    Premium End Date
+                  </label>
+                  <input
+                    id="premiumEndDate"
+                    type="date"
+                    value={premiumEndDate}
+                    onChange={(e) => setPremiumEndDate(e.target.value)}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="premium-end-date-input"
+                  />
+                  <p className="text-xs text-[#0B3D2E]/50 mt-1">After this date, premium won't show in expenses</p>
+                </div>
+              )}
             </div>
 
             {/* Notes */}
