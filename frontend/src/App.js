@@ -27,6 +27,8 @@ import CommissionIncome from "@/CommissionIncome";
 import MyCommission from "@/MyCommission";
 import DividendIncome from "@/DividendIncome";
 import MyDividend from "@/MyDividend";
+import AccountForm from "@/AccountForm";
+import MyAccounts from "@/MyAccounts";
 
 const HomePlaceholder = () => {
   return (
