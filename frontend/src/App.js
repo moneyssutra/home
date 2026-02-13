@@ -36,6 +36,8 @@ import InsuranceForm from "@/InsuranceForm";
 import MyInsurance from "@/MyInsurance";
 import InvestmentForm from "@/InvestmentForm";
 import MyInvestments from "@/MyInvestments";
+import CreditCardForm from "@/CreditCardForm";
+import MyCreditCards from "@/MyCreditCards";
 
 function App() {
   useEffect(() => {
