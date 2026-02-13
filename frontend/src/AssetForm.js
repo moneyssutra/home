@@ -485,6 +485,82 @@ const AssetForm = () => {
                   />
                 </button>
               </div>
+              
+              {/* Rental Income Fields - shown when toggle is ON */}
+              {generatesIncome && (
+                <div className="mt-4 pt-4 border-t border-[#E2E8F0] space-y-4">
+                  <div>
+                    <label htmlFor="renterName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                      Renter Name <span className="text-[#0B3D2E]/40">(Optional)</span>
+                    </label>
+                    <input
+                      id="renterName"
+                      type="text"
+                      value={renterName}
+                      onChange={(e) => setRenterName(e.target.value)}
+                      placeholder="Enter renter's name"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#0B3D2E]/40 focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="renter-name-input"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="rentalAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                      Rental Amount <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E]/60 font-medium">₹</span>
+                      <input
+                        id="rentalAmount"
+                        type="text"
+                        value={rentalAmount}
+                        onChange={(e) => setRentalAmount(e.target.value.replace(/[^0-9]/g, ""))}
+                        placeholder="0"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-white text-[#0B3D2E] placeholder-[#0B3D2E]/40 focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                        data-testid="rental-amount-input"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="securityDeposit" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                      Security Deposit <span className="text-[#0B3D2E]/40">(Optional)</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E]/60 font-medium">₹</span>
+                      <input
+                        id="securityDeposit"
+                        type="text"
+                        value={securityDeposit}
+                        onChange={(e) => setSecurityDeposit(e.target.value.replace(/[^0-9]/g, ""))}
+                        placeholder="0"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-white text-[#0B3D2E] placeholder-[#0B3D2E]/40 focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                        data-testid="security-deposit-input"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="rentalFrequency" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                      Rental Frequency
+                    </label>
+                    <select
+                      id="rentalFrequency"
+                      value={rentalFrequency}
+                      onChange={(e) => setRentalFrequency(e.target.value)}
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="rental-frequency-select"
+                    >
+                      <option value="Daily">Daily</option>
+                      <option value="Weekly">Weekly</option>
+                      <option value="Monthly">Monthly</option>
+                      <option value="Quarterly">Quarterly</option>
+                      <option value="Half-Yearly">Half-Yearly</option>
+                      <option value="Yearly">Yearly</option>
+                    </select>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Is Insured Toggle */}
