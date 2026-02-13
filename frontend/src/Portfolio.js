@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Building2, LineChart, CreditCard, Shield, Wallet } from "lucide-react";
+import { ChevronRight, Building2, LineChart, CreditCard, Shield, Wallet, Landmark } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import BackButton from "@/components/BackButton";
 
 const Portfolio = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Portfolio = () => {
     loans: [],
     insurances: [],
     accounts: [],
+    creditCards: [],
   });
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
@@ -26,12 +28,13 @@ const Portfolio = () => {
   const fetchPortfolioData = async () => {
     try {
       setLoading(true);
-      const [assets, investments, loans, insurances, accounts] = await Promise.all([
+      const [assets, investments, loans, insurances, accounts, creditCards] = await Promise.all([
         axios.get(`${backendUrl}/api/assets`),
         axios.get(`${backendUrl}/api/investments`),
         axios.get(`${backendUrl}/api/loans`),
         axios.get(`${backendUrl}/api/insurances`),
         axios.get(`${backendUrl}/api/accounts`),
+        axios.get(`${backendUrl}/api/credit-cards`),
       ]);
       setData({
         assets: assets.data,
@@ -39,6 +42,7 @@ const Portfolio = () => {
         loans: loans.data,
         insurances: insurances.data,
         accounts: accounts.data,
+        creditCards: creditCards.data,
       });
     } catch (error) {
       console.error("Error fetching portfolio data:", error);
@@ -58,6 +62,8 @@ const Portfolio = () => {
   const totalInvestments = data.investments.reduce((sum, i) => sum + (i.currentValue || 0), 0);
   const totalLoans = data.loans.reduce((sum, l) => sum + (l.outstandingAmount || 0), 0);
   const totalCoverage = data.insurances.reduce((sum, i) => sum + (i.coverageAmount || 0), 0);
+  const totalCreditCardOutstanding = data.creditCards.reduce((sum, c) => sum + (c.outstandingAmount || 0), 0);
+  const totalCreditLimit = data.creditCards.reduce((sum, c) => sum + (c.creditLimit || 0), 0);
   const totalBalance = data.accounts
     .filter(a => a.accountType !== "Credit Card")
     .reduce((sum, a) => sum + (a.currentBalance || 0), 0);
