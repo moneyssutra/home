@@ -280,6 +280,51 @@ class AssetCreate(BaseModel):
     location: Optional[str] = None
     notes: Optional[str] = None
 
+# Investment Model
+class Investment(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    investmentCategory: str
+    investmentMode: str
+    name: str
+    principal: float
+    currentValue: float
+    startDate: str
+    linkedAccountId: Optional[str] = None
+    notes: Optional[str] = None
+    quantity: Optional[float] = None
+    unitPrice: Optional[float] = None
+    currentPrice: Optional[float] = None
+    returnRate: Optional[float] = None
+    compoundingType: Optional[str] = None
+    compoundingFrequency: Optional[str] = None
+    payoutFrequency: Optional[str] = None
+    maturityDate: Optional[str] = None
+    expectedMaturityValue: Optional[float] = None
+    lockInPeriod: Optional[int] = None
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class InvestmentCreate(BaseModel):
+    investmentCategory: str
+    investmentMode: str
+    name: str
+    principal: float
+    currentValue: float
+    startDate: str
+    linkedAccountId: Optional[str] = None
+    notes: Optional[str] = None
+    quantity: Optional[float] = None
+    unitPrice: Optional[float] = None
+    currentPrice: Optional[float] = None
+    returnRate: Optional[float] = None
+    compoundingType: Optional[str] = None
+    compoundingFrequency: Optional[str] = None
+    payoutFrequency: Optional[str] = None
+    maturityDate: Optional[str] = None
+    expectedMaturityValue: Optional[float] = None
+    lockInPeriod: Optional[int] = None
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
