@@ -888,6 +888,205 @@ async def delete_insurance(insurance_id: str):
     await db.insurances.delete_one({"id": insurance_id})
     return {"message": "Insurance deleted successfully", "id": insurance_id}
 
+# ============ EXPENSE SCHEDULER ENDPOINTS ============
+
+def calculate_next_deduction_date(expense: dict) -> Optional[str]:
+    """Calculate the next deduction date for an expense based on its frequency"""
+    from calendar import monthrange
+    
+    today = datetime.now(timezone.utc).date()
+    frequency = expense.get('frequency', '')
+    
+    if frequency == "Daily":
+        return today.isoformat()
+    
+    elif frequency == "Weekly":
+        selected_day = expense.get('selectedDay', '')
+        if not selected_day:
+            return None
+        day_mapping = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
+        target_day = day_mapping.get(selected_day, 0)
+        days_ahead = target_day - today.weekday()
+        if days_ahead <= 0:
+            days_ahead += 7
+        next_date = today + timedelta(days=days_ahead)
+        return next_date.isoformat()
+    
+    elif frequency == "Monthly":
+        selected_date = expense.get('selectedDate', '')
+        if not selected_date:
+            return None
+        day = int(selected_date)
+        # Get max days in current month
+        _, max_day = monthrange(today.year, today.month)
+        day = min(day, max_day)
+        
+        if today.day < day:
+            next_date = today.replace(day=day)
+        else:
+            # Move to next month
+            if today.month == 12:
+                next_date = today.replace(year=today.year + 1, month=1, day=min(day, 31))
+            else:
+                _, max_next_day = monthrange(today.year, today.month + 1)
+                next_date = today.replace(month=today.month + 1, day=min(day, max_next_day))
+        return next_date.isoformat()
+    
+    elif frequency == "Quarterly":
+        selected_quarter = expense.get('selectedQuarter', '')
+        selected_date = expense.get('selectedDate', '')
+        if not selected_date:
+            return None
+        day = int(selected_date)
+        # Q1: Jan, Q2: Apr, Q3: Jul, Q4: Oct
+        quarter_starts = {"Q1 (Jan–Mar)": 1, "Q2 (Apr–Jun)": 4, "Q3 (Jul–Sep)": 7, "Q4 (Oct–Dec)": 10}
+        for q_name, start_month in quarter_starts.items():
+            if selected_quarter and q_name.startswith(selected_quarter[:2]):
+                # Find next occurrence
+                for m in [start_month, start_month + 3, start_month + 6, start_month + 9]:
+                    m = ((m - 1) % 12) + 1
+                    year = today.year if m >= today.month else today.year + 1
+                    _, max_day = monthrange(year, m)
+                    target_day = min(day, max_day)
+                    target_date = datetime(year, m, target_day).date()
+                    if target_date > today:
+                        return target_date.isoformat()
+        return None
+    
+    elif frequency == "Half-Yearly":
+        selected_half = expense.get('selectedHalf', '')
+        selected_date = expense.get('selectedDate', '')
+        if not selected_date:
+            return None
+        day = int(selected_date)
+        # H1: Jan-Jun, H2: Jul-Dec
+        if "Jan" in selected_half:
+            months = [1, 7]
+        else:
+            months = [7, 1]
+        for m in months:
+            year = today.year if m >= today.month else today.year + 1
+            _, max_day = monthrange(year, m)
+            target_day = min(day, max_day)
+            target_date = datetime(year, m, target_day).date()
+            if target_date > today:
+                return target_date.isoformat()
+        return None
+    
+    elif frequency == "Yearly":
+        selected_month = expense.get('selectedMonth', '')
+        selected_date = expense.get('selectedDate', '')
+        if not selected_month or not selected_date:
+            return None
+        month_mapping = {"January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6, 
+                        "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12}
+        month = month_mapping.get(selected_month, 1)
+        day = int(selected_date)
+        year = today.year
+        _, max_day = monthrange(year, month)
+        target_day = min(day, max_day)
+        target_date = datetime(year, month, target_day).date()
+        if target_date <= today:
+            target_date = datetime(year + 1, month, target_day).date()
+        return target_date.isoformat()
+    
+    elif frequency == "One-Time":
+        one_time_date = expense.get('oneTimeDate', '')
+        if one_time_date:
+            return one_time_date
+        return None
+    
+    return None
+
+@api_router.get("/expenses/with-next-date")
+async def get_expenses_with_next_date():
+    """Get all expenses with calculated next deduction dates"""
+    expenses = await db.expenses.find({}, {"_id": 0}).to_list(1000)
+    
+    result = []
+    for expense in expenses:
+        if isinstance(expense.get('createdAt'), str):
+            expense['createdAt'] = datetime.fromisoformat(expense['createdAt'])
+        
+        # Calculate next deduction date
+        next_date = calculate_next_deduction_date(expense)
+        expense['nextDeductionDate'] = next_date
+        
+        # Check if linked to loan and get loan details
+        if expense.get('linkedLoanId'):
+            loan = await db.loans.find_one({"id": expense['linkedLoanId']}, {"_id": 0})
+            if loan:
+                expense['linkedLoanName'] = loan.get('loanName')
+        
+        # Check if linked to insurance and get insurance details
+        if expense.get('linkedInsuranceId'):
+            insurance = await db.insurances.find_one({"id": expense['linkedInsuranceId']}, {"_id": 0})
+            if insurance:
+                expense['linkedInsuranceName'] = insurance.get('policyName')
+        
+        result.append(expense)
+    
+    return result
+
+@api_router.post("/expenses/process-deductions")
+async def process_fixed_expense_deductions():
+    """Process fixed expense deductions for today - to be called by a scheduler"""
+    from datetime import timedelta
+    
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    # Get all fixed expenses
+    fixed_expenses = await db.expenses.find({"expenseType": "Fixed"}, {"_id": 0}).to_list(1000)
+    
+    processed = []
+    errors = []
+    
+    for expense in fixed_expenses:
+        try:
+            next_date = calculate_next_deduction_date(expense)
+            
+            # Check if due today
+            if next_date == today:
+                linked_account_id = expense.get('linkedAccountId')
+                amount = expense.get('expectedAmount', 0)
+                
+                if linked_account_id and amount > 0:
+                    # Deduct from linked account
+                    account = await db.accounts.find_one({"id": linked_account_id}, {"_id": 0})
+                    if account:
+                        new_balance = account.get('currentBalance', 0) - amount
+                        await db.accounts.update_one(
+                            {"id": linked_account_id},
+                            {"$set": {"currentBalance": new_balance}}
+                        )
+                        
+                        # Update expense as paid
+                        await db.expenses.update_one(
+                            {"id": expense['id']},
+                            {"$set": {"isPaid": True, "lastPaidDate": today}}
+                        )
+                        
+                        processed.append({
+                            "expenseId": expense['id'],
+                            "expenseName": expense.get('expenseName'),
+                            "amount": amount,
+                            "accountId": linked_account_id,
+                            "accountName": account.get('accountName'),
+                            "newBalance": new_balance
+                        })
+        except Exception as e:
+            errors.append({
+                "expenseId": expense.get('id'),
+                "error": str(e)
+            })
+    
+    return {
+        "processedCount": len(processed),
+        "processed": processed,
+        "errors": errors,
+        "processedDate": today
+    }
+
 # ============ INVESTMENT ENDPOINTS ============
 
 @api_router.post("/investments", response_model=Investment)
