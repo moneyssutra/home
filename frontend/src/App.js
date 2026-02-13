@@ -29,6 +29,8 @@ import DividendIncome from "@/DividendIncome";
 import MyDividend from "@/MyDividend";
 import AccountForm from "@/AccountForm";
 import MyAccounts from "@/MyAccounts";
+import ExpenseForm from "@/ExpenseForm";
+import MyExpenses from "@/MyExpenses";
 
 const HomePlaceholder = () => {
   return (
@@ -179,6 +181,9 @@ function App() {
           <Route path="/my-accounts" element={<MyAccounts />} />
           <Route path="/account" element={<AccountForm />} />
           <Route path="/account/:id" element={<AccountForm />} />
+          <Route path="/my-expenses" element={<MyExpenses />} />
+          <Route path="/expense" element={<ExpenseForm />} />
+          <Route path="/expense/:id" element={<ExpenseForm />} />
         </Routes>
       </BrowserRouter>
     </div>
