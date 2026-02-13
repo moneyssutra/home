@@ -33,6 +33,9 @@ import ExpenseForm from "@/ExpenseForm";
 import MyExpenses from "@/MyExpenses";
 import InsuranceForm from "@/InsuranceForm";
 import MyInsurance from "@/MyInsurance";
+import InvestmentForm from "@/InvestmentForm";
+import MyInvestments from "@/MyInvestments";
+import Dashboard from "@/Dashboard";
 
 const HomePlaceholder = () => {
   return (
