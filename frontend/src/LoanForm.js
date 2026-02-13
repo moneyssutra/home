@@ -521,27 +521,56 @@ const LoanIncome = () => {
               <p className="text-xs text-[#0B3D2E]/60 mt-1">Auto-calculated from start date + tenure</p>
             </div>
 
-            {/* Linked Asset */}
-            {assets.length > 0 && (
-              <div className="w-full">
-                <label htmlFor="linkedAsset" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                  Linked Asset <span className="text-[#94A3B8] font-normal">(Optional)</span>
-                </label>
-                <select
-                  id="linkedAsset"
-                  value={linkedAssetId}
-                  onChange={(e) => setLinkedAssetId(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="linked-asset-select"
+            {/* Linked Asset Toggle */}
+            <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-[#0B3D2E]">
+                    Is This Loan For An Asset?
+                  </label>
+                  <p className="text-xs text-[#0B3D2E]/60 mt-0.5">E.g., Home loan, Vehicle loan</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHasLinkedAsset(!hasLinkedAsset);
+                    if (hasLinkedAsset) setLinkedAssetId("");
+                  }}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    hasLinkedAsset ? "bg-[#00D09C]" : "bg-[#E2E8F0]"
+                  }`}
+                  data-testid="has-linked-asset-toggle"
                 >
-                  <option value="">Select Asset (Optional)</option>
-                  {assets.map((asset) => (
-                    <option key={asset.id} value={asset.id}>{asset.assetName} - {asset.assetType}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-[#0B3D2E]/60 mt-1">Link to Property, Vehicle, or other financed asset</p>
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      hasLinkedAsset ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
               </div>
-            )}
+              
+              {/* Asset Dropdown - shown when toggle is ON */}
+              {hasLinkedAsset && assets.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-[#E2E8F0]">
+                  <label htmlFor="linkedAsset" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    Select Linked Asset
+                  </label>
+                  <select
+                    id="linkedAsset"
+                    value={linkedAssetId}
+                    onChange={(e) => setLinkedAssetId(e.target.value)}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="linked-asset-select"
+                  >
+                    <option value="">Select Asset</option>
+                    {assets.map((asset) => (
+                      <option key={asset.id} value={asset.id}>{asset.assetName} - {asset.assetType}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-[#0B3D2E]/60 mt-1">Link to Property, Vehicle, or other financed asset</p>
+                </div>
+              )}
+            </div>
 
             {/* Linked Account */}
             {accounts.length > 0 && (
