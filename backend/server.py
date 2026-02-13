@@ -772,6 +772,225 @@ async def delete_insurance(insurance_id: str):
     await db.insurances.delete_one({"id": insurance_id})
     return {"message": "Insurance deleted successfully", "id": insurance_id}
 
+# ============ INVESTMENT ENDPOINTS ============
+
+@api_router.post("/investments", response_model=Investment)
+async def create_investment(input: InvestmentCreate):
+    investment_dict = input.model_dump()
+    investment_obj = Investment(**investment_dict)
+    
+    doc = investment_obj.model_dump()
+    doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    await db.investments.insert_one(doc)
+    return investment_obj
+
+@api_router.get("/investments", response_model=List[Investment])
+async def get_investments():
+    investments = await db.investments.find({}, {"_id": 0}).to_list(1000)
+    
+    for investment in investments:
+        if isinstance(investment['createdAt'], str):
+            investment['createdAt'] = datetime.fromisoformat(investment['createdAt'])
+    
+    return investments
+
+@api_router.get("/investments/{investment_id}", response_model=Investment)
+async def get_investment(investment_id: str):
+    investment = await db.investments.find_one({"id": investment_id}, {"_id": 0})
+    
+    if not investment:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Investment not found")
+    
+    if isinstance(investment['createdAt'], str):
+        investment['createdAt'] = datetime.fromisoformat(investment['createdAt'])
+    
+    return investment
+
+@api_router.put("/investments/{investment_id}", response_model=Investment)
+async def update_investment(investment_id: str, input: InvestmentCreate):
+    existing = await db.investments.find_one({"id": investment_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Investment not found")
+    
+    investment_dict = input.model_dump()
+    investment_dict['id'] = investment_id
+    investment_dict['createdAt'] = existing['createdAt']
+    
+    await db.investments.replace_one({"id": investment_id}, investment_dict)
+    
+    investment_obj = Investment(**investment_dict)
+    if isinstance(investment_obj.createdAt, str):
+        investment_obj.createdAt = datetime.fromisoformat(investment_obj.createdAt)
+    
+    return investment_obj
+
+@api_router.delete("/investments/{investment_id}")
+async def delete_investment(investment_id: str):
+    existing = await db.investments.find_one({"id": investment_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Investment not found")
+    
+    await db.investments.delete_one({"id": investment_id})
+    return {"message": "Investment deleted successfully", "id": investment_id}
+
+# ============ NET WORTH DASHBOARD ENDPOINTS ============
+
+@api_router.get("/dashboard/networth")
+async def get_networth_summary():
+    """Aggregate all financial data for net worth calculation"""
+    
+    # Get all assets
+    assets = await db.assets.find({}, {"_id": 0}).to_list(1000)
+    total_assets = sum(asset.get('currentValue', 0) for asset in assets)
+    
+    # Get all investments
+    investments = await db.investments.find({}, {"_id": 0}).to_list(1000)
+    total_investments = sum(inv.get('currentValue', 0) for inv in investments)
+    
+    # Get all accounts (liquid balance)
+    accounts = await db.accounts.find({}, {"_id": 0}).to_list(1000)
+    liquid_balance = sum(
+        acc.get('currentBalance', 0) for acc in accounts 
+        if acc.get('accountType') != 'Credit Card'
+    )
+    credit_outstanding = sum(
+        acc.get('outstandingAmount', 0) or 0 for acc in accounts 
+        if acc.get('accountType') == 'Credit Card'
+    )
+    
+    # Get all loans (liabilities)
+    loans = await db.loans.find({}, {"_id": 0}).to_list(1000)
+    total_liabilities = sum(loan.get('outstandingAmount', 0) for loan in loans)
+    total_liabilities += credit_outstanding
+    
+    # Get all income sources
+    incomes = await db.income_sources.find({}, {"_id": 0}).to_list(1000)
+    monthly_income = 0
+    for income in incomes:
+        amount = income.get('expectedAmount', 0)
+        freq = income.get('frequency', 'Monthly')
+        if freq == 'Daily':
+            monthly_income += amount * 30
+        elif freq == 'Weekly':
+            monthly_income += amount * 4
+        elif freq == 'Monthly':
+            monthly_income += amount
+        elif freq == 'Quarterly':
+            monthly_income += amount / 3
+        elif freq == 'Half-Yearly':
+            monthly_income += amount / 6
+        elif freq == 'Yearly':
+            monthly_income += amount / 12
+        else:
+            monthly_income += amount
+    
+    # Get all expenses
+    expenses = await db.expenses.find({}, {"_id": 0}).to_list(1000)
+    monthly_expenses = 0
+    for expense in expenses:
+        amount = expense.get('expectedAmount', 0)
+        freq = expense.get('frequency', 'Monthly')
+        if freq == 'Daily':
+            monthly_expenses += amount * 30
+        elif freq == 'Weekly':
+            monthly_expenses += amount * 4
+        elif freq == 'Monthly':
+            monthly_expenses += amount
+        elif freq == 'Quarterly':
+            monthly_expenses += amount / 3
+        elif freq == 'Half-Yearly':
+            monthly_expenses += amount / 6
+        elif freq == 'Yearly':
+            monthly_expenses += amount / 12
+        elif freq == 'One-Time':
+            monthly_expenses += 0  # Don't include one-time in monthly
+        else:
+            monthly_expenses += amount
+    
+    # Calculate net worth
+    net_worth = total_assets + total_investments + liquid_balance - total_liabilities
+    
+    return {
+        "netWorth": net_worth,
+        "totalAssets": total_assets,
+        "totalInvestments": total_investments,
+        "liquidBalance": liquid_balance,
+        "totalLiabilities": total_liabilities,
+        "creditOutstanding": credit_outstanding,
+        "monthlyIncome": monthly_income,
+        "monthlyExpenses": monthly_expenses,
+        "monthlySavings": monthly_income - monthly_expenses,
+        "assetCount": len(assets),
+        "investmentCount": len(investments),
+        "accountCount": len(accounts),
+        "loanCount": len(loans),
+        "incomeCount": len(incomes),
+        "expenseCount": len(expenses)
+    }
+
+@api_router.get("/dashboard/breakdown")
+async def get_breakdown():
+    """Get detailed breakdown by category"""
+    
+    # Asset breakdown by type
+    assets = await db.assets.find({}, {"_id": 0}).to_list(1000)
+    asset_breakdown = {}
+    for asset in assets:
+        asset_type = asset.get('assetType', 'Other')
+        if asset_type not in asset_breakdown:
+            asset_breakdown[asset_type] = 0
+        asset_breakdown[asset_type] += asset.get('currentValue', 0)
+    
+    # Investment breakdown by category
+    investments = await db.investments.find({}, {"_id": 0}).to_list(1000)
+    investment_breakdown = {}
+    for inv in investments:
+        category = inv.get('investmentCategory', 'Other')
+        if category not in investment_breakdown:
+            investment_breakdown[category] = 0
+        investment_breakdown[category] += inv.get('currentValue', 0)
+    
+    # Loan breakdown by type
+    loans = await db.loans.find({}, {"_id": 0}).to_list(1000)
+    loan_breakdown = {}
+    for loan in loans:
+        loan_type = loan.get('loanType', 'Other')
+        if loan_type not in loan_breakdown:
+            loan_breakdown[loan_type] = 0
+        loan_breakdown[loan_type] += loan.get('outstandingAmount', 0)
+    
+    # Income breakdown by type
+    incomes = await db.income_sources.find({}, {"_id": 0}).to_list(1000)
+    income_breakdown = {}
+    for income in incomes:
+        income_type = income.get('type', 'Other')
+        if income_type not in income_breakdown:
+            income_breakdown[income_type] = 0
+        income_breakdown[income_type] += income.get('expectedAmount', 0)
+    
+    # Expense breakdown by category
+    expenses = await db.expenses.find({}, {"_id": 0}).to_list(1000)
+    expense_breakdown = {}
+    for expense in expenses:
+        category = expense.get('category', 'Other')
+        if category not in expense_breakdown:
+            expense_breakdown[category] = 0
+        expense_breakdown[category] += expense.get('expectedAmount', 0)
+    
+    return {
+        "assetBreakdown": asset_breakdown,
+        "investmentBreakdown": investment_breakdown,
+        "loanBreakdown": loan_breakdown,
+        "incomeBreakdown": income_breakdown,
+        "expenseBreakdown": expense_breakdown
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
