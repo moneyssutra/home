@@ -148,12 +148,16 @@ class Expense(BaseModel):
     expectedAmount: float
     frequency: str
     linkedAccountId: Optional[str] = None
+    linkedLoanId: Optional[str] = None
+    linkedInsuranceId: Optional[str] = None
     selectedDay: Optional[str] = None
     selectedDate: Optional[str] = None
     selectedQuarter: Optional[str] = None
     selectedHalf: Optional[str] = None
     selectedMonth: Optional[str] = None
     oneTimeDate: Optional[str] = None
+    isPaid: bool = False
+    lastPaidDate: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ExpenseCreate(BaseModel):
@@ -163,12 +167,16 @@ class ExpenseCreate(BaseModel):
     expectedAmount: float
     frequency: str
     linkedAccountId: Optional[str] = None
+    linkedLoanId: Optional[str] = None
+    linkedInsuranceId: Optional[str] = None
     selectedDay: Optional[str] = None
     selectedDate: Optional[str] = None
     selectedQuarter: Optional[str] = None
     selectedHalf: Optional[str] = None
     selectedMonth: Optional[str] = None
     oneTimeDate: Optional[str] = None
+    isPaid: bool = False
+    lastPaidDate: Optional[str] = None
 
 # Insurance Model
 class Insurance(BaseModel):
