@@ -91,7 +91,8 @@ const InsuranceForm = () => {
       setCoveredPerson(data.coveredPerson || "");
       setMaturityType(data.maturityType || "");
       setExpectedMaturityAmount(data.expectedMaturityAmount?.toString() || "");
-      setAutoCreateExpense(data.autoCreateExpense !== false);
+      setAutoCreateExpense(data.autoCreateExpense === true);
+      setPremiumEndDate(data.premiumEndDate || "");
       setNotes(data.notes || "");
     } catch (error) {
       console.error("Error fetching insurance data:", error);
