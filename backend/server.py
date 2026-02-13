@@ -485,6 +485,42 @@ async def create_loan(input: LoanCreate):
     doc['createdAt'] = doc['createdAt'].isoformat()
     
     await db.loans.insert_one(doc)
+    
+    # Auto-create EMI expense if enabled
+    if loan_obj.autoCreateExpense:
+        # Check if expense already exists for this loan
+        existing_expense = await db.expenses.find_one({"linkedLoanId": loan_obj.id}, {"_id": 0})
+        if not existing_expense:
+            # Map EMI frequency to expense frequency
+            freq_map = {"Monthly": "Monthly", "Quarterly": "Quarterly", "Half-Yearly": "Half-Yearly"}
+            expense_freq = freq_map.get(loan_obj.emiFrequency, "Monthly")
+            
+            # Calculate selectedDate from startDate
+            start_date = datetime.fromisoformat(loan_obj.startDate) if loan_obj.startDate else datetime.now(timezone.utc)
+            selected_date = str(start_date.day)
+            
+            expense_data = {
+                "id": str(uuid.uuid4()),
+                "expenseName": f"{loan_obj.loanName} EMI",
+                "expenseType": "Fixed",
+                "category": "EMI",
+                "expectedAmount": loan_obj.emiAmount,
+                "frequency": expense_freq,
+                "linkedAccountId": loan_obj.linkedAccountId,
+                "linkedLoanId": loan_obj.id,
+                "linkedInsuranceId": None,
+                "selectedDay": None,
+                "selectedDate": selected_date,
+                "selectedQuarter": None,
+                "selectedHalf": None,
+                "selectedMonth": None,
+                "oneTimeDate": None,
+                "isPaid": False,
+                "lastPaidDate": None,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            await db.expenses.insert_one(expense_data)
+    
     return loan_obj
 
 @api_router.get("/loans", response_model=List[Loan])
