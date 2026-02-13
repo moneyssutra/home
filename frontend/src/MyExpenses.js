@@ -21,10 +21,18 @@ const MyExpenses = () => {
   const fetchExpenses = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/expenses`);
+      // Use the new endpoint that includes next deduction dates
+      const response = await axios.get(`${backendUrl}/api/expenses/with-next-date`);
       setExpenses(response.data);
     } catch (error) {
       console.error("Error fetching expenses:", error);
+      // Fallback to regular endpoint
+      try {
+        const fallbackResponse = await axios.get(`${backendUrl}/api/expenses`);
+        setExpenses(fallbackResponse.data);
+      } catch (fallbackError) {
+        console.error("Error fetching expenses (fallback):", fallbackError);
+      }
     } finally {
       setLoading(false);
     }
