@@ -660,6 +660,73 @@ async def delete_expense(expense_id: str):
     await db.expenses.delete_one({"id": expense_id})
     return {"message": "Expense deleted successfully", "id": expense_id}
 
+# ============ INSURANCE ENDPOINTS ============
+
+@api_router.post("/insurances", response_model=Insurance)
+async def create_insurance(input: InsuranceCreate):
+    insurance_dict = input.model_dump()
+    insurance_obj = Insurance(**insurance_dict)
+    
+    doc = insurance_obj.model_dump()
+    doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    await db.insurances.insert_one(doc)
+    return insurance_obj
+
+@api_router.get("/insurances", response_model=List[Insurance])
+async def get_insurances():
+    insurances = await db.insurances.find({}, {"_id": 0}).to_list(1000)
+    
+    for insurance in insurances:
+        if isinstance(insurance['createdAt'], str):
+            insurance['createdAt'] = datetime.fromisoformat(insurance['createdAt'])
+    
+    return insurances
+
+@api_router.get("/insurances/{insurance_id}", response_model=Insurance)
+async def get_insurance(insurance_id: str):
+    insurance = await db.insurances.find_one({"id": insurance_id}, {"_id": 0})
+    
+    if not insurance:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Insurance not found")
+    
+    if isinstance(insurance['createdAt'], str):
+        insurance['createdAt'] = datetime.fromisoformat(insurance['createdAt'])
+    
+    return insurance
+
+@api_router.put("/insurances/{insurance_id}", response_model=Insurance)
+async def update_insurance(insurance_id: str, input: InsuranceCreate):
+    existing = await db.insurances.find_one({"id": insurance_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Insurance not found")
+    
+    insurance_dict = input.model_dump()
+    insurance_dict['id'] = insurance_id
+    insurance_dict['createdAt'] = existing['createdAt']
+    
+    await db.insurances.replace_one({"id": insurance_id}, insurance_dict)
+    
+    insurance_obj = Insurance(**insurance_dict)
+    if isinstance(insurance_obj.createdAt, str):
+        insurance_obj.createdAt = datetime.fromisoformat(insurance_obj.createdAt)
+    
+    return insurance_obj
+
+@api_router.delete("/insurances/{insurance_id}")
+async def delete_insurance(insurance_id: str):
+    existing = await db.insurances.find_one({"id": insurance_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Insurance not found")
+    
+    await db.insurances.delete_one({"id": insurance_id})
+    return {"message": "Insurance deleted successfully", "id": insurance_id}
+
 # Include the router in the main app
 app.include_router(api_router)
 
