@@ -176,6 +176,9 @@ function App() {
           <Route path="/my-dividend" element={<MyDividend />} />
           <Route path="/dividend-income" element={<DividendIncome />} />
           <Route path="/dividend-income/:id" element={<DividendIncome />} />
+          <Route path="/my-accounts" element={<MyAccounts />} />
+          <Route path="/account" element={<AccountForm />} />
+          <Route path="/account/:id" element={<AccountForm />} />
         </Routes>
       </BrowserRouter>
     </div>
