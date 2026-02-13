@@ -208,7 +208,7 @@ const Dashboard = () => {
             <p className="text-white/40 text-xs mt-1">{data?.investmentCount || 0} items</p>
           </div>
 
-          {/* Liquid Balance */}
+          {/* Liquid Fund */}
           <div 
             className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-white/15 active:scale-[0.98]"
             onClick={() => navigate("/my-accounts")}
@@ -218,7 +218,7 @@ const Dashboard = () => {
               <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
                 <Wallet className="h-4 w-4 text-emerald-400" />
               </div>
-              <span className="text-white/60 text-xs font-medium">Cash & Bank</span>
+              <span className="text-white/60 text-xs font-medium">Liquid Fund</span>
             </div>
             <p className="text-xl font-bold text-white">₹ {formatAmount(data?.liquidBalance || 0)}</p>
             <p className="text-white/40 text-xs mt-1">{data?.accountCount || 0} accounts</p>
