@@ -19,7 +19,8 @@ const InsuranceForm = () => {
   const [coveredPerson, setCoveredPerson] = useState("");
   const [maturityType, setMaturityType] = useState("");
   const [expectedMaturityAmount, setExpectedMaturityAmount] = useState("");
-  const [autoCreateExpense, setAutoCreateExpense] = useState(true);
+  const [autoCreateExpense, setAutoCreateExpense] = useState(false);
+  const [premiumEndDate, setPremiumEndDate] = useState("");
   const [notes, setNotes] = useState("");
   
   // Available assets for linking
