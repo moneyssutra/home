@@ -9,25 +9,20 @@ import {
   CreditCard,
   ArrowUpRight,
   ArrowDownRight,
-  ChevronRight,
   RefreshCw,
-  Landmark,
-  Shield,
-  Briefcase,
-  Home,
-  Car,
-  Gem,
   LineChart,
-  Receipt,
 } from "lucide-react";
 import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState(null);
-  const [breakdown, setBreakdown] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [showAddSheet, setShowAddSheet] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
@@ -38,12 +33,12 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [networthRes, breakdownRes] = await Promise.all([
+      const [networthRes, profileRes] = await Promise.all([
         axios.get(`${backendUrl}/api/dashboard/networth`),
-        axios.get(`${backendUrl}/api/dashboard/breakdown`),
+        axios.get(`${backendUrl}/api/profile/basic`),
       ]);
       setData(networthRes.data);
-      setBreakdown(breakdownRes.data);
+      setProfile(profileRes.data);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
@@ -58,13 +53,9 @@ const Dashboard = () => {
   };
 
   const formatAmount = (amount) => {
-    if (amount >= 10000000) {
-      return `${(amount / 10000000).toFixed(2)} Cr`;
-    } else if (amount >= 100000) {
-      return `${(amount / 100000).toFixed(2)} L`;
-    } else if (amount >= 1000) {
-      return `${(amount / 1000).toFixed(1)} K`;
-    }
+    if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
+    if (amount >= 100000) return `${(amount / 100000).toFixed(2)} L`;
+    if (amount >= 1000) return `${(amount / 1000).toFixed(1)} K`;
     return new Intl.NumberFormat("en-IN").format(amount);
   };
 
@@ -73,36 +64,16 @@ const Dashboard = () => {
   };
 
   const getNetWorthTrend = () => {
-    if (!data) return 0;
+    if (!data) return "positive";
     const savings = data.monthlySavings || 0;
     return savings >= 0 ? "positive" : "negative";
   };
 
-  // Quick action cards data
-  const quickActions = [
-    { label: "Income", icon: Briefcase, color: "from-emerald-500 to-teal-600", path: "/" },
-    { label: "Expenses", icon: Receipt, color: "from-rose-500 to-pink-600", path: "/my-expenses" },
-    { label: "Assets", icon: Building2, color: "from-blue-500 to-indigo-600", path: "/my-assets" },
-    { label: "Investments", icon: LineChart, color: "from-violet-500 to-purple-600", path: "/my-investments" },
-    { label: "Loans", icon: CreditCard, color: "from-amber-500 to-orange-600", path: "/my-loans" },
-    { label: "Insurance", icon: Shield, color: "from-cyan-500 to-blue-600", path: "/my-insurance" },
-    { label: "Accounts", icon: Wallet, color: "from-slate-500 to-gray-600", path: "/my-accounts" },
-  ];
-
-  // Color palette for breakdown charts
-  const chartColors = [
-    "#10B981", "#3B82F6", "#8B5CF6", "#F59E0B", "#EC4899", 
-    "#14B8A6", "#6366F1", "#EF4444", "#84CC16", "#06B6D4"
-  ];
-
-  const getBreakdownItems = (breakdown, type) => {
-    if (!breakdown) return [];
-    const items = Object.entries(breakdown).map(([key, value], idx) => ({
-      label: key,
-      value,
-      color: chartColors[idx % chartColors.length],
-    }));
-    return items.sort((a, b) => b.value - a.value).slice(0, 5);
+  const getUserName = () => {
+    if (profile?.fullName) {
+      return profile.fullName.split(" ")[0];
+    }
+    return null;
   };
 
   if (loading) {
@@ -117,7 +88,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B3D2E] via-[#134E3E] to-[#0B3D2E]" data-testid="dashboard-page">
+    <div className="min-h-screen bg-gradient-to-br from-[#0B3D2E] via-[#134E3E] to-[#0B3D2E] pb-24" data-testid="dashboard-page">
       {/* Header */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djJoLTJ2LTJoMnptMC00aDJ2MmgtMnYtMnptLTQgMHYyaC0ydi0yaDJ6bTIgMGgydjJoLTJ2LTJ6bS0yLTR2MmgtMnYtMmgyek0zNCAyNnYyaC0ydi0yaDJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50" />
@@ -125,7 +96,9 @@ const Dashboard = () => {
         <div className="relative px-6 pt-8 pb-6">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <p className="text-white/60 text-sm font-medium">Welcome back</p>
+              <p className="text-white/60 text-sm font-medium">
+                Welcome back{getUserName() ? `, ${getUserName()}` : ""}
+              </p>
               <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
                 Moneyssutra
               </h1>
@@ -320,121 +293,11 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div>
-          <h3 className="text-white font-semibold mb-3">Quick Actions</h3>
-          <div className="grid grid-cols-4 gap-3">
-            {quickActions.slice(0, 4).map((action) => (
-              <button
-                key={action.label}
-                onClick={() => navigate(action.path)}
-                className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white/5 border border-white/10 transition-all hover:bg-white/10 active:scale-95"
-                data-testid={`quick-action-${action.label.toLowerCase()}`}
-              >
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg`}>
-                  <action.icon className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-white/80 text-xs font-medium">{action.label}</span>
-              </button>
-            ))}
-          </div>
-          <div className="grid grid-cols-3 gap-3 mt-3">
-            {quickActions.slice(4).map((action) => (
-              <button
-                key={action.label}
-                onClick={() => navigate(action.path)}
-                className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white/5 border border-white/10 transition-all hover:bg-white/10 active:scale-95"
-                data-testid={`quick-action-${action.label.toLowerCase()}`}
-              >
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg`}>
-                  <action.icon className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-white/80 text-xs font-medium">{action.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Breakdown Sections */}
-        {breakdown && (Object.keys(breakdown.assetBreakdown || {}).length > 0 || Object.keys(breakdown.investmentBreakdown || {}).length > 0) && (
-          <div className="space-y-4">
-            {/* Asset Allocation */}
-            {Object.keys(breakdown.assetBreakdown || {}).length > 0 && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="asset-breakdown">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white font-semibold">Asset Allocation</h3>
-                  <button 
-                    onClick={() => navigate("/my-assets")}
-                    className="text-[#00D09C] text-sm font-medium flex items-center gap-1 hover:underline"
-                  >
-                    View All <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {getBreakdownItems(breakdown.assetBreakdown).map((item, idx) => {
-                    const total = Object.values(breakdown.assetBreakdown).reduce((a, b) => a + b, 0);
-                    const percentage = total > 0 ? (item.value / total) * 100 : 0;
-                    return (
-                      <div key={item.label}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-white/80">{item.label}</span>
-                          <span className="text-white font-medium">₹ {formatAmount(item.value)}</span>
-                        </div>
-                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${percentage}%`, backgroundColor: item.color }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Investment Allocation */}
-            {Object.keys(breakdown.investmentBreakdown || {}).length > 0 && (
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="investment-breakdown">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white font-semibold">Investment Portfolio</h3>
-                  <button 
-                    onClick={() => navigate("/my-investments")}
-                    className="text-[#00D09C] text-sm font-medium flex items-center gap-1 hover:underline"
-                  >
-                    View All <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  {getBreakdownItems(breakdown.investmentBreakdown).map((item) => {
-                    const total = Object.values(breakdown.investmentBreakdown).reduce((a, b) => a + b, 0);
-                    const percentage = total > 0 ? (item.value / total) * 100 : 0;
-                    return (
-                      <div key={item.label}>
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-white/80">{item.label}</span>
-                          <span className="text-white font-medium">₹ {formatAmount(item.value)}</span>
-                        </div>
-                        <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                          <div 
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${percentage}%`, backgroundColor: item.color }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Empty State - When no data */}
         {data && data.assetCount === 0 && data.investmentCount === 0 && data.accountCount === 0 && (
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center" data-testid="empty-state">
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#00D09C] to-[#10B981] flex items-center justify-center">
-              <Landmark className="h-10 w-10 text-white" />
+              <TrendingUp className="h-10 w-10 text-white" />
             </div>
             <h3 className="text-white text-xl font-semibold mb-2">Start Your Financial Journey</h3>
             <p className="text-white/60 text-sm mb-6">
@@ -463,6 +326,9 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };
