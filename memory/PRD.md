@@ -228,6 +228,21 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 None currently.
 
 ## Changelog
+- **Feb 13, 2026**: Insurance Module implemented
+  - 3 pages: My Insurance, Add/Edit Insurance
+  - 8 insurance types: Life, Health, Vehicle, Property, Business, Asset, Travel, Other
+  - Dynamic fields: Linked Asset for Vehicle/Property, Covered Person for Life/Health
+  - Maturity type options for Life Insurance (Pure Protection, Returns, ULIP)
+  - Auto Create Premium Expense toggle
+- **Feb 13, 2026**: Loan Module updated
+  - Added Loan Type dropdown (9 types: Home, Vehicle, Personal, Education, Business, Gold, Credit Card, Hand Loan, Other)
+  - Added EMI Frequency, End Date, Linked Asset, Linked Account fields
+  - Added Auto Create EMI Expense toggle
+- **Feb 13, 2026**: Asset Module updated  
+  - Added new asset types: Physical Gold, Physical Silver, Diamonds, Business Asset, Equipment/Machinery
+  - Added Depreciation Type (Appreciating, Depreciating, Market Driven)
+  - Added Income Generation and Insurance linking toggles
+  - Added Location field for properties
 - **Feb 13, 2026**: Account Module implemented
   - 3 pages: My Accounts, Add/Edit Account
   - Account types: Bank, Cash, Credit Card, Digital Wallet, UPI, Brokerage, Business
