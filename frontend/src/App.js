@@ -31,6 +31,8 @@ import AccountForm from "@/AccountForm";
 import MyAccounts from "@/MyAccounts";
 import ExpenseForm from "@/ExpenseForm";
 import MyExpenses from "@/MyExpenses";
+import InsuranceForm from "@/InsuranceForm";
+import MyInsurance from "@/MyInsurance";
 
 const HomePlaceholder = () => {
   return (
@@ -184,6 +186,9 @@ function App() {
           <Route path="/my-expenses" element={<MyExpenses />} />
           <Route path="/expense" element={<ExpenseForm />} />
           <Route path="/expense/:id" element={<ExpenseForm />} />
+          <Route path="/my-insurance" element={<MyInsurance />} />
+          <Route path="/insurance" element={<InsuranceForm />} />
+          <Route path="/insurance/:id" element={<InsuranceForm />} />
         </Routes>
       </BrowserRouter>
     </div>
