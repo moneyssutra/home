@@ -172,6 +172,9 @@ const Portfolio = () => {
                 {section.label && (
                   <p className="text-xs text-[#0B3D2E]/50">{section.label}</p>
                 )}
+                {section.extra && (
+                  <p className="text-xs text-[#0B3D2E]/50">{section.extra}</p>
+                )}
               </div>
               <ChevronRight className="h-6 w-6 text-[#0B3D2E]/30" />
             </button>
@@ -184,9 +187,9 @@ const Portfolio = () => {
         <div className="bg-gradient-to-br from-[#0B3D2E] to-[#134E3E] rounded-2xl p-5">
           <p className="text-white/60 text-sm mb-1">Net Position</p>
           <h2 className="text-2xl font-bold text-white">
-            ₹ {formatAmount(totalAssets + totalInvestments + totalBalance - totalLoans)}
+            ₹ {formatAmount(totalAssets + totalInvestments + totalBalance - totalLoans - totalCreditCardOutstanding)}
           </h2>
-          <p className="text-white/40 text-xs mt-1">Assets + Investments + Cash - Liabilities</p>
+          <p className="text-white/40 text-xs mt-1">Assets + Investments + Cash - Loans - Credit Cards</p>
         </div>
       </div>
 
