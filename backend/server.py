@@ -955,6 +955,9 @@ async def get_networth_summary():
         "liquidBalance": liquid_balance,
         "totalLiabilities": total_liabilities,
         "creditOutstanding": credit_outstanding,
+        "creditCardOutstanding": credit_card_outstanding,
+        "creditCardLimit": credit_card_limit,
+        "creditCardUtilization": (credit_card_outstanding / credit_card_limit * 100) if credit_card_limit > 0 else 0,
         "monthlyIncome": monthly_income,
         "monthlyExpenses": monthly_expenses,
         "monthlySavings": monthly_income - monthly_expenses,
@@ -962,6 +965,7 @@ async def get_networth_summary():
         "investmentCount": len(investments),
         "accountCount": len(accounts),
         "loanCount": len(loans),
+        "creditCardCount": len(credit_cards),
         "incomeCount": len(incomes),
         "expenseCount": len(expenses)
     }
