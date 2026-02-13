@@ -431,6 +431,73 @@ async def delete_asset(asset_id: str):
     await db.assets.delete_one({"id": asset_id})
     return {"message": "Asset deleted successfully", "id": asset_id}
 
+# ============ ACCOUNT ENDPOINTS ============
+
+@api_router.post("/accounts", response_model=Account)
+async def create_account(input: AccountCreate):
+    account_dict = input.model_dump()
+    account_obj = Account(**account_dict)
+    
+    doc = account_obj.model_dump()
+    doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    await db.accounts.insert_one(doc)
+    return account_obj
+
+@api_router.get("/accounts", response_model=List[Account])
+async def get_accounts():
+    accounts = await db.accounts.find({}, {"_id": 0}).to_list(1000)
+    
+    for account in accounts:
+        if isinstance(account['createdAt'], str):
+            account['createdAt'] = datetime.fromisoformat(account['createdAt'])
+    
+    return accounts
+
+@api_router.get("/accounts/{account_id}", response_model=Account)
+async def get_account(account_id: str):
+    account = await db.accounts.find_one({"id": account_id}, {"_id": 0})
+    
+    if not account:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Account not found")
+    
+    if isinstance(account['createdAt'], str):
+        account['createdAt'] = datetime.fromisoformat(account['createdAt'])
+    
+    return account
+
+@api_router.put("/accounts/{account_id}", response_model=Account)
+async def update_account(account_id: str, input: AccountCreate):
+    existing = await db.accounts.find_one({"id": account_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Account not found")
+    
+    account_dict = input.model_dump()
+    account_dict['id'] = account_id
+    account_dict['createdAt'] = existing['createdAt']
+    
+    await db.accounts.replace_one({"id": account_id}, account_dict)
+    
+    account_obj = Account(**account_dict)
+    if isinstance(account_obj.createdAt, str):
+        account_obj.createdAt = datetime.fromisoformat(account_obj.createdAt)
+    
+    return account_obj
+
+@api_router.delete("/accounts/{account_id}")
+async def delete_account(account_id: str):
+    existing = await db.accounts.find_one({"id": account_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Account not found")
+    
+    await db.accounts.delete_one({"id": account_id})
+    return {"message": "Account deleted successfully", "id": account_id}
+
 # Include the router in the main app
 app.include_router(api_router)
 
