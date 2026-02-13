@@ -214,21 +214,35 @@ class Asset(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     assetType: str
     assetName: str
+    purchaseValue: Optional[float] = None
     currentValue: float
+    purchaseDate: Optional[str] = None
+    depreciationType: Optional[str] = None  # Appreciating, Depreciating, Market Driven
     isFinanced: bool = False
     linkedLoanId: Optional[str] = None
-    purchaseDate: Optional[str] = None
-    purchaseValue: Optional[float] = None
+    generatesIncome: bool = False
+    linkedIncomeId: Optional[str] = None
+    isInsured: bool = False
+    linkedInsuranceId: Optional[str] = None
+    location: Optional[str] = None
+    notes: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class AssetCreate(BaseModel):
     assetType: str
     assetName: str
+    purchaseValue: Optional[float] = None
     currentValue: float
+    purchaseDate: Optional[str] = None
+    depreciationType: Optional[str] = None
     isFinanced: bool = False
     linkedLoanId: Optional[str] = None
-    purchaseDate: Optional[str] = None
-    purchaseValue: Optional[float] = None
+    generatesIncome: bool = False
+    linkedIncomeId: Optional[str] = None
+    isInsured: bool = False
+    linkedInsuranceId: Optional[str] = None
+    location: Optional[str] = None
+    notes: Optional[str] = None
 
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
