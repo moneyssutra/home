@@ -203,14 +203,15 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 ## Testing Status
 - Job Module: Backend 100%, Frontend 100% (iteration_1.json)
 - Interest Module: Backend 100%, Frontend 100% (iteration_2.json)
+- Expense Auto-Create & Next Date: Backend 100%, Frontend 100% (iteration_10.json)
 - Test files: `/app/backend/tests/`
 
 ## Backlog / Future Tasks
 
 ### P1 - High Priority (Remaining)
 - Investment Form fixes (frequency date selection, SIP options)
-- Expense Form fixes (calendar date picker, fixed expense deduction logic, EMI→Loan linking)
-- Insurance Page fixes (rename toggle, Premium End Date field, One-Time frequency, Term Insurance type, Coverage summary box)
+- Asset ↔ Loan bidirectional linking display on Asset detail page
+- Asset ↔ Income bidirectional linking (rental income toggle)
 - Other Income Module (Gift, Bonus, Capital Gain, etc.)
 - Back button navigation to previous page (partially done)
 - Amount in words below all currency inputs (partially done)
@@ -233,6 +234,34 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
 
 ## Changelog
+- **Feb 13, 2026 (Session 3)**: Testing V3 Bug Fixes - Inter-Module Linking
+  - **Expense Form Date Picker Fix**: Changed Monthly frequency from numeric input (1-31) to dropdown with ordinal suffixes (1st, 2nd, 3rd...31st)
+  - **Loan → Expense Auto-Creation**: When creating a loan with `autoCreateExpense: true`, system automatically creates an EMI expense with:
+    - expenseName: "[LoanName] EMI"
+    - category: "EMI"
+    - expenseType: "Fixed"
+    - frequency: matches loan's emiFrequency
+    - linkedLoanId: references the loan
+    - selectedDate: day of loan start date
+  - **Insurance → Expense Auto-Creation**: When creating insurance with `autoCreateExpense: true`, system automatically creates a premium expense with:
+    - expenseName: "[PolicyName] Premium"
+    - category: "Insurance"
+    - expenseType: "Fixed"
+    - frequency: matches premium frequency
+    - linkedInsuranceId: references the insurance
+    - selectedDate/selectedMonth: based on start date
+  - **Next Deduction Date Calculation**: New backend function `calculate_next_deduction_date()` calculates next payment date for all frequency types (Daily, Weekly, Monthly, Quarterly, Half-Yearly, Yearly, One-Time)
+  - **New Endpoint**: GET `/api/expenses/with-next-date` returns expenses with:
+    - nextDeductionDate: ISO date of next payment
+    - linkedLoanName: loan name if linked to a loan
+    - linkedInsuranceName: insurance policy name if linked to insurance
+  - **Fixed Expense Auto-Deduction Endpoint**: POST `/api/expenses/process-deductions` processes fixed expense deductions for today
+  - **My Expenses Page Enhancements**:
+    - Shows "Next: X Mar" in amber for fixed expenses
+    - Shows "Linked: LoanName" in blue for loan-linked expenses
+    - Shows "Linked: InsuranceName" in indigo for insurance-linked expenses
+    - Summary shows "Fixed: X Paid / Y Pending" and "Variable: X Paid / Y Pending"
+  - **Backend Model Updates**: Expense model now includes linkedLoanId, linkedInsuranceId, isPaid, lastPaidDate fields
 - **Feb 13, 2026 (Session 2)**: Phase 1 & 3 Implementation
   - **Credit Card Module**: Full CRUD with utilization tracking
     - My Credit Cards page with total outstanding, utilization bar (0-30-50-100% markers)
