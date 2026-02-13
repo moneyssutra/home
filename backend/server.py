@@ -891,10 +891,15 @@ async def get_networth_summary():
         if acc.get('accountType') == 'Credit Card'
     )
     
+    # Get all credit cards
+    credit_cards = await db.credit_cards.find({}, {"_id": 0}).to_list(1000)
+    credit_card_outstanding = sum(card.get('outstandingAmount', 0) for card in credit_cards)
+    credit_card_limit = sum(card.get('creditLimit', 0) for card in credit_cards)
+    
     # Get all loans (liabilities)
     loans = await db.loans.find({}, {"_id": 0}).to_list(1000)
     total_liabilities = sum(loan.get('outstandingAmount', 0) for loan in loans)
-    total_liabilities += credit_outstanding
+    total_liabilities += credit_outstanding + credit_card_outstanding
     
     # Get all income sources
     incomes = await db.income_sources.find({}, {"_id": 0}).to_list(1000)
