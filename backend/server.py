@@ -991,6 +991,167 @@ async def get_breakdown():
         "expenseBreakdown": expense_breakdown
     }
 
+# ============ USER PROFILE ENDPOINTS ============
+
+# Profile Models
+class BasicProfile(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    fullName: str
+    monthlyIncome: float
+    primaryGoals: List[str]
+    riskAppetite: str
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class BasicProfileCreate(BaseModel):
+    fullName: str
+    monthlyIncome: float
+    primaryGoals: List[str]
+    riskAppetite: str
+
+class ExtendedProfile(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    userId: str
+    dob: Optional[str] = None
+    maritalStatus: Optional[str] = None
+    dependents: Optional[int] = None
+    retirementAge: Optional[int] = None
+    emergencyFundTarget: Optional[str] = None
+    debtComfortLevel: Optional[float] = None
+    equityTarget: Optional[float] = None
+    debtTarget: Optional[float] = None
+    goldTarget: Optional[float] = None
+    existingLifeCover: Optional[float] = None
+    existingHealthCover: Optional[float] = None
+    updatedAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ExtendedProfileCreate(BaseModel):
+    dob: Optional[str] = None
+    maritalStatus: Optional[str] = None
+    dependents: Optional[int] = None
+    retirementAge: Optional[int] = None
+    emergencyFundTarget: Optional[str] = None
+    debtComfortLevel: Optional[float] = None
+    equityTarget: Optional[float] = None
+    debtTarget: Optional[float] = None
+    goldTarget: Optional[float] = None
+    existingLifeCover: Optional[float] = None
+    existingHealthCover: Optional[float] = None
+
+@api_router.post("/profile/basic", response_model=BasicProfile)
+async def create_basic_profile(input: BasicProfileCreate):
+    # Check if profile exists
+    existing = await db.profiles.find_one({}, {"_id": 0})
+    if existing:
+        # Update existing profile
+        profile_dict = input.model_dump()
+        profile_dict['id'] = existing['id']
+        profile_dict['createdAt'] = existing['createdAt']
+        await db.profiles.replace_one({"id": existing['id']}, profile_dict)
+        return BasicProfile(**profile_dict)
+    
+    profile_dict = input.model_dump()
+    profile_obj = BasicProfile(**profile_dict)
+    
+    doc = profile_obj.model_dump()
+    doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    await db.profiles.insert_one(doc)
+    return profile_obj
+
+@api_router.get("/profile/basic")
+async def get_basic_profile():
+    profile = await db.profiles.find_one({}, {"_id": 0})
+    
+    if not profile:
+        return None
+    
+    if isinstance(profile.get('createdAt'), str):
+        profile['createdAt'] = datetime.fromisoformat(profile['createdAt'])
+    
+    return profile
+
+@api_router.put("/profile/extended")
+async def update_extended_profile(input: ExtendedProfileCreate):
+    # Get basic profile first
+    basic = await db.profiles.find_one({}, {"_id": 0})
+    if not basic:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Basic profile not found. Complete basic setup first.")
+    
+    # Check if extended profile exists
+    existing = await db.extended_profiles.find_one({"userId": basic['id']}, {"_id": 0})
+    
+    profile_dict = input.model_dump()
+    profile_dict['userId'] = basic['id']
+    profile_dict['updatedAt'] = datetime.now(timezone.utc).isoformat()
+    
+    if existing:
+        await db.extended_profiles.replace_one({"userId": basic['id']}, profile_dict)
+    else:
+        await db.extended_profiles.insert_one(profile_dict)
+    
+    return profile_dict
+
+@api_router.get("/profile/extended")
+async def get_extended_profile():
+    basic = await db.profiles.find_one({}, {"_id": 0})
+    if not basic:
+        return None
+    
+    extended = await db.extended_profiles.find_one({"userId": basic['id']}, {"_id": 0})
+    return extended
+
+@api_router.get("/profile/completion")
+async def get_profile_completion():
+    """Calculate profile completion percentage"""
+    basic = await db.profiles.find_one({}, {"_id": 0})
+    extended = await db.extended_profiles.find_one({}, {"_id": 0}) if basic else None
+    
+    completion = 0
+    
+    # Basic Info (25%)
+    if basic:
+        if basic.get('fullName'):
+            completion += 10
+        if basic.get('monthlyIncome'):
+            completion += 10
+        if basic.get('riskAppetite'):
+            completion += 5
+    
+    # Extended profile fields
+    if extended:
+        if extended.get('dob'):
+            completion += 5
+        if extended.get('maritalStatus'):
+            completion += 5
+        if extended.get('dependents') is not None:
+            completion += 5
+        if extended.get('retirementAge'):
+            completion += 10
+        if extended.get('emergencyFundTarget'):
+            completion += 5
+        if extended.get('debtComfortLevel') is not None:
+            completion += 5
+        if extended.get('equityTarget') is not None:
+            completion += 5
+        if extended.get('debtTarget') is not None:
+            completion += 5
+        if extended.get('goldTarget') is not None:
+            completion += 5
+        if extended.get('existingLifeCover') is not None:
+            completion += 10
+        if extended.get('existingHealthCover') is not None:
+            completion += 5
+    
+    return {
+        "completion": min(completion, 100),
+        "hasBasicProfile": basic is not None,
+        "hasExtendedProfile": extended is not None
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
