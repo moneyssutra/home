@@ -208,15 +208,15 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 ## Backlog / Future Tasks
 
 ### P1 - High Priority
-- Create central Dashboard page showing total Dividend Income (aggregate across all categories)
+- None - Investment Module and Dashboard completed
 
 ### P2 - Medium Priority
-- Add Commission and Dividend income modules
-- Dashboard/Summary view showing:
-  - Total Income by category
-  - Net Worth (Assets - Liabilities)
-  - Cash Flow analysis
-  - Asset Allocation pie chart
+- Expense Transaction Module (actual spending tracker against budgeted expenses)
+- Backend refactoring: Break server.py into routes/, models/, services/ structure
+- Frontend refactoring: Consolidate similar form components into reusable generic forms
+- Advanced Loan features: Amortization schedule, prepayment calculator
+- AI Smart Insights section on Dashboard
+- Add /dashboard route alias (currently only /home)
 
 ### P3 - Low Priority
 - Data export functionality
