@@ -43,6 +43,22 @@ const MyLoans = () => {
     return (paid / loan.principalAmount) * 100;
   };
 
+  const getLoanAllocation = () => {
+    const totalOutstanding = loans.reduce((sum, l) => sum + (l.outstandingAmount || 0), 0);
+    const allocation = {};
+    loans.forEach(loan => {
+      const type = loan.loanType || "Other";
+      allocation[type] = (allocation[type] || 0) + (loan.outstandingAmount || 0);
+    });
+    return Object.entries(allocation)
+      .map(([type, value]) => ({
+        type,
+        value,
+        percentage: totalOutstanding > 0 ? ((value / totalOutstanding) * 100).toFixed(1) : 0
+      }))
+      .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
+  };
+
   return (
     <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="my-loans-page">
       {/* Header */}
