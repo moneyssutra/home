@@ -301,6 +301,9 @@ const MyExpenses = () => {
             {sortedExpenses.map((expense) => {
               const status = getPaymentStatus(expense);
               const Icon = getCategoryIcon(expense.category);
+              const nextDate = expense.nextDeductionDate ? new Date(expense.nextDeductionDate) : null;
+              const formattedNextDate = nextDate ? nextDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : null;
+              
               return (
                 <button
                   key={expense.id}
@@ -324,10 +327,22 @@ const MyExpenses = () => {
                       <span>{expense.category}</span>
                       <span>•</span>
                       <span>{expense.expenseType}</span>
-                      {expense.selectedDate && (
+                      {formattedNextDate && expense.expenseType === "Fixed" && (
                         <>
                           <span>•</span>
-                          <span>{expense.selectedDate} {new Date().toLocaleDateString('en-IN', { month: 'short' })}</span>
+                          <span className="text-amber-600 font-medium">Next: {formattedNextDate}</span>
+                        </>
+                      )}
+                      {expense.linkedLoanName && (
+                        <>
+                          <span>•</span>
+                          <span className="text-blue-500">Linked: {expense.linkedLoanName}</span>
+                        </>
+                      )}
+                      {expense.linkedInsuranceName && (
+                        <>
+                          <span>•</span>
+                          <span className="text-indigo-500">Linked: {expense.linkedInsuranceName}</span>
                         </>
                       )}
                     </div>
