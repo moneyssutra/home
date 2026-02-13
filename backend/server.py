@@ -1179,6 +1179,73 @@ async def get_profile_completion():
         "hasExtendedProfile": extended is not None
     }
 
+# ============ CREDIT CARD ENDPOINTS ============
+
+@api_router.post("/credit-cards", response_model=CreditCard)
+async def create_credit_card(input: CreditCardCreate):
+    card_dict = input.model_dump()
+    card_obj = CreditCard(**card_dict)
+    
+    doc = card_obj.model_dump()
+    doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    await db.credit_cards.insert_one(doc)
+    return card_obj
+
+@api_router.get("/credit-cards", response_model=List[CreditCard])
+async def get_credit_cards():
+    cards = await db.credit_cards.find({}, {"_id": 0}).to_list(1000)
+    
+    for card in cards:
+        if isinstance(card.get('createdAt'), str):
+            card['createdAt'] = datetime.fromisoformat(card['createdAt'])
+    
+    return cards
+
+@api_router.get("/credit-cards/{card_id}", response_model=CreditCard)
+async def get_credit_card(card_id: str):
+    card = await db.credit_cards.find_one({"id": card_id}, {"_id": 0})
+    
+    if not card:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Credit card not found")
+    
+    if isinstance(card.get('createdAt'), str):
+        card['createdAt'] = datetime.fromisoformat(card['createdAt'])
+    
+    return card
+
+@api_router.put("/credit-cards/{card_id}", response_model=CreditCard)
+async def update_credit_card(card_id: str, input: CreditCardCreate):
+    existing = await db.credit_cards.find_one({"id": card_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Credit card not found")
+    
+    card_dict = input.model_dump()
+    card_dict['id'] = card_id
+    card_dict['createdAt'] = existing['createdAt']
+    
+    await db.credit_cards.replace_one({"id": card_id}, card_dict)
+    
+    card_obj = CreditCard(**card_dict)
+    if isinstance(card_obj.createdAt, str):
+        card_obj.createdAt = datetime.fromisoformat(card_obj.createdAt)
+    
+    return card_obj
+
+@api_router.delete("/credit-cards/{card_id}")
+async def delete_credit_card(card_id: str):
+    existing = await db.credit_cards.find_one({"id": card_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Credit card not found")
+    
+    await db.credit_cards.delete_one({"id": card_id})
+    return {"message": "Credit card deleted successfully", "id": card_id}
+
 # Include the router in the main app
 app.include_router(api_router)
 
