@@ -97,6 +97,7 @@ const LoanIncome = () => {
       setStartDate(data.startDate || "");
       setEndDate(data.endDate || "");
       setLinkedAssetId(data.linkedAssetId || "");
+      setHasLinkedAsset(!!data.linkedAssetId);
       setLinkedAccountId(data.linkedAccountId || "");
       setAutoCreateExpense(data.autoCreateExpense !== false);
     } catch (error) {
