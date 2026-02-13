@@ -69,6 +69,24 @@ const MyAccounts = () => {
     }
   };
 
+  const getBalanceAllocation = () => {
+    const totalBalance = getTotalLiquidBalance();
+    const allocation = {};
+    accounts
+      .filter(acc => acc.accountType !== "Credit Card")
+      .forEach(acc => {
+        const type = acc.accountType || "Other";
+        allocation[type] = (allocation[type] || 0) + (acc.currentBalance || 0);
+      });
+    return Object.entries(allocation)
+      .map(([type, value]) => ({
+        type,
+        value,
+        percentage: totalBalance > 0 ? ((value / totalBalance) * 100).toFixed(1) : 0
+      }))
+      .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
+  };
+
   return (
     <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="my-accounts-page">
       {/* Header */}
