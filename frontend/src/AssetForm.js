@@ -24,6 +24,12 @@ const AssetForm = () => {
   const [assetLocation, setAssetLocation] = useState("");
   const [notes, setNotes] = useState("");
   
+  // Income generation fields
+  const [renterName, setRenterName] = useState("");
+  const [rentalAmount, setRentalAmount] = useState("");
+  const [securityDeposit, setSecurityDeposit] = useState("");
+  const [rentalFrequency, setRentalFrequency] = useState("Monthly");
+  
   // Available data for linking
   const [availableLoans, setAvailableLoans] = useState([]);
   const [availableInsurances, setAvailableInsurances] = useState([]);
