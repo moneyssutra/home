@@ -39,10 +39,7 @@ import Dashboard from "@/Dashboard";
 
 const HomePlaceholder = () => {
   return (
-    <div
-      className="min-h-screen honeycomb-bg"
-      data-testid="home-placeholder-page"
-    />
+    <Dashboard />
   );
 };
 
