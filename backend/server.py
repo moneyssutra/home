@@ -789,6 +789,49 @@ async def create_insurance(input: InsuranceCreate):
     doc['createdAt'] = doc['createdAt'].isoformat()
     
     await db.insurances.insert_one(doc)
+    
+    # Auto-create premium expense if enabled
+    if insurance_obj.autoCreateExpense:
+        # Check if expense already exists for this insurance
+        existing_expense = await db.expenses.find_one({"linkedInsuranceId": insurance_obj.id}, {"_id": 0})
+        if not existing_expense:
+            # Map premium frequency to expense frequency
+            freq_map = {
+                "One-Time": "One-Time",
+                "Monthly": "Monthly", 
+                "Quarterly": "Quarterly", 
+                "Half-Yearly": "Half-Yearly", 
+                "Yearly": "Yearly"
+            }
+            expense_freq = freq_map.get(insurance_obj.premiumFrequency, "Yearly")
+            
+            # Calculate selectedDate from startDate
+            start_date = datetime.fromisoformat(insurance_obj.startDate) if insurance_obj.startDate else datetime.now(timezone.utc)
+            selected_date = str(start_date.day)
+            selected_month = start_date.strftime("%B") if expense_freq == "Yearly" else None
+            
+            expense_data = {
+                "id": str(uuid.uuid4()),
+                "expenseName": f"{insurance_obj.policyName} Premium",
+                "expenseType": "Fixed",
+                "category": "Insurance",
+                "expectedAmount": insurance_obj.premiumAmount,
+                "frequency": expense_freq,
+                "linkedAccountId": None,
+                "linkedLoanId": None,
+                "linkedInsuranceId": insurance_obj.id,
+                "selectedDay": None,
+                "selectedDate": selected_date,
+                "selectedQuarter": None,
+                "selectedHalf": None,
+                "selectedMonth": selected_month,
+                "oneTimeDate": insurance_obj.startDate if expense_freq == "One-Time" else None,
+                "isPaid": False,
+                "lastPaidDate": None,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            await db.expenses.insert_one(expense_data)
+    
     return insurance_obj
 
 @api_router.get("/insurances", response_model=List[Insurance])
