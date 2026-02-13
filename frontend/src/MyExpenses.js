@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, Receipt } from "lucide-react";
+import { ChevronRight, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal } from "lucide-react";
 import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
+import BackButton from "@/components/BackButton";
 
 const MyExpenses = () => {
   const navigate = useNavigate();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
-  
+  const [showAddSheet, setShowAddSheet] = useState(false);
+
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
@@ -18,8 +22,7 @@ const MyExpenses = () => {
     try {
       setLoading(true);
       const response = await axios.get(`${backendUrl}/api/expenses`);
-      const sortedExpenses = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setExpenses(sortedExpenses);
+      setExpenses(response.data);
     } catch (error) {
       console.error("Error fetching expenses:", error);
     } finally {
@@ -28,128 +31,232 @@ const MyExpenses = () => {
   };
 
   const formatAmount = (amount) => {
-    return new Intl.NumberFormat('en-IN').format(amount);
+    if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
+    if (amount >= 100000) return `${(amount / 100000).toFixed(2)} L`;
+    if (amount >= 1000) return `${(amount / 1000).toFixed(1)} K`;
+    return new Intl.NumberFormat("en-IN").format(amount);
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  };
+
+  // Calculate totals
+  const totalExpenses = expenses.reduce((sum, exp) => sum + (exp.expectedAmount || 0), 0);
+  const fixedExpenses = expenses.filter(e => e.expenseType === "Fixed");
+  const variableExpenses = expenses.filter(e => e.expenseType === "Variable");
+  const fixedTotal = fixedExpenses.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
+  const variableTotal = variableExpenses.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
+
+  // Determine payment status based on date
+  const getPaymentStatus = (expense) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (!expense.selectedDate) return 'upcoming';
+    
+    const dueDate = new Date();
+    dueDate.setDate(parseInt(expense.selectedDate));
+    dueDate.setHours(0, 0, 0, 0);
+    
+    if (dueDate < today) return 'paid'; // Past date assumed paid
+    if (dueDate.getTime() === today.getTime()) return 'due-today';
+    return 'upcoming';
+  };
+
+  // Sort expenses: upcoming first, due today, then paid
+  const sortedExpenses = [...expenses].sort((a, b) => {
+    const statusOrder = { 'upcoming': 0, 'due-today': 1, 'paid': 2 };
+    return statusOrder[getPaymentStatus(a)] - statusOrder[getPaymentStatus(b)];
+  });
+
+  // Group by category for allocation
+  const expenseByCategory = expenses.reduce((acc, exp) => {
+    const cat = exp.category || "Other";
+    if (!acc[cat]) acc[cat] = { total: 0, count: 0 };
+    acc[cat].total += exp.expectedAmount || 0;
+    acc[cat].count += 1;
+    return acc;
+  }, {});
+
+  const sortedCategories = Object.entries(expenseByCategory)
+    .sort(([, a], [, b]) => b.total - a.total);
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      "Housing": Home,
+      "Utilities": Zap,
+      "Food": ShoppingBag,
+      "Transport": Car,
+      "Shopping": ShoppingBag,
+      "Medical": Stethoscope,
+      "Education": GraduationCap,
+      "Insurance": Shield,
+      "Subscriptions": Tv,
+      "EMI": CreditCard,
+      "Business Expense": Briefcase,
+      "Salary Paid": Wallet,
+    };
+    return icons[category] || MoreHorizontal;
   };
 
   const getCategoryColor = (category) => {
     const colors = {
-      "Housing": "bg-[#3B82F6]/10 text-[#3B82F6]",
-      "Utilities": "bg-[#F59E0B]/10 text-[#F59E0B]",
-      "Food": "bg-[#10B981]/10 text-[#10B981]",
-      "Transport": "bg-[#8B5CF6]/10 text-[#8B5CF6]",
-      "Shopping": "bg-[#EC4899]/10 text-[#EC4899]",
-      "Medical": "bg-[#EF4444]/10 text-[#EF4444]",
-      "Education": "bg-[#06B6D4]/10 text-[#06B6D4]",
-      "Insurance": "bg-[#6366F1]/10 text-[#6366F1]",
-      "Subscriptions": "bg-[#14B8A6]/10 text-[#14B8A6]",
-      "EMI": "bg-[#F97316]/10 text-[#F97316]",
-      "Business Expense": "bg-[#84CC16]/10 text-[#84CC16]",
-      "Salary Paid": "bg-[#22C55E]/10 text-[#22C55E]",
+      "Housing": "bg-blue-500/20 text-blue-500",
+      "Utilities": "bg-amber-500/20 text-amber-500",
+      "Food": "bg-emerald-500/20 text-emerald-500",
+      "Transport": "bg-purple-500/20 text-purple-500",
+      "Shopping": "bg-pink-500/20 text-pink-500",
+      "Medical": "bg-red-500/20 text-red-500",
+      "Education": "bg-cyan-500/20 text-cyan-500",
+      "Insurance": "bg-indigo-500/20 text-indigo-500",
+      "Subscriptions": "bg-teal-500/20 text-teal-500",
+      "EMI": "bg-orange-500/20 text-orange-500",
+      "Business Expense": "bg-lime-500/20 text-lime-500",
+      "Salary Paid": "bg-green-500/20 text-green-500",
     };
-    return colors[category] || "bg-[#6B7280]/10 text-[#6B7280]";
+    return colors[category] || "bg-gray-500/20 text-gray-500";
   };
 
-  const getScheduleText = (expense) => {
-    const { frequency, selectedDay, selectedDate, selectedQuarter, selectedHalf, selectedMonth } = expense;
-    
-    switch (frequency) {
-      case "Daily":
-        return "Daily";
-      case "Weekly":
-        return selectedDay ? `Every ${selectedDay}` : "Weekly";
-      case "Monthly":
-        return selectedDate ? `${selectedDate}${getOrdinal(selectedDate)} of month` : "Monthly";
-      case "Quarterly":
-        return selectedQuarter ? `${selectedQuarter}` : "Quarterly";
-      case "Half-Yearly":
-        return selectedHalf ? `${selectedHalf}` : "Half-Yearly";
-      case "Yearly":
-        return selectedMonth ? `${selectedMonth}` : "Yearly";
-      case "One-Time":
-        return "One-Time";
-      default:
-        return frequency || "Not set";
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'paid': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'due-today': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'upcoming': return 'bg-blue-100 text-blue-700 border-blue-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
-  const getOrdinal = (n) => {
-    const num = parseInt(n);
-    if (num > 3 && num < 21) return 'th';
-    switch (num % 10) {
-      case 1: return 'st';
-      case 2: return 'nd';
-      case 3: return 'rd';
-      default: return 'th';
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'paid': return 'Paid';
+      case 'due-today': return 'Due Today';
+      case 'upcoming': return 'Upcoming';
+      default: return '';
     }
   };
 
-  const getTotalExpenses = () => {
-    return expenses.reduce((sum, exp) => sum + (exp.expectedAmount || 0), 0);
-  };
+  const chartColors = ["#EF4444", "#F59E0B", "#3B82F6", "#8B5CF6", "#06B6D4", "#EC4899"];
 
-  const getExpenseAllocation = () => {
-    const totalExpense = getTotalExpenses();
-    const allocation = {};
-    expenses.forEach(expense => {
-      const category = expense.category || "Other";
-      allocation[category] = (allocation[category] || 0) + (expense.expectedAmount || 0);
-    });
-    return Object.entries(allocation)
-      .map(([category, value]) => ({
-        category,
-        value,
-        percentage: totalExpense > 0 ? ((value / totalExpense) * 100).toFixed(1) : 0
-      }))
-      .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
-  };
+  // Count paid/pending for Fixed and Variable
+  const fixedPaid = fixedExpenses.filter(e => getPaymentStatus(e) === 'paid').length;
+  const fixedPending = fixedExpenses.length - fixedPaid;
+  const variablePaid = variableExpenses.filter(e => getPaymentStatus(e) === 'paid').length;
+  const variablePending = variableExpenses.length - variablePaid;
 
   return (
-    <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="my-expenses-page">
+    <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="my-expenses-page">
       {/* Header */}
-      <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9]"
-          onClick={() => navigate("/")}
-          data-testid="back-button"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
-          My Expenses
-        </h1>
-        <div className="h-10 w-10" />
+      <header className="bg-gradient-to-br from-[#DC2626] via-[#EF4444] to-[#DC2626] px-6 pt-8 pb-8">
+        <div className="flex items-center gap-4 mb-6">
+          <BackButton fallbackPath="/" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            My Expenses
+          </h1>
+        </div>
+
+        {/* Total Expenses Card */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="total-expenses-card">
+          <p className="text-white/60 text-sm font-medium mb-1">Total Expenses</p>
+          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalExpenses)}</h2>
+          <p className="text-white/40 text-xs mt-1">{expenses.length} expense sources</p>
+          
+          {/* Status Summary */}
+          <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-white/60 mb-1">Fixed Expenses</p>
+              <p className="text-white font-medium">
+                <span className="text-emerald-300">{fixedPaid} Paid</span> / <span className="text-amber-300">{fixedPending} Pending</span>
+              </p>
+            </div>
+            <div>
+              <p className="text-white/60 mb-1">Variable Expenses</p>
+              <p className="text-white font-medium">
+                <span className="text-emerald-300">{variablePaid} Paid</span> / <span className="text-amber-300">{variablePending} Pending</span>
+              </p>
+            </div>
+          </div>
+        </div>
       </header>
 
-      {/* Summary Cards */}
-      {!loading && expenses.length > 0 && (
-        <div className="px-6 mb-4">
-          <div className="mx-auto max-w-[620px]">
-            {/* Total Expenses Card */}
-            <div className="rounded-2xl bg-gradient-to-r from-[#EF4444] to-[#DC2626] p-5 text-white text-center mb-3">
-              <p className="text-white/80 text-xs mb-1">Total Expenses</p>
-              <p className="text-2xl font-bold">₹ {formatAmount(getTotalExpenses())}</p>
-              <p className="text-white/60 text-xs mt-1">{expenses.length} expense sources</p>
-            </div>
-            
-            {/* Expense Allocation */}
-            <div className="rounded-xl border border-[#E2E8F0] bg-white p-4">
-              <p className="text-sm font-medium text-[#0B3D2E] mb-3">Expense Breakdown</p>
-              <div className="space-y-2">
-                {getExpenseAllocation().map(({ category, value, percentage }) => (
+      {/* Expense Allocation */}
+      {sortedCategories.length > 0 && (
+        <div className="px-6 -mt-4">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100" data-testid="expense-allocation">
+            <h3 className="text-sm font-semibold text-[#0B3D2E] mb-4">Expense Breakdown</h3>
+            <div className="space-y-3">
+              {sortedCategories.slice(0, 5).map(([category, data], idx) => {
+                const percentage = totalExpenses > 0 ? (data.total / totalExpenses) * 100 : 0;
+                const Icon = getCategoryIcon(category);
+                return (
                   <div key={category} className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl ${getCategoryColor(category)} flex items-center justify-center`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
                     <div className="flex-1">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-[#0B3D2E]/70">{category}</span>
-                        <span className="font-medium text-[#0B3D2E]">{percentage}%</span>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium text-[#0B3D2E]">{category}</span>
+                        <span className="text-sm font-semibold text-[#0B3D2E]">₹ {formatAmount(data.total)}</span>
                       </div>
-                      <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-[#EF4444] rounded-full"
-                          style={{ width: `${percentage}%` }}
-                        />
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }}
+                          />
+                        </div>
+                        <span className="text-xs text-[#0B3D2E]/50 w-12 text-right">{percentage.toFixed(0)}%</span>
                       </div>
                     </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fixed vs Variable Split */}
+      {expenses.length > 0 && (
+        <div className="px-6 mt-4">
+          <div className="grid grid-cols-2 gap-3">
+            {/* Fixed Expenses */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                  <Shield className="h-4 w-4 text-slate-600" />
+                </div>
+                <span className="text-sm font-semibold text-[#0B3D2E]">Fixed</span>
+              </div>
+              <p className="text-xl font-bold text-[#0B3D2E] mb-1">₹ {formatAmount(fixedTotal)}</p>
+              <p className="text-xs text-[#0B3D2E]/50">{fixedExpenses.length} expenses</p>
+              <div className="mt-2 space-y-1">
+                {fixedExpenses.slice(0, 3).map(exp => (
+                  <div key={exp.id} className="flex justify-between text-xs">
+                    <span className="text-[#0B3D2E]/60 truncate flex-1">{exp.expenseName}</span>
+                    <span className="text-[#0B3D2E] font-medium ml-2">₹{formatAmount(exp.expectedAmount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Variable Expenses */}
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <Zap className="h-4 w-4 text-amber-600" />
+                </div>
+                <span className="text-sm font-semibold text-[#0B3D2E]">Variable</span>
+              </div>
+              <p className="text-xl font-bold text-[#0B3D2E] mb-1">₹ {formatAmount(variableTotal)}</p>
+              <p className="text-xs text-[#0B3D2E]/50">{variableExpenses.length} expenses</p>
+              <div className="mt-2 space-y-1">
+                {variableExpenses.slice(0, 3).map(exp => (
+                  <div key={exp.id} className="flex justify-between text-xs">
+                    <span className="text-[#0B3D2E]/60 truncate flex-1">{exp.expenseName}</span>
+                    <span className="text-[#0B3D2E] font-medium ml-2">₹{formatAmount(exp.expectedAmount)}</span>
                   </div>
                 ))}
               </div>
@@ -158,97 +265,94 @@ const MyExpenses = () => {
         </div>
       )}
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-6">
-        <div className="mx-auto w-full max-w-[620px] px-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-[#0B3D2E]/60">Loading...</div>
+      {/* Expense List */}
+      <div className="px-6 mt-6">
+        <h3 className="text-sm font-semibold text-[#0B3D2E] mb-3">All Expenses</h3>
+        
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-[#0B3D2E]/60">Loading...</div>
+          </div>
+        ) : expenses.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-rose-100 mb-4">
+              <Receipt className="h-10 w-10 text-rose-500" />
             </div>
-          ) : expenses.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-6">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#FEF3C7] mb-6">
-                <Receipt className="h-12 w-12 text-[#F59E0B]" />
-              </div>
-              <h2 className="text-xl font-semibold text-[#0B3D2E] mb-2">
-                No Expense Sources Added Yet
-              </h2>
-              <p className="text-[#0B3D2E]/60 text-center mb-8">
-                Start by adding your recurring expenses
-              </p>
-              <button
-                type="button"
-                onClick={() => navigate("/expense")}
-                className="flex items-center gap-2 rounded-xl bg-[#00D09C] px-6 py-3 text-white font-medium transition-all hover:bg-[#00BA89] active:scale-[0.98] shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
-                data-testid="add-expense-empty-button"
-              >
-                <Plus className="h-5 w-5" />
-                Add New Expense
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="space-y-3">
-                {expenses.map((expense) => (
-                  <div
-                    key={expense.id}
-                    className="flex items-center justify-between rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
-                    onClick={() => navigate(`/expense/${expense.id}`)}
-                    data-testid={`expense-card-${expense.id}`}
-                  >
-                    <div className="flex-1">
-                      {/* Name and Type Badge */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold text-[#0B3D2E]">
-                          {expense.expenseName}
-                        </h3>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          expense.expenseType === "Fixed" 
-                            ? "bg-[#0B3D2E]/10 text-[#0B3D2E]" 
-                            : "bg-[#F59E0B]/10 text-[#F59E0B]"
-                        }`}>
-                          {expense.expenseType}
-                        </span>
-                      </div>
-
-                      {/* Category Badge */}
-                      <div className="mb-3">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getCategoryColor(expense.category)}`}>
-                          {expense.category}
-                        </span>
-                      </div>
-
-                      {/* Amount and Schedule */}
-                      <div className="flex items-center gap-3">
-                        <span className="text-lg font-semibold text-[#0B3D2E]">
-                          ₹ {formatAmount(expense.expectedAmount)}
-                        </span>
-                        <span className="text-sm text-[#0B3D2E]/60">
-                          – {getScheduleText(expense)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <ChevronRight className="h-6 w-6 text-[#0B3D2E]/40" />
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4">
+            <h2 className="text-lg font-semibold text-[#0B3D2E] mb-2">No Expenses Added Yet</h2>
+            <p className="text-[#0B3D2E]/60 text-center text-sm mb-6">Start tracking your expenses</p>
+            <button
+              onClick={() => navigate("/expense")}
+              className="flex items-center gap-2 rounded-xl bg-[#00D09C] px-5 py-2.5 text-white font-medium transition-all hover:bg-[#00BA89] active:scale-[0.98]"
+            >
+              <Plus className="h-5 w-5" />
+              Add Expense
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sortedExpenses.map((expense) => {
+              const status = getPaymentStatus(expense);
+              const Icon = getCategoryIcon(expense.category);
+              return (
                 <button
-                  type="button"
-                  onClick={() => navigate("/expense")}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#00D09C] bg-[#E8F8F4] px-6 py-4 text-[#00D09C] font-semibold transition-all hover:bg-[#00D09C] hover:text-white active:scale-[0.98]"
-                  data-testid="add-expense-button"
+                  key={expense.id}
+                  onClick={() => navigate(`/expense/${expense.id}`)}
+                  className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all hover:shadow-md ${
+                    status === 'paid' ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-white border-gray-100'
+                  }`}
+                  data-testid={`expense-card-${expense.id}`}
                 >
-                  <Plus className="h-5 w-5" />
-                  Add New Expense
+                  <div className={`w-12 h-12 rounded-xl ${getCategoryColor(expense.category)} flex items-center justify-center`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <h3 className="font-semibold text-[#0B3D2E]">{expense.expenseName}</h3>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusColor(status)}`}>
+                        {getStatusLabel(status)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-[#0B3D2E]/50">
+                      <span>{expense.category}</span>
+                      <span>•</span>
+                      <span>{expense.expenseType}</span>
+                      {expense.selectedDate && (
+                        <>
+                          <span>•</span>
+                          <span>{expense.selectedDate} {new Date().toLocaleDateString('en-IN', { month: 'short' })}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-bold ${status === 'paid' ? 'text-emerald-600' : 'text-[#0B3D2E]'}`}>
+                      ₹ {formatAmount(expense.expectedAmount)}
+                    </p>
+                    <p className="text-xs text-[#0B3D2E]/40">{expense.frequency}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-[#0B3D2E]/30" />
                 </button>
-              </div>
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
+
+      {/* Add Button */}
+      {expenses.length > 0 && (
+        <div className="px-6 mt-6">
+          <button
+            onClick={() => navigate("/expense")}
+            className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#00D09C] py-3 text-[#00D09C] font-medium transition-all hover:bg-[#00D09C]/5"
+          >
+            <Plus className="h-5 w-5" />
+            Add New Expense
+          </button>
+        </div>
+      )}
+
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };
