@@ -325,6 +325,33 @@ class InvestmentCreate(BaseModel):
     expectedMaturityValue: Optional[float] = None
     lockInPeriod: Optional[int] = None
 
+# Credit Card Model
+class CreditCard(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    cardName: str
+    bankName: str
+    creditLimit: float
+    outstandingAmount: float = 0
+    billingDate: Optional[int] = None
+    dueDate: Optional[int] = None
+    minimumDue: Optional[float] = None
+    interestRate: Optional[float] = None
+    linkedAccountId: Optional[str] = None
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class CreditCardCreate(BaseModel):
+    cardName: str
+    bankName: str
+    creditLimit: float
+    outstandingAmount: float = 0
+    billingDate: Optional[int] = None
+    dueDate: Optional[int] = None
+    minimumDue: Optional[float] = None
+    interestRate: Optional[float] = None
+    linkedAccountId: Optional[str] = None
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
