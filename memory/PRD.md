@@ -228,6 +228,20 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
 
 ## Changelog
+- **Feb 13, 2026**: User Profile & Navigation System implemented
+  - **Welcome & Onboarding**: Welcome page with Get Started/Skip options, Basic Setup form (Name, Monthly Income, Goals, Risk Appetite)
+  - **Bottom Navigation**: 5-tab navigation (Home, Income, Add, Expenses, Portfolio) with centered Add button
+  - **Add Action Sheet**: Quick access bottom sheet for adding Income, Expense, Investment, Asset, Loan, Insurance, Account
+  - **My Income Page**: Total Income card, Income sources list with allocation percentages (descending), Add Income shortcuts
+  - **Portfolio Page**: Assets, Investments, Loans, Insurance, Accounts sections with Net Position summary
+  - **Dashboard Updated**: Shows user name ("Welcome back, [Name]"), removed Asset Allocation and Investment Portfolio breakdowns
+  - **Page Updates**: 
+    - MyAssets: Removed Net Worth box, single Total Asset Value card, allocation in descending order
+    - MyInvestments: Total Investment Value with % growth, Invested/Gain breakdown, Portfolio Allocation
+    - MyAccounts: Renamed "Liquid Balance" to "Balance", centered card, Balance Allocation
+    - MyLoans: Added Loan Allocation breakdown
+    - MyExpenses: Added Total Expenses card, Expense Breakdown allocation
+  - **Backend**: User Profile endpoints (BasicProfile, ExtendedProfile, ProfileCompletion)
 - **Feb 13, 2026**: Investment Module and Net Worth Dashboard implemented
   - **Investment Module**: Full CRUD with 14 categories (FD, RD, Stocks, MF, ETF, Bonds, SGB, Digital Gold/Silver, P2P, SWP, ULIP, Crypto, Other)
   - 3 investment modes: Income Generating, Growth Only, Growth with Maturity
