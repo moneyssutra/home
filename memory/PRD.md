@@ -233,6 +233,24 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
 
 ## Changelog
+- **Feb 13, 2026 (Session 2)**: Phase 1 & 3 Implementation
+  - **Credit Card Module**: Full CRUD with utilization tracking
+    - My Credit Cards page with total outstanding, utilization bar (0-30-50-100% markers)
+    - Add/Edit form with billing date, due date, minimum due, interest rate
+    - Due date alerts ("Due in X days")
+    - Portfolio integration (separate from Loans)
+    - Net Worth calculation updated to include credit card outstanding
+  - **Bug Fixes**:
+    - MyExpenses redesigned to match MyIncome (red gradient header, breakdown)
+    - Status badges: Paid (green), Due Today (amber), Upcoming (blue)
+    - Fixed/Variable expenses split cards
+    - MyIncome: Added Received vs Yet to Receive breakdown
+    - Asset Form: Income toggle shows Renter Name, Rental Amount, Security Deposit, Frequency
+    - Loan Form: "Is This Loan For An Asset?" toggle with dropdown
+  - **Components Created**:
+    - BackButton component (navigate to previous page)
+    - AmountInput component (shows amount in words)
+    - formatters.js utility (numberToWords, formatAmount, formatDate)
 - **Feb 13, 2026**: User Profile & Navigation System implemented
   - **Welcome & Onboarding**: Welcome page with Get Started/Skip options, Basic Setup form (Name, Monthly Income, Goals, Risk Appetite)
   - **Bottom Navigation**: 5-tab navigation (Home, Income, Add, Expenses, Portfolio) with centered Add button
