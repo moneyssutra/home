@@ -115,9 +115,21 @@ const MyIncome = () => {
 
         {/* Total Income Card */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="total-income-card">
-          <p className="text-white/60 text-sm font-medium mb-1">Total Income</p>
+          <p className="text-white/60 text-sm font-medium mb-1">Current Month Income</p>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalIncome)}</h2>
           <p className="text-white/40 text-xs mt-1">{incomes.length} sources</p>
+          
+          {/* Received vs Yet to Receive */}
+          <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-white/60 mb-1">Received</p>
+              <p className="text-emerald-300 font-semibold">₹ {formatAmount(receivedIncome)}</p>
+            </div>
+            <div>
+              <p className="text-white/60 mb-1">Yet to Receive</p>
+              <p className="text-amber-300 font-semibold">₹ {formatAmount(pendingIncome)}</p>
+            </div>
+          </div>
         </div>
       </header>
 
