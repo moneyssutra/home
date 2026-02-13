@@ -119,6 +119,11 @@ function App() {
           <Route path="/my-investments" element={<MyInvestments />} />
           <Route path="/investment" element={<InvestmentForm />} />
           <Route path="/investment/:id" element={<InvestmentForm />} />
+          
+          {/* Credit Cards */}
+          <Route path="/my-credit-cards" element={<MyCreditCards />} />
+          <Route path="/credit-card" element={<CreditCardForm />} />
+          <Route path="/credit-card/:id" element={<CreditCardForm />} />
         </Routes>
       </BrowserRouter>
     </div>
