@@ -189,6 +189,9 @@ function App() {
           <Route path="/my-insurance" element={<MyInsurance />} />
           <Route path="/insurance" element={<InsuranceForm />} />
           <Route path="/insurance/:id" element={<InsuranceForm />} />
+          <Route path="/my-investments" element={<MyInvestments />} />
+          <Route path="/investment" element={<InvestmentForm />} />
+          <Route path="/investment/:id" element={<InvestmentForm />} />
         </Routes>
       </BrowserRouter>
     </div>
