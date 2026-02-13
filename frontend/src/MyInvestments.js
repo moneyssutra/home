@@ -67,6 +67,22 @@ const MyInvestments = () => {
     return investments.reduce((sum, inv) => sum + (inv.principal || 0), 0);
   };
 
+  const getInvestmentAllocation = () => {
+    const totalValue = getTotalValue();
+    const allocation = {};
+    investments.forEach(inv => {
+      const category = inv.investmentCategory || "Other";
+      allocation[category] = (allocation[category] || 0) + (inv.currentValue || 0);
+    });
+    return Object.entries(allocation)
+      .map(([category, value]) => ({
+        category,
+        value,
+        percentage: totalValue > 0 ? ((value / totalValue) * 100).toFixed(1) : 0
+      }))
+      .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
+  };
+
   return (
     <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="my-investments-page">
       {/* Header */}
