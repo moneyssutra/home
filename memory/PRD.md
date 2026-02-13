@@ -225,9 +225,24 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - Mobile app version
 
 ## Known Issues
-None currently.
+- **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
 
 ## Changelog
+- **Feb 13, 2026**: Investment Module and Net Worth Dashboard implemented
+  - **Investment Module**: Full CRUD with 14 categories (FD, RD, Stocks, MF, ETF, Bonds, SGB, Digital Gold/Silver, P2P, SWP, ULIP, Crypto, Other)
+  - 3 investment modes: Income Generating, Growth Only, Growth with Maturity
+  - Dynamic fields based on category/mode (e.g., quantity/price for digital metals, return rate for income generating)
+  - Auto-suggest mode based on category selection
+  - Summary cards showing Current Value vs Total Invested
+  - **Net Worth Dashboard**: Eye-catching dark theme with gradient design at /home route
+  - Net Worth card with growing/declining indicator and breakdown bar (Assets/Investments/Cash)
+  - 4 summary cards: Assets, Investments, Cash & Bank, Liabilities (clickable)
+  - Monthly Cash Flow section: Income vs Expense vs Savings with savings rate progress bar
+  - 7 Quick Action buttons with colorful gradient icons
+  - Asset Allocation breakdown by type (Property, Vehicle, Equipment, etc.)
+  - Investment Portfolio breakdown by category (FD, MF, Stocks, etc.)
+  - Backend aggregation endpoints: /api/dashboard/networth and /api/dashboard/breakdown
+  - 100% test coverage: 20/20 backend tests, 10/10 frontend features
 - **Feb 13, 2026**: Insurance Module implemented
   - 3 pages: My Insurance, Add/Edit Insurance
   - 8 insurance types: Life, Health, Vehicle, Property, Business, Asset, Travel, Other
