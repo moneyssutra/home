@@ -81,7 +81,7 @@ const MyAccounts = () => {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           My Accounts
         </h1>
         <div className="h-10 w-10" />
@@ -89,12 +89,40 @@ const MyAccounts = () => {
 
       {/* Summary Cards */}
       {!loading && accounts.length > 0 && (
-        <div className="px-6 mb-6">
-          <div className="mx-auto max-w-[620px] grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-[#10B981]/10 p-4 border border-[#10B981]/20">
-              <p className="text-xs text-[#10B981] font-medium mb-1">Liquid Balance</p>
-              <p className="text-lg font-bold text-[#0B3D2E]">₹ {formatAmount(getTotalLiquidBalance())}</p>
+        <div className="px-6 mb-4">
+          <div className="mx-auto max-w-[620px]">
+            {/* Main Balance Card - Centered */}
+            <div className="rounded-2xl bg-gradient-to-r from-[#10B981] to-[#059669] p-5 text-white text-center mb-3">
+              <p className="text-white/80 text-xs mb-1">Total Balance</p>
+              <p className="text-2xl font-bold">₹ {formatAmount(getTotalLiquidBalance())}</p>
+              <p className="text-white/60 text-xs mt-1">{accounts.filter(a => a.accountType !== "Credit Card").length} accounts</p>
             </div>
+            
+            {/* Balance Allocation */}
+            {accounts.filter(a => a.accountType !== "Credit Card").length > 0 && (
+              <div className="rounded-xl border border-[#E2E8F0] bg-white p-4 mb-3">
+                <p className="text-sm font-medium text-[#0B3D2E] mb-3">Balance Allocation</p>
+                <div className="space-y-2">
+                  {getBalanceAllocation().map(({ type, value, percentage }) => (
+                    <div key={type} className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-[#0B3D2E]/70">{type}</span>
+                          <span className="font-medium text-[#0B3D2E]">{percentage}%</span>
+                        </div>
+                        <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-[#10B981] rounded-full"
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             {getTotalCreditOutstanding() > 0 && (
               <div className="rounded-xl bg-[#EF4444]/10 p-4 border border-[#EF4444]/20">
                 <p className="text-xs text-[#EF4444] font-medium mb-1">Credit Outstanding</p>
