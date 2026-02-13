@@ -36,6 +36,7 @@ const InsuranceForm = () => {
 
   const insuranceTypeOptions = [
     "Life Insurance",
+    "Term Insurance",
     "Health Insurance",
     "Vehicle Insurance",
     "Property Insurance",
@@ -45,7 +46,7 @@ const InsuranceForm = () => {
     "Other"
   ];
 
-  const premiumFrequencyOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly"];
+  const premiumFrequencyOptions = ["One-Time", "Monthly", "Quarterly", "Half-Yearly", "Yearly"];
 
   const coveredPersonOptions = ["Self", "Spouse", "Child", "Parent", "Other"];
 
