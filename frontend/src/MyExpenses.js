@@ -83,6 +83,26 @@ const MyExpenses = () => {
     }
   };
 
+  const getTotalExpenses = () => {
+    return expenses.reduce((sum, exp) => sum + (exp.expectedAmount || 0), 0);
+  };
+
+  const getExpenseAllocation = () => {
+    const totalExpense = getTotalExpenses();
+    const allocation = {};
+    expenses.forEach(expense => {
+      const category = expense.category || "Other";
+      allocation[category] = (allocation[category] || 0) + (expense.expectedAmount || 0);
+    });
+    return Object.entries(allocation)
+      .map(([category, value]) => ({
+        category,
+        value,
+        percentage: totalExpense > 0 ? ((value / totalExpense) * 100).toFixed(1) : 0
+      }))
+      .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
+  };
+
   return (
     <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="my-expenses-page">
       {/* Header */}
@@ -95,11 +115,48 @@ const MyExpenses = () => {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           My Expenses
         </h1>
         <div className="h-10 w-10" />
       </header>
+
+      {/* Summary Cards */}
+      {!loading && expenses.length > 0 && (
+        <div className="px-6 mb-4">
+          <div className="mx-auto max-w-[620px]">
+            {/* Total Expenses Card */}
+            <div className="rounded-2xl bg-gradient-to-r from-[#EF4444] to-[#DC2626] p-5 text-white text-center mb-3">
+              <p className="text-white/80 text-xs mb-1">Total Expenses</p>
+              <p className="text-2xl font-bold">₹ {formatAmount(getTotalExpenses())}</p>
+              <p className="text-white/60 text-xs mt-1">{expenses.length} expense sources</p>
+            </div>
+            
+            {/* Expense Allocation */}
+            <div className="rounded-xl border border-[#E2E8F0] bg-white p-4">
+              <p className="text-sm font-medium text-[#0B3D2E] mb-3">Expense Breakdown</p>
+              <div className="space-y-2">
+                {getExpenseAllocation().map(({ category, value, percentage }) => (
+                  <div key={category} className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-[#0B3D2E]/70">{category}</span>
+                        <span className="font-medium text-[#0B3D2E]">{percentage}%</span>
+                      </div>
+                      <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-[#EF4444] rounded-full"
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto pb-6">
