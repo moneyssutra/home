@@ -473,21 +473,28 @@ const ExpenseForm = () => {
             {frequency === "Monthly" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
                 <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                  Select Date
+                  Select Day of Month
                 </label>
-                <select
-                  id="monthlyDate"
-                  ref={dateFieldRef}
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="date-select"
-                >
-                  <option value="">Select a Date</option>
-                  {days.map((day) => (
-                    <option key={day} value={day}>{day}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <input
+                    id="monthlyDate"
+                    type="number"
+                    ref={dateFieldRef}
+                    value={selectedDate}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value);
+                      if (val >= 1 && val <= 31) setSelectedDate(e.target.value);
+                      else if (e.target.value === "") setSelectedDate("");
+                    }}
+                    min="1"
+                    max="31"
+                    placeholder="Enter day (1-31)"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="date-input"
+                  />
+                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#0B3D2E]/40" />
+                </div>
+                <p className="text-xs text-[#0B3D2E]/50 mt-1">E.g., 15 for 15th of every month</p>
                 {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
               </div>
             )}
