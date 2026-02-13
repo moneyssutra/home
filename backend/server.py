@@ -187,7 +187,8 @@ class Insurance(BaseModel):
     linkedExpenseId: Optional[str] = None
     maturityType: Optional[str] = None
     expectedMaturityAmount: Optional[float] = None
-    autoCreateExpense: bool = True
+    autoCreateExpense: bool = False
+    premiumEndDate: Optional[str] = None
     notes: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -203,7 +204,8 @@ class InsuranceCreate(BaseModel):
     coveredPerson: Optional[str] = None
     maturityType: Optional[str] = None
     expectedMaturityAmount: Optional[float] = None
-    autoCreateExpense: bool = True
+    autoCreateExpense: bool = False
+    premiumEndDate: Optional[str] = None
     notes: Optional[str] = None
 
 # Loan Model
