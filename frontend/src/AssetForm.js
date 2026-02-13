@@ -11,14 +11,22 @@ const AssetForm = () => {
   // Form fields
   const [assetType, setAssetType] = useState("");
   const [assetName, setAssetName] = useState("");
+  const [purchaseValue, setPurchaseValue] = useState("");
   const [currentValue, setCurrentValue] = useState("");
+  const [purchaseDate, setPurchaseDate] = useState("");
+  const [depreciationType, setDepreciationType] = useState("");
   const [isFinanced, setIsFinanced] = useState(false);
   const [linkedLoanId, setLinkedLoanId] = useState("");
-  const [purchaseDate, setPurchaseDate] = useState("");
-  const [purchaseValue, setPurchaseValue] = useState("");
+  const [generatesIncome, setGeneratesIncome] = useState(false);
+  const [linkedIncomeId, setLinkedIncomeId] = useState("");
+  const [isInsured, setIsInsured] = useState(false);
+  const [linkedInsuranceId, setLinkedInsuranceId] = useState("");
+  const [assetLocation, setAssetLocation] = useState("");
+  const [notes, setNotes] = useState("");
   
-  // Available loans for linking
+  // Available data for linking
   const [availableLoans, setAvailableLoans] = useState([]);
+  const [availableInsurances, setAvailableInsurances] = useState([]);
   
   // UI state
   const [errors, setErrors] = useState({});
@@ -34,13 +42,37 @@ const AssetForm = () => {
     "Commercial Property",
     "Land",
     "Vehicle",
-    "Equipment",
+    "Physical Gold",
+    "Physical Silver",
+    "Diamonds",
+    "Business Asset",
+    "Equipment / Machinery",
     "Other"
   ];
+
+  const depreciationTypes = [
+    { value: "Appreciating", label: "Appreciating (e.g., Property)" },
+    { value: "Depreciating", label: "Depreciating (e.g., Vehicle)" },
+    { value: "Market Driven", label: "Market Driven (e.g., Gold)" }
+  ];
+
+  // Auto-suggest depreciation type based on asset type
+  useEffect(() => {
+    if (!depreciationType) {
+      if (assetType.includes("Property") || assetType === "Land") {
+        setDepreciationType("Appreciating");
+      } else if (assetType === "Vehicle" || assetType.includes("Equipment")) {
+        setDepreciationType("Depreciating");
+      } else if (assetType.includes("Gold") || assetType.includes("Silver") || assetType === "Diamonds") {
+        setDepreciationType("Market Driven");
+      }
+    }
+  }, [assetType]);
 
   // Fetch loans for linking
   useEffect(() => {
     fetchLoans();
+    fetchInsurances();
   }, []);
 
   // Restore form state if returning from loan creation
@@ -49,13 +81,17 @@ const AssetForm = () => {
       const data = location.state.assetFormData;
       setAssetType(data.assetType || "");
       setAssetName(data.assetName || "");
-      setCurrentValue(data.currentValue || "");
-      setIsFinanced(data.isFinanced || false);
-      setPurchaseDate(data.purchaseDate || "");
       setPurchaseValue(data.purchaseValue || "");
-      // If a new loan was just created, set it as linked after loans are refreshed
+      setCurrentValue(data.currentValue || "");
+      setPurchaseDate(data.purchaseDate || "");
+      setDepreciationType(data.depreciationType || "");
+      setIsFinanced(data.isFinanced || false);
+      setGeneratesIncome(data.generatesIncome || false);
+      setIsInsured(data.isInsured || false);
+      setAssetLocation(data.location || "");
+      setNotes(data.notes || "");
+      // If a new loan was just created, set it as linked
       if (location.state?.newLoanId) {
-        // Re-fetch loans to include the newly created one, then set linkedLoanId
         fetchLoans().then(() => {
           setLinkedLoanId(location.state.newLoanId);
         });
@@ -79,6 +115,16 @@ const AssetForm = () => {
     }
   };
 
+  const fetchInsurances = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/insurances`);
+      setAvailableInsurances(response.data || []);
+    } catch (error) {
+      console.error("Error fetching insurances:", error);
+      setAvailableInsurances([]);
+    }
+  };
+
   const fetchAssetData = async () => {
     try {
       setLoading(true);
@@ -87,11 +133,18 @@ const AssetForm = () => {
       
       setAssetType(data.assetType || "");
       setAssetName(data.assetName || "");
+      setPurchaseValue(data.purchaseValue?.toString() || "");
       setCurrentValue(data.currentValue?.toString() || "");
+      setPurchaseDate(data.purchaseDate || "");
+      setDepreciationType(data.depreciationType || "");
       setIsFinanced(data.isFinanced || false);
       setLinkedLoanId(data.linkedLoanId || "");
-      setPurchaseDate(data.purchaseDate || "");
-      setPurchaseValue(data.purchaseValue?.toString() || "");
+      setGeneratesIncome(data.generatesIncome || false);
+      setLinkedIncomeId(data.linkedIncomeId || "");
+      setIsInsured(data.isInsured || false);
+      setLinkedInsuranceId(data.linkedInsuranceId || "");
+      setAssetLocation(data.location || "");
+      setNotes(data.notes || "");
     } catch (error) {
       console.error("Error fetching asset data:", error);
       setErrors({ submit: "Failed to load asset data" });
@@ -100,15 +153,8 @@ const AssetForm = () => {
     }
   };
 
-  // Reset linked loan when isFinanced is toggled off
-  useEffect(() => {
-    if (!isFinanced) {
-      setLinkedLoanId("");
-    }
-  }, [isFinanced]);
-
   const handleAmountChange = (setter) => (e) => {
-    const value = e.target.value.replace(/[^0-9]/g, "");
+    const value = e.target.value.replace(/[^0-9.]/g, "");
     setter(value);
   };
 
@@ -116,19 +162,16 @@ const AssetForm = () => {
     const newErrors = {};
 
     if (!assetType) {
-      newErrors.assetType = "Please select an asset type";
+      newErrors.assetType = "Please select asset type";
     }
 
     if (!assetName.trim()) {
       newErrors.assetName = "Asset name is required";
     }
 
-    if (!currentValue || parseFloat(currentValue) <= 0) {
-      newErrors.currentValue = "Current value must be greater than 0";
+    if (!currentValue || parseFloat(currentValue) < 0) {
+      newErrors.currentValue = "Current value is required";
     }
-
-    // Linked loan is optional - user can add it later
-    // Removed: if (isFinanced && !linkedLoanId) validation
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -153,11 +196,18 @@ const AssetForm = () => {
       const payload = {
         assetType,
         assetName,
-        currentValue: parseFloat(currentValue),
-        isFinanced,
-        linkedLoanId: isFinanced ? linkedLoanId : null,
-        purchaseDate: purchaseDate || null,
         purchaseValue: purchaseValue ? parseFloat(purchaseValue) : null,
+        currentValue: parseFloat(currentValue),
+        purchaseDate: purchaseDate || null,
+        depreciationType: depreciationType || null,
+        isFinanced,
+        linkedLoanId: isFinanced && linkedLoanId ? linkedLoanId : null,
+        generatesIncome,
+        linkedIncomeId: generatesIncome && linkedIncomeId ? linkedIncomeId : null,
+        isInsured,
+        linkedInsuranceId: isInsured && linkedInsuranceId ? linkedInsuranceId : null,
+        location: assetLocation || null,
+        notes: notes || null,
       };
 
       if (id) {
@@ -192,14 +242,7 @@ const AssetForm = () => {
     }
   };
 
-  const formatAmount = (amount) => {
-    return new Intl.NumberFormat('en-IN').format(amount);
-  };
-
-  // Calculate appreciation if purchase info available
-  const appreciation = purchaseValue && currentValue 
-    ? ((parseFloat(currentValue) - parseFloat(purchaseValue)) / parseFloat(purchaseValue)) * 100
-    : null;
+  const isPropertyType = assetType.includes("Property") || assetType === "Land";
 
   return (
     <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="asset-form-page">
@@ -219,7 +262,7 @@ const AssetForm = () => {
         <div className="h-10 w-10" />
       </header>
 
-      {/* Content */}
+      {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-24">
         <div className="mx-auto w-full max-w-[620px] px-6">
           <div className="space-y-6">
@@ -253,7 +296,7 @@ const AssetForm = () => {
                 type="text"
                 value={assetName}
                 onChange={(e) => setAssetName(e.target.value)}
-                placeholder="e.g., Green Villa – Flat 302, Shop No 4 – MG Road"
+                placeholder="e.g., Green Villa – Flat 302, Honda City 2020"
                 maxLength={100}
                 className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
                 data-testid="asset-name-input"
@@ -261,7 +304,26 @@ const AssetForm = () => {
               {errors.assetName && <p className="text-sm text-red-500 mt-1">{errors.assetName}</p>}
             </div>
 
-            {/* Current Value */}
+            {/* Purchase Value */}
+            <div className="w-full">
+              <label htmlFor="purchaseValue" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Purchase Value <span className="text-[#94A3B8] font-normal">(Optional)</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                <input
+                  id="purchaseValue"
+                  type="text"
+                  value={purchaseValue}
+                  onChange={handleAmountChange(setPurchaseValue)}
+                  placeholder="0"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="purchase-value-input"
+                />
+              </div>
+            </div>
+
+            {/* Current Market Value */}
             <div className="w-full">
               <label htmlFor="currentValue" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                 Current Market Value
@@ -279,80 +341,57 @@ const AssetForm = () => {
                 />
               </div>
               {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue}</p>}
+              <p className="text-xs text-[#0B3D2E]/60 mt-1">This feeds into your Net Worth calculation</p>
             </div>
 
-            {/* Purchase Info (Optional Section) */}
-            <div className="rounded-xl border border-[#E2E8F0] p-4 space-y-4">
-              <p className="text-sm font-medium text-[#0B3D2E]/70">Purchase Information (Optional)</p>
-              
-              <div className="grid grid-cols-2 gap-4">
-                {/* Purchase Date */}
-                <div className="w-full">
-                  <label htmlFor="purchaseDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                    Purchase Date
-                  </label>
-                  <label htmlFor="purchaseDate" className="relative block cursor-pointer">
-                    <input
-                      id="purchaseDate"
-                      type="date"
-                      value={purchaseDate}
-                      onChange={(e) => setPurchaseDate(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
-                      data-testid="purchase-date-input"
-                    />
-                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                  </label>
-                </div>
+            {/* Purchase Date */}
+            <div className="w-full">
+              <label htmlFor="purchaseDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Purchase Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
+              </label>
+              <label htmlFor="purchaseDate" className="relative block cursor-pointer">
+                <input
+                  id="purchaseDate"
+                  type="date"
+                  value={purchaseDate}
+                  onChange={(e) => setPurchaseDate(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                  data-testid="purchase-date-input"
+                />
+                <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+              </label>
+            </div>
 
-                {/* Purchase Value */}
-                <div className="w-full">
-                  <label htmlFor="purchaseValue" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                    Purchase Value
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
-                    <input
-                      id="purchaseValue"
-                      type="text"
-                      value={purchaseValue}
-                      onChange={handleAmountChange(setPurchaseValue)}
-                      placeholder="0"
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                      data-testid="purchase-value-input"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Appreciation Display */}
-              {appreciation !== null && (
-                <div className={`rounded-lg p-3 ${appreciation >= 0 ? 'bg-[#E8F8F4]' : 'bg-red-50'}`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-[#0B3D2E]/70">Appreciation</span>
-                    <span className={`text-lg font-bold ${appreciation >= 0 ? 'text-[#00D09C]' : 'text-red-500'}`}>
-                      {appreciation >= 0 ? '+' : ''}{appreciation.toFixed(1)}%
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#0B3D2E]/50 mt-1">
-                    {appreciation >= 0 ? 'Gained' : 'Lost'} ₹{formatAmount(Math.abs(parseFloat(currentValue) - parseFloat(purchaseValue)))}
-                  </p>
-                </div>
-              )}
+            {/* Depreciation Type */}
+            <div className="w-full">
+              <label htmlFor="depreciationType" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Value Trend <span className="text-[#94A3B8] font-normal">(Optional)</span>
+              </label>
+              <select
+                id="depreciationType"
+                value={depreciationType}
+                onChange={(e) => setDepreciationType(e.target.value)}
+                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                data-testid="depreciation-type-select"
+              >
+                <option value="">Select Value Trend</option>
+                {depreciationTypes.map((type) => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
             </div>
 
             {/* Is Financed Toggle */}
             <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label htmlFor="isFinanced" className="text-sm font-medium text-[#0B3D2E]">
+                  <label className="text-sm font-medium text-[#0B3D2E]">
                     Is This Asset Financed?
                   </label>
                   <p className="text-xs text-[#0B3D2E]/60 mt-0.5">Link to a loan for net worth calculation</p>
                 </div>
                 <button
                   type="button"
-                  role="switch"
-                  aria-checked={isFinanced}
                   onClick={() => setIsFinanced(!isFinanced)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                     isFinanced ? "bg-[#F59E0B]" : "bg-[#E2E8F0]"
@@ -367,32 +406,25 @@ const AssetForm = () => {
                 </button>
               </div>
 
-              {/* Linked Loan Section */}
               {isFinanced && (
-                <div className="mt-4 pt-4 border-t border-[#E2E8F0] animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="mt-4 pt-4 border-t border-[#E2E8F0]">
                   <label htmlFor="linkedLoan" className="block text-sm font-medium text-[#0B3D2E] mb-2">
                     Select Linked Loan
                   </label>
-                  
-                  {availableLoans.length > 0 ? (
-                    <select
-                      id="linkedLoan"
-                      value={linkedLoanId}
-                      onChange={(e) => setLinkedLoanId(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                      data-testid="linked-loan-select"
-                    >
-                      <option value="">Select a Loan</option>
-                      {availableLoans.map((loan) => (
-                        <option key={loan.id} value={loan.id}>
-                          {loan.loanName} - ₹{formatAmount(loan.outstandingAmount)} outstanding
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <p className="text-sm text-[#0B3D2E]/60 mb-2">No loans available</p>
-                  )}
-                  
+                  <select
+                    id="linkedLoan"
+                    value={linkedLoanId}
+                    onChange={(e) => setLinkedLoanId(e.target.value)}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="linked-loan-select"
+                  >
+                    <option value="">Select a Loan</option>
+                    {availableLoans.map((loan) => (
+                      <option key={loan.id} value={loan.id}>
+                        {loan.loanName} - ₹{new Intl.NumberFormat('en-IN').format(loan.outstandingAmount)}
+                      </option>
+                    ))}
+                  </select>
                   <button
                     type="button"
                     onClick={() => navigate("/loan", { 
@@ -401,10 +433,15 @@ const AssetForm = () => {
                         assetFormData: {
                           assetType,
                           assetName,
+                          purchaseValue,
                           currentValue,
-                          isFinanced,
                           purchaseDate,
-                          purchaseValue
+                          depreciationType,
+                          isFinanced,
+                          generatesIncome,
+                          isInsured,
+                          location: assetLocation,
+                          notes
                         }
                       } 
                     })}
@@ -414,10 +451,117 @@ const AssetForm = () => {
                     <Plus className="h-4 w-4" />
                     Add New Loan
                   </button>
-                  
-                  {errors.linkedLoanId && <p className="text-sm text-red-500 mt-1">{errors.linkedLoanId}</p>}
                 </div>
               )}
+            </div>
+
+            {/* Generates Income Toggle */}
+            <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-[#0B3D2E]">
+                    Does This Asset Generate Income?
+                  </label>
+                  <p className="text-xs text-[#0B3D2E]/60 mt-0.5">E.g., Rental income from property</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setGeneratesIncome(!generatesIncome)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    generatesIncome ? "bg-[#00D09C]" : "bg-[#E2E8F0]"
+                  }`}
+                  data-testid="generates-income-toggle"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      generatesIncome ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Is Insured Toggle */}
+            <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-[#0B3D2E]">
+                    Is This Asset Insured?
+                  </label>
+                  <p className="text-xs text-[#0B3D2E]/60 mt-0.5">Link to an insurance policy</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsInsured(!isInsured)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    isInsured ? "bg-[#6366F1]" : "bg-[#E2E8F0]"
+                  }`}
+                  data-testid="is-insured-toggle"
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      isInsured ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {isInsured && availableInsurances.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-[#E2E8F0]">
+                  <label htmlFor="linkedInsurance" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    Select Linked Insurance
+                  </label>
+                  <select
+                    id="linkedInsurance"
+                    value={linkedInsuranceId}
+                    onChange={(e) => setLinkedInsuranceId(e.target.value)}
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="linked-insurance-select"
+                  >
+                    <option value="">Select an Insurance</option>
+                    {availableInsurances.map((ins) => (
+                      <option key={ins.id} value={ins.id}>
+                        {ins.policyName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {/* Location (for Property) */}
+            {isPropertyType && (
+              <div className="w-full">
+                <label htmlFor="assetLocation" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  Location <span className="text-[#94A3B8] font-normal">(Optional)</span>
+                </label>
+                <input
+                  id="assetLocation"
+                  type="text"
+                  value={assetLocation}
+                  onChange={(e) => setAssetLocation(e.target.value)}
+                  placeholder="e.g., Mumbai, Andheri West"
+                  maxLength={100}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="location-input"
+                />
+              </div>
+            )}
+
+            {/* Notes */}
+            <div className="w-full">
+              <label htmlFor="notes" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                Notes <span className="text-[#94A3B8] font-normal">(Optional)</span>
+              </label>
+              <textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Any additional notes..."
+                rows={3}
+                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 resize-none"
+                data-testid="notes-input"
+              />
             </div>
 
             {errors.submit && (
