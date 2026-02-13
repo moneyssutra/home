@@ -135,16 +135,11 @@ const MyAssets = () => {
           ) : (
             /* Asset List */
             <div className="space-y-4">
-              {/* Summary Cards */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="rounded-2xl bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] p-4 text-white">
-                  <p className="text-white/80 text-xs mb-1">Total Asset Value</p>
-                  <p className="text-xl font-bold">₹ {formatAmount(totalAssetValue)}</p>
-                </div>
-                <div className="rounded-2xl bg-gradient-to-r from-[#00D09C] to-[#00BA89] p-4 text-white">
-                  <p className="text-white/80 text-xs mb-1">Net Worth (Assets)</p>
-                  <p className="text-xl font-bold">₹ {formatAmount(totalNetValue)}</p>
-                </div>
+              {/* Summary Card - Single centered card */}
+              <div className="rounded-2xl bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] p-4 text-white text-center mb-4">
+                <p className="text-white/80 text-xs mb-1">Total Asset Value</p>
+                <p className="text-2xl font-bold">₹ {formatAmount(totalAssetValue)}</p>
+                <p className="text-white/60 text-xs mt-1">{assets.length} assets</p>
               </div>
 
               {/* Asset Allocation */}
