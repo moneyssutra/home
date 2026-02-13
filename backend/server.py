@@ -170,6 +170,42 @@ class ExpenseCreate(BaseModel):
     selectedMonth: Optional[str] = None
     oneTimeDate: Optional[str] = None
 
+# Insurance Model
+class Insurance(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    insuranceType: str
+    policyName: str
+    coverageAmount: float
+    premiumAmount: float
+    premiumFrequency: str
+    startDate: str
+    endDate: Optional[str] = None
+    linkedAssetId: Optional[str] = None
+    coveredPerson: Optional[str] = None
+    linkedExpenseId: Optional[str] = None
+    maturityType: Optional[str] = None
+    expectedMaturityAmount: Optional[float] = None
+    autoCreateExpense: bool = True
+    notes: Optional[str] = None
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class InsuranceCreate(BaseModel):
+    insuranceType: str
+    policyName: str
+    coverageAmount: float
+    premiumAmount: float
+    premiumFrequency: str
+    startDate: str
+    endDate: Optional[str] = None
+    linkedAssetId: Optional[str] = None
+    coveredPerson: Optional[str] = None
+    maturityType: Optional[str] = None
+    expectedMaturityAmount: Optional[float] = None
+    autoCreateExpense: bool = True
+    notes: Optional[str] = None
+
 # Loan Model
 class Loan(BaseModel):
     model_config = ConfigDict(extra="ignore")
