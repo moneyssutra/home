@@ -334,6 +334,11 @@ const AssetForm = () => {
                   data-testid="purchase-value-input"
                 />
               </div>
+              {parseFloat(purchaseValue) > 0 && (
+                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="purchase-value-words">
+                  {numberToWords(parseFloat(purchaseValue))}
+                </p>
+              )}
             </div>
 
             {/* Current Market Value */}
@@ -353,26 +358,47 @@ const AssetForm = () => {
                   data-testid="current-value-input"
                 />
               </div>
+              {parseFloat(currentValue) > 0 && (
+                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="current-value-words">
+                  {numberToWords(parseFloat(currentValue))}
+                </p>
+              )}
               {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue}</p>}
               <p className="text-xs text-[#0B3D2E]/60 mt-1">This feeds into your Net Worth calculation</p>
             </div>
 
             {/* Purchase Date */}
             <div className="w-full">
-              <label htmlFor="purchaseDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
                 Purchase Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
-              <label htmlFor="purchaseDate" className="relative block cursor-pointer">
-                <input
-                  id="purchaseDate"
-                  type="date"
-                  value={purchaseDate}
-                  onChange={(e) => setPurchaseDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
-                  data-testid="purchase-date-input"
-                />
-                <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-              </label>
+              <Popover open={purchaseCalendarOpen} onOpenChange={setPurchaseCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="purchase-date-input"
+                  >
+                    <span className={purchaseDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                      {purchaseDate ? format(new Date(purchaseDate), "PPP") : "Select purchase date"}
+                    </span>
+                    <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-white" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={purchaseDate ? new Date(purchaseDate) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        setPurchaseDate(format(date, "yyyy-MM-dd"));
+                      }
+                      setPurchaseCalendarOpen(false);
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Depreciation Type */}
