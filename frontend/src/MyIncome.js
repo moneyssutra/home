@@ -41,29 +41,22 @@ const MyIncome = () => {
     return new Intl.NumberFormat("en-IN").format(amount);
   };
 
-  // Calculate monthly income based on frequency (same logic as backend dashboard)
   const calculateMonthlyAmount = (income) => {
     const amount = income.expectedAmount || 0;
     const freq = income.frequency || 'Monthly';
-    const currentMonth = new Date().getMonth() + 1; // 1-12
+    const currentMonth = new Date().getMonth() + 1;
     const currentYear = new Date().getFullYear();
     
     switch (freq) {
-      case 'Daily':
-        return amount * 30;
-      case 'Weekly':
-        return amount * 4;
-      case 'Monthly':
-        return amount;
+      case 'Daily': return amount * 30;
+      case 'Weekly': return amount * 4;
+      case 'Monthly': return amount;
       case 'Quarterly':
-        // Only count if current month is first month of quarter
         const quarterMonths = [1, 4, 7, 10];
         return quarterMonths.includes(currentMonth) ? amount : 0;
       case 'Half-Yearly':
-        // Only count if current month is Jan or Jul
         return [1, 7].includes(currentMonth) ? amount : 0;
       case 'Yearly':
-        // Check if selected month matches current month
         const monthMapping = {
           "January": 1, "February": 2, "March": 3, "April": 4,
           "May": 5, "June": 6, "July": 7, "August": 8,
@@ -73,7 +66,6 @@ const MyIncome = () => {
         return monthMapping[selectedMonth] === currentMonth ? amount : 0;
       case 'Irregular':
       case 'Others':
-        // Check if custom date falls in current month
         if (income.customDate) {
           try {
             const dateObj = new Date(income.customDate);
@@ -83,12 +75,10 @@ const MyIncome = () => {
           } catch (e) {}
         }
         return 0;
-      default:
-        return amount;
+      default: return amount;
     }
   };
 
-  // Calculate other income monthly amount
   const calculateOtherIncomeMonthly = (otherInc) => {
     const amount = otherInc.amount || 0;
     const freq = otherInc.frequency || 'One-Time';
@@ -106,8 +96,7 @@ const MyIncome = () => {
           } catch (e) {}
         }
         return 0;
-      case 'Monthly':
-        return amount;
+      case 'Monthly': return amount;
       case 'Quarterly':
         return [1, 4, 7, 10].includes(currentMonth) ? amount : 0;
       case 'Yearly':
@@ -127,17 +116,14 @@ const MyIncome = () => {
           } catch (e) {}
         }
         return 0;
-      default:
-        return amount;
+      default: return amount;
     }
   };
 
-  // Calculate total income (frequency-aware, same as dashboard)
   const totalRegularIncome = incomes.reduce((sum, inc) => sum + calculateMonthlyAmount(inc), 0);
   const totalOtherIncome = otherIncomes.reduce((sum, inc) => sum + calculateOtherIncomeMonthly(inc), 0);
   const totalIncome = totalRegularIncome + totalOtherIncome;
 
-  // Group incomes by type (using monthly amounts)
   const incomeByType = incomes.reduce((acc, inc) => {
     const type = inc.type || "Other";
     if (!acc[type]) acc[type] = { total: 0, count: 0 };
@@ -146,14 +132,11 @@ const MyIncome = () => {
     return acc;
   }, {});
 
-  // Add Other Income as a separate type if exists
   if (otherIncomes.length > 0) {
     incomeByType["Other Income"] = { total: totalOtherIncome, count: otherIncomes.length };
   }
 
-  // Sort by total descending
-  const sortedTypes = Object.entries(incomeByType)
-    .sort(([, a], [, b]) => b.total - a.total);
+  const sortedTypes = Object.entries(incomeByType).sort(([, a], [, b]) => b.total - a.total);
 
   const getTypeIcon = (type) => {
     const icons = {
@@ -170,15 +153,15 @@ const MyIncome = () => {
 
   const getTypeColor = (type) => {
     const colors = {
-      Business: "bg-emerald-500/20 text-emerald-500",
-      Job: "bg-blue-500/20 text-blue-500",
-      Rental: "bg-amber-500/20 text-amber-500",
-      Commission: "bg-purple-500/20 text-purple-500",
-      Interest: "bg-cyan-500/20 text-cyan-500",
-      Dividend: "bg-pink-500/20 text-pink-500",
-      "Other Income": "bg-violet-500/20 text-violet-500",
+      Business: { bg: "var(--brand-primary-soft)", text: "var(--brand-primary)" },
+      Job: { bg: "var(--status-info-soft)", text: "var(--status-info)" },
+      Rental: { bg: "var(--status-warning-soft)", text: "var(--status-warning)" },
+      Commission: { bg: "#F3E8FF", text: "var(--chart-accent2)" },
+      Interest: { bg: "#CFFAFE", text: "#0891B2" },
+      Dividend: { bg: "#FCE7F3", text: "#DB2777" },
+      "Other Income": { bg: "#F3E8FF", text: "var(--chart-accent2)" },
     };
-    return colors[type] || "bg-[#1E293B]0/20 text-slate-400";
+    return colors[type] || { bg: "var(--bg-subtle)", text: "var(--text-secondary)" };
   };
 
   const getTypePath = (type) => {
@@ -194,30 +177,25 @@ const MyIncome = () => {
     return paths[type] || "/";
   };
 
-  const chartColors = ["#10B981", "#3B82F6", "#F59E0B", "#8B5CF6", "#06B6D4", "#EC4899"];
+  const chartColors = ["#059669", "#3B82F6", "#F59E0B", "#8B5CF6", "#06B6D4", "#EC4899"];
 
-  // Calculate received vs yet to receive based on date and frequency
   const today = new Date();
   const currentDay = today.getDate();
   const currentMonth = today.getMonth() + 1;
   const currentYear = today.getFullYear();
-  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
   
-  // Calculate received and pending amounts for an income (handles partial for Daily/Weekly)
   const getReceivedAndPending = (income) => {
     const freq = income.frequency || 'Monthly';
     const monthlyAmount = calculateMonthlyAmount(income);
     
-    // Daily income: Proportional based on days passed
     if (freq === 'Daily') {
       const receivedDays = currentDay;
-      const totalDays = 30; // Using 30 as standard month
+      const totalDays = 30;
       const received = (monthlyAmount * receivedDays) / totalDays;
       const pending = monthlyAmount - received;
       return { received, pending };
     }
     
-    // Weekly income: Proportional based on weeks passed
     if (freq === 'Weekly') {
       const weeksElapsed = Math.floor(currentDay / 7);
       const totalWeeks = 4;
@@ -226,14 +204,12 @@ const MyIncome = () => {
       return { received, pending };
     }
     
-    // No date specified: assume fully received
     if (!income.selectedDate) {
       return { received: monthlyAmount, pending: 0 };
     }
     
     const selectedDate = income.selectedDate;
     
-    // For Monthly income: Compare day of month
     if (freq === 'Monthly') {
       let dueDay;
       if (selectedDate.includes('-')) {
@@ -249,7 +225,6 @@ const MyIncome = () => {
       }
     }
     
-    // For Quarterly/Half-Yearly/Yearly: Compare full date
     if (freq === 'Quarterly' || freq === 'Half-Yearly' || freq === 'Yearly') {
       try {
         let dueDate;
@@ -268,11 +243,9 @@ const MyIncome = () => {
       }
     }
     
-    // Default: assume fully received
     return { received: monthlyAmount, pending: 0 };
   };
 
-  // Calculate totals by summing received/pending for each income
   const { receivedIncome, pendingIncome } = incomes.reduce(
     (acc, inc) => {
       const { received, pending } = getReceivedAndPending(inc);
@@ -285,28 +258,28 @@ const MyIncome = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="my-income-page">
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-income-page">
       {/* Header */}
-      <header className="bg-gradient-to-br from-[#334155] via-[#134E3E] to-[#334155] px-6 pt-8 pb-8">
+      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
         <h1 className="text-2xl font-bold text-white mb-6" style={{ fontFamily: "'Manrope', sans-serif" }}>
           My Income
         </h1>
 
         {/* Total Income Card */}
-        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="total-income-card">
-          <p className="text-white/60 text-sm font-medium mb-1">Current Month Income</p>
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="total-income-card">
+          <p className="text-white/70 text-sm font-medium mb-1">Current Month Income</p>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalIncome)}</h2>
-          <p className="text-white/40 text-xs mt-1">{incomes.length} sources</p>
+          <p className="text-white/50 text-xs mt-1">{incomes.length} sources</p>
           
           {/* Received vs Yet to Receive */}
-          <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-sm">
+          <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-white/60 mb-1">Received</p>
-              <p className="text-emerald-300 font-semibold">₹ {formatAmount(receivedIncome)}</p>
+              <p className="text-white/70 mb-1">Received</p>
+              <p className="font-semibold" style={{ color: "var(--brand-primary-soft)" }}>₹ {formatAmount(receivedIncome)}</p>
             </div>
             <div>
-              <p className="text-white/60 mb-1">Yet to Receive</p>
-              <p className="text-amber-300 font-semibold">₹ {formatAmount(pendingIncome)}</p>
+              <p className="text-white/70 mb-1">Yet to Receive</p>
+              <p className="font-semibold" style={{ color: "#FDE68A" }}>₹ {formatAmount(pendingIncome)}</p>
             </div>
           </div>
         </div>
@@ -315,37 +288,39 @@ const MyIncome = () => {
       {/* Income Allocation */}
       {sortedTypes.length > 0 && (
         <div className="px-6 -mt-4">
-          <div className="bg-[#1E293B] rounded-2xl p-5 shadow-sm border border-gray-100" data-testid="income-allocation">
-            <h3 className="text-sm font-semibold text-[#334155] mb-4">Income Sources</h3>
+          <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="income-allocation">
+            <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Income Sources</h3>
             <div className="space-y-3">
               {sortedTypes.map(([type, data], idx) => {
                 const percentage = totalIncome > 0 ? (data.total / totalIncome) * 100 : 0;
                 const Icon = getTypeIcon(type);
+                const typeColor = getTypeColor(type);
                 return (
                   <button
                     key={type}
                     onClick={() => navigate(getTypePath(type))}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#1E293B] transition-colors"
+                    className="w-full flex items-center gap-3 p-3 rounded-xl transition-colors"
+                    style={{ backgroundColor: "transparent" }}
                   >
-                    <div className={`w-10 h-10 rounded-xl ${getTypeColor(type)} flex items-center justify-center`}>
-                      <Icon className="h-5 w-5" />
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: typeColor.bg }}>
+                      <Icon className="h-5 w-5" style={{ color: typeColor.text }} />
                     </div>
                     <div className="flex-1 text-left">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-[#334155]">{type}</span>
-                        <span className="text-sm font-semibold text-[#334155]">₹ {formatAmount(data.total)}</span>
+                        <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{type}</span>
+                        <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data.total)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-[#1E293B] rounded-full overflow-hidden">
+                        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
                           <div
                             className="h-full rounded-full transition-all duration-500"
                             style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }}
                           />
                         </div>
-                        <span className="text-xs text-[#334155]/50 w-12 text-right">{percentage.toFixed(0)}%</span>
+                        <span className="text-xs w-12 text-right" style={{ color: "var(--text-muted)" }}>{percentage.toFixed(0)}%</span>
                       </div>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-[#334155]/30" />
+                    <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
                   </button>
                 );
               })}
@@ -356,7 +331,7 @@ const MyIncome = () => {
 
       {/* Income Types Grid */}
       <div className="px-6 mt-6">
-        <h3 className="text-sm font-semibold text-[#334155] mb-3">Add Income</h3>
+        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Add Income</h3>
         <div className="grid grid-cols-3 gap-3">
           {[
             { type: "Business", path: "/business-income" },
@@ -368,17 +343,19 @@ const MyIncome = () => {
             { type: "Other Income", path: "/other-income", label: "Other" },
           ].map((item) => {
             const Icon = getTypeIcon(item.type);
+            const typeColor = getTypeColor(item.type);
             return (
               <button
                 key={item.type}
                 onClick={() => navigate(item.path)}
-                className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#1E293B] border border-gray-100 shadow-sm hover:shadow-md transition-all active:scale-95"
+                className="flex flex-col items-center gap-2 p-4 rounded-2xl shadow-card hover:shadow-md transition-all active:scale-95"
+                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
                 data-testid={`add-${item.type.toLowerCase().replace(' ', '-')}`}
               >
-                <div className={`w-12 h-12 rounded-xl ${getTypeColor(item.type)} flex items-center justify-center`}>
-                  <Icon className="h-6 w-6" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: typeColor.bg }}>
+                  <Icon className="h-6 w-6" style={{ color: typeColor.text }} />
                 </div>
-                <span className="text-xs font-medium text-[#334155]/80">{item.label || item.type}</span>
+                <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{item.label || item.type}</span>
               </button>
             );
           })}
@@ -388,11 +365,11 @@ const MyIncome = () => {
       {/* Empty State */}
       {!loading && incomes.length === 0 && otherIncomes.length === 0 && (
         <div className="px-6 mt-8 text-center">
-          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
-            <TrendingUp className="h-10 w-10 text-emerald-500" />
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--brand-primary-soft)" }}>
+            <TrendingUp className="h-10 w-10" style={{ color: "var(--brand-primary)" }} />
           </div>
-          <h3 className="text-lg font-semibold text-[#334155] mb-2">No Income Added Yet</h3>
-          <p className="text-[#334155]/60 text-sm">Start tracking your income sources</p>
+          <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>No Income Added Yet</h3>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Start tracking your income sources</p>
         </div>
       )}
 
