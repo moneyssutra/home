@@ -676,4 +676,15 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
     - `utils.py`: Common utilities (get_user_filter, convert_datetime_fields)
   - **Total lines extracted**: ~2861 lines across 19 module files
   - **Status**: Core routes extracted, server.py still works as fallback
-  - **Remaining**: Expenses, Insurance, Goals, Dashboard, Profile routes still in server.py
+
+- **Feb 15, 2026**: Backend Architecture Refactoring (Phase 3 - COMPLETE)
+  - **All remaining routes extracted** to `/routes/`:
+    - `expenses.py`: /expenses/* CRUD + scheduling + process-deductions
+    - `insurance.py`: /insurances/* CRUD + auto-create premium expense
+    - `goals.py`: /goals/* CRUD + progress calculation + SIP projections
+    - `dashboard.py`: /dashboard/* (networth, breakdown aggregations)
+    - `profile.py`: /profile/* (basic, extended, completion)
+    - `other_income.py`: /other-income/* CRUD
+  - **TOTAL MODULAR CODE**: ~4284 lines across 36 files
+  - **14 Route Modules**: auth, workspace, income, other_income, loans, assets, accounts, expenses, investments, credit_cards, insurance, goals, dashboard, profile
+  - **Status**: COMPLETE - Full modular architecture ready for future migration
