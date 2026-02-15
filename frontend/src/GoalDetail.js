@@ -19,10 +19,13 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { useMilestoneNotification, MilestoneProgress } from "@/components/MilestoneNotification";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const GoalDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const [goal, setGoal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
