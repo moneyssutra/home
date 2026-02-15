@@ -235,6 +235,27 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
 
 ## Changelog
+- **Dec 15, 2025 (Session 5)**: Critical Bug Fixes & Investment Enhancements
+  - **P0 Fix: Fixed Expense Toggle Error**:
+    - FixedExpenses page now navigates to `/expense?type=Fixed` when adding new expense
+    - VariableExpenses page now navigates to `/expense?type=Variable` when adding new expense
+    - ExpenseForm reads `?type=` query parameter on mount and pre-selects the correct type
+    - Uses `useSearchParams` hook from react-router-dom
+  - **P0 Fix: Monthly Cash Flow Income Calculation**:
+    - Backend `/api/dashboard/networth` now calculates actual monthly income for the current month
+    - Income calculation considers frequency and scheduled dates (not just averages)
+    - Daily: amount × 30, Weekly: amount × 4, Monthly: full amount
+    - Quarterly/Half-Yearly/Yearly: only counted if current month is a payment month
+    - One-Time/Irregular: only counted if date falls within current month
+  - **P1 Enhancement: Investment Module Updates**:
+    - Added "US Stocks" to investment category dropdown
+    - Added "Daily" option to Investment Frequency dropdown
+    - Frequency field (Recurring Investment/SIP section) is now hidden for:
+      - "Sovereign Gold Bond (SGB)" category
+      - "SWP" category
+    - `showFrequencyField` variable controls visibility based on category
+  - **Testing**: 100% pass rate (10/10 backend, 6/6 frontend tests)
+
 - **Feb 15, 2026 (Session 4)**: Testing V4 Bug Fixes - Global Changes & Insurance→Asset
   - **Amount in Words (Indian Numbering)**: ExpenseForm now displays amount in words below the Expected Amount field using Indian numbering (Lakh, Crore format)
   - **Expense Category Cleanup**: Removed "EMI" and "Insurance" from category dropdown - these categories are only for system-generated expenses from Loan/Insurance modules
