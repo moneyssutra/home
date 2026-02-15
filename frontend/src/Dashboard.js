@@ -201,7 +201,7 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      <div className="px-6 pb-8 space-y-6 -mt-2">
+      <div className="px-6 pb-8 space-y-6 mt-4">
         {/* Financial Summary Cards */}
         <div className="grid grid-cols-2 gap-3">
           {/* Assets */}
