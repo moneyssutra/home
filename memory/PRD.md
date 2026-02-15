@@ -234,6 +234,25 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - **P2**: Backend monolith (`server.py` ~2700+ lines) - model definitions created in `/app/backend/models/` as foundation for future refactoring
 
 ## Changelog
+- **Feb 15, 2026 (Session 8)**: Authentication System + Bug Fixes (COMPLETED)
+  - **Authentication System**:
+    - **Backend Auth Endpoints**:
+      - POST `/api/auth/login` - JWT username/password login
+      - POST `/api/auth/google/session` - Emergent Google OAuth session handler
+      - GET `/api/auth/me` - Get current authenticated user
+      - POST `/api/auth/logout` - Logout and invalidate session
+    - **Frontend Components**:
+      - `Login.js` - Login page with both JWT and Google OAuth options
+      - `AuthContext.js` - Authentication context provider
+      - `ProtectedRoute.js` - Wrapper for protected routes
+      - `AuthCallback.js` - Google OAuth callback handler
+    - **Protected Routes**: All app pages require authentication, redirect to /login if not logged in
+    - **Test Credentials**: username: `test`, password: `test`
+    - **Dashboard**: Added logout button, shows user name from auth context
+  - **Bug Fix - Goal Detail Overlap**:
+    - Added `z-10` class to content section to fix Target Date and Time Remaining cards being overlapped by header
+  - **Testing**: 100% pass rate (10/10 backend tests, all frontend flows verified)
+
 - **Feb 15, 2026 (Session 8)**: Asset ↔ Loan Bidirectional Linking (COMPLETED)
   - **Backend API**:
     - New GET `/api/loans/{loan_id}/linked-assets` endpoint for reverse lookup
