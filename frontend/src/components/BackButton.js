@@ -1,11 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft } from "lucide-react";
 
-const BackButton = ({ fallbackPath = "/", className = "" }) => {
+const BackButton = ({ fallbackPath = "/", className = "", forceNavigate = false }) => {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    // Check if there's history to go back to
+    // If forceNavigate is true, always go to fallbackPath (used for main module pages)
+    if (forceNavigate) {
+      navigate(fallbackPath);
+      return;
+    }
+    
+    // Otherwise, check if there's history to go back to
     if (window.history.length > 2) {
       navigate(-1);
     } else {
