@@ -77,7 +77,7 @@ const WorkspaceSettings = () => {
       } catch (error) {
         console.error('Error fetching members:', error);
       } finally {
-        setLoading(false);
+        setLoadingMembers(false);
       }
     };
 
