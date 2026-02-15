@@ -11,6 +11,8 @@ import {
   ArrowDownRight,
   RefreshCw,
   LineChart,
+  Target,
+  ChevronRight,
 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
