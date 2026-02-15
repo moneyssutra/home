@@ -603,22 +603,38 @@ const ExpenseForm = () => {
 
                 {selectedHalf && (
                   <div className="w-full">
-                    <label htmlFor="halfDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
                       Select Date
                     </label>
-                    <select
-                      id="halfDate"
-                      ref={dateFieldRef}
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                      data-testid="date-select"
-                    >
-                      <option value="">Select a Date</option>
-                      {days.map((day) => (
-                        <option key={day} value={day}>{day}</option>
-                      ))}
-                    </select>
+                    <Popover open={halfCalendarOpen} onOpenChange={setHalfCalendarOpen}>
+                      <PopoverTrigger asChild>
+                        <button
+                          ref={dateFieldRef}
+                          type="button"
+                          className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                          data-testid="half-date-calendar"
+                        >
+                          <span className={selectedDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                            {selectedDate ? `${selectedDate}${selectedDate === '1' ? 'st' : selectedDate === '2' ? 'nd' : selectedDate === '3' ? 'rd' : 'th'}` : "Select date from calendar"}
+                          </span>
+                          <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-white" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={calendarDate}
+                          onSelect={(date) => {
+                            if (date) {
+                              setSelectedDate(date.getDate().toString());
+                              setCalendarDate(date);
+                            }
+                            setHalfCalendarOpen(false);
+                          }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
                     {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
                   </div>
                 )}
