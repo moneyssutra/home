@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import axios from "axios";
 import { Calendar } from "@/components/ui/calendar";
@@ -10,6 +10,7 @@ import { numberToWords } from "@/lib/formatters";
 const InsuranceForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   
   // Form fields
   const [insuranceType, setInsuranceType] = useState("");
