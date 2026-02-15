@@ -175,6 +175,7 @@ class Expense(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: Optional[str] = None  # User isolation
     expenseName: str
     expenseType: str  # Fixed or Variable
     category: str
