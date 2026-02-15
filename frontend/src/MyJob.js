@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Plus, Briefcase } from "lucide-react";
 import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const MyJob = () => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddSheet, setShowAddSheet] = useState(false);
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
