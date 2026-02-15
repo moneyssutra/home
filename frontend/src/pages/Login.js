@@ -160,7 +160,7 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={isRegisterMode ? "Enter your email" : "Enter username or email"}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#00C853] focus:ring-2 focus:ring-[#00C853]/20 outline-none transition-all text-[#1F2937]"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-600 bg-slate-800/50 focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 outline-none transition-all text-slate-100 placeholder-slate-500"
                   data-testid="username-input"
                   required
                 />
@@ -168,24 +168,24 @@ const Login = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#6B7280] mb-1.5">
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#6B7280]" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter password"
-                  className="w-full pl-11 pr-12 py-3 rounded-xl border border-gray-200 focus:border-[#00C853] focus:ring-2 focus:ring-[#00C853]/20 outline-none transition-all text-[#1F2937]"
+                  className="w-full pl-11 pr-12 py-3 rounded-xl border border-slate-600 bg-slate-800/50 focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 outline-none transition-all text-slate-100 placeholder-slate-500"
                   data-testid="password-input"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#1F2937] transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -195,17 +195,17 @@ const Login = () => {
             {/* Confirm Password - only for registration */}
             {isRegisterMode && (
               <div>
-                <label className="block text-sm font-medium text-[#6B7280] mb-1.5">
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#6B7280]" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm your password"
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#00C853] focus:ring-2 focus:ring-[#00C853]/20 outline-none transition-all text-[#1F2937]"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-600 bg-slate-800/50 focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 outline-none transition-all text-slate-100 placeholder-slate-500"
                     data-testid="confirm-password-input"
                   />
                 </div>
@@ -215,7 +215,7 @@ const Login = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#00C853] to-[#1DB954] text-white font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#14B8A6] to-[#0D9488] text-white font-semibold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               data-testid="login-button"
             >
               {isSubmitting ? (
