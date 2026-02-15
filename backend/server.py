@@ -2360,6 +2360,50 @@ async def get_goal(goal_id: str):
     
     return goal
 
+@api_router.get("/goals/{goal_id}/milestones")
+async def check_goal_milestones(goal_id: str):
+    """Check and update milestones for a goal, return newly reached milestones"""
+    goal = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    
+    if not goal:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Goal not found")
+    
+    # Calculate current progress
+    progress_data = await calculate_goal_progress(goal)
+    current_amount = progress_data['currentAmount']
+    target_amount = goal.get('targetAmount', 0)
+    
+    progress_percent = round((current_amount / target_amount) * 100, 1) if target_amount > 0 else 0
+    
+    # Define milestones
+    milestones = [25, 50, 75, 100]
+    reached_milestones = goal.get('reachedMilestones', [])
+    newly_reached = []
+    
+    for milestone in milestones:
+        if progress_percent >= milestone and milestone not in reached_milestones:
+            newly_reached.append(milestone)
+            reached_milestones.append(milestone)
+    
+    # Update milestones in database if any new ones reached
+    if newly_reached:
+        await db.goals.update_one(
+            {"id": goal_id},
+            {"$set": {"reachedMilestones": reached_milestones}}
+        )
+    
+    return {
+        "goalId": goal_id,
+        "goalName": goal.get('goalName', ''),
+        "progressPercent": progress_percent,
+        "currentAmount": current_amount,
+        "targetAmount": target_amount,
+        "reachedMilestones": reached_milestones,
+        "newlyReached": newly_reached,
+        "isCompleted": goal.get('isCompleted', False)
+    }
+
 @api_router.put("/goals/{goal_id}")
 async def update_goal(goal_id: str, input: GoalCreate):
     existing = await db.goals.find_one({"id": goal_id}, {"_id": 0})
