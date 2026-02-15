@@ -39,6 +39,10 @@ const LoanIncome = () => {
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
+  
+  // Calendar popover states
+  const [startCalendarOpen, setStartCalendarOpen] = useState(false);
+  const [endCalendarOpen, setEndCalendarOpen] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
