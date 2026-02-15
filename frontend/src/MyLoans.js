@@ -241,7 +241,8 @@ const MyLoans = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Add New Loan Button */}
