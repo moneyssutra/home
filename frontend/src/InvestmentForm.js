@@ -387,6 +387,61 @@ const InvestmentForm = () => {
               {errors.startDate && <p className="text-sm text-red-500 mt-1">{errors.startDate}</p>}
             </div>
 
+            {/* Recurring Investment (SIP) Fields */}
+            {(investmentCategory === "Mutual Fund" || investmentCategory === "Recurring Deposit (RD)" || investmentCategory === "ETF" || investmentCategory === "Stocks") && (
+              <div className="w-full p-4 rounded-xl bg-[#F0FDF4] border border-[#10B981]/20">
+                <h4 className="text-sm font-semibold text-[#0B3D2E] mb-3 flex items-center gap-2">
+                  <Info className="h-4 w-4 text-[#10B981]" />
+                  Recurring Investment (SIP)
+                </h4>
+                <div className="space-y-4">
+                  <div className="w-full">
+                    <label htmlFor="investmentFrequency" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                      Investment Frequency
+                    </label>
+                    <select
+                      id="investmentFrequency"
+                      value={investmentFrequency}
+                      onChange={(e) => setInvestmentFrequency(e.target.value)}
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="investment-frequency-select"
+                    >
+                      <option value="">One-time Investment</option>
+                      <option value="Weekly">Weekly</option>
+                      <option value="Monthly">Monthly (SIP)</option>
+                      <option value="Quarterly">Quarterly</option>
+                      <option value="Yearly">Yearly</option>
+                    </select>
+                  </div>
+                  
+                  {investmentFrequency && investmentFrequency !== "" && (
+                    <div className="w-full">
+                      <label htmlFor="sipAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                        {investmentFrequency} Investment Amount
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                        <input
+                          id="sipAmount"
+                          type="text"
+                          value={sipAmount}
+                          onChange={handleAmountChange(setSipAmount)}
+                          placeholder="0"
+                          className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                          data-testid="sip-amount-input"
+                        />
+                      </div>
+                      {parseFloat(sipAmount) > 0 && (
+                        <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="sip-amount-words">
+                          {numberToWords(parseFloat(sipAmount))}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Digital Gold/Silver Specific Fields */}
             {isDigitalMetal && (
               <>
