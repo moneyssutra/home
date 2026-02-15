@@ -660,5 +660,20 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
       - `workspace.py`: get_user_workspace, ensure_user_has_workspace, check_permission
     - `database.py`: MongoDB connection module
   - **Documentation**: Created `/backend/ARCHITECTURE.md` with migration guide
-  - **Status**: Foundation laid for full modularization (Phase 2 will extract routes)
+  - **Status**: Phase 1 complete - models and services extracted
   - **Lines refactored**: ~1200 lines of models and services extracted
+
+- **Feb 15, 2026**: Backend Architecture Refactoring (Phase 2 - Routes Extraction)
+  - **Created route modules** in `/routes/`:
+    - `auth.py`: /auth/* endpoints (register, login, logout, google/session, me)
+    - `workspace.py`: /workspaces/* endpoints (full CRUD, invite, join, roles)
+    - `income.py`: /income/* CRUD endpoints
+    - `loans.py`: /loans/* CRUD + linked-assets
+    - `assets.py`: /assets/* CRUD + rental income auto-create
+    - `accounts.py`: /accounts/* CRUD
+    - `investments.py`: /investments/* CRUD
+    - `credit_cards.py`: /credit-cards/* CRUD
+    - `utils.py`: Common utilities (get_user_filter, convert_datetime_fields)
+  - **Total lines extracted**: ~2861 lines across 19 module files
+  - **Status**: Core routes extracted, server.py still works as fallback
+  - **Remaining**: Expenses, Insurance, Goals, Dashboard, Profile routes still in server.py
