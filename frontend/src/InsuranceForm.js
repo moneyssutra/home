@@ -181,13 +181,26 @@ const InsuranceForm = () => {
         notes: notes || null,
       };
 
+      let newInsuranceId = null;
+      
       if (id) {
         await axios.put(`${backendUrl}/api/insurances/${id}`, payload);
       } else {
-        await axios.post(`${backendUrl}/api/insurances`, payload);
+        const response = await axios.post(`${backendUrl}/api/insurances`, payload);
+        newInsuranceId = response.data?.id;
       }
       
-      navigate("/my-insurance");
+      // Check if we need to return to asset form
+      if (location.state?.returnTo === '/asset' && location.state?.assetFormData) {
+        navigate('/asset', {
+          state: {
+            assetFormData: location.state.assetFormData,
+            newInsuranceId: newInsuranceId
+          }
+        });
+      } else {
+        navigate("/my-insurance");
+      }
     } catch (error) {
       console.error("Error saving insurance:", error);
       setErrors({ submit: "Failed to save. Please try again." });
