@@ -825,6 +825,17 @@ async def logout(request: Request, response: Response, session_token: Optional[s
 
 # ============ INCOME ENDPOINTS ============
 
+def get_user_filter(user):
+    """Get the appropriate MongoDB filter for user data isolation"""
+    user_id = user.get('user_id')
+    user_email = user.get('email', '')
+    
+    # Test user can see legacy data (no userId), new users only see their own
+    if user_email == 'test@moneyssutra.com' or user_id == 'test':
+        return {"$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]}
+    else:
+        return {"userId": user_id}
+
 @api_router.post("/income", response_model=IncomeSource)
 async def create_income_source(input: IncomeSourceCreate, request: Request):
     user = await get_current_user(request)
@@ -848,12 +859,8 @@ async def get_income_sources(request: Request):
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
-    user_id = user.get('user_id')
-    # Filter by userId - include records with matching userId OR no userId (legacy data)
-    income_sources = await db.income_sources.find(
-        {"$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]},
-        {"_id": 0}
-    ).to_list(1000)
+    user_filter = get_user_filter(user)
+    income_sources = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
     
     # Convert ISO string timestamps back to datetime objects
     for source in income_sources:
@@ -868,17 +875,13 @@ async def get_income_source(income_id: str, request: Request):
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
-    user_id = user.get('user_id')
-    # Get a single income source by ID (with user check)
-    income_source = await db.income_sources.find_one(
-        {"id": income_id, "$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]},
-        {"_id": 0}
-    )
+    user_filter = get_user_filter(user)
+    user_filter["id"] = income_id
+    income_source = await db.income_sources.find_one(user_filter, {"_id": 0})
     
     if not income_source:
         raise HTTPException(status_code=404, detail="Income source not found")
     
-    # Convert ISO string timestamp back to datetime object
     if isinstance(income_source.get('createdAt'), str):
         income_source['createdAt'] = datetime.fromisoformat(income_source['createdAt'])
     
@@ -890,32 +893,25 @@ async def update_income_source(income_id: str, input: IncomeSourceCreate, reques
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
-    user_id = user.get('user_id')
-    # Check if income source exists and belongs to user
-    existing = await db.income_sources.find_one(
-        {"id": income_id, "$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]},
-        {"_id": 0}
-    )
+    user_filter = get_user_filter(user)
+    user_filter["id"] = income_id
+    existing = await db.income_sources.find_one(user_filter, {"_id": 0})
     
     if not existing:
         raise HTTPException(status_code=404, detail="Income source not found")
     
-    # Update the income source
     income_dict = input.model_dump()
     income_dict['id'] = income_id
-    income_dict['userId'] = user_id  # Ensure userId is set
-    income_dict['createdAt'] = existing['createdAt']  # Keep original creation time
+    income_dict['userId'] = user.get('user_id')
+    income_dict['createdAt'] = existing['createdAt']
     
-    # Convert datetime to ISO string for MongoDB
     if isinstance(income_dict['createdAt'], str):
-        pass  # Already a string
+        pass
     else:
         income_dict['createdAt'] = income_dict['createdAt'].isoformat()
     
-    # Update in database
     await db.income_sources.replace_one({"id": income_id}, income_dict)
     
-    # Return updated object
     income_obj = IncomeSource(**income_dict)
     if isinstance(income_obj.createdAt, str):
         income_obj.createdAt = datetime.fromisoformat(income_obj.createdAt)
@@ -928,17 +924,13 @@ async def delete_income_source(income_id: str, request: Request):
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
-    user_id = user.get('user_id')
-    # Check if income source exists and belongs to user
-    existing = await db.income_sources.find_one(
-        {"id": income_id, "$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]},
-        {"_id": 0}
-    )
+    user_filter = get_user_filter(user)
+    user_filter["id"] = income_id
+    existing = await db.income_sources.find_one(user_filter, {"_id": 0})
     
     if not existing:
         raise HTTPException(status_code=404, detail="Income source not found")
     
-    # Delete the income source
     await db.income_sources.delete_one({"id": income_id})
     
     return {"message": "Income source deleted successfully", "id": income_id}
