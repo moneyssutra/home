@@ -509,39 +509,71 @@ const LoanIncome = () => {
 
             {/* Start Date */}
             <div className="w-full">
-              <label htmlFor="startDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
                 Loan Start Date
               </label>
-              <label htmlFor="startDate" className="relative block cursor-pointer">
-                <input
-                  id="startDate"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
-                  data-testid="start-date-input"
-                />
-                <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-              </label>
+              <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="start-date-input"
+                  >
+                    <span className={startDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                      {startDate ? format(new Date(startDate), "PPP") : "Select start date"}
+                    </span>
+                    <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-white" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate ? new Date(startDate) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        setStartDate(format(date, "yyyy-MM-dd"));
+                      }
+                      setStartCalendarOpen(false);
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               {errors.startDate && <p className="text-sm text-red-500 mt-1">{errors.startDate}</p>}
             </div>
 
             {/* End Date */}
             <div className="w-full">
-              <label htmlFor="endDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
                 Loan End Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
-              <label htmlFor="endDate" className="relative block cursor-pointer">
-                <input
-                  id="endDate"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
-                  data-testid="end-date-input"
-                />
-                <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-              </label>
+              <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="end-date-input"
+                  >
+                    <span className={endDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                      {endDate ? format(new Date(endDate), "PPP") : "Select end date"}
+                    </span>
+                    <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-white" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate ? new Date(endDate) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        setEndDate(format(date, "yyyy-MM-dd"));
+                      }
+                      setEndCalendarOpen(false);
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               <p className="text-xs text-[#0B3D2E]/60 mt-1">Auto-calculated from start date + tenure</p>
             </div>
 
