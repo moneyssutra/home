@@ -3217,8 +3217,13 @@ async def get_goals_dashboard_summary():
 # ============ OTHER INCOME ENDPOINTS ============
 
 @api_router.post("/other-income", response_model=OtherIncome)
-async def create_other_income(input: OtherIncomeCreate):
+async def create_other_income(input: OtherIncomeCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
     income_dict = input.model_dump()
+    income_dict['userId'] = user.get('user_id')
     income_obj = OtherIncome(**income_dict)
     
     doc = income_obj.model_dump()
@@ -3228,8 +3233,13 @@ async def create_other_income(input: OtherIncomeCreate):
     return income_obj
 
 @api_router.get("/other-income", response_model=List[OtherIncome])
-async def get_other_incomes():
-    incomes = await db.other_income.find({}, {"_id": 0}).to_list(1000)
+async def get_other_incomes(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    incomes = await db.other_income.find(user_filter, {"_id": 0}).to_list(1000)
     
     for income in incomes:
         if isinstance(income.get('createdAt'), str):
@@ -3238,11 +3248,16 @@ async def get_other_incomes():
     return incomes
 
 @api_router.get("/other-income/{income_id}", response_model=OtherIncome)
-async def get_other_income(income_id: str):
-    income = await db.other_income.find_one({"id": income_id}, {"_id": 0})
+async def get_other_income(income_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = income_id
+    income = await db.other_income.find_one(user_filter, {"_id": 0})
     
     if not income:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Other income not found")
     
     if isinstance(income.get('createdAt'), str):
@@ -3251,15 +3266,21 @@ async def get_other_income(income_id: str):
     return income
 
 @api_router.put("/other-income/{income_id}", response_model=OtherIncome)
-async def update_other_income(income_id: str, input: OtherIncomeCreate):
-    existing = await db.other_income.find_one({"id": income_id}, {"_id": 0})
+async def update_other_income(income_id: str, input: OtherIncomeCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = income_id
+    existing = await db.other_income.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Other income not found")
     
     income_dict = input.model_dump()
     income_dict['id'] = income_id
+    income_dict['userId'] = user.get('user_id')
     income_dict['createdAt'] = existing['createdAt']
     
     await db.other_income.replace_one({"id": income_id}, income_dict)
@@ -3271,11 +3292,16 @@ async def update_other_income(income_id: str, input: OtherIncomeCreate):
     return income_obj
 
 @api_router.delete("/other-income/{income_id}")
-async def delete_other_income(income_id: str):
-    existing = await db.other_income.find_one({"id": income_id}, {"_id": 0})
+async def delete_other_income(income_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = income_id
+    existing = await db.other_income.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Other income not found")
     
     await db.other_income.delete_one({"id": income_id})
