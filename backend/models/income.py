@@ -1,8 +1,6 @@
-"""
-Income models
-"""
+"""Income source models."""
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
 
@@ -11,101 +9,89 @@ class IncomeSource(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: Optional[str] = None
+    workspaceId: Optional[str] = None
     type: str
-    name: str
+    sourceName: str
     expectedAmount: float
     frequency: str
     selectedDay: Optional[str] = None
-    selectedDate: Optional[str] = None
-    selectedQuarter: Optional[str] = None
-    selectedHalf: Optional[str] = None
-    selectedMonth: Optional[str] = None
-    customFrequency: Optional[str] = None
-    customDate: Optional[str] = None
-    # Interest-specific fields
-    principal: Optional[float] = None
-    rate: Optional[float] = None
+    selectedDays: Optional[List[int]] = None
+    selectedDate: Optional[int] = None
+    selectedMonth: Optional[int] = None
+    quarterMonths: Optional[List[int]] = None
+    halfYearMonths: Optional[List[int]] = None
+    oneTimeDate: Optional[str] = None
+    # Interest Income specific
+    principalAmount: Optional[float] = None
+    interestRate: Optional[float] = None
     interestType: Optional[str] = None
     compoundingFrequency: Optional[str] = None
-    manualOverride: Optional[bool] = None
     startDate: Optional[str] = None
     endDate: Optional[str] = None
-    currentAmount: Optional[float] = None
-    # Rental-specific fields
+    manualOverride: Optional[bool] = None
+    # Rental Income specific
     tenantName: Optional[str] = None
-    # Rental with Asset link
-    assetId: Optional[str] = None
     securityDeposit: Optional[float] = None
-    # Commission-specific fields
-    isVariable: Optional[bool] = None
-    # Dividend-specific fields
-    sourceCategory: Optional[str] = None
-    units: Optional[float] = None
+    assetId: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class IncomeSourceCreate(BaseModel):
     type: str
-    name: str
+    sourceName: str
     expectedAmount: float
     frequency: str
     selectedDay: Optional[str] = None
-    selectedDate: Optional[str] = None
-    selectedQuarter: Optional[str] = None
-    selectedHalf: Optional[str] = None
-    selectedMonth: Optional[str] = None
-    customFrequency: Optional[str] = None
-    customDate: Optional[str] = None
-    # Interest-specific fields
-    principal: Optional[float] = None
-    rate: Optional[float] = None
+    selectedDays: Optional[List[int]] = None
+    selectedDate: Optional[int] = None
+    selectedMonth: Optional[int] = None
+    quarterMonths: Optional[List[int]] = None
+    halfYearMonths: Optional[List[int]] = None
+    oneTimeDate: Optional[str] = None
+    # Interest Income specific
+    principalAmount: Optional[float] = None
+    interestRate: Optional[float] = None
     interestType: Optional[str] = None
     compoundingFrequency: Optional[str] = None
-    manualOverride: Optional[bool] = None
     startDate: Optional[str] = None
     endDate: Optional[str] = None
-    currentAmount: Optional[float] = None
-    # Rental-specific fields
+    manualOverride: Optional[bool] = None
+    # Rental Income specific
     tenantName: Optional[str] = None
-    # Rental with Asset link
-    assetId: Optional[str] = None
     securityDeposit: Optional[float] = None
-    # Commission-specific fields
-    isVariable: Optional[bool] = None
-    # Dividend-specific fields
-    sourceCategory: Optional[str] = None
-    units: Optional[float] = None
+    assetId: Optional[str] = None
 
 
 class OtherIncome(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    incomeName: str
-    category: str
-    customCategory: Optional[str] = None
+    userId: Optional[str] = None
+    workspaceId: Optional[str] = None
+    sourceName: str
+    category: str  # Gifts, Inheritance, Tax Refund, Cashback, Lottery, Side Hustle, Other
     amount: float
-    frequency: str
-    dateReceived: Optional[str] = None
-    selectedDay: Optional[str] = None
-    selectedDate: Optional[str] = None
-    selectedMonth: Optional[str] = None
-    selectedQuarter: Optional[str] = None
+    isRecurring: bool = False
+    frequency: Optional[str] = None  # Monthly, Quarterly, etc.
+    selectedDate: Optional[int] = None
+    selectedMonth: Optional[int] = None
+    quarterMonths: Optional[List[int]] = None
+    halfYearMonths: Optional[List[int]] = None
+    oneTimeDate: Optional[str] = None
     notes: Optional[str] = None
-    isReceived: bool = False
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class OtherIncomeCreate(BaseModel):
-    incomeName: str
+    sourceName: str
     category: str
-    customCategory: Optional[str] = None
     amount: float
-    frequency: str
-    dateReceived: Optional[str] = None
-    selectedDay: Optional[str] = None
-    selectedDate: Optional[str] = None
-    selectedMonth: Optional[str] = None
-    selectedQuarter: Optional[str] = None
+    isRecurring: bool = False
+    frequency: Optional[str] = None
+    selectedDate: Optional[int] = None
+    selectedMonth: Optional[int] = None
+    quarterMonths: Optional[List[int]] = None
+    halfYearMonths: Optional[List[int]] = None
+    oneTimeDate: Optional[str] = None
     notes: Optional[str] = None
-    isReceived: bool = False
