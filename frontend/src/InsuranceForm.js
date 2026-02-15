@@ -302,6 +302,11 @@ const InsuranceForm = () => {
                   data-testid="coverage-amount-input"
                 />
               </div>
+              {parseFloat(coverageAmount) > 0 && (
+                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="coverage-amount-words">
+                  {numberToWords(parseFloat(coverageAmount))}
+                </p>
+              )}
               {errors.coverageAmount && <p className="text-sm text-red-500 mt-1">{errors.coverageAmount}</p>}
             </div>
 
@@ -322,6 +327,11 @@ const InsuranceForm = () => {
                   data-testid="premium-amount-input"
                 />
               </div>
+              {parseFloat(premiumAmount) > 0 && (
+                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="premium-amount-words">
+                  {numberToWords(parseFloat(premiumAmount))}
+                </p>
+              )}
               {errors.premiumAmount && <p className="text-sm text-red-500 mt-1">{errors.premiumAmount}</p>}
             </div>
 
