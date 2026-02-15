@@ -55,8 +55,9 @@ const MyLoans = () => {
     return (paid / loan.principalAmount) * 100;
   };
 
+  const totalOutstanding = loans.reduce((sum, l) => sum + (l.outstandingAmount || 0), 0);
+
   const getLoanAllocation = () => {
-    const totalOutstanding = loans.reduce((sum, l) => sum + (l.outstandingAmount || 0), 0);
     const allocation = {};
     loans.forEach(loan => {
       const type = loan.loanType || "Other";
@@ -72,120 +73,114 @@ const MyLoans = () => {
   };
 
   return (
-    <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="my-loans-page">
+    <div className="min-h-screen pb-24 honeycomb-bg" data-testid="my-loans-page">
       {/* Header */}
-      <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
-          onClick={() => navigate("/")}
-          data-testid="back-button"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
-          My Loans
-        </h1>
-        <div className="h-10 w-10" />
+      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}>
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            onClick={() => navigate("/")}
+            data-testid="back-button"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            My Loans
+          </h1>
+        </div>
+
+        {/* Summary Card */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-white/70 text-sm font-medium">Total Outstanding</p>
+            <Landmark className="h-6 w-6 text-white/60" />
+          </div>
+          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalOutstanding)}</h2>
+          <p className="text-white/50 text-xs mt-1">{loans.length} active loan{loans.length !== 1 ? 's' : ''}</p>
+        </div>
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-32">
-        <div className="mx-auto w-full max-w-[620px] px-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-[#334155]/60">Loading...</div>
+      <div className="px-6 -mt-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div style={{ color: "var(--text-muted)" }}>Loading...</div>
+          </div>
+        ) : loans.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-6">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full mb-6" style={{ backgroundColor: "var(--status-warning-soft)" }}>
+              <Landmark className="h-12 w-12" style={{ color: "var(--status-warning)" }} />
             </div>
-          ) : loans.length === 0 ? (
-            /* Empty State */
-            <div className="flex flex-col items-center justify-center py-16 px-6">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#FEF3C7] mb-6">
-                <Landmark className="h-12 w-12 text-[#F59E0B]" />
-              </div>
-              <h2 className="text-xl font-semibold text-[#334155] mb-2">
-                No Loans Added Yet
-              </h2>
-              <p className="text-[#334155]/60 text-center mb-8">
-                Start by adding your first loan or liability
-              </p>
-              <button
-                type="button"
-                onClick={() => navigate("/loan")}
-                className="flex items-center gap-2 rounded-xl bg-[#F59E0B] px-6 py-3 text-white font-medium transition-all hover:bg-[#D97706] active:scale-[0.98] shadow-[0_4px_12px_rgba(245,158,11,0.3)]"
-                data-testid="add-loan-empty-button"
-              >
-                <Plus className="h-5 w-5" />
-                Add New Loan
-              </button>
-            </div>
-          ) : (
-            /* Loan List */
-            <div className="space-y-4">
-              {/* Summary Card */}
-              <div className="rounded-2xl bg-gradient-to-r from-[#F59E0B] to-[#D97706] p-5 text-white mb-3">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-white/80 text-sm">Total Outstanding</span>
-                  <Landmark className="h-6 w-6 text-white/60" />
-                </div>
-                <p className="text-3xl font-bold">
-                  ₹ {formatAmount(loans.reduce((sum, l) => sum + l.outstandingAmount, 0))}
-                </p>
-                <p className="text-white/70 text-sm mt-2">
-                  {loans.length} active loan{loans.length !== 1 ? 's' : ''}
-                </p>
-              </div>
-
-              {/* Loan Allocation */}
-              {loans.length > 0 && (
-                <div className="rounded-xl border border-[#334155] bg-[#1E293B] p-4 mb-3">
-                  <p className="text-sm font-medium text-[#334155] mb-3">Loan Allocation</p>
-                  <div className="space-y-2">
-                    {getLoanAllocation().map(({ type, value, percentage }) => (
-                      <div key={type} className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-[#334155]/70">{type}</span>
-                            <span className="font-medium text-[#334155]">{percentage}%</span>
-                          </div>
-                          <div className="h-2 bg-[#334155] rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-[#F59E0B] rounded-full"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
+            <h2 className="text-xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
+              No Loans Added Yet
+            </h2>
+            <p className="text-center mb-8" style={{ color: "var(--text-secondary)" }}>
+              Start by adding your first loan or liability
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/loan")}
+              className="flex items-center gap-2 rounded-xl px-6 py-3 text-white font-medium transition-all active:scale-[0.98]"
+              style={{ backgroundColor: "var(--status-warning)", boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)" }}
+              data-testid="add-loan-empty-button"
+            >
+              <Plus className="h-5 w-5" />
+              Add New Loan
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Loan Allocation */}
+            {loans.length > 0 && (
+              <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+                <p className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Loan Allocation</p>
+                <div className="space-y-3">
+                  {getLoanAllocation().map(({ type, value, percentage }) => (
+                    <div key={type} className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span style={{ color: "var(--text-secondary)" }}>{type}</span>
+                          <span className="font-medium" style={{ color: "var(--text-primary)" }}>{percentage}%</span>
+                        </div>
+                        <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                          <div 
+                            className="h-full rounded-full"
+                            style={{ width: `${percentage}%`, backgroundColor: "var(--status-warning)" }}
+                          />
                         </div>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
 
-              <div className="space-y-3">
-                {loans.map((loan) => {
-                  const linkedAsset = loan.linkedAssetId ? getLinkedAsset(loan.linkedAssetId) : null;
-                  
-                  return (
+            {/* Loan List */}
+            <div className="space-y-3">
+              {loans.map((loan) => {
+                const linkedAsset = loan.linkedAssetId ? getLinkedAsset(loan.linkedAssetId) : null;
+                
+                return (
                   <div
                     key={loan.id}
-                    className="rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
+                    className="rounded-2xl p-5 shadow-card transition-all hover:shadow-md cursor-pointer"
+                    style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
                     onClick={() => navigate(`/loan/${loan.id}`)}
                     data-testid={`loan-card-${loan.id}`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        {/* Loan Name */}
-                        <h3 className="text-lg font-semibold text-[#334155] mb-1">
+                        <h3 className="text-lg font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
                           {loan.loanName}
                         </h3>
 
-                        {/* Lender */}
                         {loan.lenderName && (
-                          <p className="text-sm text-[#334155]/60 mb-2">
+                          <p className="text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
                             {loan.lenderName}
                           </p>
                         )}
 
-                        {/* Linked Asset Badge - Clickable */}
                         {linkedAsset && (
                           <div 
                             className="mb-2 cursor-pointer"
@@ -195,7 +190,7 @@ const MyLoans = () => {
                             }}
                             data-testid={`linked-asset-${linkedAsset.id}`}
                           >
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E0F2FE] text-xs font-medium text-[#0EA5E9] hover:bg-[#BAE6FD] transition-colors">
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors" style={{ backgroundColor: "var(--status-info-soft)", color: "var(--status-info)" }}>
                               {linkedAsset.assetType?.includes("Property") ? (
                                 <Building2 className="h-3 w-3" />
                               ) : (
@@ -207,73 +202,68 @@ const MyLoans = () => {
                           </div>
                         )}
 
-                        {/* Outstanding Amount */}
                         <div className="flex items-baseline gap-2 mb-3">
-                          <span className="text-sm text-[#334155]/60">Outstanding:</span>
-                          <span className="text-xl font-bold text-[#F59E0B]">
+                          <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Outstanding:</span>
+                          <span className="text-xl font-bold" style={{ color: "var(--status-warning)" }}>
                             ₹ {formatAmount(loan.outstandingAmount)}
                           </span>
                         </div>
 
-                        {/* Progress Bar */}
                         <div className="mb-3">
-                          <div className="flex justify-between text-xs text-[#334155]/60 mb-1">
+                          <div className="flex justify-between text-xs mb-1" style={{ color: "var(--text-muted)" }}>
                             <span>Paid: ₹{formatAmount(loan.principalAmount - loan.outstandingAmount)}</span>
                             <span>{calculateProgress(loan).toFixed(1)}%</span>
                           </div>
-                          <div className="h-2 bg-[#334155] rounded-full overflow-hidden">
+                          <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
                             <div 
-                              className="h-full bg-[#14B8A6] rounded-full transition-all"
-                              style={{ width: `${calculateProgress(loan)}%` }}
+                              className="h-full rounded-full transition-all"
+                              style={{ width: `${calculateProgress(loan)}%`, backgroundColor: "var(--brand-primary)" }}
                             />
                           </div>
                         </div>
 
-                        {/* Details Row */}
-                        <div className="flex items-center gap-4 text-sm text-[#334155]/70 flex-wrap">
+                        <div className="flex items-center gap-4 text-sm flex-wrap" style={{ color: "var(--text-secondary)" }}>
                           <div className="flex items-center gap-1">
-                            <span className="text-[#334155]/60">EMI:</span>
+                            <span style={{ color: "var(--text-muted)" }}>EMI:</span>
                             <span className="font-medium">₹{formatAmount(loan.emiAmount)}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span className="text-[#334155]/60">Rate:</span>
+                            <span style={{ color: "var(--text-muted)" }}>Rate:</span>
                             <span className="font-medium">{loan.interestRate}%</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span className="text-[#334155]/60">Started:</span>
+                            <span style={{ color: "var(--text-muted)" }}>Started:</span>
                             <span className="font-medium">{formatDate(loan.startDate)}</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Chevron */}
                       <div className="ml-4 mt-2">
-                        <ChevronRight className="h-6 w-6 text-[#334155]/40" />
+                        <ChevronRight className="h-6 w-6" style={{ color: "var(--text-muted)" }} />
                       </div>
                     </div>
                   </div>
-                  );
-                })}
-              </div>
-
-              {/* Add New Loan Button */}
-              <div className="pt-4">
-                <button
-                  type="button"
-                  onClick={() => navigate("/loan")}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#F59E0B] bg-[#FEF3C7] px-6 py-4 text-[#F59E0B] font-semibold transition-all hover:bg-[#F59E0B] hover:text-white active:scale-[0.98]"
-                  data-testid="add-loan-button"
-                >
-                  <Plus className="h-5 w-5" />
-                  Add New Loan
-                </button>
-              </div>
+                );
+              })}
             </div>
-          )}
-        </div>
+
+            {/* Add Button */}
+            <div className="pt-4">
+              <button
+                type="button"
+                onClick={() => navigate("/loan")}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-4 font-semibold transition-all active:scale-[0.98]"
+                style={{ borderColor: "var(--status-warning)", color: "var(--status-warning)" }}
+                data-testid="add-loan-button"
+              >
+                <Plus className="h-5 w-5" />
+                Add New Loan
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
