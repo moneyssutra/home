@@ -353,10 +353,17 @@ const MyGoals = () => {
               <p className="text-white/60 text-sm">Active Goals</p>
               <p className="text-2xl font-bold text-white">{activeGoals.length}</p>
             </div>
-            <div className="text-center">
-              <p className="text-white/60 text-sm">Completed</p>
+            <button 
+              onClick={() => navigate("/goal-achievements")}
+              className="text-center hover:bg-white/10 rounded-xl transition-colors py-2"
+              data-testid="view-achievements-btn"
+            >
+              <p className="text-white/60 text-sm flex items-center justify-center gap-1">
+                <Trophy className="h-3 w-3" />
+                Completed
+              </p>
               <p className="text-2xl font-bold text-emerald-300">{completedGoals.length}</p>
-            </div>
+            </button>
           </div>
         </div>
       </header>
