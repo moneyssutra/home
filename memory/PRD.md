@@ -368,6 +368,20 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
     - Button appears in AssetForm when "Is This Asset Insured?" toggle is ON
     - Preserves form state when navigating to InsuranceForm
     - Returns to AssetForm with state restored and new insurance pre-selected
+- **Feb 15, 2026**: P1 Priority Tasks Complete
+  - **Loan ↔ Asset Bidirectional Linking**:
+    - MyLoans page now displays linked asset badge (blue "Linked: [AssetName]") for loans with linkedAssetId
+    - Fetches both loans and assets to enable cross-referencing
+  - **Asset ↔ Income Auto-Linking**:
+    - When "Does This Asset Generate Income?" is toggled ON and rental details are filled, system auto-creates a Rental income entry
+    - Backend stores income in income_sources collection with correct field names (expectedAmount, assetId)
+    - Asset linkedIncomeId is automatically set to the created income ID
+    - Updating asset updates the linked rental income; removing generatesIncome deletes the linked income
+  - **Investment SIP Frequency**:
+    - Added "Recurring Investment (SIP)" section for Mutual Fund, Recurring Deposit (RD), ETF, Stocks categories
+    - Investment Frequency dropdown: One-time, Weekly, Monthly (SIP), Quarterly, Yearly
+    - SIP Amount field appears when frequency is selected
+    - Backend Investment model updated with investmentFrequency and sipAmount fields
 - **Feb 12, 2026**: Dividend Income module fully implemented
   - 3 pages: My Dividend (list with category badges), Dividend Income (create/edit)
   - 5 source categories: Direct Stocks, Mutual Funds (IDCW), REITs, InvITs, Others
