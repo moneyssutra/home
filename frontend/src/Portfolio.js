@@ -4,7 +4,6 @@ import { ChevronRight, Building2, LineChart, CreditCard, Shield, Wallet, Landmar
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
-import BackButton from "@/components/BackButton";
 
 const Portfolio = () => {
   const navigate = useNavigate();
@@ -73,8 +72,8 @@ const Portfolio = () => {
       title: "Assets",
       icon: Building2,
       color: "from-blue-500 to-indigo-600",
-      bgColor: "bg-blue-500/10",
-      textColor: "text-blue-600",
+      bgColor: "var(--status-info-soft)",
+      textColor: "var(--status-info)",
       value: totalAssets,
       count: data.assets.length,
       path: "/my-assets",
@@ -83,8 +82,8 @@ const Portfolio = () => {
       title: "Investments",
       icon: LineChart,
       color: "from-violet-500 to-purple-600",
-      bgColor: "bg-violet-500/10",
-      textColor: "text-violet-600",
+      bgColor: "#F3E8FF",
+      textColor: "var(--chart-accent2)",
       value: totalInvestments,
       count: data.investments.length,
       path: "/my-investments",
@@ -93,8 +92,8 @@ const Portfolio = () => {
       title: "Loans",
       icon: Landmark,
       color: "from-amber-500 to-orange-600",
-      bgColor: "bg-amber-500/10",
-      textColor: "text-amber-600",
+      bgColor: "var(--status-warning-soft)",
+      textColor: "var(--status-warning)",
       value: totalLoans,
       count: data.loans.length,
       path: "/my-loans",
@@ -104,8 +103,8 @@ const Portfolio = () => {
       title: "Credit Cards",
       icon: CreditCard,
       color: "from-fuchsia-500 to-pink-600",
-      bgColor: "bg-fuchsia-500/10",
-      textColor: "text-fuchsia-600",
+      bgColor: "#FCE7F3",
+      textColor: "#DB2777",
       value: totalCreditCardOutstanding,
       count: data.creditCards.length,
       path: "/my-credit-cards",
@@ -116,8 +115,8 @@ const Portfolio = () => {
       title: "Insurance",
       icon: Shield,
       color: "from-cyan-500 to-blue-600",
-      bgColor: "bg-cyan-500/10",
-      textColor: "text-cyan-600",
+      bgColor: "#CFFAFE",
+      textColor: "#0891B2",
       value: totalCoverage,
       count: data.insurances.length,
       path: "/my-insurance",
@@ -127,8 +126,8 @@ const Portfolio = () => {
       title: "Accounts",
       icon: Wallet,
       color: "from-emerald-500 to-teal-600",
-      bgColor: "bg-emerald-500/10",
-      textColor: "text-emerald-600",
+      bgColor: "var(--brand-primary-soft)",
+      textColor: "var(--brand-primary)",
       value: totalBalance,
       count: data.accounts.length,
       path: "/my-accounts",
@@ -136,13 +135,13 @@ const Portfolio = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="portfolio-page">
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="portfolio-page">
       {/* Header */}
-      <header className="bg-gradient-to-br from-[#334155] via-[#134E3E] to-[#334155] px-6 pt-8 pb-8">
+      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
         <h1 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Manrope', sans-serif" }}>
           Portfolio
         </h1>
-        <p className="text-white/60 text-sm">Manage your financial assets</p>
+        <p className="text-white/70 text-sm">Manage your financial assets</p>
       </header>
 
       {/* Portfolio Sections */}
@@ -153,7 +152,8 @@ const Portfolio = () => {
             <button
               key={section.title}
               onClick={() => navigate(section.path)}
-              className="w-full bg-[#1E293B] rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
+              className="w-full rounded-2xl p-4 shadow-card flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
               data-testid={`portfolio-${section.title.toLowerCase()}`}
             >
               <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${section.color} flex items-center justify-center shadow-lg`}>
@@ -161,22 +161,25 @@ const Portfolio = () => {
               </div>
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-[#334155]">{section.title}</h3>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${section.bgColor} ${section.textColor}`}>
+                  <h3 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>{section.title}</h3>
+                  <span 
+                    className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: section.bgColor, color: section.textColor }}
+                  >
                     {section.count}
                   </span>
                 </div>
-                <p className={`text-lg font-bold mt-0.5 ${section.isLiability ? "text-rose-500" : "text-[#334155]"}`}>
+                <p className="text-lg font-bold mt-0.5" style={{ color: section.isLiability ? "var(--finance-loss)" : "var(--text-primary)" }}>
                   {section.isLiability && "-"}₹ {formatAmount(section.value)}
                 </p>
                 {section.label && (
-                  <p className="text-xs text-[#334155]/50">{section.label}</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{section.label}</p>
                 )}
                 {section.extra && (
-                  <p className="text-xs text-[#334155]/50">{section.extra}</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{section.extra}</p>
                 )}
               </div>
-              <ChevronRight className="h-6 w-6 text-[#334155]/30" />
+              <ChevronRight className="h-6 w-6" style={{ color: "var(--text-muted)" }} />
             </button>
           );
         })}
@@ -184,12 +187,12 @@ const Portfolio = () => {
 
       {/* Net Position */}
       <div className="px-6 mt-6">
-        <div className="bg-gradient-to-br from-[#334155] to-[#134E3E] rounded-2xl p-5">
-          <p className="text-white/60 text-sm mb-1">Net Position</p>
+        <div className="rounded-2xl p-5" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
+          <p className="text-white/70 text-sm mb-1">Net Position</p>
           <h2 className="text-2xl font-bold text-white">
             ₹ {formatAmount(totalAssets + totalInvestments + totalBalance - totalLoans - totalCreditCardOutstanding)}
           </h2>
-          <p className="text-white/40 text-xs mt-1">Assets + Investments + Cash - Loans - Credit Cards</p>
+          <p className="text-white/50 text-xs mt-1">Assets + Investments + Cash - Loans - Credit Cards</p>
         </div>
       </div>
 
