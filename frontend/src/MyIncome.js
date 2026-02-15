@@ -41,9 +41,100 @@ const MyIncome = () => {
     return new Intl.NumberFormat("en-IN").format(amount);
   };
 
-  // Calculate total income (including other income)
-  const totalRegularIncome = incomes.reduce((sum, inc) => sum + (inc.expectedAmount || 0), 0);
-  const totalOtherIncome = otherIncomes.reduce((sum, inc) => sum + (inc.amount || 0), 0);
+  // Calculate monthly income based on frequency (same logic as backend dashboard)
+  const calculateMonthlyAmount = (income) => {
+    const amount = income.expectedAmount || 0;
+    const freq = income.frequency || 'Monthly';
+    const currentMonth = new Date().getMonth() + 1; // 1-12
+    const currentYear = new Date().getFullYear();
+    
+    switch (freq) {
+      case 'Daily':
+        return amount * 30;
+      case 'Weekly':
+        return amount * 4;
+      case 'Monthly':
+        return amount;
+      case 'Quarterly':
+        // Only count if current month is first month of quarter
+        const quarterMonths = [1, 4, 7, 10];
+        return quarterMonths.includes(currentMonth) ? amount : 0;
+      case 'Half-Yearly':
+        // Only count if current month is Jan or Jul
+        return [1, 7].includes(currentMonth) ? amount : 0;
+      case 'Yearly':
+        // Check if selected month matches current month
+        const monthMapping = {
+          "January": 1, "February": 2, "March": 3, "April": 4,
+          "May": 5, "June": 6, "July": 7, "August": 8,
+          "September": 9, "October": 10, "November": 11, "December": 12
+        };
+        const selectedMonth = income.selectedMonth || '';
+        return monthMapping[selectedMonth] === currentMonth ? amount : 0;
+      case 'Irregular':
+      case 'Others':
+        // Check if custom date falls in current month
+        if (income.customDate) {
+          try {
+            const dateObj = new Date(income.customDate);
+            if (dateObj.getMonth() + 1 === currentMonth && dateObj.getFullYear() === currentYear) {
+              return amount;
+            }
+          } catch (e) {}
+        }
+        return 0;
+      default:
+        return amount;
+    }
+  };
+
+  // Calculate other income monthly amount
+  const calculateOtherIncomeMonthly = (otherInc) => {
+    const amount = otherInc.amount || 0;
+    const freq = otherInc.frequency || 'One-Time';
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    
+    switch (freq) {
+      case 'One-Time':
+        if (otherInc.dateReceived) {
+          try {
+            const dateObj = new Date(otherInc.dateReceived);
+            if (dateObj.getMonth() + 1 === currentMonth && dateObj.getFullYear() === currentYear) {
+              return amount;
+            }
+          } catch (e) {}
+        }
+        return 0;
+      case 'Monthly':
+        return amount;
+      case 'Quarterly':
+        return [1, 4, 7, 10].includes(currentMonth) ? amount : 0;
+      case 'Yearly':
+        const monthMapping = {
+          "January": 1, "February": 2, "March": 3, "April": 4,
+          "May": 5, "June": 6, "July": 7, "August": 8,
+          "September": 9, "October": 10, "November": 11, "December": 12
+        };
+        return monthMapping[otherInc.selectedMonth] === currentMonth ? amount : 0;
+      case 'Irregular':
+        if (otherInc.dateReceived) {
+          try {
+            const dateObj = new Date(otherInc.dateReceived);
+            if (dateObj.getMonth() + 1 === currentMonth && dateObj.getFullYear() === currentYear) {
+              return amount;
+            }
+          } catch (e) {}
+        }
+        return 0;
+      default:
+        return amount;
+    }
+  };
+
+  // Calculate total income (frequency-aware, same as dashboard)
+  const totalRegularIncome = incomes.reduce((sum, inc) => sum + calculateMonthlyAmount(inc), 0);
+  const totalOtherIncome = otherIncomes.reduce((sum, inc) => sum + calculateOtherIncomeMonthly(inc), 0);
   const totalIncome = totalRegularIncome + totalOtherIncome;
 
   // Group incomes by type
