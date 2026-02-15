@@ -3,10 +3,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Trash2 } from "lucide-react";
 import axios from "axios";
 import { numberToWords } from "@/lib/formatters";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const AccountForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [showAddSheet, setShowAddSheet] = useState(false);
   
   // Form fields
   const [accountName, setAccountName] = useState("");
