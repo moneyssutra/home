@@ -201,33 +201,52 @@ const MyIncome = () => {
   const currentDay = today.getDate();
   const currentMonth = today.getMonth() + 1;
   const currentYear = today.getFullYear();
+  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
   
-  const getIncomeStatus = (income) => {
+  // Calculate received and pending amounts for an income (handles partial for Daily/Weekly)
+  const getReceivedAndPending = (income) => {
     const freq = income.frequency || 'Monthly';
+    const monthlyAmount = calculateMonthlyAmount(income);
     
-    // Daily/Weekly income: Always consider as received
-    if (freq === 'Daily' || freq === 'Weekly') {
-      return 'received';
+    // Daily income: Proportional based on days passed
+    if (freq === 'Daily') {
+      const receivedDays = currentDay;
+      const totalDays = 30; // Using 30 as standard month
+      const received = (monthlyAmount * receivedDays) / totalDays;
+      const pending = monthlyAmount - received;
+      return { received, pending };
     }
     
-    // No date specified: assume received
-    if (!income.selectedDate) return 'received';
+    // Weekly income: Proportional based on weeks passed
+    if (freq === 'Weekly') {
+      const weeksElapsed = Math.floor(currentDay / 7);
+      const totalWeeks = 4;
+      const received = (monthlyAmount * weeksElapsed) / totalWeeks;
+      const pending = monthlyAmount - received;
+      return { received, pending };
+    }
+    
+    // No date specified: assume fully received
+    if (!income.selectedDate) {
+      return { received: monthlyAmount, pending: 0 };
+    }
     
     const selectedDate = income.selectedDate;
     
     // For Monthly income: Compare day of month
     if (freq === 'Monthly') {
-      // selectedDate could be a full date (2026-02-25) or just a day number (25)
       let dueDay;
       if (selectedDate.includes('-')) {
-        // Full date format: extract day
         const dateObj = new Date(selectedDate);
         dueDay = dateObj.getDate();
       } else {
-        // Just day number
         dueDay = parseInt(selectedDate);
       }
-      return dueDay <= currentDay ? 'received' : 'pending';
+      if (dueDay <= currentDay) {
+        return { received: monthlyAmount, pending: 0 };
+      } else {
+        return { received: 0, pending: monthlyAmount };
+      }
     }
     
     // For Quarterly/Half-Yearly/Yearly: Compare full date
@@ -237,24 +256,33 @@ const MyIncome = () => {
         if (selectedDate.includes('-')) {
           dueDate = new Date(selectedDate);
         } else {
-          // Just a day number - assume current month
           dueDate = new Date(currentYear, currentMonth - 1, parseInt(selectedDate));
         }
-        // Compare: if due date has passed, it's received
-        return dueDate <= today ? 'received' : 'pending';
+        if (dueDate <= today) {
+          return { received: monthlyAmount, pending: 0 };
+        } else {
+          return { received: 0, pending: monthlyAmount };
+        }
       } catch (e) {
-        return 'received';
+        return { received: monthlyAmount, pending: 0 };
       }
     }
     
-    // Default: assume received
-    return 'received';
+    // Default: assume fully received
+    return { received: monthlyAmount, pending: 0 };
   };
 
-  const receivedIncome = incomes.filter(inc => getIncomeStatus(inc) === 'received')
-    .reduce((sum, inc) => sum + calculateMonthlyAmount(inc), 0);
-  const pendingIncome = incomes.filter(inc => getIncomeStatus(inc) === 'pending')
-    .reduce((sum, inc) => sum + calculateMonthlyAmount(inc), 0);
+  // Calculate totals by summing received/pending for each income
+  const { receivedIncome, pendingIncome } = incomes.reduce(
+    (acc, inc) => {
+      const { received, pending } = getReceivedAndPending(inc);
+      return {
+        receivedIncome: acc.receivedIncome + received,
+        pendingIncome: acc.pendingIncome + pending
+      };
+    },
+    { receivedIncome: 0, pendingIncome: 0 }
+  );
 
   return (
     <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="my-income-page">
