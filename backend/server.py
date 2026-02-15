@@ -50,9 +50,9 @@ app = FastAPI(title="MoneySsutra API", version="2.0.0")
 api_router = APIRouter(prefix="/api")
 
 
-# Define Models
+# Status Check Models (only used in this file for health checks)
 class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
+    model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_name: str
@@ -61,8 +61,19 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
-# ============ AUTH MODELS ============
-class User(BaseModel):
+# NOTE: All other models are now imported from the models/ package
+# - Auth models: User, UserSession, JWTLoginRequest, etc.
+# - Workspace models: Workspace, WorkspaceMember, etc.
+# - Financial models: Account, Expense, Loan, Asset, Investment, CreditCard
+# - Income models: IncomeSource, OtherIncome
+# - Goals models: Goal, GoalCreate
+# - Profile models: BasicProfile, ExtendedProfile
+# - Insurance models: Insurance
+
+# Add your routes to the router instead of directly to app
+@api_router.get("/")
+async def root():
+    return {"message": "Hello World"}
     model_config = ConfigDict(extra="ignore")
     
     user_id: str = Field(default_factory=lambda: f"user_{uuid.uuid4().hex[:12]}")
