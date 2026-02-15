@@ -195,11 +195,38 @@ const WorkspaceSettings = () => {
     }
   };
 
-  const copyInviteCode = () => {
-    if (currentWorkspace?.invite_code) {
-      navigator.clipboard.writeText(currentWorkspace.invite_code);
+  const copyInviteCode = async () => {
+    if (!currentWorkspace?.invite_code) return;
+    
+    const textToCopy = currentWorkspace.invite_code;
+    
+    try {
+      // Try modern Clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(textToCopy);
+      } else {
+        // Fallback for older browsers or restricted contexts
+        const textArea = document.createElement('textarea');
+        textArea.value = textToCopy;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       setCopiedCode(true);
-      setTimeout(() => setCopiedCode(false), 2000);
+      setSuccess('Invite code copied to clipboard!');
+      setTimeout(() => {
+        setCopiedCode(false);
+        setSuccess('');
+      }, 2000);
+    } catch (err) {
+      // If all copy methods fail, show the code in an alert for manual copy
+      setError(`Copy failed. Code: ${textToCopy}`);
+      setTimeout(() => setError(''), 5000);
     }
   };
 
