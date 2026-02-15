@@ -1,14 +1,14 @@
 # Backend Architecture
 
-## Directory Structure (Post-Refactoring)
+## Directory Structure (Post-Refactoring - Phase 2 Complete)
 
 ```
 /app/backend/
-├── server.py              # Main FastAPI application (3900+ lines - MONOLITH)
-├── database.py            # MongoDB connection (shared across all modules)
+├── server.py              # Main FastAPI application (still monolith but can be migrated)
+├── database.py            # MongoDB connection (shared)
 ├── server_backup.py       # Backup of original server.py
 │
-├── models/                # Pydantic models (extracted from server.py)
+├── models/                # Pydantic models (16 files, ~600 lines)
 │   ├── __init__.py        # Exports all models
 │   ├── auth.py            # User, UserSession, JWTLoginRequest, RegisterRequest
 │   ├── workspace.py       # Workspace, WorkspaceMember, WorkspaceInvite
@@ -18,80 +18,76 @@
 │   ├── goals.py           # Goal, GoalCreate, GoalPriorityUpdate
 │   └── profile.py         # BasicProfile, ExtendedProfile
 │
-├── services/              # Business logic helpers (extracted from server.py)
+├── services/              # Business logic helpers (~220 lines)
 │   ├── __init__.py        # Exports all services
 │   ├── auth.py            # hash_password, verify_password, get_current_user
 │   └── workspace.py       # get_user_workspace, ensure_user_has_workspace
 │
-├── routes/                # API routes (FUTURE - not yet extracted)
-│   └── __init__.py
+├── routes/                # API routes (~2000 lines extracted)
+│   ├── __init__.py        # Exports all routers
+│   ├── utils.py           # Common utilities (get_user_filter, etc.)
+│   ├── auth.py            # /auth/* endpoints (register, login, logout, etc.)
+│   ├── workspace.py       # /workspaces/* endpoints (create, join, invite, etc.)
+│   ├── income.py          # /income/* CRUD
+│   ├── loans.py           # /loans/* CRUD
+│   ├── assets.py          # /assets/* CRUD
+│   ├── accounts.py        # /accounts/* CRUD
+│   ├── investments.py     # /investments/* CRUD
+│   └── credit_cards.py    # /credit-cards/* CRUD
 │
 └── tests/                 # Test files
     └── test_workspace_api.py
 ```
 
-## Current State
+## Migration Status
 
-### Completed Refactoring
-1. **Models extracted** to `/models/` - All Pydantic model definitions are now in separate files
-2. **Services created** in `/services/` - Common business logic functions extracted
-3. **Database module** - MongoDB connection isolated in `database.py`
+### ✅ Phase 1 Complete: Models & Services
+- All Pydantic models extracted to `/models/`
+- Common services extracted to `/services/`
+- Database connection isolated in `database.py`
 
-### Pending Refactoring
-The `server.py` file still contains:
-- All API route definitions (~100+ endpoints)
-- Duplicate model definitions (need to be replaced with imports)
-- Complex business logic (calculate_goal_progress, calculate_next_deduction_date)
+### ✅ Phase 2 Complete: Core Routes Extracted
+- **Auth routes** (`/auth/*`): register, login, logout, google/session, me
+- **Workspace routes** (`/workspaces/*`): full CRUD, invite, join, roles
+- **Income routes** (`/income/*`): full CRUD
+- **Loans routes** (`/loans/*`): full CRUD + linked-assets
+- **Assets routes** (`/assets/*`): full CRUD + rental income auto-create
+- **Accounts routes** (`/accounts/*`): full CRUD
+- **Investments routes** (`/investments/*`): full CRUD
+- **Credit Cards routes** (`/credit-cards/*`): full CRUD
 
-## Migration Guide
+### 🔜 Phase 3 Remaining (Optional):
+Routes still in server.py that could be extracted:
+- Expenses routes (`/expenses/*`) with process-deductions logic
+- Insurance routes (`/insurances/*`)
+- Goals routes (`/goals/*`) with complex progress calculation
+- Other Income routes (`/other-income/*`)
+- Dashboard routes (`/dashboard/*`) with aggregation logic
+- Profile routes (`/profile/*`)
 
-### To use the new modular structure:
+## How to Use the Modular Structure
 
-1. **Import models from modules:**
+### For New Development:
 ```python
-from models.auth import User, UserSession, RegisterRequest
-from models.workspace import Workspace, WorkspaceMember
-from models.financial import Account, Expense, Loan, Asset, Investment
+# Import from routes package
+from routes import auth_router, workspace_router, get_current_user
+
+# Import models
+from models.financial import Account, Loan, Asset
+from models.auth import User
+
+# Import database
+from database import db
 ```
 
-2. **Import services:**
+### For Tests:
 ```python
-from services.auth import get_current_user, hash_password
-from services.workspace import get_user_workspace, check_permission
+from routes.auth import get_current_user
+from routes.utils import get_user_filter
 ```
 
-3. **Import database:**
-```python
-from database import db, client
-```
+## Statistics
+- **Total lines extracted**: ~2861 lines
+- **Files created**: 19 new module files
+- **Original server.py**: 3900+ lines (can be further reduced by switching to modular routes)
 
-### Full server.py refactoring (next phase):
-1. Replace inline model definitions with imports
-2. Extract routes to separate files in `/routes/`
-3. Move complex calculations to `/services/calculations.py`
-4. Reduce server.py to ~100 lines (app setup + router includes)
-
-## API Categories
-
-| Category | Endpoint Prefix | Model(s) |
-|----------|-----------------|----------|
-| Auth | `/api/auth/*` | User, UserSession |
-| Workspace | `/api/workspaces/*` | Workspace, WorkspaceMember |
-| Income | `/api/income/*` | IncomeSource |
-| Other Income | `/api/other-income/*` | OtherIncome |
-| Loans | `/api/loans/*` | Loan |
-| Assets | `/api/assets/*` | Asset |
-| Accounts | `/api/accounts/*` | Account |
-| Expenses | `/api/expenses/*` | Expense |
-| Investments | `/api/investments/*` | Investment |
-| Insurance | `/api/insurances/*` | Insurance |
-| Credit Cards | `/api/credit-cards/*` | CreditCard |
-| Goals | `/api/goals/*` | Goal |
-| Profile | `/api/profile/*` | BasicProfile, ExtendedProfile |
-| Dashboard | `/api/dashboard/*` | (aggregation endpoints) |
-
-## Notes
-
-- The original `server.py` still works without changes
-- New development can use modular imports
-- Full migration to modular routes planned for future sprint
