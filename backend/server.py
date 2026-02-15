@@ -2944,8 +2944,13 @@ async def get_profile_completion():
 # ============ CREDIT CARD ENDPOINTS ============
 
 @api_router.post("/credit-cards", response_model=CreditCard)
-async def create_credit_card(input: CreditCardCreate):
+async def create_credit_card(input: CreditCardCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
     card_dict = input.model_dump()
+    card_dict['userId'] = user.get('user_id')  # Add user isolation
     card_obj = CreditCard(**card_dict)
     
     doc = card_obj.model_dump()
@@ -2955,8 +2960,13 @@ async def create_credit_card(input: CreditCardCreate):
     return card_obj
 
 @api_router.get("/credit-cards", response_model=List[CreditCard])
-async def get_credit_cards():
-    cards = await db.credit_cards.find({}, {"_id": 0}).to_list(1000)
+async def get_credit_cards(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    cards = await db.credit_cards.find(user_filter, {"_id": 0}).to_list(1000)
     
     for card in cards:
         if isinstance(card.get('createdAt'), str):
@@ -2965,11 +2975,16 @@ async def get_credit_cards():
     return cards
 
 @api_router.get("/credit-cards/{card_id}", response_model=CreditCard)
-async def get_credit_card(card_id: str):
-    card = await db.credit_cards.find_one({"id": card_id}, {"_id": 0})
+async def get_credit_card(card_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = card_id
+    card = await db.credit_cards.find_one(user_filter, {"_id": 0})
     
     if not card:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Credit card not found")
     
     if isinstance(card.get('createdAt'), str):
@@ -2978,15 +2993,21 @@ async def get_credit_card(card_id: str):
     return card
 
 @api_router.put("/credit-cards/{card_id}", response_model=CreditCard)
-async def update_credit_card(card_id: str, input: CreditCardCreate):
-    existing = await db.credit_cards.find_one({"id": card_id}, {"_id": 0})
+async def update_credit_card(card_id: str, input: CreditCardCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = card_id
+    existing = await db.credit_cards.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Credit card not found")
     
     card_dict = input.model_dump()
     card_dict['id'] = card_id
+    card_dict['userId'] = user.get('user_id')
     card_dict['createdAt'] = existing['createdAt']
     
     await db.credit_cards.replace_one({"id": card_id}, card_dict)
@@ -2998,11 +3019,16 @@ async def update_credit_card(card_id: str, input: CreditCardCreate):
     return card_obj
 
 @api_router.delete("/credit-cards/{card_id}")
-async def delete_credit_card(card_id: str):
-    existing = await db.credit_cards.find_one({"id": card_id}, {"_id": 0})
+async def delete_credit_card(card_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = card_id
+    existing = await db.credit_cards.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Credit card not found")
     
     await db.credit_cards.delete_one({"id": card_id})
