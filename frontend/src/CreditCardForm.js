@@ -4,11 +4,14 @@ import axios from "axios";
 import BackButton from "@/components/BackButton";
 import AmountInput from "@/components/AmountInput";
 import { numberToWords } from "@/lib/formatters";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const CreditCardForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = !!id;
+  const [showAddSheet, setShowAddSheet] = useState(false);
 
   // Form fields
   const [cardName, setCardName] = useState("");
