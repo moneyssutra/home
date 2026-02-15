@@ -6,25 +6,34 @@ import axios from "axios";
 const MyLoans = () => {
   const navigate = useNavigate();
   const [loans, setLoans] = useState([]);
+  const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
-    fetchLoans();
+    fetchData();
   }, []);
 
-  const fetchLoans = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/loans`);
-      const loanData = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const [loansRes, assetsRes] = await Promise.all([
+        axios.get(`${backendUrl}/api/loans`),
+        axios.get(`${backendUrl}/api/assets`)
+      ]);
+      const loanData = loansRes.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setLoans(loanData);
+      setAssets(assetsRes.data || []);
     } catch (error) {
-      console.error("Error fetching loans:", error);
+      console.error("Error fetching data:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getLinkedAsset = (assetId) => {
+    return assets.find(a => a.id === assetId);
   };
 
   const formatAmount = (amount) => {
