@@ -413,6 +413,39 @@ class GoalCreate(BaseModel):
     priority: int = 1
     notes: Optional[str] = None
 
+# Other Income Model (Non-recurring income: gifts, bonuses, capital gains, etc.)
+class OtherIncome(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    incomeName: str
+    category: str  # Gift, Bonus, Incentive, Capital Gain, Asset Sale, Tax Refund, Cashback / Reward, Reimbursement, Freelance / Side Work, Windfall, Refund, Miscellaneous, Other
+    customCategory: Optional[str] = None  # For "Other" category
+    amount: float
+    frequency: str  # One-Time, Monthly, Quarterly, Yearly, Irregular
+    dateReceived: Optional[str] = None  # ISO date string for one-time or specific date
+    selectedDay: Optional[str] = None  # For weekly
+    selectedDate: Optional[str] = None  # Day of month (1-31)
+    selectedMonth: Optional[str] = None  # For yearly
+    selectedQuarter: Optional[str] = None  # For quarterly
+    notes: Optional[str] = None
+    isReceived: bool = False  # Track if already received
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class OtherIncomeCreate(BaseModel):
+    incomeName: str
+    category: str
+    customCategory: Optional[str] = None
+    amount: float
+    frequency: str
+    dateReceived: Optional[str] = None
+    selectedDay: Optional[str] = None
+    selectedDate: Optional[str] = None
+    selectedMonth: Optional[str] = None
+    selectedQuarter: Optional[str] = None
+    notes: Optional[str] = None
+    isReceived: bool = False
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
