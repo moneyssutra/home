@@ -2147,14 +2147,25 @@ async def get_goals():
         goal['calculatedAmount'] = progress_data['currentAmount']
         goal['linkedDetails'] = progress_data['linkedDetails']
         goal['calculationMethod'] = progress_data['calculationMethod']
+        goal['sipProjections'] = progress_data.get('sipProjections', [])
+        goal['totalProjectedFromSIPs'] = progress_data.get('totalProjectedFromSIPs', 0)
+        goal['totalMonthlySIPContribution'] = progress_data.get('totalMonthlySIPContribution', 0)
         
         # Calculate progress percentage
         target = goal.get('targetAmount', 0)
         current = progress_data['currentAmount']
         goal['progressPercent'] = round((current / target) * 100, 1) if target > 0 else 0
         
+        # Calculate projected progress percentage (using SIP projections)
+        projected_total = progress_data.get('totalProjectedFromSIPs', 0)
+        if projected_total > 0:
+            goal['projectedProgressPercent'] = round((projected_total / target) * 100, 1) if target > 0 else 0
+        else:
+            goal['projectedProgressPercent'] = goal['progressPercent']
+        
         # Calculate days remaining
         target_date = goal.get('targetDate')
+        if target_date:
         if target_date:
             try:
                 target_dt = datetime.fromisoformat(target_date).date()
