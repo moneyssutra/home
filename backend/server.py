@@ -2166,7 +2166,6 @@ async def get_goals():
         # Calculate days remaining
         target_date = goal.get('targetDate')
         if target_date:
-        if target_date:
             try:
                 target_dt = datetime.fromisoformat(target_date).date()
                 today = datetime.now(timezone.utc).date()
