@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Plus, Briefcase } from "lucide-react";
 import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const MyBusiness = () => {
   const navigate = useNavigate();
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddSheet, setShowAddSheet] = useState(false);
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
@@ -268,6 +271,10 @@ const MyBusiness = () => {
           )}
         </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };
