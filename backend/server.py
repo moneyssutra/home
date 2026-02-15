@@ -2034,8 +2034,13 @@ async def delete_expense(expense_id: str, request: Request):
 # ============ INSURANCE ENDPOINTS ============
 
 @api_router.post("/insurances", response_model=Insurance)
-async def create_insurance(input: InsuranceCreate):
+async def create_insurance(input: InsuranceCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
     insurance_dict = input.model_dump()
+    insurance_dict['userId'] = user.get('user_id')  # Add user isolation
     insurance_obj = Insurance(**insurance_dict)
     
     doc = insurance_obj.model_dump()
