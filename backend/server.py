@@ -3170,12 +3170,20 @@ async def reorder_goals(updates: List[GoalPriorityUpdate]):
     return {"message": f"Updated priorities for {updated_count} goals", "updatedCount": updated_count}
 
 @api_router.get("/goals/summary/dashboard")
-async def get_goals_dashboard_summary():
+async def get_goals_dashboard_summary(request: Request):
     """Get summary of goals for dashboard widget"""
-    goals = await db.goals.find({"isCompleted": False}, {"_id": 0}).to_list(1000)
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["isCompleted"] = False
+    goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
     
     total_goals = len(goals)
-    completed_count = await db.goals.count_documents({"isCompleted": True})
+    completed_filter = get_user_filter(user)
+    completed_filter["isCompleted"] = True
+    completed_count = await db.goals.count_documents(completed_filter)
     
     summary = {
         "totalActiveGoals": total_goals,
