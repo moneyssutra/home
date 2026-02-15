@@ -2443,6 +2443,26 @@ async def delete_goal(goal_id: str):
     await db.goals.delete_one({"id": goal_id})
     return {"message": "Goal deleted successfully", "id": goal_id}
 
+# Pydantic model for batch priority update
+class GoalPriorityUpdate(BaseModel):
+    id: str
+    priority: int
+
+@api_router.patch("/goals/reorder")
+async def reorder_goals(updates: List[GoalPriorityUpdate]):
+    """Update priorities for multiple goals at once (for drag-and-drop reordering)"""
+    updated_count = 0
+    
+    for update in updates:
+        result = await db.goals.update_one(
+            {"id": update.id},
+            {"$set": {"priority": update.priority}}
+        )
+        if result.modified_count > 0:
+            updated_count += 1
+    
+    return {"message": f"Updated priorities for {updated_count} goals", "updatedCount": updated_count}
+
 @api_router.get("/goals/summary/dashboard")
 async def get_goals_dashboard_summary():
     """Get summary of goals for dashboard widget"""
