@@ -232,6 +232,25 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
 
 ## Changelog
+- **Feb 15, 2026 (Session 7)**: Goal Achievements Summary Page (COMPLETED)
+  - **Backend API**:
+    - New GET `/api/goals/achievements` endpoint returns completed goals with milestone history
+    - Response includes: totalCompleted, totalAmountAchieved, averageDurationDays
+    - Each achievement contains: milestoneHistory (25%, 50%, 75%, 100%), reachedMilestones[], durationDays
+    - Route placed before parameterized routes to avoid routing conflicts
+  - **Frontend Page (`GoalAchievements.js`)**:
+    - Amber/gold gradient header with trophy icon
+    - Summary card: Goals Completed count, Total Achieved amount, Avg. Duration
+    - Achievement cards with gradient headers based on goal type
+    - Milestone badges grid (🌱25%, 🔥50%, 🚀75%, 🎉100%) with visual highlighting
+    - Completed date and Journey Duration stats
+    - Empty state with "View Active Goals" CTA
+    - Celebration banner showing achievement count
+  - **MyGoals Integration**:
+    - Added Trophy icon to "Completed" section in stats
+    - Clickable button navigates to `/goal-achievements` page
+  - **Testing**: 100% pass rate (6/7 backend tests, all frontend flows verified)
+
 - **Dec 15, 2025 (Session 6)**: Goal Milestone Notifications (COMPLETED)
   - **Backend API**:
     - Added `reachedMilestones: List[int]` field to Goal model
