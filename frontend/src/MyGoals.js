@@ -10,12 +10,137 @@ import {
   Wallet,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  GripVertical,
+  ArrowUpDown
 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+// Sortable Goal Card Component
+const SortableGoalCard = ({ goal, navigate, getGoalIcon, getGoalColor, getPriorityBadge, getProgressColor, formatAmount, isReorderMode }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: goal.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : "auto",
+  };
+
+  const Icon = getGoalIcon(goal.goalType);
+  const priorityBadge = getPriorityBadge(goal.priority);
+  const progress = goal.progressPercent || 0;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`w-full bg-white rounded-2xl p-4 border transition-all ${
+        goal.isCompleted ? "border-emerald-200 bg-emerald-50/50" : "border-gray-100"
+      } ${isDragging ? "shadow-xl ring-2 ring-violet-400" : "hover:shadow-md"}`}
+      data-testid={`goal-card-${goal.id}`}
+    >
+      <div className="flex items-start gap-3">
+        {/* Drag Handle - Only visible in reorder mode */}
+        {isReorderMode && (
+          <div
+            {...attributes}
+            {...listeners}
+            className="flex items-center justify-center w-8 h-12 cursor-grab active:cursor-grabbing text-gray-400 hover:text-violet-500 transition-colors touch-none"
+            data-testid={`drag-handle-${goal.id}`}
+          >
+            <GripVertical className="h-5 w-5" />
+          </div>
+        )}
+        
+        <button
+          onClick={() => !isReorderMode && navigate(`/goal/${goal.id}`)}
+          className={`flex-1 flex items-start gap-3 text-left ${isReorderMode ? "pointer-events-none" : ""}`}
+        >
+          <div className={`w-12 h-12 rounded-xl ${getGoalColor(goal.goalType)} flex items-center justify-center flex-shrink-0`}>
+            <Icon className="h-6 w-6" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-[#0B3D2E] truncate">{goal.goalName}</h3>
+              {goal.isCompleted && (
+                <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
+              )}
+            </div>
+            <div className="flex items-center gap-2 text-xs text-[#0B3D2E]/50 mb-2 flex-wrap">
+              <span className={`px-2 py-0.5 rounded-full border ${priorityBadge.color}`}>
+                {priorityBadge.label}
+              </span>
+              <span>{goal.goalType === "Other" ? goal.customTypeName : goal.goalType}</span>
+              {goal.daysRemaining !== null && !goal.isCompleted && (
+                <>
+                  <span>•</span>
+                  {goal.isOverdue ? (
+                    <span className="text-red-500 font-medium flex items-center gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {Math.abs(goal.daysRemaining)} days overdue
+                    </span>
+                  ) : (
+                    <span className="text-amber-600 font-medium flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {goal.daysRemaining} days left
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="mb-2">
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full ${getProgressColor(progress)} rounded-full transition-all duration-500`}
+                  style={{ width: `${Math.min(progress, 100)}%` }}
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-[#0B3D2E]/70">
+                ₹ {formatAmount(goal.calculatedAmount || 0)} / ₹ {formatAmount(goal.targetAmount)}
+              </span>
+              <span className={`text-sm font-bold ${progress >= 100 ? "text-emerald-600" : "text-[#0B3D2E]"}`}>
+                {progress.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+          {!isReorderMode && <ChevronRight className="h-5 w-5 text-[#0B3D2E]/30 flex-shrink-0" />}
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const MyGoals = () => {
   const navigate = useNavigate();
@@ -23,8 +148,22 @@ const MyGoals = () => {
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [filter, setFilter] = useState("all"); // all, active, completed
+  const [isReorderMode, setIsReorderMode] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     fetchGoals();
@@ -113,15 +252,72 @@ const MyGoals = () => {
   const totalCurrent = activeGoals.reduce((sum, g) => sum + (g.calculatedAmount || 0), 0);
   const overallProgress = totalTarget > 0 ? (totalCurrent / totalTarget) * 100 : 0;
 
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setGoals((items) => {
+        const oldIndex = items.findIndex((i) => i.id === active.id);
+        const newIndex = items.findIndex((i) => i.id === over.id);
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        
+        // Update priorities based on new order
+        return newItems.map((item, index) => ({
+          ...item,
+          priority: index + 1, // 1-based priority
+        }));
+      });
+      setHasChanges(true);
+    }
+  };
+
+  const saveOrder = async () => {
+    try {
+      setSaving(true);
+      const updates = goals.map((goal, index) => ({
+        id: goal.id,
+        priority: index + 1,
+      }));
+      
+      await axios.patch(`${backendUrl}/api/goals/reorder`, updates);
+      setHasChanges(false);
+      setIsReorderMode(false);
+    } catch (error) {
+      console.error("Error saving order:", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const cancelReorder = () => {
+    setIsReorderMode(false);
+    setHasChanges(false);
+    fetchGoals(); // Restore original order
+  };
+
   return (
     <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="my-goals-page">
       {/* Header */}
       <header className="bg-gradient-to-br from-[#7C3AED] via-[#8B5CF6] to-[#7C3AED] px-6 pt-8 pb-8">
-        <div className="flex items-center gap-4 mb-6">
-          <BackButton forceNavigate="/" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
-            My Goals
-          </h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <BackButton forceNavigate="/" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+            <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+              My Goals
+            </h1>
+          </div>
+          
+          {/* Reorder Button */}
+          {filteredGoals.length > 1 && !isReorderMode && (
+            <button
+              onClick={() => setIsReorderMode(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/20 text-white text-sm font-medium hover:bg-white/30 transition-colors"
+              data-testid="reorder-btn"
+            >
+              <ArrowUpDown className="h-4 w-4" />
+              Reorder
+            </button>
+          )}
         </div>
 
         {/* Summary Card */}
@@ -164,25 +360,56 @@ const MyGoals = () => {
         </div>
       </header>
 
-      {/* Filter Tabs */}
-      <div className="px-6 mt-4">
-        <div className="flex gap-2 bg-white rounded-xl p-1 shadow-sm">
-          {["all", "active", "completed"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setFilter(tab)}
-              className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                filter === tab
-                  ? "bg-[#7C3AED] text-white"
-                  : "text-[#0B3D2E]/60 hover:bg-gray-100"
-              }`}
-              data-testid={`filter-${tab}`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+      {/* Reorder Mode Banner */}
+      {isReorderMode && (
+        <div className="mx-6 mt-4 bg-violet-100 border border-violet-200 rounded-xl p-4" data-testid="reorder-mode-banner">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <GripVertical className="h-5 w-5 text-violet-600" />
+              <span className="text-violet-800 font-medium text-sm">Drag goals to reorder priorities</span>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={cancelReorder}
+                className="px-3 py-1.5 rounded-lg text-violet-700 text-sm font-medium hover:bg-violet-200 transition-colors"
+                data-testid="cancel-reorder-btn"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveOrder}
+                disabled={!hasChanges || saving}
+                className="px-3 py-1.5 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 transition-colors disabled:opacity-50"
+                data-testid="save-order-btn"
+              >
+                {saving ? "Saving..." : "Save Order"}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Filter Tabs - Hidden in reorder mode */}
+      {!isReorderMode && (
+        <div className="px-6 mt-4">
+          <div className="flex gap-2 bg-white rounded-xl p-1 shadow-sm">
+            {["all", "active", "completed"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setFilter(tab)}
+                className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
+                  filter === tab
+                    ? "bg-[#7C3AED] text-white"
+                    : "text-[#0B3D2E]/60 hover:bg-gray-100"
+                }`}
+                data-testid={`filter-${tab}`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Goals List */}
       <div className="px-6 mt-4">
@@ -215,86 +442,54 @@ const MyGoals = () => {
               </button>
             )}
           </div>
+        ) : isReorderMode ? (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={goals.map(g => g.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-3">
+                {goals.map((goal) => (
+                  <SortableGoalCard
+                    key={goal.id}
+                    goal={goal}
+                    navigate={navigate}
+                    getGoalIcon={getGoalIcon}
+                    getGoalColor={getGoalColor}
+                    getPriorityBadge={getPriorityBadge}
+                    getProgressColor={getProgressColor}
+                    formatAmount={formatAmount}
+                    isReorderMode={isReorderMode}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         ) : (
           <div className="space-y-3">
-            {filteredGoals.map((goal) => {
-              const Icon = getGoalIcon(goal.goalType);
-              const priorityBadge = getPriorityBadge(goal.priority);
-              const progress = goal.progressPercent || 0;
-              
-              return (
-                <button
-                  key={goal.id}
-                  onClick={() => navigate(`/goal/${goal.id}`)}
-                  className={`w-full bg-white rounded-2xl p-4 border transition-all hover:shadow-md ${
-                    goal.isCompleted ? "border-emerald-200 bg-emerald-50/50" : "border-gray-100"
-                  }`}
-                  data-testid={`goal-card-${goal.id}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`w-12 h-12 rounded-xl ${getGoalColor(goal.goalType)} flex items-center justify-center flex-shrink-0`}>
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1 text-left min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-[#0B3D2E] truncate">{goal.goalName}</h3>
-                        {goal.isCompleted && (
-                          <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-[#0B3D2E]/50 mb-2">
-                        <span className={`px-2 py-0.5 rounded-full border ${priorityBadge.color}`}>
-                          {priorityBadge.label}
-                        </span>
-                        <span>{goal.goalType === "Other" ? goal.customTypeName : goal.goalType}</span>
-                        {goal.daysRemaining !== null && !goal.isCompleted && (
-                          <>
-                            <span>•</span>
-                            {goal.isOverdue ? (
-                              <span className="text-red-500 font-medium flex items-center gap-1">
-                                <AlertCircle className="h-3 w-3" />
-                                {Math.abs(goal.daysRemaining)} days overdue
-                              </span>
-                            ) : (
-                              <span className="text-amber-600 font-medium flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {goal.daysRemaining} days left
-                              </span>
-                            )}
-                          </>
-                        )}
-                      </div>
-                      
-                      {/* Progress Bar */}
-                      <div className="mb-2">
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full ${getProgressColor(progress)} rounded-full transition-all duration-500`}
-                            style={{ width: `${Math.min(progress, 100)}%` }}
-                          />
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-[#0B3D2E]/70">
-                          ₹ {formatAmount(goal.calculatedAmount || 0)} / ₹ {formatAmount(goal.targetAmount)}
-                        </span>
-                        <span className={`text-sm font-bold ${progress >= 100 ? "text-emerald-600" : "text-[#0B3D2E]"}`}>
-                          {progress.toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-[#0B3D2E]/30 flex-shrink-0" />
-                  </div>
-                </button>
-              );
-            })}
+            {filteredGoals.map((goal) => (
+              <SortableGoalCard
+                key={goal.id}
+                goal={goal}
+                navigate={navigate}
+                getGoalIcon={getGoalIcon}
+                getGoalColor={getGoalColor}
+                getPriorityBadge={getPriorityBadge}
+                getProgressColor={getProgressColor}
+                formatAmount={formatAmount}
+                isReorderMode={false}
+              />
+            ))}
           </div>
         )}
       </div>
 
       {/* Add Goal Button */}
-      {filteredGoals.length > 0 && filter !== "completed" && (
+      {filteredGoals.length > 0 && filter !== "completed" && !isReorderMode && (
         <div className="px-6 mt-6">
           <button
             onClick={() => navigate("/goal")}
