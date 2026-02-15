@@ -395,6 +395,7 @@ class Goal(BaseModel):
     notes: Optional[str] = None
     isCompleted: bool = False
     completedDate: Optional[str] = None
+    reachedMilestones: List[int] = []  # Track milestones reached: [25, 50, 75, 100]
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class GoalCreate(BaseModel):
@@ -412,6 +413,7 @@ class GoalCreate(BaseModel):
     manualOverride: bool = False
     priority: int = 1
     notes: Optional[str] = None
+    reachedMilestones: List[int] = []
 
 # Other Income Model (Non-recurring income: gifts, bonuses, capital gains, etc.)
 class OtherIncome(BaseModel):
