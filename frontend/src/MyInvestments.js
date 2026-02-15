@@ -34,31 +34,31 @@ const MyInvestments = () => {
     return new Intl.NumberFormat('en-IN').format(amount);
   };
 
-  const getCategoryColor = (category) => {
-    const colors = {
-      "Fixed Deposit (FD)": "bg-[#3B82F6]/10 text-[#3B82F6]",
-      "Recurring Deposit (RD)": "bg-[#6366F1]/10 text-[#6366F1]",
-      "Stocks": "bg-[#10B981]/10 text-[#10B981]",
-      "Mutual Fund": "bg-[#8B5CF6]/10 text-[#8B5CF6]",
-      "ETF": "bg-[#14B8A6]/10 text-[#14B8A6]",
-      "Bonds": "bg-[#F59E0B]/10 text-[#F59E0B]",
-      "Sovereign Gold Bond (SGB)": "bg-[#EAB308]/10 text-[#EAB308]",
-      "Digital Gold": "bg-[#F97316]/10 text-[#F97316]",
-      "Digital Silver": "bg-[#94A3B8]/10 text-[#64748B]",
-      "P2P Lending": "bg-[#EC4899]/10 text-[#EC4899]",
-      "SWP": "bg-[#06B6D4]/10 text-[#06B6D4]",
-      "ULIP": "bg-[#A855F7]/10 text-[#A855F7]",
-      "Crypto": "bg-[#F43F5E]/10 text-[#F43F5E]",
+  const getCategoryStyle = (category) => {
+    const styles = {
+      "Fixed Deposit (FD)": { bg: "#DBEAFE", text: "#3B82F6" },
+      "Recurring Deposit (RD)": { bg: "#E0E7FF", text: "#6366F1" },
+      "Stocks": { bg: "#DCFCE7", text: "#16A34A" },
+      "Mutual Fund": { bg: "#F3E8FF", text: "#8B5CF6" },
+      "ETF": { bg: "#CCFBF1", text: "#14B8A6" },
+      "Bonds": { bg: "#FEF3C7", text: "#F59E0B" },
+      "Sovereign Gold Bond (SGB)": { bg: "#FEF9C3", text: "#CA8A04" },
+      "Digital Gold": { bg: "#FFEDD5", text: "#EA580C" },
+      "Digital Silver": { bg: "#F1F5F9", text: "#64748B" },
+      "P2P Lending": { bg: "#FCE7F3", text: "#DB2777" },
+      "SWP": { bg: "#CFFAFE", text: "#0891B2" },
+      "ULIP": { bg: "#F3E8FF", text: "#9333EA" },
+      "Crypto": { bg: "#FEE2E2", text: "#DC2626" },
     };
-    return colors[category] || "bg-[#6B7280]/10 text-[#6B7280]";
+    return styles[category] || { bg: "var(--bg-subtle)", text: "var(--text-secondary)" };
   };
 
-  const getModeColor = (mode) => {
+  const getModeStyle = (mode) => {
     switch (mode) {
-      case "Income Generating": return "bg-[#10B981]/10 text-[#10B981]";
-      case "Growth Only": return "bg-[#3B82F6]/10 text-[#3B82F6]";
-      case "Growth with Maturity": return "bg-[#8B5CF6]/10 text-[#8B5CF6]";
-      default: return "bg-[#6B7280]/10 text-[#6B7280]";
+      case "Income Generating": return { bg: "#DCFCE7", text: "#16A34A" };
+      case "Growth Only": return { bg: "#DBEAFE", text: "#3B82F6" };
+      case "Growth with Maturity": return { bg: "#F3E8FF", text: "#8B5CF6" };
+      default: return { bg: "var(--bg-subtle)", text: "var(--text-secondary)" };
     }
   };
 
@@ -86,169 +86,183 @@ const MyInvestments = () => {
       .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
   };
 
-  return (
-    <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="my-investments-page">
-      {/* Header */}
-      <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
-          onClick={() => navigate("/")}
-          data-testid="back-button"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
-          My Investments
-        </h1>
-        <div className="h-10 w-10" />
-      </header>
+  const totalGain = getTotalValue() - getTotalInvested();
+  const gainPercent = getTotalInvested() > 0 ? (totalGain / getTotalInvested()) * 100 : 0;
 
-      {/* Summary Cards */}
-      {!loading && investments.length > 0 && (
-        <div className="px-6 mb-4">
-          <div className="mx-auto max-w-[620px]">
-            {/* Main Summary Card */}
-            <div className="rounded-2xl bg-gradient-to-r from-[#8B5CF6] to-[#6366F1] p-5 text-white mb-3">
-              <p className="text-white/80 text-xs mb-1">Total Investment Value</p>
-              <div className="flex items-baseline gap-3">
-                <p className="text-2xl font-bold">₹ {formatAmount(getTotalValue())}</p>
-                {getTotalInvested() > 0 && (
-                  <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
-                    getTotalValue() >= getTotalInvested() ? "bg-emerald-500/30" : "bg-rose-500/30"
-                  }`}>
-                    {getTotalValue() >= getTotalInvested() ? "+" : ""}
-                    {(((getTotalValue() - getTotalInvested()) / getTotalInvested()) * 100).toFixed(1)}%
-                  </span>
-                )}
-              </div>
-              <div className="flex gap-4 mt-2 text-xs text-white/70">
-                <span>Invested: ₹ {formatAmount(getTotalInvested())}</span>
-                <span>Gain: ₹ {formatAmount(getTotalValue() - getTotalInvested())}</span>
-              </div>
-            </div>
-            
-            {/* Investment Allocation */}
-            <div className="rounded-xl border border-[#334155] bg-[#1E293B] p-4">
-              <p className="text-sm font-medium text-[#334155] mb-3">Portfolio Allocation</p>
-              <div className="space-y-2">
-                {getInvestmentAllocation().map(({ category, value, percentage }) => (
-                  <div key={category} className="flex items-center gap-3">
-                    <div className="flex-1">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-[#334155]/70">{category}</span>
-                        <span className="font-medium text-[#334155]">{percentage}%</span>
-                      </div>
-                      <div className="h-2 bg-[#334155] rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-[#8B5CF6] rounded-full"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+  return (
+    <div className="min-h-screen pb-24 honeycomb-bg" data-testid="my-investments-page">
+      {/* Header */}
+      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)" }}>
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            onClick={() => navigate("/")}
+            data-testid="back-button"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            My Investments
+          </h1>
+        </div>
+
+        {/* Summary Card */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
+          <p className="text-white/70 text-sm font-medium mb-1">Total Investment Value</p>
+          <div className="flex items-baseline gap-3">
+            <h2 className="text-3xl font-bold text-white">₹ {formatAmount(getTotalValue())}</h2>
+            {getTotalInvested() > 0 && (
+              <span className={`text-sm font-medium px-2 py-0.5 rounded-full ${
+                totalGain >= 0 ? "bg-emerald-500/30 text-emerald-100" : "bg-rose-500/30 text-rose-100"
+              }`}>
+                {totalGain >= 0 ? "+" : ""}{gainPercent.toFixed(1)}%
+              </span>
+            )}
+          </div>
+          <div className="flex gap-4 mt-2 text-xs text-white/70">
+            <span>Invested: ₹ {formatAmount(getTotalInvested())}</span>
+            <span style={{ color: totalGain >= 0 ? "#A7F3D0" : "#FCA5A5" }}>
+              {totalGain >= 0 ? "Gain" : "Loss"}: ₹ {formatAmount(Math.abs(totalGain))}
+            </span>
           </div>
         </div>
-      )}
+      </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-32">
-        <div className="mx-auto w-full max-w-[620px] px-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-[#334155]/60">Loading...</div>
+      <div className="px-6 -mt-4">
+        {/* Investment Allocation */}
+        {!loading && investments.length > 0 && (
+          <div className="rounded-2xl p-5 shadow-card mb-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <p className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Portfolio Allocation</p>
+            <div className="space-y-3">
+              {getInvestmentAllocation().map(({ category, value, percentage }) => (
+                <div key={category} className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span style={{ color: "var(--text-secondary)" }}>{category}</span>
+                      <span className="font-medium" style={{ color: "var(--text-primary)" }}>{percentage}%</span>
+                    </div>
+                    <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                      <div 
+                        className="h-full rounded-full"
+                        style={{ width: `${percentage}%`, backgroundColor: "#8B5CF6" }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ) : investments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-6">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#DCFCE7] mb-6">
-                <TrendingUp className="h-12 w-12 text-[#10B981]" />
-              </div>
-              <h2 className="text-xl font-semibold text-[#334155] mb-2">
-                No Investments Added Yet
-              </h2>
-              <p className="text-[#334155]/60 text-center mb-8">
-                Start tracking your investment portfolio
-              </p>
+          </div>
+        )}
+
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div style={{ color: "var(--text-muted)" }}>Loading...</div>
+          </div>
+        ) : investments.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-6">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full mb-6" style={{ backgroundColor: "#F3E8FF" }}>
+              <TrendingUp className="h-12 w-12" style={{ color: "#8B5CF6" }} />
+            </div>
+            <h2 className="text-xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
+              No Investments Added Yet
+            </h2>
+            <p className="text-center mb-8" style={{ color: "var(--text-secondary)" }}>
+              Start tracking your investment portfolio
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/investment")}
+              className="flex items-center gap-2 rounded-xl px-6 py-3 text-white font-medium transition-all active:scale-[0.98]"
+              style={{ backgroundColor: "#8B5CF6", boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)" }}
+              data-testid="add-investment-empty-button"
+            >
+              <Plus className="h-5 w-5" />
+              Add New Investment
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-3">
+              {investments.map((investment) => {
+                const catStyle = getCategoryStyle(investment.investmentCategory);
+                const modeStyle = getModeStyle(investment.investmentMode);
+                const invGain = (investment.currentValue || 0) - (investment.principal || 0);
+                
+                return (
+                  <div
+                    key={investment.id}
+                    className="rounded-2xl p-5 shadow-card transition-all hover:shadow-md cursor-pointer"
+                    style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+                    onClick={() => navigate(`/investment/${investment.id}`)}
+                    data-testid={`investment-card-${investment.id}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
+                          {investment.name}
+                        </h3>
+
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: catStyle.bg, color: catStyle.text }}>
+                            {investment.investmentCategory}
+                          </span>
+                          <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: modeStyle.bg, color: modeStyle.text }}>
+                            {investment.investmentMode}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          <div>
+                            <span className="text-sm" style={{ color: "var(--text-muted)" }}>Current Value</span>
+                            <p className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                              ₹ {formatAmount(investment.currentValue || 0)}
+                            </p>
+                          </div>
+                          {investment.principal && (
+                            <div>
+                              <span className="text-sm" style={{ color: "var(--text-muted)" }}>Invested</span>
+                              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                                ₹ {formatAmount(investment.principal)}
+                              </p>
+                            </div>
+                          )}
+                          {investment.principal && (
+                            <div>
+                              <span className="text-sm" style={{ color: "var(--text-muted)" }}>Gain/Loss</span>
+                              <p className="text-sm font-semibold" style={{ color: invGain >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
+                                {invGain >= 0 ? "+" : ""}₹ {formatAmount(Math.abs(invGain))}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <ChevronRight className="h-6 w-6" style={{ color: "var(--text-muted)" }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Add Button */}
+            <div className="pt-4">
               <button
                 type="button"
                 onClick={() => navigate("/investment")}
-                className="flex items-center gap-2 rounded-xl bg-[#14B8A6] px-6 py-3 text-white font-medium transition-all hover:bg-[#0D9488] active:scale-[0.98] shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
-                data-testid="add-investment-empty-button"
+                className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-4 font-semibold transition-all active:scale-[0.98]"
+                style={{ borderColor: "#8B5CF6", color: "#8B5CF6" }}
+                data-testid="add-investment-button"
               >
                 <Plus className="h-5 w-5" />
                 Add New Investment
               </button>
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="space-y-3">
-                {investments.map((investment) => (
-                  <div
-                    key={investment.id}
-                    className="flex items-center justify-between rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
-                    onClick={() => navigate(`/investment/${investment.id}`)}
-                    data-testid={`investment-card-${investment.id}`}
-                  >
-                    <div className="flex-1">
-                      {/* Investment Name */}
-                      <h3 className="text-lg font-semibold text-[#334155] mb-2">
-                        {investment.name}
-                      </h3>
-
-                      {/* Category and Mode Badges */}
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getCategoryColor(investment.investmentCategory)}`}>
-                          {investment.investmentCategory}
-                        </span>
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getModeColor(investment.investmentMode)}`}>
-                          {investment.investmentMode}
-                        </span>
-                      </div>
-
-                      {/* Current Value */}
-                      <div className="flex items-center gap-4">
-                        <div>
-                          <span className="text-sm text-[#334155]/60">Current Value</span>
-                          <p className="text-lg font-semibold text-[#334155]">
-                            ₹ {formatAmount(investment.currentValue || 0)}
-                          </p>
-                        </div>
-                        {investment.principal && (
-                          <div>
-                            <span className="text-sm text-[#334155]/60">Invested</span>
-                            <p className="text-sm font-medium text-[#334155]">
-                              ₹ {formatAmount(investment.principal)}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <ChevronRight className="h-6 w-6 text-[#334155]/40" />
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4">
-                <button
-                  type="button"
-                  onClick={() => navigate("/investment")}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#14B8A6] bg-[#E8F8F4] px-6 py-4 text-[#14B8A6] font-semibold transition-all hover:bg-[#14B8A6] hover:text-white active:scale-[0.98]"
-                  data-testid="add-investment-button"
-                >
-                  <Plus className="h-5 w-5" />
-                  Add New Investment
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
