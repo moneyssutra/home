@@ -1790,16 +1790,30 @@ async def calculate_goal_progress(goal: dict) -> dict:
     """Calculate the current progress of a goal based on linked sources"""
     calculated_amount = 0
     linked_details = []
+    sip_projections = []
     
     # If manual override is set, use the stored currentAmount
     if goal.get('manualOverride') and not goal.get('autoCalculate'):
         return {
             "currentAmount": goal.get('currentAmount', 0),
             "linkedDetails": [],
+            "sipProjections": [],
             "calculationMethod": "manual"
         }
     
     goal_type = goal.get('goalType', '')
+    target_date = goal.get('targetDate')
+    
+    # Calculate months until target date for SIP projections
+    months_to_target = 0
+    if target_date:
+        try:
+            target_dt = datetime.fromisoformat(target_date).date()
+            today = datetime.now(timezone.utc).date()
+            days_diff = (target_dt - today).days
+            months_to_target = max(0, days_diff / 30)
+        except (ValueError, TypeError):
+            months_to_target = 0
     
     # For Debt Elimination goals - track loan/credit card payoff
     if goal_type == "Debt Elimination":
@@ -1816,7 +1830,8 @@ async def calculate_goal_progress(goal: dict) -> dict:
                     "name": loan.get('loanName'),
                     "contribution": paid_off,
                     "principal": principal,
-                    "outstanding": outstanding
+                    "outstanding": outstanding,
+                    "emiAmount": loan.get('emiAmount', 0)
                 })
         
         if goal.get('linkedCreditCardId'):
@@ -1837,19 +1852,73 @@ async def calculate_goal_progress(goal: dict) -> dict:
     
     # For Investment Target / Wealth Creation goals
     elif goal_type in ["Investment Target", "Wealth Creation"]:
-        # Sum up linked investments' current values
+        # Sum up linked investments' current values and calculate SIP projections
         linked_investment_ids = goal.get('linkedInvestmentIds', [])
         for inv_id in linked_investment_ids:
             investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
             if investment:
                 current_value = investment.get('currentValue', 0)
                 calculated_amount += current_value
+                
+                # Calculate SIP projection if investment has recurring frequency
+                sip_amount = investment.get('sipAmount', 0)
+                frequency = investment.get('investmentFrequency', '')
+                return_rate = investment.get('returnRate', 0)
+                
+                projected_value = current_value
+                monthly_contribution = 0
+                
+                if sip_amount and frequency and months_to_target > 0:
+                    # Convert frequency to monthly
+                    if frequency == 'Daily':
+                        monthly_contribution = sip_amount * 30
+                    elif frequency == 'Weekly':
+                        monthly_contribution = sip_amount * 4
+                    elif frequency == 'Monthly':
+                        monthly_contribution = sip_amount
+                    elif frequency == 'Quarterly':
+                        monthly_contribution = sip_amount / 3
+                    elif frequency == 'Yearly':
+                        monthly_contribution = sip_amount / 12
+                    
+                    # Calculate future value with compound growth
+                    # FV = PV * (1 + r)^n + PMT * [((1 + r)^n - 1) / r]
+                    monthly_rate = (return_rate / 100) / 12 if return_rate else 0
+                    n = months_to_target
+                    
+                    if monthly_rate > 0:
+                        # Compound growth of current value
+                        pv_growth = current_value * ((1 + monthly_rate) ** n)
+                        # Future value of monthly contributions
+                        pmt_growth = monthly_contribution * (((1 + monthly_rate) ** n - 1) / monthly_rate)
+                        projected_value = pv_growth + pmt_growth
+                    else:
+                        # No growth rate, simple addition
+                        projected_value = current_value + (monthly_contribution * n)
+                    
+                    sip_projections.append({
+                        "investmentId": inv_id,
+                        "investmentName": investment.get('name'),
+                        "currentValue": current_value,
+                        "sipAmount": sip_amount,
+                        "frequency": frequency,
+                        "monthlyContribution": monthly_contribution,
+                        "returnRate": return_rate,
+                        "projectedValue": round(projected_value, 2),
+                        "projectedGain": round(projected_value - current_value, 2),
+                        "monthsToTarget": round(months_to_target, 1)
+                    })
+                
                 linked_details.append({
                     "type": "Investment",
                     "name": investment.get('name'),
                     "category": investment.get('investmentCategory'),
                     "contribution": current_value,
-                    "principal": investment.get('principal', 0)
+                    "principal": investment.get('principal', 0),
+                    "hasSIP": bool(sip_amount and frequency),
+                    "sipAmount": sip_amount,
+                    "frequency": frequency,
+                    "projectedValue": round(projected_value, 2) if sip_amount else None
                 })
         
         # Also add linked account balances
@@ -1882,18 +1951,64 @@ async def calculate_goal_progress(goal: dict) -> dict:
                     "contribution": balance
                 })
         
-        # Also include liquid investments
+        # Also include liquid investments with SIP projections
         linked_investment_ids = goal.get('linkedInvestmentIds', [])
         for inv_id in linked_investment_ids:
             investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
             if investment:
                 current_value = investment.get('currentValue', 0)
                 calculated_amount += current_value
+                
+                # Calculate SIP projection
+                sip_amount = investment.get('sipAmount', 0)
+                frequency = investment.get('investmentFrequency', '')
+                return_rate = investment.get('returnRate', 0)
+                
+                projected_value = current_value
+                monthly_contribution = 0
+                
+                if sip_amount and frequency and months_to_target > 0:
+                    if frequency == 'Daily':
+                        monthly_contribution = sip_amount * 30
+                    elif frequency == 'Weekly':
+                        monthly_contribution = sip_amount * 4
+                    elif frequency == 'Monthly':
+                        monthly_contribution = sip_amount
+                    elif frequency == 'Quarterly':
+                        monthly_contribution = sip_amount / 3
+                    elif frequency == 'Yearly':
+                        monthly_contribution = sip_amount / 12
+                    
+                    monthly_rate = (return_rate / 100) / 12 if return_rate else 0
+                    n = months_to_target
+                    
+                    if monthly_rate > 0:
+                        pv_growth = current_value * ((1 + monthly_rate) ** n)
+                        pmt_growth = monthly_contribution * (((1 + monthly_rate) ** n - 1) / monthly_rate)
+                        projected_value = pv_growth + pmt_growth
+                    else:
+                        projected_value = current_value + (monthly_contribution * n)
+                    
+                    sip_projections.append({
+                        "investmentId": inv_id,
+                        "investmentName": investment.get('name'),
+                        "currentValue": current_value,
+                        "sipAmount": sip_amount,
+                        "frequency": frequency,
+                        "monthlyContribution": monthly_contribution,
+                        "returnRate": return_rate,
+                        "projectedValue": round(projected_value, 2),
+                        "projectedGain": round(projected_value - current_value, 2),
+                        "monthsToTarget": round(months_to_target, 1)
+                    })
+                
                 linked_details.append({
                     "type": "Investment",
                     "name": investment.get('name'),
                     "category": investment.get('investmentCategory'),
-                    "contribution": current_value
+                    "contribution": current_value,
+                    "hasSIP": bool(sip_amount and frequency),
+                    "projectedValue": round(projected_value, 2) if sip_amount else None
                 })
     
     # For Other/Custom goals - use linked sources or manual amount
