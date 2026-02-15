@@ -298,6 +298,66 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Goals Widget */}
+        <div 
+          className="bg-gradient-to-br from-violet-600/20 to-purple-600/20 backdrop-blur-sm rounded-2xl p-5 border border-violet-500/20 cursor-pointer transition-all hover:from-violet-600/30 hover:to-purple-600/30"
+          onClick={() => navigate("/my-goals")}
+          data-testid="goals-widget"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-500/30 flex items-center justify-center">
+                <Target className="h-5 w-5 text-violet-300" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">Financial Goals</h3>
+                <p className="text-white/50 text-xs">
+                  {goalsSummary?.totalActiveGoals || 0} active goals
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-white/50" />
+          </div>
+          
+          {goalsSummary?.goals && goalsSummary.goals.length > 0 ? (
+            <div className="space-y-3">
+              {goalsSummary.goals.slice(0, 2).map((goal) => (
+                <div key={goal.id} className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-white/80 text-sm font-medium truncate max-w-[150px]">
+                        {goal.goalName}
+                      </span>
+                      <span className="text-white text-sm font-bold">
+                        {goal.progressPercent.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all ${
+                          goal.progressPercent >= 75 ? "bg-emerald-400" :
+                          goal.progressPercent >= 50 ? "bg-amber-400" : "bg-violet-400"
+                        }`}
+                        style={{ width: `${Math.min(goal.progressPercent, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {goalsSummary.totalActiveGoals > 2 && (
+                <p className="text-white/40 text-xs text-center pt-1">
+                  +{goalsSummary.totalActiveGoals - 2} more goals
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-2">
+              <p className="text-white/60 text-sm">No active goals yet</p>
+              <p className="text-violet-300 text-xs mt-1">Tap to create your first goal</p>
+            </div>
+          )}
+        </div>
+
         {/* Empty State - When no data */}
         {data && data.assetCount === 0 && data.investmentCount === 0 && data.accountCount === 0 && (
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center" data-testid="empty-state">
