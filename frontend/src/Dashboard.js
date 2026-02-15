@@ -133,6 +133,14 @@ const Dashboard = () => {
                 <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
               </button>
               <button
+                onClick={() => navigate('/workspace-settings')}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-emerald-500/50 active:scale-95"
+                data-testid="workspace-settings-button"
+                title="Workspace Settings"
+              >
+                <Users className="h-5 w-5" />
+              </button>
+              <button
                 onClick={handleLogout}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-red-500/50 active:scale-95"
                 data-testid="logout-button"
