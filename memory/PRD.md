@@ -210,7 +210,7 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 ## Backlog / Future Tasks
 
 ### P1 - High Priority (Next)
-- Asset ↔ Loan bidirectional linking display on Asset detail page
+- Goal Achievements Summary Page (COMPLETED - Feb 15, 2026)
 
 ### P2 - Medium Priority
 
