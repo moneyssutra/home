@@ -234,29 +234,29 @@ const Login = () => {
             <button
               type="button"
               onClick={toggleMode}
-              className="text-sm text-[#6B7280] hover:text-[#00C853] transition-colors"
+              className="text-sm text-slate-400 hover:text-[#14B8A6] transition-colors"
               data-testid="toggle-auth-mode"
             >
               {isRegisterMode ? (
-                <>Already have an account? <span className="font-semibold text-[#00C853]">Sign In</span></>
+                <>Already have an account? <span className="font-semibold text-[#14B8A6]">Sign In</span></>
               ) : (
-                <>New to Moneyssutra? <span className="font-semibold text-[#00C853]">Create Account</span></>
+                <>New to Moneyssutra? <span className="font-semibold text-[#14B8A6]">Create Account</span></>
               )}
             </button>
           </div>
 
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-[#6B7280] uppercase tracking-wide">or</span>
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="flex-1 h-px bg-slate-600" />
+            <span className="text-xs text-slate-500 uppercase tracking-wide">or</span>
+            <div className="flex-1 h-px bg-slate-600" />
           </div>
 
           {/* Google Login */}
           <button
             type="button"
             onClick={loginWithGoogle}
-            className="w-full py-3 rounded-xl border border-gray-200 text-[#1F2937] font-medium hover:bg-[#1E293B] transition-all flex items-center justify-center gap-3"
+            className="w-full py-3 rounded-xl border border-slate-600 text-slate-200 font-medium hover:bg-slate-700/50 transition-all flex items-center justify-center gap-3"
             data-testid="google-login-button"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -282,7 +282,7 @@ const Login = () => {
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-white/30 text-xs text-center">
+        <p className="mt-8 text-slate-500 text-xs text-center">
           By signing in, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
