@@ -13,10 +13,12 @@ import {
   LineChart,
   Target,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { useAuth } from "@/context/AuthContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
