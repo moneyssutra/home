@@ -78,12 +78,43 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle honeycomb pattern for app background */
+/* Subtle honeycomb pattern for app background - Light Theme */
 .honeycomb-bg {
     background-color: var(--bg-app);
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='52' viewBox='0 0 60 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 1 L45 1 L59 26 L45 51 L15 51 L1 26 Z' fill='none' stroke='%23E5E7EB' stroke-opacity='0.5' stroke-width='1'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='52' viewBox='0 0 60 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 1 L45 1 L59 26 L45 51 L15 51 L1 26 Z' fill='none' stroke='%23E5E7EB' stroke-opacity='0.3' stroke-width='1'/%3E%3C/svg%3E");
     background-size: 30px 26px;
     background-repeat: repeat;
+}
+
+/* Light Theme Form Styles - Override dark theme colors */
+.honeycomb-bg input,
+.honeycomb-bg select,
+.honeycomb-bg textarea {
+    background-color: var(--bg-subtle) !important;
+    border-color: var(--border-light) !important;
+    color: var(--text-primary) !important;
+}
+
+.honeycomb-bg input::placeholder,
+.honeycomb-bg select::placeholder,
+.honeycomb-bg textarea::placeholder {
+    color: var(--text-muted) !important;
+}
+
+.honeycomb-bg label {
+    color: var(--text-secondary) !important;
+}
+
+.honeycomb-bg h1,
+.honeycomb-bg h2,
+.honeycomb-bg h3 {
+    color: var(--text-primary) !important;
+}
+
+/* Form cards in honeycomb-bg */
+.honeycomb-bg .rounded-xl,
+.honeycomb-bg .rounded-2xl {
+    border-color: var(--border-light) !important;
 }
 
 code {
