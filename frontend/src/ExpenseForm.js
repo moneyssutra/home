@@ -785,7 +785,7 @@ const ExpenseForm = () => {
       </div>
 
       {/* Sticky Action Buttons - positioned above BottomNav */}
-      <div className="fixed bottom-16 left-0 right-0 border-t border-[#334155] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
+      <div className="fixed bottom-16 left-0 right-0 px-6 py-4 z-40 shadow-modal" style={{ backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border-light)" }}>
         <div className="mx-auto max-w-[620px]">
           {id ? (
             <div className="flex gap-3">
@@ -793,7 +793,8 @@ const ExpenseForm = () => {
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isSubmitting}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-[#1E293B] px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-xl border-2 px-6 py-4 font-semibold transition-all active:scale-[0.98] disabled:opacity-50"
+                style={{ borderColor: "var(--status-error)", backgroundColor: "var(--bg-card)", color: "var(--status-error)" }}
                 data-testid="delete-button"
               >
                 <Trash2 className="h-5 w-5" />
@@ -803,7 +804,8 @@ const ExpenseForm = () => {
                 type="button"
                 onClick={handleSave}
                 disabled={isSubmitting}
-                className="flex-1 rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+                className="flex-1 rounded-xl py-4 text-center text-lg font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-50"
+                style={{ backgroundColor: "var(--btn-primary-bg)", boxShadow: "0 4px 12px rgba(5, 150, 105, 0.3)" }}
                 data-testid="update-button"
               >
                 {isSubmitting ? "Updating..." : "Update Expense"}
@@ -814,7 +816,8 @@ const ExpenseForm = () => {
               type="button"
               onClick={handleSave}
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+              className="w-full rounded-xl py-4 text-center text-lg font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-50"
+              style={{ backgroundColor: "var(--btn-primary-bg)", boxShadow: "0 4px 12px rgba(5, 150, 105, 0.3)" }}
               data-testid="save-button"
             >
               {isSubmitting ? "Saving..." : "Save Expense"}
