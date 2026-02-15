@@ -3044,15 +3044,21 @@ async def check_goal_milestones(goal_id: str):
     }
 
 @api_router.put("/goals/{goal_id}")
-async def update_goal(goal_id: str, input: GoalCreate):
-    existing = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+async def update_goal(goal_id: str, input: GoalCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = goal_id
+    existing = await db.goals.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Goal not found")
     
     goal_dict = input.model_dump()
     goal_dict['id'] = goal_id
+    goal_dict['userId'] = user.get('user_id')
     goal_dict['createdAt'] = existing['createdAt']
     goal_dict['isCompleted'] = existing.get('isCompleted', False)
     goal_dict['completedDate'] = existing.get('completedDate')
@@ -3068,12 +3074,17 @@ async def update_goal(goal_id: str, input: GoalCreate):
     return updated
 
 @api_router.patch("/goals/{goal_id}/complete")
-async def mark_goal_complete(goal_id: str):
+async def mark_goal_complete(goal_id: str, request: Request):
     """Mark a goal as completed"""
-    existing = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = goal_id
+    existing = await db.goals.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Goal not found")
     
     await db.goals.update_one(
@@ -3087,12 +3098,17 @@ async def mark_goal_complete(goal_id: str):
     return {"message": "Goal marked as completed", "id": goal_id}
 
 @api_router.patch("/goals/{goal_id}/progress")
-async def update_goal_progress(goal_id: str, current_amount: float):
+async def update_goal_progress(goal_id: str, current_amount: float, request: Request):
     """Manually update the current amount for a goal"""
-    existing = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = goal_id
+    existing = await db.goals.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Goal not found")
     
     await db.goals.update_one(
@@ -3118,11 +3134,16 @@ async def update_goal_progress(goal_id: str, current_amount: float):
     return {"message": "Goal progress updated", "id": goal_id, "currentAmount": current_amount}
 
 @api_router.delete("/goals/{goal_id}")
-async def delete_goal(goal_id: str):
-    existing = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+async def delete_goal(goal_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = goal_id
+    existing = await db.goals.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Goal not found")
     
     await db.goals.delete_one({"id": goal_id})
