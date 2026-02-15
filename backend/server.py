@@ -2742,8 +2742,13 @@ async def calculate_goal_progress(goal: dict) -> dict:
     }
 
 @api_router.post("/goals", response_model=Goal)
-async def create_goal(input: GoalCreate):
+async def create_goal(input: GoalCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
     goal_dict = input.model_dump()
+    goal_dict['userId'] = user.get('user_id')
     goal_obj = Goal(**goal_dict)
     
     # For Debt Elimination, auto-set target to outstanding amount
@@ -2764,9 +2769,14 @@ async def create_goal(input: GoalCreate):
     return goal_obj
 
 @api_router.get("/goals")
-async def get_goals():
+async def get_goals(request: Request):
     """Get all goals with calculated progress"""
-    goals = await db.goals.find({}, {"_id": 0}).to_list(1000)
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
     
     result = []
     for goal in goals:
@@ -2815,9 +2825,15 @@ async def get_goals():
     return result
 
 @api_router.get("/goals/achievements")
-async def get_goal_achievements():
+async def get_goal_achievements(request: Request):
     """Get all completed goals with their milestone history for the achievements page"""
-    completed_goals = await db.goals.find({"isCompleted": True}, {"_id": 0}).to_list(1000)
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["isCompleted"] = True
+    completed_goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
     
     achievements = []
     for goal in completed_goals:
