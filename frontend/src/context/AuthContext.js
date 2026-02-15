@@ -56,6 +56,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const register = async (name, email, password) => {
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/auth/register`,
+        { name, email, password },
+        { withCredentials: true }
+      );
+      setUser(response.data);
+      setIsAuthenticated(true);
+      return { success: true, user: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || "Registration failed" 
+      };
+    }
+  };
+
   const loginWithGoogle = () => {
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const redirectUrl = window.location.origin + '/home';
