@@ -2201,11 +2201,38 @@ async def get_goal(goal_id: str):
     goal['calculatedAmount'] = progress_data['currentAmount']
     goal['linkedDetails'] = progress_data['linkedDetails']
     goal['calculationMethod'] = progress_data['calculationMethod']
+    goal['sipProjections'] = progress_data.get('sipProjections', [])
+    goal['totalProjectedFromSIPs'] = progress_data.get('totalProjectedFromSIPs', 0)
+    goal['totalMonthlySIPContribution'] = progress_data.get('totalMonthlySIPContribution', 0)
+    goal['monthsToTarget'] = progress_data.get('monthsToTarget', 0)
     
     # Calculate progress percentage
     target = goal.get('targetAmount', 0)
     current = progress_data['currentAmount']
     goal['progressPercent'] = round((current / target) * 100, 1) if target > 0 else 0
+    
+    # Calculate projected progress percentage
+    projected_total = progress_data.get('totalProjectedFromSIPs', 0)
+    if projected_total > 0:
+        goal['projectedProgressPercent'] = round((projected_total / target) * 100, 1) if target > 0 else 0
+    else:
+        goal['projectedProgressPercent'] = goal['progressPercent']
+    
+    # Calculate additional monthly savings needed to reach goal
+    remaining = target - current
+    months_to_target = progress_data.get('monthsToTarget', 0)
+    monthly_sip = progress_data.get('totalMonthlySIPContribution', 0)
+    
+    if months_to_target > 0:
+        # Monthly needed without SIP growth
+        monthly_needed_total = remaining / months_to_target
+        # Additional monthly needed beyond current SIP
+        additional_monthly_needed = max(0, monthly_needed_total - monthly_sip)
+        goal['additionalMonthlySavingsNeeded'] = round(additional_monthly_needed, 2)
+        goal['totalMonthlyNeeded'] = round(monthly_needed_total, 2)
+    else:
+        goal['additionalMonthlySavingsNeeded'] = 0
+        goal['totalMonthlyNeeded'] = 0
     
     # Calculate days remaining
     target_date = goal.get('targetDate')
