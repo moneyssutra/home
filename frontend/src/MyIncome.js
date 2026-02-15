@@ -196,14 +196,59 @@ const MyIncome = () => {
 
   const chartColors = ["#10B981", "#3B82F6", "#F59E0B", "#8B5CF6", "#06B6D4", "#EC4899"];
 
-  // Calculate received vs yet to receive based on date (frequency-aware)
+  // Calculate received vs yet to receive based on date and frequency
   const today = new Date();
   const currentDay = today.getDate();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
   
   const getIncomeStatus = (income) => {
-    if (!income.selectedDate) return 'received'; // No date = assume received
-    const dueDay = parseInt(income.selectedDate);
-    return dueDay <= currentDay ? 'received' : 'pending';
+    const freq = income.frequency || 'Monthly';
+    
+    // Daily/Weekly income: Always consider as received
+    if (freq === 'Daily' || freq === 'Weekly') {
+      return 'received';
+    }
+    
+    // No date specified: assume received
+    if (!income.selectedDate) return 'received';
+    
+    const selectedDate = income.selectedDate;
+    
+    // For Monthly income: Compare day of month
+    if (freq === 'Monthly') {
+      // selectedDate could be a full date (2026-02-25) or just a day number (25)
+      let dueDay;
+      if (selectedDate.includes('-')) {
+        // Full date format: extract day
+        const dateObj = new Date(selectedDate);
+        dueDay = dateObj.getDate();
+      } else {
+        // Just day number
+        dueDay = parseInt(selectedDate);
+      }
+      return dueDay <= currentDay ? 'received' : 'pending';
+    }
+    
+    // For Quarterly/Half-Yearly/Yearly: Compare full date
+    if (freq === 'Quarterly' || freq === 'Half-Yearly' || freq === 'Yearly') {
+      try {
+        let dueDate;
+        if (selectedDate.includes('-')) {
+          dueDate = new Date(selectedDate);
+        } else {
+          // Just a day number - assume current month
+          dueDate = new Date(currentYear, currentMonth - 1, parseInt(selectedDate));
+        }
+        // Compare: if due date has passed, it's received
+        return dueDate <= today ? 'received' : 'pending';
+      } catch (e) {
+        return 'received';
+      }
+    }
+    
+    // Default: assume received
+    return 'received';
   };
 
   const receivedIncome = incomes.filter(inc => getIncomeStatus(inc) === 'received')
