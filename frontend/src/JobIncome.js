@@ -2,12 +2,15 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Calendar, Trash2 } from "lucide-react";
 import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const JobIncome = () => {
   const navigate = useNavigate();
   const { id } = useParams(); // Get ID from URL if editing
   const [companyName, setCompanyName] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const [frequency, setFrequency] = useState("");
   
   // Conditional fields

@@ -2,10 +2,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Calendar, Trash2, Calculator, Info } from "lucide-react";
 import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const InterestIncome = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [showAddSheet, setShowAddSheet] = useState(false);
   
   // Form fields
   const [sourceName, setSourceName] = useState("");
