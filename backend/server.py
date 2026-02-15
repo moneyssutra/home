@@ -935,9 +935,17 @@ async def create_workspace(input: WorkspaceCreate, request: Request):
     }
     await db.workspace_members.insert_one(member)
     
-    workspace['role'] = 'owner'
-    workspace['invite_code'] = invite_code
-    return workspace
+    # Return clean response (exclude MongoDB's _id)
+    response = {
+        "id": workspace_id,
+        "name": input.name,
+        "type": input.type,
+        "owner_id": user_id,
+        "invite_code": invite_code,
+        "created_at": workspace["created_at"],
+        "role": "owner"
+    }
+    return response
 
 @api_router.get("/workspaces/current")
 async def get_current_workspace(request: Request, workspace_id: Optional[str] = None):
