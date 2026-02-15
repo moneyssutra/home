@@ -218,9 +218,14 @@ export const WorkspaceProvider = ({ children }) => {
     }
   };
 
-  // Initialize workspace on mount
+  // Initialize workspace on mount (only when authenticated)
   useEffect(() => {
     const initWorkspace = async () => {
+      if (!isAuthenticated || authLoading) {
+        setLoading(false);
+        return;
+      }
+      
       setLoading(true);
       const savedWorkspaceId = localStorage.getItem('currentWorkspaceId');
       
@@ -232,7 +237,7 @@ export const WorkspaceProvider = ({ children }) => {
     };
     
     initWorkspace();
-  }, [fetchWorkspaces, fetchCurrentWorkspace, fetchPendingInvitations]);
+  }, [isAuthenticated, authLoading, fetchWorkspaces, fetchCurrentWorkspace, fetchPendingInvitations]);
 
   const value = {
     currentWorkspace,
