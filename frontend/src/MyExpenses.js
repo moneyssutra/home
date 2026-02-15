@@ -137,7 +137,7 @@ const MyExpenses = () => {
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-expenses-page">
       {/* Header */}
-      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #DC2626 0%, #EF4444 100%)" }}>
+      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #F87171 0%, #FB923C 100%)" }}>
         <div className="flex items-center gap-4 mb-6">
           <BackButton fallbackPath="/" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
