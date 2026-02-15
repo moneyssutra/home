@@ -163,6 +163,9 @@ function AppRouter() {
       <Route path="/my-other-income" element={<ProtectedRoute><MyOtherIncome /></ProtectedRoute>} />
       <Route path="/other-income" element={<ProtectedRoute><OtherIncomeForm /></ProtectedRoute>} />
       <Route path="/other-income/:id" element={<ProtectedRoute><OtherIncomeForm /></ProtectedRoute>} />
+      
+      {/* Workspace Settings */}
+      <Route path="/workspace-settings" element={<ProtectedRoute><WorkspaceSettings /></ProtectedRoute>} />
     </Routes>
   );
 }
