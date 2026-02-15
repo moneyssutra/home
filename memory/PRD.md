@@ -92,7 +92,7 @@ Build an intelligent financial tracker with:
 - **Email**: test@moneyssutra.com
 
 ## Deployment Status
-- **Preview URL**: https://goal-tracker-prod.preview.emergentagent.com
+- **Preview URL**: https://money-tracker-ui-1.preview.emergentagent.com
 - **Status**: Ready for production deployment
 - **Health**: All systems operational
 
