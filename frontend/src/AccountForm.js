@@ -247,6 +247,11 @@ const AccountForm = () => {
                       data-testid="credit-limit-input"
                     />
                   </div>
+                  {parseFloat(creditLimit) > 0 && (
+                    <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="credit-limit-words">
+                      {numberToWords(parseFloat(creditLimit))}
+                    </p>
+                  )}
                   {errors.creditLimit && <p className="text-sm text-red-500 mt-1">{errors.creditLimit}</p>}
                 </div>
 
@@ -267,6 +272,11 @@ const AccountForm = () => {
                       data-testid="outstanding-amount-input"
                     />
                   </div>
+                  {parseFloat(outstandingAmount) > 0 && (
+                    <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="outstanding-amount-words">
+                      {numberToWords(parseFloat(outstandingAmount))}
+                    </p>
+                  )}
                 </div>
 
                 {/* Due Date */}
@@ -301,6 +311,11 @@ const AccountForm = () => {
                       data-testid="minimum-due-input"
                     />
                   </div>
+                  {parseFloat(minimumDue) > 0 && (
+                    <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="minimum-due-words">
+                      {numberToWords(parseFloat(minimumDue))}
+                    </p>
+                  )}
                 </div>
               </>
             ) : (
@@ -321,6 +336,11 @@ const AccountForm = () => {
                     data-testid="current-balance-input"
                   />
                 </div>
+                {parseFloat(currentBalance) > 0 && (
+                  <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="current-balance-words">
+                    {numberToWords(parseFloat(currentBalance))}
+                  </p>
+                )}
                 {errors.currentBalance && <p className="text-sm text-red-500 mt-1">{errors.currentBalance}</p>}
               </div>
             )}
