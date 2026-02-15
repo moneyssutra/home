@@ -1,7 +1,13 @@
 import { useEffect } from "react";
 import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
+
+// Auth
+import { AuthProvider } from "@/context/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import AuthCallback from "@/components/AuthCallback";
+import Login from "@/pages/Login";
 
 // Pages
 import Dashboard from "@/Dashboard";
