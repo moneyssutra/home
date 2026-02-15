@@ -41,6 +41,11 @@ import MyInvestments from "@/MyInvestments";
 import CreditCardForm from "@/CreditCardForm";
 import MyCreditCards from "@/MyCreditCards";
 
+// Goal Pages
+import MyGoals from "@/MyGoals";
+import GoalForm from "@/GoalForm";
+import GoalDetail from "@/GoalDetail";
+
 function App() {
   useEffect(() => {
     const badge = document.getElementById("emergent-badge");
