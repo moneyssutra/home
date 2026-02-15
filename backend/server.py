@@ -268,6 +268,8 @@ class Asset(BaseModel):
     linkedLoanId: Optional[str] = None
     generatesIncome: bool = False
     linkedIncomeId: Optional[str] = None
+    incomeAmount: Optional[float] = None
+    incomeFrequency: Optional[str] = None
     isInsured: bool = False
     linkedInsuranceId: Optional[str] = None
     location: Optional[str] = None
@@ -285,6 +287,8 @@ class AssetCreate(BaseModel):
     linkedLoanId: Optional[str] = None
     generatesIncome: bool = False
     linkedIncomeId: Optional[str] = None
+    incomeAmount: Optional[float] = None
+    incomeFrequency: Optional[str] = None
     isInsured: bool = False
     linkedInsuranceId: Optional[str] = None
     location: Optional[str] = None
