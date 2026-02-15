@@ -177,8 +177,9 @@ const FixedExpenses = () => {
             <h2 className="text-lg font-semibold text-[#0B3D2E] mb-2">No Fixed Expenses</h2>
             <p className="text-[#0B3D2E]/60 text-center text-sm mb-6">Add your recurring expenses like rent, EMIs, subscriptions</p>
             <button
-              onClick={() => navigate("/expense")}
+              onClick={() => navigate("/expense?type=Fixed")}
               className="flex items-center gap-2 rounded-xl bg-[#00D09C] px-5 py-2.5 text-white font-medium transition-all hover:bg-[#00BA89] active:scale-[0.98]"
+              data-testid="add-fixed-expense-empty-btn"
             >
               <Plus className="h-5 w-5" />
               Add Fixed Expense
@@ -240,8 +241,9 @@ const FixedExpenses = () => {
       {expenses.length > 0 && (
         <div className="px-6 mt-6">
           <button
-            onClick={() => navigate("/expense")}
+            onClick={() => navigate("/expense?type=Fixed")}
             className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#00D09C] py-3 text-[#00D09C] font-medium transition-all hover:bg-[#00D09C]/5"
+            data-testid="add-fixed-expense-btn"
           >
             <Plus className="h-5 w-5" />
             Add Fixed Expense

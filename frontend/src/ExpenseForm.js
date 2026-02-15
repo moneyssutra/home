@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import axios from "axios";
 import { Calendar } from "@/components/ui/calendar";
@@ -10,6 +10,7 @@ import { numberToWords } from "@/lib/formatters";
 const ExpenseForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   
   // Refs for auto-scroll
   const dayFieldRef = useRef(null);
@@ -97,8 +98,14 @@ const ExpenseForm = () => {
     fetchAccounts();
     if (id) {
       fetchExpenseData();
+    } else {
+      // Check for type parameter when creating new expense
+      const typeParam = searchParams.get('type');
+      if (typeParam === 'Fixed' || typeParam === 'Variable') {
+        setExpenseType(typeParam);
+      }
     }
-  }, [id]);
+  }, [id, searchParams]);
 
   const fetchAccounts = async () => {
     try {
