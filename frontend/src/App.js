@@ -46,6 +46,10 @@ import MyGoals from "@/MyGoals";
 import GoalForm from "@/GoalForm";
 import GoalDetail from "@/GoalDetail";
 
+// Other Income Pages
+import MyOtherIncome from "@/MyOtherIncome";
+import OtherIncomeForm from "@/OtherIncomeForm";
+
 function App() {
   useEffect(() => {
     const badge = document.getElementById("emergent-badge");
