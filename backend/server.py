@@ -1321,11 +1321,16 @@ async def update_account(account_id: str, input: AccountCreate, request: Request
     return account_obj
 
 @api_router.delete("/accounts/{account_id}")
-async def delete_account(account_id: str):
-    existing = await db.accounts.find_one({"id": account_id}, {"_id": 0})
+async def delete_account(account_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = account_id
+    existing = await db.accounts.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Account not found")
     
     await db.accounts.delete_one({"id": account_id})
@@ -1334,8 +1339,13 @@ async def delete_account(account_id: str):
 # ============ EXPENSE ENDPOINTS ============
 
 @api_router.post("/expenses", response_model=Expense)
-async def create_expense(input: ExpenseCreate):
+async def create_expense(input: ExpenseCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
     expense_dict = input.model_dump()
+    expense_dict['userId'] = user.get('user_id')
     expense_obj = Expense(**expense_dict)
     
     doc = expense_obj.model_dump()
@@ -1345,19 +1355,29 @@ async def create_expense(input: ExpenseCreate):
     return expense_obj
 
 @api_router.get("/expenses", response_model=List[Expense])
-async def get_expenses():
-    expenses = await db.expenses.find({}, {"_id": 0}).to_list(1000)
+async def get_expenses(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
     
     for expense in expenses:
-        if isinstance(expense['createdAt'], str):
+        if isinstance(expense.get('createdAt'), str):
             expense['createdAt'] = datetime.fromisoformat(expense['createdAt'])
     
     return expenses
 
 @api_router.get("/expenses/with-next-date")
-async def get_expenses_with_next_date():
+async def get_expenses_with_next_date(request: Request):
     """Get all expenses with calculated next deduction dates"""
-    expenses = await db.expenses.find({}, {"_id": 0}).to_list(1000)
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
     
     result = []
     for expense in expenses:
