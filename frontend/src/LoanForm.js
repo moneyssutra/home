@@ -637,6 +637,42 @@ const LoanIncome = () => {
               )}
             </div>
 
+            {/* Reverse-Linked Assets Display (Assets that have this loan) */}
+            {id && reverseLinkedAssets.length > 0 && (
+              <div className="w-full rounded-xl border border-[#E0F2FE] bg-[#F0F9FF] p-4" data-testid="reverse-linked-assets">
+                <div className="flex items-center gap-2 mb-3">
+                  <Building2 className="h-5 w-5 text-[#0EA5E9]" />
+                  <span className="text-sm font-semibold text-[#0EA5E9]">Assets Financed by This Loan</span>
+                </div>
+                <div className="space-y-2">
+                  {reverseLinkedAssets.map((asset) => (
+                    <button
+                      key={asset.id}
+                      onClick={() => navigate(`/asset/${asset.id}`)}
+                      className="w-full flex items-center justify-between p-3 rounded-xl bg-white border border-[#E0F2FE] hover:border-[#0EA5E9] transition-colors text-left"
+                      data-testid={`reverse-linked-asset-${asset.id}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {asset.assetType?.includes("Property") ? (
+                          <Building2 className="h-5 w-5 text-[#0EA5E9]" />
+                        ) : (
+                          <Home className="h-5 w-5 text-[#0EA5E9]" />
+                        )}
+                        <div>
+                          <p className="text-sm font-medium text-[#0B3D2E]">{asset.assetName}</p>
+                          <p className="text-xs text-[#0B3D2E]/60">{asset.assetType}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-[#00D09C]">₹ {formatAmount(asset.currentValue)}</span>
+                        <ExternalLink className="h-4 w-4 text-[#0EA5E9]" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Linked Account */}
             {accounts.length > 0 && (
               <div className="w-full">
