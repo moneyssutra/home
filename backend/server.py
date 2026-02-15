@@ -835,9 +835,9 @@ async def google_session(request: GoogleSessionRequest, response: Response):
     }
 
 @api_router.get("/auth/me")
-async def get_me(request: Request, session_token: Optional[str] = Cookie(None)):
+async def get_me(request: Request):
     """Get current authenticated user"""
-    user = await get_current_user(request, session_token)
+    user = await get_current_user(request)
     
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
