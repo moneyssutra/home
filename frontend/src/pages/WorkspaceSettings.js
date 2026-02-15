@@ -31,7 +31,7 @@ const WorkspaceSettings = () => {
   } = useWorkspace();
 
   const [members, setMembers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingMembers, setLoadingMembers] = useState(true);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('viewer');
   const [joinCode, setJoinCode] = useState('');
