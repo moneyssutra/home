@@ -291,6 +291,7 @@ class Asset(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: Optional[str] = None  # User isolation
     assetType: str
     assetName: str
     purchaseValue: Optional[float] = None
