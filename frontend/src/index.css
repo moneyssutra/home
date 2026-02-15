@@ -138,6 +138,28 @@ body {
     color: var(--text-secondary) !important;
 }
 
+/* Global dark theme overrides - works everywhere */
+[class*="bg-[#1E293B]"] {
+    background-color: var(--bg-card) !important;
+}
+
+[class*="bg-[#0F172A]"] {
+    background-color: var(--bg-app) !important;
+}
+
+[class*="border-[#334155]"] {
+    border-color: var(--border-light) !important;
+}
+
+[class*="text-[#334155]"] {
+    color: var(--text-primary) !important;
+}
+
+/* Fix income sub-pages */
+.min-h-screen.honeycomb-bg {
+    background-color: var(--bg-app) !important;
+}
+
 /* Toggle button styles for light theme */
 .toggle-light {
     background-color: var(--border-light);
