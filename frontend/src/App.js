@@ -46,6 +46,7 @@ import MyCreditCards from "@/MyCreditCards";
 import MyGoals from "@/MyGoals";
 import GoalForm from "@/GoalForm";
 import GoalDetail from "@/GoalDetail";
+import GoalAchievements from "@/GoalAchievements";
 
 // Other Income Pages
 import MyOtherIncome from "@/MyOtherIncome";
