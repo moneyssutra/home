@@ -1,6 +1,4 @@
-"""
-Database connection module for MongoDB
-"""
+"""Database connection module for MongoDB."""
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 from pathlib import Path
@@ -13,3 +11,8 @@ load_dotenv(ROOT_DIR / '.env')
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+
+async def shutdown_db_client():
+    """Close database connection on shutdown."""
+    client.close()
+
