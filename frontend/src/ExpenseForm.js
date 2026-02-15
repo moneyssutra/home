@@ -475,26 +475,42 @@ const ExpenseForm = () => {
               </div>
             )}
 
-            {/* Monthly - Date Selection */}
+            {/* Monthly - Calendar Date Selection */}
             {frequency === "Monthly" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
-                <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
                   Select Day of Month
                 </label>
-                <select
-                  id="monthlyDate"
-                  ref={dateFieldRef}
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                  data-testid="date-select"
-                >
-                  <option value="">Select a Date</option>
-                  {days.map((day) => (
-                    <option key={day} value={day}>{day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'}</option>
-                  ))}
-                </select>
-                <p className="text-xs text-[#0B3D2E]/50 mt-1">E.g., 15th for 15th of every month</p>
+                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      ref={dateFieldRef}
+                      type="button"
+                      className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="date-calendar-trigger"
+                    >
+                      <span className={selectedDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                        {selectedDate ? `${selectedDate}${selectedDate === '1' ? 'st' : selectedDate === '2' ? 'nd' : selectedDate === '3' ? 'rd' : 'th'} of every month` : "Select a date from calendar"}
+                      </span>
+                      <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={calendarDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setSelectedDate(date.getDate().toString());
+                          setCalendarDate(date);
+                        }
+                        setCalendarOpen(false);
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-[#0B3D2E]/50 mt-1">Select any date - only the day number will be used for monthly recurrence</p>
                 {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
               </div>
             )}
