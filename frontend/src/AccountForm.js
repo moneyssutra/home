@@ -176,13 +176,13 @@ const AccountForm = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
           onClick={() => navigate("/my-accounts")}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           {id ? "Edit Account" : "Add Account"}
         </h1>
         <div className="h-10 w-10" />
@@ -194,7 +194,7 @@ const AccountForm = () => {
           <div className="space-y-6">
             {/* Account Name */}
             <div className="w-full">
-              <label htmlFor="accountName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="accountName" className="block text-sm font-medium text-[#334155] mb-2">
                 Account Name
               </label>
               <input
@@ -204,7 +204,7 @@ const AccountForm = () => {
                 onChange={(e) => setAccountName(e.target.value)}
                 placeholder="e.g., HDFC Savings, Office Cash"
                 maxLength={50}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="account-name-input"
               />
               {errors.accountName && <p className="text-sm text-red-500 mt-1">{errors.accountName}</p>}
@@ -212,14 +212,14 @@ const AccountForm = () => {
 
             {/* Account Type */}
             <div className="w-full">
-              <label htmlFor="accountType" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="accountType" className="block text-sm font-medium text-[#334155] mb-2">
                 Account Type
               </label>
               <select
                 id="accountType"
                 value={accountType}
                 onChange={(e) => setAccountType(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="account-type-select"
               >
                 <option value="">Select Account Type</option>
@@ -235,23 +235,23 @@ const AccountForm = () => {
               <>
                 {/* Credit Limit */}
                 <div className="w-full">
-                  <label htmlFor="creditLimit" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label htmlFor="creditLimit" className="block text-sm font-medium text-[#334155] mb-2">
                     Credit Limit
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                     <input
                       id="creditLimit"
                       type="text"
                       value={creditLimit}
                       onChange={handleAmountChange(setCreditLimit)}
                       placeholder="0"
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="credit-limit-input"
                     />
                   </div>
                   {parseFloat(creditLimit) > 0 && (
-                    <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="credit-limit-words">
+                    <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="credit-limit-words">
                       {numberToWords(parseFloat(creditLimit))}
                     </p>
                   )}
@@ -260,23 +260,23 @@ const AccountForm = () => {
 
                 {/* Outstanding Amount */}
                 <div className="w-full">
-                  <label htmlFor="outstandingAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label htmlFor="outstandingAmount" className="block text-sm font-medium text-[#334155] mb-2">
                     Current Outstanding
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                     <input
                       id="outstandingAmount"
                       type="text"
                       value={outstandingAmount}
                       onChange={handleAmountChange(setOutstandingAmount)}
                       placeholder="0"
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="outstanding-amount-input"
                     />
                   </div>
                   {parseFloat(outstandingAmount) > 0 && (
-                    <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="outstanding-amount-words">
+                    <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="outstanding-amount-words">
                       {numberToWords(parseFloat(outstandingAmount))}
                     </p>
                   )}
@@ -284,7 +284,7 @@ const AccountForm = () => {
 
                 {/* Due Date */}
                 <div className="w-full">
-                  <label htmlFor="dueDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label htmlFor="dueDate" className="block text-sm font-medium text-[#334155] mb-2">
                     Payment Due Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
                   </label>
                   <input
@@ -292,30 +292,30 @@ const AccountForm = () => {
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="due-date-input"
                   />
                 </div>
 
                 {/* Minimum Due */}
                 <div className="w-full">
-                  <label htmlFor="minimumDue" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label htmlFor="minimumDue" className="block text-sm font-medium text-[#334155] mb-2">
                     Minimum Due <span className="text-[#94A3B8] font-normal">(Optional)</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                     <input
                       id="minimumDue"
                       type="text"
                       value={minimumDue}
                       onChange={handleAmountChange(setMinimumDue)}
                       placeholder="0"
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="minimum-due-input"
                     />
                   </div>
                   {parseFloat(minimumDue) > 0 && (
-                    <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="minimum-due-words">
+                    <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="minimum-due-words">
                       {numberToWords(parseFloat(minimumDue))}
                     </p>
                   )}
@@ -324,23 +324,23 @@ const AccountForm = () => {
             ) : (
               /* Regular Account - Opening Balance */
               <div className="w-full">
-                <label htmlFor="currentBalance" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                <label htmlFor="currentBalance" className="block text-sm font-medium text-[#334155] mb-2">
                   {id ? "Current Balance" : "Opening Balance"}
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                   <input
                     id="currentBalance"
                     type="text"
                     value={currentBalance}
                     onChange={handleAmountChange(setCurrentBalance)}
                     placeholder="0"
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="current-balance-input"
                   />
                 </div>
                 {parseFloat(currentBalance) > 0 && (
-                  <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="current-balance-words">
+                  <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="current-balance-words">
                     {numberToWords(parseFloat(currentBalance))}
                   </p>
                 )}
@@ -350,7 +350,7 @@ const AccountForm = () => {
 
             {/* Account Number (Optional) */}
             <div className="w-full">
-              <label htmlFor="accountNumber" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="accountNumber" className="block text-sm font-medium text-[#334155] mb-2">
                 Account Number <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <input
@@ -360,25 +360,25 @@ const AccountForm = () => {
                 onChange={(e) => setAccountNumber(e.target.value)}
                 placeholder="Last 4 digits or full number"
                 maxLength={20}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="account-number-input"
               />
             </div>
 
             {/* Is Primary Account Toggle */}
-            <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
+            <div className="w-full rounded-xl border border-[#334155] p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-[#E2E8F0]">
+                  <label className="text-sm font-medium text-[#334155]">
                     Primary Account
                   </label>
-                  <p className="text-xs text-[#E2E8F0]/60 mt-0.5">Used for default transactions</p>
+                  <p className="text-xs text-[#334155]/60 mt-0.5">Used for default transactions</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsPrimary(!isPrimary)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    isPrimary ? "bg-[#14B8A6]" : "bg-[#E2E8F0]"
+                    isPrimary ? "bg-[#14B8A6]" : "bg-[#334155]"
                   }`}
                   data-testid="is-primary-toggle"
                 >
@@ -393,7 +393,7 @@ const AccountForm = () => {
 
             {/* Notes */}
             <div className="w-full">
-              <label htmlFor="notes" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="notes" className="block text-sm font-medium text-[#334155] mb-2">
                 Notes <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <textarea
@@ -402,7 +402,7 @@ const AccountForm = () => {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any additional notes..."
                 rows={3}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 resize-none"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 resize-none"
                 data-testid="notes-input"
               />
             </div>
@@ -415,7 +415,7 @@ const AccountForm = () => {
       </div>
 
       {/* Sticky Action Buttons */}
-      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
+      <div className="fixed bottom-16 left-0 right-0 border-t border-[#334155] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
         <div className="mx-auto max-w-[620px]">
           {id ? (
             <div className="flex gap-3">
@@ -457,12 +457,12 @@ const AccountForm = () => {
       {showUpdateConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
           <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#E2E8F0] mb-3">Confirm Changes</h3>
-            <p className="text-[#E2E8F0]/70 mb-6">
+            <h3 className="text-xl font-semibold text-[#334155] mb-3">Confirm Changes</h3>
+            <p className="text-[#334155]/70 mb-6">
               Are you sure you want to update this account?
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
+              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">
                 Cancel
               </button>
               <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium">
@@ -478,11 +478,11 @@ const AccountForm = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
           <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-red-600 mb-3">Delete Account?</h3>
-            <p className="text-[#E2E8F0]/70 mb-6">
+            <p className="text-[#334155]/70 mb-6">
               Are you sure you want to delete "{accountName}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">
                 Cancel
               </button>
               <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">

@@ -71,7 +71,7 @@ const BasicSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E2E8F0] via-[#134E3E] to-[#E2E8F0]" data-testid="basic-setup-page">
+    <div className="min-h-screen bg-gradient-to-br from-[#334155] via-[#134E3E] to-[#334155]" data-testid="basic-setup-page">
       {/* Header */}
       <header className="flex items-center px-6 pt-8 pb-4">
         <button
@@ -200,7 +200,7 @@ const BasicSetup = () => {
       </div>
 
       {/* Fixed Button */}
-      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 bg-gradient-to-t from-[#E2E8F0] via-[#E2E8F0] to-transparent">
+      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 bg-gradient-to-t from-[#334155] via-[#334155] to-transparent">
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}

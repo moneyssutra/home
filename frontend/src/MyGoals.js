@@ -89,12 +89,12 @@ const SortableGoalCard = ({ goal, navigate, getGoalIcon, getGoalColor, getPriori
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-[#E2E8F0] truncate">{goal.goalName}</h3>
+              <h3 className="font-semibold text-[#334155] truncate">{goal.goalName}</h3>
               {goal.isCompleted && (
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-[#E2E8F0]/50 mb-2 flex-wrap">
+            <div className="flex items-center gap-2 text-xs text-[#334155]/50 mb-2 flex-wrap">
               <span className={`px-2 py-0.5 rounded-full border ${priorityBadge.color}`}>
                 {priorityBadge.label}
               </span>
@@ -119,7 +119,7 @@ const SortableGoalCard = ({ goal, navigate, getGoalIcon, getGoalColor, getPriori
             
             {/* Progress Bar */}
             <div className="mb-2">
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-2 bg-[#1E293B] rounded-full overflow-hidden">
                 <div 
                   className={`h-full ${getProgressColor(progress)} rounded-full transition-all duration-500`}
                   style={{ width: `${Math.min(progress, 100)}%` }}
@@ -128,15 +128,15 @@ const SortableGoalCard = ({ goal, navigate, getGoalIcon, getGoalColor, getPriori
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#E2E8F0]/70">
+              <span className="text-sm text-[#334155]/70">
                 ₹ {formatAmount(goal.calculatedAmount || 0)} / ₹ {formatAmount(goal.targetAmount)}
               </span>
-              <span className={`text-sm font-bold ${progress >= 100 ? "text-emerald-600" : "text-[#E2E8F0]"}`}>
+              <span className={`text-sm font-bold ${progress >= 100 ? "text-emerald-600" : "text-[#334155]"}`}>
                 {progress.toFixed(1)}%
               </span>
             </div>
           </div>
-          {!isReorderMode && <ChevronRight className="h-5 w-5 text-[#E2E8F0]/30 flex-shrink-0" />}
+          {!isReorderMode && <ChevronRight className="h-5 w-5 text-[#334155]/30 flex-shrink-0" />}
         </button>
       </div>
     </div>
@@ -226,9 +226,9 @@ const MyGoals = () => {
       case 2:
         return { label: "Medium", color: "bg-amber-100 text-amber-700 border-amber-200" };
       case 3:
-        return { label: "Low", color: "bg-gray-100 text-gray-700 border-gray-200" };
+        return { label: "Low", color: "bg-[#1E293B] text-slate-300 border-gray-200" };
       default:
-        return { label: "Normal", color: "bg-gray-100 text-gray-700 border-gray-200" };
+        return { label: "Normal", color: "bg-[#1E293B] text-slate-300 border-gray-200" };
     }
   };
 
@@ -408,7 +408,7 @@ const MyGoals = () => {
                 className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
                   filter === tab
                     ? "bg-[#7C3AED] text-white"
-                    : "text-[#E2E8F0]/60 hover:bg-gray-100"
+                    : "text-[#334155]/60 hover:bg-[#1E293B]"
                 }`}
                 data-testid={`filter-${tab}`}
               >
@@ -423,17 +423,17 @@ const MyGoals = () => {
       <div className="px-6 mt-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#E2E8F0]/60">Loading goals...</div>
+            <div className="text-[#334155]/60">Loading goals...</div>
           </div>
         ) : filteredGoals.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-violet-100 mb-4">
               <Target className="h-10 w-10 text-violet-500" />
             </div>
-            <h2 className="text-lg font-semibold text-[#E2E8F0] mb-2">
+            <h2 className="text-lg font-semibold text-[#334155] mb-2">
               {filter === "completed" ? "No Completed Goals Yet" : "No Goals Yet"}
             </h2>
-            <p className="text-[#E2E8F0]/60 text-center text-sm mb-6">
+            <p className="text-[#334155]/60 text-center text-sm mb-6">
               {filter === "completed" 
                 ? "Complete your first goal to see it here!"
                 : "Set your first financial goal and start tracking your progress"

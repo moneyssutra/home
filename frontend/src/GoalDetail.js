@@ -122,7 +122,7 @@ const GoalDetail = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
-        <div className="text-[#E2E8F0]/60">Loading...</div>
+        <div className="text-[#334155]/60">Loading...</div>
       </div>
     );
   }
@@ -131,7 +131,7 @@ const GoalDetail = () => {
     return (
       <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-[#E2E8F0]/60 mb-4">Goal not found</p>
+          <p className="text-[#334155]/60 mb-4">Goal not found</p>
           <button
             onClick={() => navigate("/my-goals")}
             className="text-[#7C3AED] font-medium"
@@ -252,9 +252,9 @@ const GoalDetail = () => {
           <div className="bg-[#1E293B] rounded-2xl p-4 border border-gray-100 shadow-sm" data-testid="target-date-card">
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="h-4 w-4 text-[#7C3AED]" />
-              <span className="text-xs text-[#E2E8F0]/50">Target Date</span>
+              <span className="text-xs text-[#334155]/50">Target Date</span>
             </div>
-            <p className="text-lg font-semibold text-[#E2E8F0]">
+            <p className="text-lg font-semibold text-[#334155]">
               {new Date(goal.targetDate).toLocaleDateString('en-IN', { 
                 day: 'numeric',
                 month: 'short',
@@ -265,7 +265,7 @@ const GoalDetail = () => {
           <div className="bg-[#1E293B] rounded-2xl p-4 border border-gray-100 shadow-sm" data-testid="time-remaining-card">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="h-4 w-4 text-[#7C3AED]" />
-              <span className="text-xs text-[#E2E8F0]/50">Time Remaining</span>
+              <span className="text-xs text-[#334155]/50">Time Remaining</span>
             </div>
             {goal.isCompleted ? (
               <p className="text-lg font-semibold text-emerald-600">Completed!</p>
@@ -275,7 +275,7 @@ const GoalDetail = () => {
                 {Math.abs(goal.daysRemaining)} days overdue
               </p>
             ) : (
-              <p className="text-lg font-semibold text-[#E2E8F0]">
+              <p className="text-lg font-semibold text-[#334155]">
                 {goal.daysRemaining} days left
               </p>
             )}
@@ -293,20 +293,20 @@ const GoalDetail = () => {
             {/* Total Projection Summary */}
             <div className="bg-[#1E293B]/70 rounded-xl p-4 mb-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-[#E2E8F0]/70">Projected Value from SIPs</span>
+                <span className="text-sm text-[#334155]/70">Projected Value from SIPs</span>
                 <span className="text-lg font-bold text-emerald-600">
                   ₹ {formatAmount(goal.totalProjectedFromSIPs || 0)}
                 </span>
               </div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-[#E2E8F0]/70">Monthly SIP Contributions</span>
-                <span className="text-sm font-semibold text-[#E2E8F0]">
+                <span className="text-sm text-[#334155]/70">Monthly SIP Contributions</span>
+                <span className="text-sm font-semibold text-[#334155]">
                   ₹ {formatAmount(goal.totalMonthlySIPContribution || 0)}/month
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-[#E2E8F0]/70">Months to Target</span>
-                <span className="text-sm font-semibold text-[#E2E8F0]">
+                <span className="text-sm text-[#334155]/70">Months to Target</span>
+                <span className="text-sm font-semibold text-[#334155]">
                   {Math.round(goal.monthsToTarget || 0)} months
                 </span>
               </div>
@@ -317,12 +317,12 @@ const GoalDetail = () => {
               {goal.sipProjections.map((sip, index) => (
                 <div key={index} className="bg-[#1E293B]/50 rounded-lg p-3">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-[#E2E8F0]">{sip.investmentName}</span>
+                    <span className="text-sm font-medium text-[#334155]">{sip.investmentName}</span>
                     <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">
                       {sip.frequency} SIP
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-[#E2E8F0]/60">
+                  <div className="grid grid-cols-2 gap-2 text-xs text-[#334155]/60">
                     <div>Current: ₹{formatAmount(sip.currentValue)}</div>
                     <div>SIP: ₹{formatAmount(sip.sipAmount)}/{sip.frequency?.toLowerCase()}</div>
                     <div>Return: {sip.returnRate || 0}% p.a.</div>
@@ -339,7 +339,7 @@ const GoalDetail = () => {
         {/* Linked Sources */}
         {(goal.linkedDetails?.length > 0 || goal.linkedLoan || goal.linkedCreditCard) && (
           <div className="bg-[#1E293B] rounded-2xl p-5 border border-gray-100 shadow-sm" data-testid="linked-sources-section">
-            <h3 className="text-sm font-semibold text-[#E2E8F0] mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-[#334155] mb-4 flex items-center gap-2">
               <Link2 className="h-4 w-4 text-[#7C3AED]" />
               Linked Sources
             </h3>
@@ -362,8 +362,8 @@ const GoalDetail = () => {
                        <CreditCard className="h-5 w-5" />}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-[#E2E8F0]">{source.name}</p>
-                      <p className="text-xs text-[#E2E8F0]/50">
+                      <p className="text-sm font-medium text-[#334155]">{source.name}</p>
+                      <p className="text-xs text-[#334155]/50">
                         {source.type}{source.category ? ` • ${source.category}` : ""}
                         {source.accountType ? ` • ${source.accountType}` : ""}
                         {source.hasSIP && <span className="ml-1 text-emerald-600">• Has SIP</span>}
@@ -371,7 +371,7 @@ const GoalDetail = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-[#E2E8F0]">
+                    <p className="text-sm font-semibold text-[#334155]">
                       ₹ {formatAmount(source.contribution)}
                     </p>
                     {source.projectedValue && source.projectedValue > source.contribution && (
@@ -396,8 +396,8 @@ const GoalDetail = () => {
         <div className="bg-[#1E293B] rounded-2xl p-5 border border-gray-100 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-[#E2E8F0]">Progress Tracking</p>
-              <p className="text-xs text-[#E2E8F0]/50 mt-0.5">
+              <p className="text-sm font-medium text-[#334155]">Progress Tracking</p>
+              <p className="text-xs text-[#334155]/50 mt-0.5">
                 {goal.calculationMethod === "auto" ? "Auto-calculated from linked sources" :
                  goal.calculationMethod === "manual_override" ? "Manually entered (override)" :
                  "Manually entered"}
@@ -416,8 +416,8 @@ const GoalDetail = () => {
         {/* Notes */}
         {goal.notes && (
           <div className="bg-[#1E293B] rounded-2xl p-5 border border-gray-100 shadow-sm">
-            <h3 className="text-sm font-semibold text-[#E2E8F0] mb-2">Notes</h3>
-            <p className="text-sm text-[#E2E8F0]/70">{goal.notes}</p>
+            <h3 className="text-sm font-semibold text-[#334155] mb-2">Notes</h3>
+            <p className="text-sm text-[#334155]/70">{goal.notes}</p>
           </div>
         )}
 
@@ -431,7 +431,7 @@ const GoalDetail = () => {
             <div className="space-y-4">
               {/* Monthly Contribution Summary */}
               <div className="bg-[#1E293B]/50 rounded-xl p-4">
-                <p className="text-xs text-[#E2E8F0]/60 mb-3">
+                <p className="text-xs text-[#334155]/60 mb-3">
                   Monthly Contribution Breakdown
                 </p>
                 <div className="space-y-2">
@@ -460,7 +460,7 @@ const GoalDetail = () => {
                 </div>
               </div>
               
-              <p className="text-sm text-[#E2E8F0]/70">
+              <p className="text-sm text-[#334155]/70">
                 To reach your goal of <span className="font-semibold">₹{formatAmount(goal.targetAmount)}</span> by{" "}
                 {new Date(goal.targetDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}, 
                 {goal.totalMonthlySIPContribution > 0 ? (
@@ -474,7 +474,7 @@ const GoalDetail = () => {
               {goal.totalProjectedFromSIPs > 0 && (
                 <div className="bg-[#1E293B]/50 rounded-lg p-3 mt-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-[#E2E8F0]/60">Projected at Target Date (from SIPs)</span>
+                    <span className="text-xs text-[#334155]/60">Projected at Target Date (from SIPs)</span>
                     <span className={`text-sm font-bold ${goal.totalProjectedFromSIPs >= goal.targetAmount ? 'text-emerald-600' : 'text-amber-600'}`}>
                       ₹ {formatAmount(goal.totalProjectedFromSIPs)}
                     </span>
@@ -531,17 +531,17 @@ const GoalDetail = () => {
                 <CheckCircle2 className="h-8 w-8 text-emerald-600" />
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-[#E2E8F0] text-center mb-2">
+            <h3 className="text-xl font-semibold text-[#334155] text-center mb-2">
               Mark Goal as Complete?
             </h3>
-            <p className="text-[#E2E8F0]/70 text-center mb-6">
+            <p className="text-[#334155]/70 text-center mb-6">
               Congratulations on reaching your goal! This will mark "{goal.goalName}" as completed.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowCompleteConfirm(false)}
-                className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium"
+                className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium"
               >
                 Not Yet
               </button>

@@ -199,7 +199,7 @@ const MyRental = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
           onClick={() => navigate("/")}
           aria-label="Back to income source"
           data-testid="back-button"
@@ -207,7 +207,7 @@ const MyRental = () => {
           <ChevronLeft className="h-5 w-5" />
         </button>
         <h1
-          className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#E2E8F0]"
+          className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]"
           style={{ fontFamily: "'Manrope', sans-serif" }}
           data-testid="page-title"
         >
@@ -221,7 +221,7 @@ const MyRental = () => {
         <div className="mx-auto w-full max-w-[620px] px-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="text-[#E2E8F0]/60">Loading...</div>
+              <div className="text-[#334155]/60">Loading...</div>
             </div>
           ) : rentals.length === 0 ? (
             /* Empty State */
@@ -229,10 +229,10 @@ const MyRental = () => {
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F4] mb-6">
                 <Home className="h-12 w-12 text-[#14B8A6]" />
               </div>
-              <h2 className="text-xl font-semibold text-[#E2E8F0] mb-2">
+              <h2 className="text-xl font-semibold text-[#334155] mb-2">
                 No Rental Income Added Yet
               </h2>
-              <p className="text-[#E2E8F0]/60 text-center mb-8">
+              <p className="text-[#334155]/60 text-center mb-8">
                 Start by adding your first rental property
               </p>
               <button
@@ -256,20 +256,20 @@ const MyRental = () => {
                   return (
                     <div
                       key={rental.id}
-                      className="rounded-2xl border border-[#E2E8F0] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
+                      className="rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
                       onClick={() => navigate(`/rental-income/${rental.id}`)}
                       data-testid={`rental-card-${rental.id}`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           {/* Property Name */}
-                          <h3 className="text-lg font-semibold text-[#E2E8F0] mb-1">
+                          <h3 className="text-lg font-semibold text-[#334155] mb-1">
                             {rental.name}
                           </h3>
 
                           {/* Tenant Name if exists */}
                           {rental.tenantName && (
-                            <p className="text-sm text-[#E2E8F0]/60 mb-2">
+                            <p className="text-sm text-[#334155]/60 mb-2">
                               Tenant: {rental.tenantName}
                             </p>
                           )}
@@ -280,12 +280,12 @@ const MyRental = () => {
                               <span className="text-xl font-bold text-[#14B8A6]">
                                 ₹ {formatAmount(rental.expectedAmount)}
                               </span>
-                              <span className="text-sm text-[#E2E8F0]/60">/{rental.frequency?.toLowerCase()}</span>
+                              <span className="text-sm text-[#334155]/60">/{rental.frequency?.toLowerCase()}</span>
                             </div>
                             
                             {/* Rental Yield Badge */}
                             {rentalYield !== null && (
-                              <div className="flex items-center gap-1 bg-gradient-to-r from-[#E2E8F0] to-[#145A3E] px-3 py-1 rounded-full">
+                              <div className="flex items-center gap-1 bg-gradient-to-r from-[#334155] to-[#145A3E] px-3 py-1 rounded-full">
                                 <TrendingUp className="h-3 w-3 text-[#14B8A6]" />
                                 <span className="text-xs font-bold text-white">{rentalYield.toFixed(1)}% Yield</span>
                               </div>
@@ -294,7 +294,7 @@ const MyRental = () => {
 
                           {/* Linked Asset Info */}
                           {linkedAsset && (
-                            <div className="flex items-center gap-2 text-xs text-[#E2E8F0]/60 mb-2">
+                            <div className="flex items-center gap-2 text-xs text-[#334155]/60 mb-2">
                               <span>Asset: {linkedAsset.assetName}</span>
                               <span>•</span>
                               <span>₹{formatAmount(linkedAsset.currentValue)}</span>
@@ -302,7 +302,7 @@ const MyRental = () => {
                           )}
 
                           {/* Frequency and Due Date */}
-                          <div className="flex items-center gap-2 text-sm text-[#E2E8F0]/70">
+                          <div className="flex items-center gap-2 text-sm text-[#334155]/70">
                             <span className="font-medium">{rental.frequency}</span>
                             {getDueDisplay(rental) && (
                               <>
@@ -315,15 +315,15 @@ const MyRental = () => {
                           {/* Next Due Date & Security Deposit */}
                           <div className="flex items-center gap-4 mt-2 flex-wrap">
                             <div className="flex items-center gap-1">
-                              <span className="text-sm text-[#E2E8F0]/60">Next Due:</span>
+                              <span className="text-sm text-[#334155]/60">Next Due:</span>
                               <span className="text-sm font-medium text-[#14B8A6]">
                                 {getNextPaymentDate(rental)}
                               </span>
                             </div>
                             {rental.securityDeposit && (
                               <div className="flex items-center gap-1">
-                                <span className="text-sm text-[#E2E8F0]/60">Deposit:</span>
-                                <span className="text-sm font-medium text-[#E2E8F0]">
+                                <span className="text-sm text-[#334155]/60">Deposit:</span>
+                                <span className="text-sm font-medium text-[#334155]">
                                   ₹{formatAmount(rental.securityDeposit)}
                                 </span>
                               </div>
@@ -333,7 +333,7 @@ const MyRental = () => {
 
                         {/* Chevron */}
                         <div className="ml-4 mt-2">
-                          <ChevronRight className="h-6 w-6 text-[#E2E8F0]/40" />
+                          <ChevronRight className="h-6 w-6 text-[#334155]/40" />
                         </div>
                       </div>
                     </div>

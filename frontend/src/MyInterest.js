@@ -198,7 +198,7 @@ const MyInterest = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
           onClick={() => navigate("/")}
           aria-label="Back to income source"
           data-testid="back-button"
@@ -206,7 +206,7 @@ const MyInterest = () => {
           <ChevronLeft className="h-5 w-5" />
         </button>
         <h1
-          className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#E2E8F0]"
+          className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]"
           style={{ fontFamily: "'Manrope', sans-serif" }}
           data-testid="page-title"
         >
@@ -220,7 +220,7 @@ const MyInterest = () => {
         <div className="mx-auto w-full max-w-[620px] px-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="text-[#E2E8F0]/60">Loading...</div>
+              <div className="text-[#334155]/60">Loading...</div>
             </div>
           ) : interests.length === 0 ? (
             /* Empty State */
@@ -228,10 +228,10 @@ const MyInterest = () => {
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F4] mb-6">
                 <TrendingUp className="h-12 w-12 text-[#14B8A6]" />
               </div>
-              <h2 className="text-xl font-semibold text-[#E2E8F0] mb-2">
+              <h2 className="text-xl font-semibold text-[#334155] mb-2">
                 No Interest Income Added Yet
               </h2>
-              <p className="text-[#E2E8F0]/60 text-center mb-8">
+              <p className="text-[#334155]/60 text-center mb-8">
                 Start by adding your first interest income source
               </p>
               <button
@@ -256,7 +256,7 @@ const MyInterest = () => {
                     <div
                       key={interest.id}
                       className={`rounded-2xl border bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer ${
-                        matured ? "border-yellow-300" : "border-[#E2E8F0]"
+                        matured ? "border-yellow-300" : "border-[#334155]"
                       }`}
                       onClick={() => navigate(`/interest-income/${interest.id}`)}
                       data-testid={`interest-card-${interest.id}`}
@@ -274,7 +274,7 @@ const MyInterest = () => {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           {/* Interest Source Name */}
-                          <h3 className="text-lg font-semibold text-[#E2E8F0] mb-3">
+                          <h3 className="text-lg font-semibold text-[#334155] mb-3">
                             {interest.name}
                           </h3>
 
@@ -283,17 +283,17 @@ const MyInterest = () => {
                             {/* Principal & Rate Row */}
                             <div className="flex items-center gap-4 flex-wrap">
                               <div className="flex items-baseline gap-1">
-                                <span className="text-sm text-[#E2E8F0]/60">Principal:</span>
-                                <span className="text-sm font-semibold text-[#E2E8F0]">
+                                <span className="text-sm text-[#334155]/60">Principal:</span>
+                                <span className="text-sm font-semibold text-[#334155]">
                                   ₹{formatAmount(interest.principal || 0)}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
-                                <span className="text-sm text-[#E2E8F0]/60">Rate:</span>
-                                <span className="text-sm font-medium text-[#E2E8F0]">
+                                <span className="text-sm text-[#334155]/60">Rate:</span>
+                                <span className="text-sm font-medium text-[#334155]">
                                   {interest.rate}%
                                 </span>
-                                <span className="text-xs text-[#E2E8F0]/50">
+                                <span className="text-xs text-[#334155]/50">
                                   ({interest.interestType === "Simple Interest" ? "SI" : "CI"})
                                 </span>
                               </div>
@@ -302,13 +302,13 @@ const MyInterest = () => {
                             {/* Current Amount - Highlighted */}
                             <div className="rounded-lg bg-gradient-to-r from-[#E8F8F4] to-[#F0FDF9] p-3 mt-2">
                               <div className="flex items-baseline justify-between">
-                                <span className="text-sm text-[#E2E8F0]/70">Current Amount:</span>
+                                <span className="text-sm text-[#334155]/70">Current Amount:</span>
                                 <span className="text-lg font-bold text-[#14B8A6]">
                                   ₹{formatAmount(currentAmt)}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between mt-1">
-                                <span className="text-xs text-[#E2E8F0]/50">Interest earned:</span>
+                                <span className="text-xs text-[#334155]/50">Interest earned:</span>
                                 <span className="text-xs font-medium text-[#14B8A6]">
                                   +₹{formatAmount(currentAmt - (interest.principal || 0))}
                                 </span>
@@ -319,16 +319,16 @@ const MyInterest = () => {
                             <div className="flex items-center gap-4 flex-wrap mt-2">
                               {interest.startDate && (
                                 <div className="flex items-center gap-1">
-                                  <span className="text-xs text-[#E2E8F0]/60">Start:</span>
-                                  <span className="text-xs font-medium text-[#E2E8F0]">
+                                  <span className="text-xs text-[#334155]/60">Start:</span>
+                                  <span className="text-xs font-medium text-[#334155]">
                                     {formatDate(new Date(interest.startDate))}
                                   </span>
                                 </div>
                               )}
                               {interest.endDate && (
                                 <div className="flex items-center gap-1">
-                                  <span className="text-xs text-[#E2E8F0]/60">End:</span>
-                                  <span className={`text-xs font-medium ${matured ? "text-yellow-600" : "text-[#E2E8F0]"}`}>
+                                  <span className="text-xs text-[#334155]/60">End:</span>
+                                  <span className={`text-xs font-medium ${matured ? "text-yellow-600" : "text-[#334155]"}`}>
                                     {formatDate(new Date(interest.endDate))}
                                   </span>
                                 </div>
@@ -336,15 +336,15 @@ const MyInterest = () => {
                             </div>
 
                             {/* Frequency & Next Payment */}
-                            <div className="flex items-center gap-4 flex-wrap pt-1 border-t border-[#E2E8F0]/50 mt-2">
+                            <div className="flex items-center gap-4 flex-wrap pt-1 border-t border-[#334155]/50 mt-2">
                               <div className="flex items-center gap-1">
-                                <span className="text-sm text-[#E2E8F0]/60">Frequency:</span>
-                                <span className="text-sm font-medium text-[#E2E8F0]">
+                                <span className="text-sm text-[#334155]/60">Frequency:</span>
+                                <span className="text-sm font-medium text-[#334155]">
                                   {interest.frequency}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
-                                <span className="text-sm text-[#E2E8F0]/60">Next:</span>
+                                <span className="text-sm text-[#334155]/60">Next:</span>
                                 <span className={`text-sm font-medium ${
                                   getNextPaymentDate(interest) === "Matured" ? "text-yellow-600" : "text-[#14B8A6]"
                                 }`}>
@@ -355,8 +355,8 @@ const MyInterest = () => {
 
                             {/* Expected Income */}
                             <div className="flex items-baseline gap-1">
-                              <span className="text-sm text-[#E2E8F0]/60">Expected ({interest.frequency}):</span>
-                              <span className="text-sm font-semibold text-[#E2E8F0]">
+                              <span className="text-sm text-[#334155]/60">Expected ({interest.frequency}):</span>
+                              <span className="text-sm font-semibold text-[#334155]">
                                 ₹{formatAmount(interest.expectedAmount)}
                               </span>
                             </div>
@@ -365,7 +365,7 @@ const MyInterest = () => {
 
                         {/* Chevron */}
                         <div className="ml-4 mt-2">
-                          <ChevronRight className="h-6 w-6 text-[#E2E8F0]/40" />
+                          <ChevronRight className="h-6 w-6 text-[#334155]/40" />
                         </div>
                       </div>
                     </div>

@@ -54,7 +54,7 @@ const OtherIncomeForm = () => {
     { value: "Windfall", label: "Windfall", icon: Sparkles, color: "bg-yellow-500/10 text-yellow-500 border-yellow-500/30" },
     { value: "Refund", label: "Refund", icon: RefreshCw, color: "bg-green-500/10 text-green-500 border-green-500/30" },
     { value: "Miscellaneous", label: "Miscellaneous", icon: Wallet, color: "bg-slate-500/10 text-slate-500 border-slate-500/30" },
-    { value: "Other", label: "Other (Custom)", icon: Wallet, color: "bg-gray-500/10 text-gray-500 border-gray-500/30" },
+    { value: "Other", label: "Other (Custom)", icon: Wallet, color: "bg-[#1E293B]0/10 text-slate-400 border-gray-500/30" },
   ];
 
   const frequencies = ["One-Time", "Monthly", "Quarterly", "Yearly", "Irregular"];
@@ -220,7 +220,7 @@ const OtherIncomeForm = () => {
 
           {/* Income Name */}
           <div>
-            <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+            <label className="block text-sm font-medium text-[#334155] mb-2">
               Income Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -235,7 +235,7 @@ const OtherIncomeForm = () => {
 
           {/* Category Selection */}
           <div>
-            <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+            <label className="block text-sm font-medium text-[#334155] mb-2">
               Category <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -249,7 +249,7 @@ const OtherIncomeForm = () => {
                     onClick={() => handleChange("category", cat.value)}
                     className={cn(
                       "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
-                      isSelected ? cat.color + " border-current" : "bg-gray-50 border-transparent hover:border-gray-200"
+                      isSelected ? cat.color + " border-current" : "bg-[#1E293B] border-transparent hover:border-gray-200"
                     )}
                     data-testid={`category-${cat.value.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}
                   >
@@ -264,7 +264,7 @@ const OtherIncomeForm = () => {
           {/* Custom Category Input (when "Other" selected) */}
           {formData.category === "Other" && (
             <div>
-              <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label className="block text-sm font-medium text-[#334155] mb-2">
                 Custom Category Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -289,7 +289,7 @@ const OtherIncomeForm = () => {
 
           {/* Frequency */}
           <div>
-            <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+            <label className="block text-sm font-medium text-[#334155] mb-2">
               Frequency <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -312,7 +312,7 @@ const OtherIncomeForm = () => {
             {/* One-Time / Irregular: Date Picker */}
             {(formData.frequency === "One-Time" || formData.frequency === "Irregular") && (
               <div>
-                <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   Date Received
                 </label>
                 <Popover>
@@ -344,7 +344,7 @@ const OtherIncomeForm = () => {
             {/* Monthly: Day of Month */}
             {formData.frequency === "Monthly" && (
               <div>
-                <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   Day of Month
                 </label>
                 <Popover>
@@ -377,7 +377,7 @@ const OtherIncomeForm = () => {
             {formData.frequency === "Quarterly" && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
                     Quarter
                   </label>
                   <div className="relative">
@@ -396,7 +396,7 @@ const OtherIncomeForm = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
                     Day of Quarter Start Month
                   </label>
                   <Popover>
@@ -430,7 +430,7 @@ const OtherIncomeForm = () => {
             {formData.frequency === "Yearly" && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
                     Month
                   </label>
                   <div className="relative">
@@ -449,7 +449,7 @@ const OtherIncomeForm = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
                     Day of Month
                   </label>
                   <Popover>
@@ -481,12 +481,12 @@ const OtherIncomeForm = () => {
           </div>
 
           {/* Is Received Toggle */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-[#1E293B]">
             <div className="flex items-center gap-3">
               <CheckCircle className={cn("h-5 w-5", formData.isReceived ? "text-emerald-500" : "text-gray-400")} />
               <div>
-                <p className="font-medium text-[#E2E8F0]">Already Received?</p>
-                <p className="text-xs text-[#E2E8F0]/50">Mark if you've already received this income</p>
+                <p className="font-medium text-[#334155]">Already Received?</p>
+                <p className="text-xs text-[#334155]/50">Mark if you've already received this income</p>
               </div>
             </div>
             <button
@@ -509,7 +509,7 @@ const OtherIncomeForm = () => {
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+            <label className="block text-sm font-medium text-[#334155] mb-2">
               Notes (Optional)
             </label>
             <textarea
@@ -559,14 +559,14 @@ const OtherIncomeForm = () => {
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6" data-testid="delete-modal">
           <div className="bg-[#1E293B] rounded-2xl p-6 w-full max-w-sm">
-            <h3 className="text-lg font-bold text-[#E2E8F0] mb-2">Delete Entry?</h3>
-            <p className="text-[#E2E8F0]/60 text-sm mb-6">
+            <h3 className="text-lg font-bold text-[#334155] mb-2">Delete Entry?</h3>
+            <p className="text-[#334155]/60 text-sm mb-6">
               This will permanently delete this income entry. This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-[#E2E8F0] font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-[#334155] font-medium hover:bg-[#1E293B] transition-colors"
               >
                 Cancel
               </button>

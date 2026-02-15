@@ -96,13 +96,13 @@ const MyAccounts = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
           onClick={() => navigate("/")}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           My Accounts
         </h1>
         <div className="h-10 w-10" />
@@ -121,17 +121,17 @@ const MyAccounts = () => {
             
             {/* Balance Allocation */}
             {accounts.filter(a => a.accountType !== "Credit Card").length > 0 && (
-              <div className="rounded-xl border border-[#E2E8F0] bg-[#1E293B] p-4 mb-3">
-                <p className="text-sm font-medium text-[#E2E8F0] mb-3">Balance Allocation</p>
+              <div className="rounded-xl border border-[#334155] bg-[#1E293B] p-4 mb-3">
+                <p className="text-sm font-medium text-[#334155] mb-3">Balance Allocation</p>
                 <div className="space-y-2">
                   {getBalanceAllocation().map(({ type, value, percentage }) => (
                     <div key={type} className="flex items-center gap-3">
                       <div className="flex-1">
                         <div className="flex justify-between text-sm mb-1">
-                          <span className="text-[#E2E8F0]/70">{type}</span>
-                          <span className="font-medium text-[#E2E8F0]">{percentage}%</span>
+                          <span className="text-[#334155]/70">{type}</span>
+                          <span className="font-medium text-[#334155]">{percentage}%</span>
                         </div>
-                        <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                        <div className="h-2 bg-[#334155] rounded-full overflow-hidden">
                           <div 
                             className="h-full bg-[#10B981] rounded-full"
                             style={{ width: `${percentage}%` }}
@@ -147,7 +147,7 @@ const MyAccounts = () => {
             {getTotalCreditOutstanding() > 0 && (
               <div className="rounded-xl bg-[#EF4444]/10 p-4 border border-[#EF4444]/20">
                 <p className="text-xs text-[#EF4444] font-medium mb-1">Credit Outstanding</p>
-                <p className="text-lg font-bold text-[#E2E8F0]">₹ {formatAmount(getTotalCreditOutstanding())}</p>
+                <p className="text-lg font-bold text-[#334155]">₹ {formatAmount(getTotalCreditOutstanding())}</p>
               </div>
             )}
           </div>
@@ -159,17 +159,17 @@ const MyAccounts = () => {
         <div className="mx-auto w-full max-w-[620px] px-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="text-[#E2E8F0]/60">Loading...</div>
+              <div className="text-[#334155]/60">Loading...</div>
             </div>
           ) : accounts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-6">
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F4] mb-6">
                 <Wallet className="h-12 w-12 text-[#14B8A6]" />
               </div>
-              <h2 className="text-xl font-semibold text-[#E2E8F0] mb-2">
+              <h2 className="text-xl font-semibold text-[#334155] mb-2">
                 No Accounts Added Yet
               </h2>
-              <p className="text-[#E2E8F0]/60 text-center mb-8">
+              <p className="text-[#334155]/60 text-center mb-8">
                 Add your bank accounts, wallets, and credit cards
               </p>
               <button
@@ -188,7 +188,7 @@ const MyAccounts = () => {
                 {accounts.map((account) => (
                   <div
                     key={account.id}
-                    className="flex items-center justify-between rounded-2xl border border-[#E2E8F0] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
+                    className="flex items-center justify-between rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
                     onClick={() => navigate(`/account/${account.id}`)}
                     data-testid={`account-card-${account.id}`}
                   >
@@ -198,7 +198,7 @@ const MyAccounts = () => {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 mb-1">
-                          <h3 className="text-lg font-semibold text-[#E2E8F0]">
+                          <h3 className="text-lg font-semibold text-[#334155]">
                             {account.accountName}
                           </h3>
                           {account.isPrimary && (
@@ -207,7 +207,7 @@ const MyAccounts = () => {
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-[#E2E8F0]/60">{account.accountType}</p>
+                        <p className="text-sm text-[#334155]/60">{account.accountType}</p>
                         
                         {account.accountType === "Credit Card" ? (
                           <div className="mt-2">
@@ -215,19 +215,19 @@ const MyAccounts = () => {
                               Outstanding: ₹ {formatAmount(account.outstandingAmount || 0)}
                             </span>
                             {account.creditLimit && (
-                              <span className="text-sm text-[#E2E8F0]/60 ml-2">
+                              <span className="text-sm text-[#334155]/60 ml-2">
                                 / Limit: ₹ {formatAmount(account.creditLimit)}
                               </span>
                             )}
                           </div>
                         ) : (
-                          <p className="text-lg font-semibold text-[#E2E8F0] mt-1">
+                          <p className="text-lg font-semibold text-[#334155] mt-1">
                             ₹ {formatAmount(account.currentBalance || 0)}
                           </p>
                         )}
                       </div>
                     </div>
-                    <ChevronRight className="h-6 w-6 text-[#E2E8F0]/40" />
+                    <ChevronRight className="h-6 w-6 text-[#334155]/40" />
                   </div>
                 ))}
               </div>

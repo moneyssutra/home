@@ -101,7 +101,7 @@ const VariableExpenses = () => {
       "Business Expense": "bg-lime-500/20 text-lime-500",
       "Salary Paid": "bg-green-500/20 text-green-500",
     };
-    return colors[category] || "bg-gray-500/20 text-gray-500";
+    return colors[category] || "bg-[#1E293B]0/20 text-slate-400";
   };
 
   const getStatusColor = (status) => {
@@ -109,7 +109,7 @@ const VariableExpenses = () => {
       case 'paid': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
       case 'due-today': return 'bg-amber-100 text-amber-700 border-amber-200';
       case 'upcoming': return 'bg-blue-100 text-blue-700 border-blue-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+      default: return 'bg-[#1E293B] text-slate-300 border-gray-200';
     }
   };
 
@@ -163,19 +163,19 @@ const VariableExpenses = () => {
 
       {/* Expense List */}
       <div className="px-6 mt-6">
-        <h3 className="text-sm font-semibold text-[#E2E8F0] mb-3">All Variable Expenses</h3>
+        <h3 className="text-sm font-semibold text-[#334155] mb-3">All Variable Expenses</h3>
         
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#E2E8F0]/60">Loading...</div>
+            <div className="text-[#334155]/60">Loading...</div>
           </div>
         ) : expenses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 mb-4">
               <Zap className="h-10 w-10 text-amber-500" />
             </div>
-            <h2 className="text-lg font-semibold text-[#E2E8F0] mb-2">No Variable Expenses</h2>
-            <p className="text-[#E2E8F0]/60 text-center text-sm mb-6">Add your one-time or irregular expenses</p>
+            <h2 className="text-lg font-semibold text-[#334155] mb-2">No Variable Expenses</h2>
+            <p className="text-[#334155]/60 text-center text-sm mb-6">Add your one-time or irregular expenses</p>
             <button
               onClick={() => navigate("/expense?type=Variable")}
               className="flex items-center gap-2 rounded-xl bg-[#14B8A6] px-5 py-2.5 text-white font-medium transition-all hover:bg-[#0D9488] active:scale-[0.98]"
@@ -196,7 +196,7 @@ const VariableExpenses = () => {
                   key={expense.id}
                   onClick={() => navigate(`/expense/${expense.id}`)}
                   className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all hover:shadow-md ${
-                    status === 'paid' ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-[#1E293B] border-gray-100'
+                    status === 'paid' ? 'bg-[#1E293B] border-gray-200 opacity-70' : 'bg-[#1E293B] border-gray-100'
                   }`}
                   data-testid={`expense-card-${expense.id}`}
                 >
@@ -205,23 +205,23 @@ const VariableExpenses = () => {
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="font-semibold text-[#E2E8F0]">{expense.expenseName}</h3>
+                      <h3 className="font-semibold text-[#334155]">{expense.expenseName}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusColor(status)}`}>
                         {getStatusLabel(status)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-[#E2E8F0]/50">
+                    <div className="flex items-center gap-2 text-xs text-[#334155]/50">
                       <span>{expense.category}</span>
                       <span>•</span>
                       <span>{expense.frequency || "One-time"}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-bold ${status === 'paid' ? 'text-emerald-600' : 'text-[#E2E8F0]'}`}>
+                    <p className={`font-bold ${status === 'paid' ? 'text-emerald-600' : 'text-[#334155]'}`}>
                       ₹ {formatAmount(expense.expectedAmount)}
                     </p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-[#E2E8F0]/30" />
+                  <ChevronRight className="h-5 w-5 text-[#334155]/30" />
                 </button>
               );
             })}

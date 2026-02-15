@@ -115,15 +115,15 @@ const MyCreditCards = () => {
       <div className="px-6 -mt-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#E2E8F0]/60">Loading...</div>
+            <div className="text-[#334155]/60">Loading...</div>
           </div>
         ) : cards.length === 0 ? (
           <div className="bg-[#1E293B] rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-violet-100 mx-auto mb-4">
               <CreditCard className="h-10 w-10 text-violet-500" />
             </div>
-            <h2 className="text-lg font-semibold text-[#E2E8F0] mb-2">No Credit Cards Added</h2>
-            <p className="text-[#E2E8F0]/60 text-sm mb-6">Add your credit cards to track outstanding and utilization</p>
+            <h2 className="text-lg font-semibold text-[#334155] mb-2">No Credit Cards Added</h2>
+            <p className="text-[#334155]/60 text-sm mb-6">Add your credit cards to track outstanding and utilization</p>
             <button
               onClick={() => navigate("/credit-card")}
               className="flex items-center gap-2 rounded-xl bg-[#14B8A6] px-5 py-2.5 text-white font-medium mx-auto transition-all hover:bg-[#0D9488] active:scale-[0.98]"
@@ -147,8 +147,8 @@ const MyCreditCards = () => {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-[#E2E8F0]">{card.cardName}</h3>
-                      <p className="text-sm text-[#E2E8F0]/50">{card.bankName}</p>
+                      <h3 className="font-semibold text-[#334155]">{card.cardName}</h3>
+                      <p className="text-sm text-[#334155]/50">{card.bankName}</p>
                     </div>
                     {daysUntilDue !== null && daysUntilDue <= 5 && (
                       <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-rose-100 text-rose-600 text-xs font-medium">
@@ -160,20 +160,20 @@ const MyCreditCards = () => {
                   
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-xs text-[#E2E8F0]/50 mb-0.5">Outstanding</p>
-                      <p className="text-xl font-bold text-[#E2E8F0]">₹ {formatAmount(card.outstandingAmount)}</p>
+                      <p className="text-xs text-[#334155]/50 mb-0.5">Outstanding</p>
+                      <p className="text-xl font-bold text-[#334155]">₹ {formatAmount(card.outstandingAmount)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-[#E2E8F0]/50 mb-0.5">Limit: ₹{formatAmount(card.creditLimit)}</p>
+                      <p className="text-xs text-[#334155]/50 mb-0.5">Limit: ₹{formatAmount(card.creditLimit)}</p>
                       <p className={`text-sm font-semibold ${getUtilizationColor(utilization).split(' ')[0]}`}>
                         {utilization.toFixed(0)}% used
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-[#E2E8F0]/30 ml-2" />
+                    <ChevronRight className="h-5 w-5 text-[#334155]/30 ml-2" />
                   </div>
                   
                   {/* Mini Progress Bar */}
-                  <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="mt-3 h-1.5 bg-[#1E293B] rounded-full overflow-hidden">
                     <div 
                       className={`h-full rounded-full ${getUtilizationColor(utilization).split(' ')[1]}`}
                       style={{ width: `${Math.min(utilization, 100)}%` }}

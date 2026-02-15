@@ -80,9 +80,9 @@ const MyOtherIncome = () => {
       "Windfall": "bg-yellow-500/20 text-yellow-500",
       "Refund": "bg-green-500/20 text-green-500",
       "Miscellaneous": "bg-slate-500/20 text-slate-500",
-      "Other": "bg-gray-500/20 text-gray-500",
+      "Other": "bg-[#1E293B]0/20 text-slate-400",
     };
-    return colors[category] || "bg-gray-500/20 text-gray-500";
+    return colors[category] || "bg-[#1E293B]0/20 text-slate-400";
   };
 
   const chartColors = ["#EC4899", "#F59E0B", "#8B5CF6", "#10B981", "#3B82F6", "#06B6D4", "#F97316", "#6366F1", "#14B8A6", "#EAB308", "#22C55E", "#64748B", "#6B7280"];
@@ -128,7 +128,7 @@ const MyOtherIncome = () => {
       {sortedCategories.length > 0 && (
         <div className="px-6 -mt-4">
           <div className="bg-[#1E293B] rounded-2xl p-5 shadow-sm border border-gray-100" data-testid="category-breakdown">
-            <h3 className="text-sm font-semibold text-[#E2E8F0] mb-4">Income by Category</h3>
+            <h3 className="text-sm font-semibold text-[#334155] mb-4">Income by Category</h3>
             <div className="space-y-3">
               {sortedCategories.map(([category, data], idx) => {
                 const percentage = totalAmount > 0 ? (data.total / totalAmount) * 100 : 0;
@@ -140,17 +140,17 @@ const MyOtherIncome = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-[#E2E8F0]">{category}</span>
-                        <span className="text-sm font-semibold text-[#E2E8F0]">₹ {formatAmount(data.total)}</span>
+                        <span className="text-sm font-medium text-[#334155]">{category}</span>
+                        <span className="text-sm font-semibold text-[#334155]">₹ {formatAmount(data.total)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="flex-1 h-2 bg-[#1E293B] rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-500"
                             style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }}
                           />
                         </div>
-                        <span className="text-xs text-[#E2E8F0]/50 w-12 text-right">{percentage.toFixed(0)}%</span>
+                        <span className="text-xs text-[#334155]/50 w-12 text-right">{percentage.toFixed(0)}%</span>
                       </div>
                     </div>
                   </div>
@@ -164,7 +164,7 @@ const MyOtherIncome = () => {
       {/* Income List */}
       <div className="px-6 mt-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-[#E2E8F0]">All Entries</h3>
+          <h3 className="text-sm font-semibold text-[#334155]">All Entries</h3>
           <button
             onClick={() => navigate("/other-income")}
             className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#7C3AED] text-white text-xs font-medium hover:bg-[#6D28D9] transition-colors"
@@ -184,8 +184,8 @@ const MyOtherIncome = () => {
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
               <Gift className="h-10 w-10 text-purple-500" />
             </div>
-            <h3 className="text-lg font-semibold text-[#E2E8F0] mb-2">No Other Income Yet</h3>
-            <p className="text-[#E2E8F0]/60 text-sm mb-4">Track gifts, bonuses, refunds, and more</p>
+            <h3 className="text-lg font-semibold text-[#334155] mb-2">No Other Income Yet</h3>
+            <p className="text-[#334155]/60 text-sm mb-4">Track gifts, bonuses, refunds, and more</p>
             <button
               onClick={() => navigate("/other-income")}
               className="px-6 py-2.5 rounded-xl bg-[#7C3AED] text-white font-medium text-sm hover:bg-[#6D28D9] transition-colors"
@@ -213,20 +213,20 @@ const MyOtherIncome = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <h4 className="font-semibold text-[#E2E8F0] truncate">{income.incomeName}</h4>
-                            <p className="text-xs text-[#E2E8F0]/50 mt-0.5">
+                            <h4 className="font-semibold text-[#334155] truncate">{income.incomeName}</h4>
+                            <p className="text-xs text-[#334155]/50 mt-0.5">
                               {income.category === "Other" && income.customCategory ? income.customCategory : income.category}
                             </p>
                           </div>
                           <div className="text-right shrink-0">
-                            <p className="font-bold text-[#E2E8F0]">₹ {formatAmount(income.amount)}</p>
+                            <p className="font-bold text-[#334155]">₹ {formatAmount(income.amount)}</p>
                             <span className={`text-xs px-2 py-0.5 rounded-full ${income.isReceived ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
                               {income.isReceived ? 'Received' : 'Pending'}
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-[#E2E8F0]/50">
-                          <span className="px-2 py-0.5 rounded-full bg-gray-100">{income.frequency}</span>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-[#334155]/50">
+                          <span className="px-2 py-0.5 rounded-full bg-[#1E293B]">{income.frequency}</span>
                           {income.dateReceived && (
                             <span>{formatDate(income.dateReceived)}</span>
                           )}

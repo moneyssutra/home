@@ -77,13 +77,13 @@ const MyLoans = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
           onClick={() => navigate("/")}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           My Loans
         </h1>
         <div className="h-10 w-10" />
@@ -94,7 +94,7 @@ const MyLoans = () => {
         <div className="mx-auto w-full max-w-[620px] px-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="text-[#E2E8F0]/60">Loading...</div>
+              <div className="text-[#334155]/60">Loading...</div>
             </div>
           ) : loans.length === 0 ? (
             /* Empty State */
@@ -102,10 +102,10 @@ const MyLoans = () => {
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#FEF3C7] mb-6">
                 <Landmark className="h-12 w-12 text-[#F59E0B]" />
               </div>
-              <h2 className="text-xl font-semibold text-[#E2E8F0] mb-2">
+              <h2 className="text-xl font-semibold text-[#334155] mb-2">
                 No Loans Added Yet
               </h2>
-              <p className="text-[#E2E8F0]/60 text-center mb-8">
+              <p className="text-[#334155]/60 text-center mb-8">
                 Start by adding your first loan or liability
               </p>
               <button
@@ -137,17 +137,17 @@ const MyLoans = () => {
 
               {/* Loan Allocation */}
               {loans.length > 0 && (
-                <div className="rounded-xl border border-[#E2E8F0] bg-[#1E293B] p-4 mb-3">
-                  <p className="text-sm font-medium text-[#E2E8F0] mb-3">Loan Allocation</p>
+                <div className="rounded-xl border border-[#334155] bg-[#1E293B] p-4 mb-3">
+                  <p className="text-sm font-medium text-[#334155] mb-3">Loan Allocation</p>
                   <div className="space-y-2">
                     {getLoanAllocation().map(({ type, value, percentage }) => (
                       <div key={type} className="flex items-center gap-3">
                         <div className="flex-1">
                           <div className="flex justify-between text-sm mb-1">
-                            <span className="text-[#E2E8F0]/70">{type}</span>
-                            <span className="font-medium text-[#E2E8F0]">{percentage}%</span>
+                            <span className="text-[#334155]/70">{type}</span>
+                            <span className="font-medium text-[#334155]">{percentage}%</span>
                           </div>
-                          <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                          <div className="h-2 bg-[#334155] rounded-full overflow-hidden">
                             <div 
                               className="h-full bg-[#F59E0B] rounded-full"
                               style={{ width: `${percentage}%` }}
@@ -167,20 +167,20 @@ const MyLoans = () => {
                   return (
                   <div
                     key={loan.id}
-                    className="rounded-2xl border border-[#E2E8F0] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
+                    className="rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
                     onClick={() => navigate(`/loan/${loan.id}`)}
                     data-testid={`loan-card-${loan.id}`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         {/* Loan Name */}
-                        <h3 className="text-lg font-semibold text-[#E2E8F0] mb-1">
+                        <h3 className="text-lg font-semibold text-[#334155] mb-1">
                           {loan.loanName}
                         </h3>
 
                         {/* Lender */}
                         {loan.lenderName && (
-                          <p className="text-sm text-[#E2E8F0]/60 mb-2">
+                          <p className="text-sm text-[#334155]/60 mb-2">
                             {loan.lenderName}
                           </p>
                         )}
@@ -209,7 +209,7 @@ const MyLoans = () => {
 
                         {/* Outstanding Amount */}
                         <div className="flex items-baseline gap-2 mb-3">
-                          <span className="text-sm text-[#E2E8F0]/60">Outstanding:</span>
+                          <span className="text-sm text-[#334155]/60">Outstanding:</span>
                           <span className="text-xl font-bold text-[#F59E0B]">
                             ₹ {formatAmount(loan.outstandingAmount)}
                           </span>
@@ -217,11 +217,11 @@ const MyLoans = () => {
 
                         {/* Progress Bar */}
                         <div className="mb-3">
-                          <div className="flex justify-between text-xs text-[#E2E8F0]/60 mb-1">
+                          <div className="flex justify-between text-xs text-[#334155]/60 mb-1">
                             <span>Paid: ₹{formatAmount(loan.principalAmount - loan.outstandingAmount)}</span>
                             <span>{calculateProgress(loan).toFixed(1)}%</span>
                           </div>
-                          <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                          <div className="h-2 bg-[#334155] rounded-full overflow-hidden">
                             <div 
                               className="h-full bg-[#14B8A6] rounded-full transition-all"
                               style={{ width: `${calculateProgress(loan)}%` }}
@@ -230,17 +230,17 @@ const MyLoans = () => {
                         </div>
 
                         {/* Details Row */}
-                        <div className="flex items-center gap-4 text-sm text-[#E2E8F0]/70 flex-wrap">
+                        <div className="flex items-center gap-4 text-sm text-[#334155]/70 flex-wrap">
                           <div className="flex items-center gap-1">
-                            <span className="text-[#E2E8F0]/60">EMI:</span>
+                            <span className="text-[#334155]/60">EMI:</span>
                             <span className="font-medium">₹{formatAmount(loan.emiAmount)}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span className="text-[#E2E8F0]/60">Rate:</span>
+                            <span className="text-[#334155]/60">Rate:</span>
                             <span className="font-medium">{loan.interestRate}%</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span className="text-[#E2E8F0]/60">Started:</span>
+                            <span className="text-[#334155]/60">Started:</span>
                             <span className="font-medium">{formatDate(loan.startDate)}</span>
                           </div>
                         </div>
@@ -248,7 +248,7 @@ const MyLoans = () => {
 
                       {/* Chevron */}
                       <div className="ml-4 mt-2">
-                        <ChevronRight className="h-6 w-6 text-[#E2E8F0]/40" />
+                        <ChevronRight className="h-6 w-6 text-[#334155]/40" />
                       </div>
                     </div>
                   </div>

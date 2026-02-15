@@ -157,7 +157,7 @@ const MyCommission = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
           onClick={() => navigate("/")}
           aria-label="Back to income source"
           data-testid="back-button"
@@ -165,7 +165,7 @@ const MyCommission = () => {
           <ChevronLeft className="h-5 w-5" />
         </button>
         <h1
-          className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#E2E8F0]"
+          className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#334155]"
           style={{ fontFamily: "'Manrope', sans-serif" }}
           data-testid="page-title"
         >
@@ -179,7 +179,7 @@ const MyCommission = () => {
         <div className="mx-auto w-full max-w-[620px] px-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="text-[#E2E8F0]/60">Loading...</div>
+              <div className="text-[#334155]/60">Loading...</div>
             </div>
           ) : commissions.length === 0 ? (
             /* Empty State */
@@ -187,10 +187,10 @@ const MyCommission = () => {
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F4] mb-6">
                 <Percent className="h-12 w-12 text-[#14B8A6]" />
               </div>
-              <h2 className="text-xl font-semibold text-[#E2E8F0] mb-2">
+              <h2 className="text-xl font-semibold text-[#334155] mb-2">
                 No Commission Income Added Yet
               </h2>
-              <p className="text-[#E2E8F0]/60 text-center mb-8">
+              <p className="text-[#334155]/60 text-center mb-8">
                 Start by adding your first commission income source
               </p>
               <button
@@ -211,20 +211,20 @@ const MyCommission = () => {
                 {commissions.map((commission) => (
                   <div
                     key={commission.id}
-                    className="flex items-center justify-between rounded-2xl border border-[#E2E8F0] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
+                    className="flex items-center justify-between rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
                     onClick={() => navigate(`/commission-income/${commission.id}`)}
                     data-testid={`commission-card-${commission.id}`}
                   >
                     <div className="flex-1">
                       {/* Source Name and Type Badge */}
                       <div className="flex items-center gap-2 mb-3">
-                        <h3 className="text-lg font-semibold text-[#E2E8F0]">
+                        <h3 className="text-lg font-semibold text-[#334155]">
                           {commission.name}
                         </h3>
                         {/* Fixed/Variable Badge */}
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                           commission.isVariable === false 
-                            ? "bg-[#E2E8F0]/10 text-[#E2E8F0]" 
+                            ? "bg-[#334155]/10 text-[#334155]" 
                             : "bg-[#F59E0B]/10 text-[#F59E0B]"
                         }`}>
                           {commission.isVariable === false ? "Fixed" : "Variable"}
@@ -235,23 +235,23 @@ const MyCommission = () => {
                       <div className="space-y-2">
                         {/* Expected Amount */}
                         <div className="flex items-baseline gap-2">
-                          <span className="text-sm text-[#E2E8F0]/60">Expected Amount:</span>
-                          <span className="text-base font-semibold text-[#E2E8F0]">
+                          <span className="text-sm text-[#334155]/60">Expected Amount:</span>
+                          <span className="text-base font-semibold text-[#334155]">
                             ₹ {formatAmount(commission.expectedAmount)}
                           </span>
                         </div>
 
                         {/* Frequency */}
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-[#E2E8F0]/60">Frequency:</span>
-                          <span className="text-sm font-medium text-[#E2E8F0]">
+                          <span className="text-sm text-[#334155]/60">Frequency:</span>
+                          <span className="text-sm font-medium text-[#334155]">
                             {commission.frequency}
                           </span>
                         </div>
 
                         {/* Next Payment Date */}
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-[#E2E8F0]/60">Date:</span>
+                          <span className="text-sm text-[#334155]/60">Date:</span>
                           <span className="text-sm font-medium text-[#14B8A6]">
                             {getNextPaymentDate(commission)}
                           </span>
@@ -261,7 +261,7 @@ const MyCommission = () => {
 
                     {/* Chevron */}
                     <div className="ml-4">
-                      <ChevronRight className="h-6 w-6 text-[#E2E8F0]/40" />
+                      <ChevronRight className="h-6 w-6 text-[#334155]/40" />
                     </div>
                   </div>
                 ))}

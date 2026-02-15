@@ -39,12 +39,12 @@ const AddActionSheet = ({ isOpen, onClose }) => {
           
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            <h2 className="text-xl font-bold text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
               Quick Add
             </h2>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+              className="w-8 h-8 rounded-full bg-[#1E293B] flex items-center justify-center text-slate-400 hover:bg-gray-200 transition-colors"
               data-testid="close-sheet"
             >
               <X className="h-5 w-5" />
@@ -59,13 +59,13 @@ const AddActionSheet = ({ isOpen, onClose }) => {
                 <button
                   key={action.label}
                   onClick={() => handleAction(action.path)}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gray-50 border border-gray-100 transition-all hover:bg-gray-100 active:scale-95"
+                  className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#1E293B] border border-gray-100 transition-all hover:bg-[#1E293B] active:scale-95"
                   data-testid={`add-${action.label.toLowerCase().replace(' ', '-')}`}
                 >
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg`}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <span className="text-xs font-medium text-[#E2E8F0]/80 text-center leading-tight">
+                  <span className="text-xs font-medium text-[#334155]/80 text-center leading-tight">
                     {action.label.replace('Add ', '')}
                   </span>
                 </button>

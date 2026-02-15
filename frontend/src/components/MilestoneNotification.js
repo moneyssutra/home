@@ -118,10 +118,10 @@ export const useMilestoneNotification = (goalId, backendUrl) => {
 // Milestone badge component
 export const MilestoneBadge = ({ milestone, reached }) => {
   const styles = {
-    25: { bg: reached ? "bg-emerald-100" : "bg-gray-100", text: reached ? "text-emerald-600" : "text-gray-400", icon: "🌱" },
-    50: { bg: reached ? "bg-amber-100" : "bg-gray-100", text: reached ? "text-amber-600" : "text-gray-400", icon: "🔥" },
-    75: { bg: reached ? "bg-violet-100" : "bg-gray-100", text: reached ? "text-violet-600" : "text-gray-400", icon: "🚀" },
-    100: { bg: reached ? "bg-pink-100" : "bg-gray-100", text: reached ? "text-pink-600" : "text-gray-400", icon: "🎉" },
+    25: { bg: reached ? "bg-emerald-100" : "bg-[#1E293B]", text: reached ? "text-emerald-600" : "text-gray-400", icon: "🌱" },
+    50: { bg: reached ? "bg-amber-100" : "bg-[#1E293B]", text: reached ? "text-amber-600" : "text-gray-400", icon: "🔥" },
+    75: { bg: reached ? "bg-violet-100" : "bg-[#1E293B]", text: reached ? "text-violet-600" : "text-gray-400", icon: "🚀" },
+    100: { bg: reached ? "bg-pink-100" : "bg-[#1E293B]", text: reached ? "text-pink-600" : "text-gray-400", icon: "🎉" },
   };
 
   const style = styles[milestone] || styles[25];

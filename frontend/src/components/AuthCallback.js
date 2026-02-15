@@ -42,7 +42,7 @@ const AuthCallback = () => {
     <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-12 h-12 border-4 border-[#14B8A6] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-[#E2E8F0]/60">Authenticating...</p>
+        <p className="text-[#334155]/60">Authenticating...</p>
       </div>
     </div>
   );

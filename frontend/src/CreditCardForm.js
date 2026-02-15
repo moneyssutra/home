@@ -133,7 +133,7 @@ const CreditCardForm = () => {
       {/* Header */}
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <BackButton fallbackPath="/my-credit-cards" />
-        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           {isEditing ? "Edit Credit Card" : "Add Credit Card"}
         </h1>
         <div className="h-10 w-10" />
@@ -145,7 +145,7 @@ const CreditCardForm = () => {
           <div className="space-y-6">
             {/* Card Name */}
             <div>
-              <label htmlFor="cardName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="cardName" className="block text-sm font-medium text-[#334155] mb-2">
                 Card Name <span className="text-rose-500">*</span>
               </label>
               <input
@@ -154,7 +154,7 @@ const CreditCardForm = () => {
                 value={cardName}
                 onChange={(e) => setCardName(e.target.value)}
                 placeholder="e.g., HDFC Regalia, ICICI Amazon Pay"
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#E2E8F0]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="card-name-input"
               />
               {errors.cardName && <p className="text-rose-500 text-xs mt-1">{errors.cardName}</p>}
@@ -162,7 +162,7 @@ const CreditCardForm = () => {
 
             {/* Bank Name */}
             <div>
-              <label htmlFor="bankName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="bankName" className="block text-sm font-medium text-[#334155] mb-2">
                 Bank Name <span className="text-rose-500">*</span>
               </label>
               <input
@@ -171,7 +171,7 @@ const CreditCardForm = () => {
                 value={bankName}
                 onChange={(e) => setBankName(e.target.value)}
                 placeholder="e.g., HDFC Bank, ICICI Bank"
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#E2E8F0]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="bank-name-input"
               />
               {errors.bankName && <p className="text-rose-500 text-xs mt-1">{errors.bankName}</p>}
@@ -179,59 +179,59 @@ const CreditCardForm = () => {
 
             {/* Credit Limit */}
             <div>
-              <label htmlFor="creditLimit" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="creditLimit" className="block text-sm font-medium text-[#334155] mb-2">
                 Credit Limit <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0]/60 font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155]/60 font-medium">₹</span>
                 <input
                   id="creditLimit"
                   type="text"
                   value={creditLimit}
                   onChange={(e) => setCreditLimit(e.target.value.replace(/[^0-9]/g, ""))}
                   placeholder="0"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] placeholder-[#E2E8F0]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#334155] bg-[#1E293B] text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="credit-limit-input"
                 />
               </div>
               {parseFloat(creditLimit) > 0 && (
-                <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic">{numberToWords(parseFloat(creditLimit))}</p>
+                <p className="mt-1.5 text-xs text-[#334155]/50 italic">{numberToWords(parseFloat(creditLimit))}</p>
               )}
               {errors.creditLimit && <p className="text-rose-500 text-xs mt-1">{errors.creditLimit}</p>}
             </div>
 
             {/* Current Outstanding */}
             <div>
-              <label htmlFor="outstandingAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="outstandingAmount" className="block text-sm font-medium text-[#334155] mb-2">
                 Current Outstanding
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0]/60 font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155]/60 font-medium">₹</span>
                 <input
                   id="outstandingAmount"
                   type="text"
                   value={outstandingAmount}
                   onChange={(e) => setOutstandingAmount(e.target.value.replace(/[^0-9]/g, ""))}
                   placeholder="0"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] placeholder-[#E2E8F0]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#334155] bg-[#1E293B] text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="outstanding-amount-input"
                 />
               </div>
               {parseFloat(outstandingAmount) > 0 && (
-                <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic">{numberToWords(parseFloat(outstandingAmount))}</p>
+                <p className="mt-1.5 text-xs text-[#334155]/50 italic">{numberToWords(parseFloat(outstandingAmount))}</p>
               )}
             </div>
 
             {/* Billing Cycle Date */}
             <div>
-              <label htmlFor="billingDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="billingDate" className="block text-sm font-medium text-[#334155] mb-2">
                 Billing Cycle Date
               </label>
               <select
                 id="billingDate"
                 value={billingDate}
                 onChange={(e) => setBillingDate(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="billing-date-select"
               >
                 <option value="">Select Date</option>
@@ -239,19 +239,19 @@ const CreditCardForm = () => {
                   <option key={day} value={day}>{day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'} of every month</option>
                 ))}
               </select>
-              <p className="text-xs text-[#E2E8F0]/50 mt-1">Statement generation date</p>
+              <p className="text-xs text-[#334155]/50 mt-1">Statement generation date</p>
             </div>
 
             {/* Payment Due Date */}
             <div>
-              <label htmlFor="dueDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="dueDate" className="block text-sm font-medium text-[#334155] mb-2">
                 Payment Due Date
               </label>
               <select
                 id="dueDate"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="due-date-select"
               >
                 <option value="">Select Date</option>
@@ -263,18 +263,18 @@ const CreditCardForm = () => {
 
             {/* Minimum Due */}
             <div>
-              <label htmlFor="minimumDue" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="minimumDue" className="block text-sm font-medium text-[#334155] mb-2">
                 Minimum Due <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0]/60 font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155]/60 font-medium">₹</span>
                 <input
                   id="minimumDue"
                   type="text"
                   value={minimumDue}
                   onChange={(e) => setMinimumDue(e.target.value.replace(/[^0-9]/g, ""))}
                   placeholder="0"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] placeholder-[#E2E8F0]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#334155] bg-[#1E293B] text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="minimum-due-input"
                 />
               </div>
@@ -282,7 +282,7 @@ const CreditCardForm = () => {
 
             {/* Interest Rate */}
             <div>
-              <label htmlFor="interestRate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="interestRate" className="block text-sm font-medium text-[#334155] mb-2">
                 Interest Rate (APR %) <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <div className="relative">
@@ -292,24 +292,24 @@ const CreditCardForm = () => {
                   value={interestRate}
                   onChange={(e) => setInterestRate(e.target.value.replace(/[^0-9.]/g, ""))}
                   placeholder="e.g., 42"
-                  className="w-full px-4 py-3 pr-10 rounded-xl border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] placeholder-[#E2E8F0]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full px-4 py-3 pr-10 rounded-xl border border-[#334155] bg-[#1E293B] text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="interest-rate-input"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#E2E8F0]/60 font-medium">%</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#334155]/60 font-medium">%</span>
               </div>
             </div>
 
             {/* Linked Bank Account */}
             {accounts.length > 0 && (
               <div>
-                <label htmlFor="linkedAccount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                <label htmlFor="linkedAccount" className="block text-sm font-medium text-[#334155] mb-2">
                   Linked Bank Account <span className="text-[#94A3B8] font-normal">(for bill payment)</span>
                 </label>
                 <select
                   id="linkedAccount"
                   value={linkedAccountId}
                   onChange={(e) => setLinkedAccountId(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="linked-account-select"
                 >
                   <option value="">Select Account</option>

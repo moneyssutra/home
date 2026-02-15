@@ -155,7 +155,7 @@ const MyBusiness = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
           onClick={() => navigate("/")}
           aria-label="Back to income source"
           data-testid="back-button"
@@ -163,7 +163,7 @@ const MyBusiness = () => {
           <ChevronLeft className="h-5 w-5" />
         </button>
         <h1
-          className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#E2E8F0]"
+          className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#334155]"
           style={{ fontFamily: "'Manrope', sans-serif" }}
           data-testid="page-title"
         >
@@ -177,7 +177,7 @@ const MyBusiness = () => {
         <div className="mx-auto w-full max-w-[620px] px-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="text-[#E2E8F0]/60">Loading...</div>
+              <div className="text-[#334155]/60">Loading...</div>
             </div>
           ) : businesses.length === 0 ? (
             /* Empty State */
@@ -185,10 +185,10 @@ const MyBusiness = () => {
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F4] mb-6">
                 <Briefcase className="h-12 w-12 text-[#14B8A6]" />
               </div>
-              <h2 className="text-xl font-semibold text-[#E2E8F0] mb-2">
+              <h2 className="text-xl font-semibold text-[#334155] mb-2">
                 No Businesses Added Yet
               </h2>
-              <p className="text-[#E2E8F0]/60 text-center mb-8">
+              <p className="text-[#334155]/60 text-center mb-8">
                 Start by adding your first business income source
               </p>
               <button
@@ -209,13 +209,13 @@ const MyBusiness = () => {
                 {businesses.map((business) => (
                   <div
                     key={business.id}
-                    className="flex items-center justify-between rounded-2xl border border-[#E2E8F0] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
+                    className="flex items-center justify-between rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
                     onClick={() => navigate(`/business-income/${business.id}`)}
                     data-testid={`business-card-${business.id}`}
                   >
                     <div className="flex-1">
                       {/* Business Name */}
-                      <h3 className="text-lg font-semibold text-[#E2E8F0] mb-3">
+                      <h3 className="text-lg font-semibold text-[#334155] mb-3">
                         {business.name}
                       </h3>
 
@@ -223,23 +223,23 @@ const MyBusiness = () => {
                       <div className="space-y-2">
                         {/* Expected Amount */}
                         <div className="flex items-baseline gap-2">
-                          <span className="text-sm text-[#E2E8F0]/60">Expected Amount:</span>
-                          <span className="text-base font-semibold text-[#E2E8F0]">
+                          <span className="text-sm text-[#334155]/60">Expected Amount:</span>
+                          <span className="text-base font-semibold text-[#334155]">
                             ₹ {formatAmount(business.expectedAmount)}
                           </span>
                         </div>
 
                         {/* Frequency */}
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-[#E2E8F0]/60">Frequency:</span>
-                          <span className="text-sm font-medium text-[#E2E8F0]">
+                          <span className="text-sm text-[#334155]/60">Frequency:</span>
+                          <span className="text-sm font-medium text-[#334155]">
                             {business.frequency}
                           </span>
                         </div>
 
                         {/* Next Payment Date */}
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-[#E2E8F0]/60">Date:</span>
+                          <span className="text-sm text-[#334155]/60">Date:</span>
                           <span className="text-sm font-medium text-[#14B8A6]">
                             {getNextPaymentDate(business)}
                           </span>
@@ -249,7 +249,7 @@ const MyBusiness = () => {
 
                     {/* Chevron */}
                     <div className="ml-4">
-                      <ChevronRight className="h-6 w-6 text-[#E2E8F0]/40" />
+                      <ChevronRight className="h-6 w-6 text-[#334155]/40" />
                     </div>
                   </div>
                 ))}

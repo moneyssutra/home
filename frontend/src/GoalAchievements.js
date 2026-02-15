@@ -22,10 +22,10 @@ import BackButton from "@/components/BackButton";
 // Milestone Badge Component
 const MilestoneBadge = ({ milestone, reached }) => {
   const styles = {
-    25: { bg: reached ? "bg-emerald-100" : "bg-gray-100", text: reached ? "text-emerald-600" : "text-gray-300", icon: "🌱", label: "First Steps" },
-    50: { bg: reached ? "bg-amber-100" : "bg-gray-100", text: reached ? "text-amber-600" : "text-gray-300", icon: "🔥", label: "Halfway" },
-    75: { bg: reached ? "bg-violet-100" : "bg-gray-100", text: reached ? "text-violet-600" : "text-gray-300", icon: "🚀", label: "Almost There" },
-    100: { bg: reached ? "bg-pink-100" : "bg-gray-100", text: reached ? "text-pink-600" : "text-gray-300", icon: "🎉", label: "Complete" },
+    25: { bg: reached ? "bg-emerald-100" : "bg-[#1E293B]", text: reached ? "text-emerald-600" : "text-gray-300", icon: "🌱", label: "First Steps" },
+    50: { bg: reached ? "bg-amber-100" : "bg-[#1E293B]", text: reached ? "text-amber-600" : "text-gray-300", icon: "🔥", label: "Halfway" },
+    75: { bg: reached ? "bg-violet-100" : "bg-[#1E293B]", text: reached ? "text-violet-600" : "text-gray-300", icon: "🚀", label: "Almost There" },
+    100: { bg: reached ? "bg-pink-100" : "bg-[#1E293B]", text: reached ? "text-pink-600" : "text-gray-300", icon: "🎉", label: "Complete" },
   };
 
   const style = styles[milestone] || styles[25];
@@ -86,18 +86,18 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
         {/* Amount Achieved */}
         <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
           <div>
-            <p className="text-xs text-gray-500 mb-1">Amount Achieved</p>
-            <p className="text-xl font-bold text-[#E2E8F0]">₹ {formatAmount(achievement.finalAmount)}</p>
+            <p className="text-xs text-slate-400 mb-1">Amount Achieved</p>
+            <p className="text-xl font-bold text-[#334155]">₹ {formatAmount(achievement.finalAmount)}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-500 mb-1">Target</p>
-            <p className="text-lg font-semibold text-gray-600">₹ {formatAmount(achievement.targetAmount)}</p>
+            <p className="text-xs text-slate-400 mb-1">Target</p>
+            <p className="text-lg font-semibold text-slate-400">₹ {formatAmount(achievement.targetAmount)}</p>
           </div>
         </div>
 
         {/* Milestone Badges */}
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+          <p className="text-xs text-slate-400 mb-2 flex items-center gap-1">
             <Star className="h-3 w-3" />
             Milestones Achieved
           </p>
@@ -114,19 +114,19 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
 
         {/* Stats Row */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gray-50 rounded-xl p-3">
+          <div className="bg-[#1E293B] rounded-xl p-3">
             <div className="flex items-center gap-2 mb-1">
               <Calendar className="h-4 w-4 text-emerald-500" />
-              <span className="text-xs text-gray-500">Completed On</span>
+              <span className="text-xs text-slate-400">Completed On</span>
             </div>
-            <p className="text-sm font-semibold text-[#E2E8F0]">{completedDate}</p>
+            <p className="text-sm font-semibold text-[#334155]">{completedDate}</p>
           </div>
-          <div className="bg-gray-50 rounded-xl p-3">
+          <div className="bg-[#1E293B] rounded-xl p-3">
             <div className="flex items-center gap-2 mb-1">
               <Clock className="h-4 w-4 text-violet-500" />
-              <span className="text-xs text-gray-500">Journey Duration</span>
+              <span className="text-xs text-slate-400">Journey Duration</span>
             </div>
-            <p className="text-sm font-semibold text-[#E2E8F0]">
+            <p className="text-sm font-semibold text-[#334155]">
               {achievement.durationDays ? `${achievement.durationDays} days` : 'N/A'}
             </p>
           </div>
@@ -135,7 +135,7 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
         {/* View Details Button */}
         <button
           onClick={() => navigate(`/goal/${achievement.id}`)}
-          className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-[#E2E8F0] text-sm font-medium hover:bg-gray-50 transition-colors"
+          className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-[#334155] text-sm font-medium hover:bg-[#1E293B] transition-colors"
           data-testid={`view-achievement-${achievement.id}`}
         >
           View Details
@@ -262,15 +262,15 @@ const GoalAchievements = () => {
       <div className="px-6 mt-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#E2E8F0]/60">Loading achievements...</div>
+            <div className="text-[#334155]/60">Loading achievements...</div>
           </div>
         ) : achievements.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6">
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-amber-100 mb-4">
               <Trophy className="h-12 w-12 text-amber-500" />
             </div>
-            <h2 className="text-lg font-semibold text-[#E2E8F0] mb-2">No Achievements Yet</h2>
-            <p className="text-[#E2E8F0]/60 text-center text-sm mb-6">
+            <h2 className="text-lg font-semibold text-[#334155] mb-2">No Achievements Yet</h2>
+            <p className="text-[#334155]/60 text-center text-sm mb-6">
               Complete your first goal to see it celebrated here!
             </p>
             <button

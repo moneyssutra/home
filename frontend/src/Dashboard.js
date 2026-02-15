@@ -98,7 +98,7 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#E2E8F0] via-[#134E3E] to-[#E2E8F0] flex items-center justify-center" data-testid="dashboard-loading">
+      <div className="min-h-screen bg-gradient-to-br from-[#334155] via-[#134E3E] to-[#334155] flex items-center justify-center" data-testid="dashboard-loading">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 border-4 border-[#14B8A6]/30 border-t-[#14B8A6] rounded-full animate-spin" />
           <p className="text-white/80 font-medium">Loading your finances...</p>
@@ -108,7 +108,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#E2E8F0] via-[#134E3E] to-[#E2E8F0] pb-24" data-testid="dashboard-page">
+    <div className="min-h-screen bg-gradient-to-br from-[#334155] via-[#134E3E] to-[#334155] pb-24" data-testid="dashboard-page">
       {/* Header */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djJoLTJ2LTJoMnptMC00aDJ2MmgtMnYtMnptLTQgMHYyaC0ydi0yaDJ6bTIgMGgydjJoLTJ2LTJ6bS0yLTR2MmgtMnYtMmgyek0zNCAyNnYyaC0ydi0yaDJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50" />

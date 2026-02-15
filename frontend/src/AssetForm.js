@@ -311,13 +311,13 @@ const AssetForm = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
           onClick={() => navigate("/my-assets")}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           {id ? "Edit Asset" : "Add Asset"}
         </h1>
         <div className="h-10 w-10" />
@@ -329,14 +329,14 @@ const AssetForm = () => {
           <div className="space-y-6">
             {/* Asset Type */}
             <div className="w-full">
-              <label htmlFor="assetType" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="assetType" className="block text-sm font-medium text-[#334155] mb-2">
                 Asset Type
               </label>
               <select
                 id="assetType"
                 value={assetType}
                 onChange={(e) => setAssetType(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="asset-type-select"
               >
                 <option value="">Select Asset Type</option>
@@ -349,7 +349,7 @@ const AssetForm = () => {
 
             {/* Asset Name */}
             <div className="w-full">
-              <label htmlFor="assetName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="assetName" className="block text-sm font-medium text-[#334155] mb-2">
                 Asset Name
               </label>
               <input
@@ -359,7 +359,7 @@ const AssetForm = () => {
                 onChange={(e) => setAssetName(e.target.value)}
                 placeholder="e.g., Green Villa – Flat 302, Honda City 2020"
                 maxLength={100}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="asset-name-input"
               />
               {errors.assetName && <p className="text-sm text-red-500 mt-1">{errors.assetName}</p>}
@@ -367,23 +367,23 @@ const AssetForm = () => {
 
             {/* Purchase Value */}
             <div className="w-full">
-              <label htmlFor="purchaseValue" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="purchaseValue" className="block text-sm font-medium text-[#334155] mb-2">
                 Purchase Value <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                 <input
                   id="purchaseValue"
                   type="text"
                   value={purchaseValue}
                   onChange={handleAmountChange(setPurchaseValue)}
                   placeholder="0"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="purchase-value-input"
                 />
               </div>
               {parseFloat(purchaseValue) > 0 && (
-                <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="purchase-value-words">
+                <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="purchase-value-words">
                   {numberToWords(parseFloat(purchaseValue))}
                 </p>
               )}
@@ -391,43 +391,43 @@ const AssetForm = () => {
 
             {/* Current Market Value */}
             <div className="w-full">
-              <label htmlFor="currentValue" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="currentValue" className="block text-sm font-medium text-[#334155] mb-2">
                 Current Market Value
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                 <input
                   id="currentValue"
                   type="text"
                   value={currentValue}
                   onChange={handleAmountChange(setCurrentValue)}
                   placeholder="0"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="current-value-input"
                 />
               </div>
               {parseFloat(currentValue) > 0 && (
-                <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="current-value-words">
+                <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="current-value-words">
                   {numberToWords(parseFloat(currentValue))}
                 </p>
               )}
               {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue}</p>}
-              <p className="text-xs text-[#E2E8F0]/60 mt-1">This feeds into your Net Worth calculation</p>
+              <p className="text-xs text-[#334155]/60 mt-1">This feeds into your Net Worth calculation</p>
             </div>
 
             {/* Purchase Date */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label className="block text-sm font-medium text-[#334155] mb-2">
                 Purchase Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <Popover open={purchaseCalendarOpen} onOpenChange={setPurchaseCalendarOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-left text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    className="w-full flex items-center justify-between rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="purchase-date-input"
                   >
-                    <span className={purchaseDate ? "text-[#E2E8F0]" : "text-[#94A3B8]"}>
+                    <span className={purchaseDate ? "text-[#334155]" : "text-[#94A3B8]"}>
                       {purchaseDate ? format(new Date(purchaseDate), "PPP") : "Select purchase date"}
                     </span>
                     <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
@@ -451,14 +451,14 @@ const AssetForm = () => {
 
             {/* Depreciation Type */}
             <div className="w-full">
-              <label htmlFor="depreciationType" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="depreciationType" className="block text-sm font-medium text-[#334155] mb-2">
                 Value Trend <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <select
                 id="depreciationType"
                 value={depreciationType}
                 onChange={(e) => setDepreciationType(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="depreciation-type-select"
               >
                 <option value="">Select Value Trend</option>
@@ -469,19 +469,19 @@ const AssetForm = () => {
             </div>
 
             {/* Is Financed Toggle */}
-            <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
+            <div className="w-full rounded-xl border border-[#334155] p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-[#E2E8F0]">
+                  <label className="text-sm font-medium text-[#334155]">
                     Is This Asset Financed?
                   </label>
-                  <p className="text-xs text-[#E2E8F0]/60 mt-0.5">Link to a loan for net worth calculation</p>
+                  <p className="text-xs text-[#334155]/60 mt-0.5">Link to a loan for net worth calculation</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsFinanced(!isFinanced)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    isFinanced ? "bg-[#F59E0B]" : "bg-[#E2E8F0]"
+                    isFinanced ? "bg-[#F59E0B]" : "bg-[#334155]"
                   }`}
                   data-testid="is-financed-toggle"
                 >
@@ -494,15 +494,15 @@ const AssetForm = () => {
               </div>
 
               {isFinanced && (
-                <div className="mt-4 pt-4 border-t border-[#E2E8F0]">
-                  <label htmlFor="linkedLoan" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                <div className="mt-4 pt-4 border-t border-[#334155]">
+                  <label htmlFor="linkedLoan" className="block text-sm font-medium text-[#334155] mb-2">
                     Select Linked Loan
                   </label>
                   <select
                     id="linkedLoan"
                     value={linkedLoanId}
                     onChange={(e) => setLinkedLoanId(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="linked-loan-select"
                   >
                     <option value="">Select a Loan</option>
@@ -543,19 +543,19 @@ const AssetForm = () => {
             </div>
 
             {/* Generates Income Toggle */}
-            <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
+            <div className="w-full rounded-xl border border-[#334155] p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-[#E2E8F0]">
+                  <label className="text-sm font-medium text-[#334155]">
                     Does This Asset Generate Income?
                   </label>
-                  <p className="text-xs text-[#E2E8F0]/60 mt-0.5">E.g., Rental income from property</p>
+                  <p className="text-xs text-[#334155]/60 mt-0.5">E.g., Rental income from property</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setGeneratesIncome(!generatesIncome)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    generatesIncome ? "bg-[#14B8A6]" : "bg-[#E2E8F0]"
+                    generatesIncome ? "bg-[#14B8A6]" : "bg-[#334155]"
                   }`}
                   data-testid="generates-income-toggle"
                 >
@@ -569,10 +569,10 @@ const AssetForm = () => {
               
               {/* Rental Income Fields - shown when toggle is ON */}
               {generatesIncome && (
-                <div className="mt-4 pt-4 border-t border-[#E2E8F0] space-y-4">
+                <div className="mt-4 pt-4 border-t border-[#334155] space-y-4">
                   <div>
-                    <label htmlFor="renterName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
-                      Renter Name <span className="text-[#E2E8F0]/40">(Optional)</span>
+                    <label htmlFor="renterName" className="block text-sm font-medium text-[#334155] mb-2">
+                      Renter Name <span className="text-[#334155]/40">(Optional)</span>
                     </label>
                     <input
                       id="renterName"
@@ -580,66 +580,66 @@ const AssetForm = () => {
                       value={renterName}
                       onChange={(e) => setRenterName(e.target.value)}
                       placeholder="Enter renter's name"
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#E2E8F0]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="renter-name-input"
                     />
                   </div>
                   
                   <div>
-                    <label htmlFor="rentalAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                    <label htmlFor="rentalAmount" className="block text-sm font-medium text-[#334155] mb-2">
                       Rental Amount <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0]/60 font-medium">₹</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155]/60 font-medium">₹</span>
                       <input
                         id="rentalAmount"
                         type="text"
                         value={rentalAmount}
                         onChange={(e) => setRentalAmount(e.target.value.replace(/[^0-9]/g, ""))}
                         placeholder="0"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] placeholder-[#E2E8F0]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#334155] bg-[#1E293B] text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                         data-testid="rental-amount-input"
                       />
                     </div>
                     {parseFloat(rentalAmount) > 0 && (
-                      <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="rental-amount-words">
+                      <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="rental-amount-words">
                         {numberToWords(parseFloat(rentalAmount))}
                       </p>
                     )}
                   </div>
                   
                   <div>
-                    <label htmlFor="securityDeposit" className="block text-sm font-medium text-[#E2E8F0] mb-2">
-                      Security Deposit <span className="text-[#E2E8F0]/40">(Optional)</span>
+                    <label htmlFor="securityDeposit" className="block text-sm font-medium text-[#334155] mb-2">
+                      Security Deposit <span className="text-[#334155]/40">(Optional)</span>
                     </label>
                     <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0]/60 font-medium">₹</span>
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155]/60 font-medium">₹</span>
                       <input
                         id="securityDeposit"
                         type="text"
                         value={securityDeposit}
                         onChange={(e) => setSecurityDeposit(e.target.value.replace(/[^0-9]/g, ""))}
                         placeholder="0"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] placeholder-[#E2E8F0]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#334155] bg-[#1E293B] text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                         data-testid="security-deposit-input"
                       />
                     </div>
                     {parseFloat(securityDeposit) > 0 && (
-                      <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="security-deposit-words">
+                      <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="security-deposit-words">
                         {numberToWords(parseFloat(securityDeposit))}
                       </p>
                     )}
                   </div>
                   
                   <div>
-                    <label htmlFor="rentalFrequency" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                    <label htmlFor="rentalFrequency" className="block text-sm font-medium text-[#334155] mb-2">
                       Rental Frequency
                     </label>
                     <select
                       id="rentalFrequency"
                       value={rentalFrequency}
                       onChange={(e) => setRentalFrequency(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="rental-frequency-select"
                     >
                       <option value="Daily">Daily</option>
@@ -655,19 +655,19 @@ const AssetForm = () => {
             </div>
 
             {/* Is Insured Toggle */}
-            <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
+            <div className="w-full rounded-xl border border-[#334155] p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-[#E2E8F0]">
+                  <label className="text-sm font-medium text-[#334155]">
                     Is This Asset Insured?
                   </label>
-                  <p className="text-xs text-[#E2E8F0]/60 mt-0.5">Link to an insurance policy</p>
+                  <p className="text-xs text-[#334155]/60 mt-0.5">Link to an insurance policy</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsInsured(!isInsured)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    isInsured ? "bg-[#6366F1]" : "bg-[#E2E8F0]"
+                    isInsured ? "bg-[#6366F1]" : "bg-[#334155]"
                   }`}
                   data-testid="is-insured-toggle"
                 >
@@ -680,9 +680,9 @@ const AssetForm = () => {
               </div>
 
               {isInsured && (
-                <div className="mt-4 pt-4 border-t border-[#E2E8F0]">
+                <div className="mt-4 pt-4 border-t border-[#334155]">
                   <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="linkedInsurance" className="block text-sm font-medium text-[#E2E8F0]">
+                    <label htmlFor="linkedInsurance" className="block text-sm font-medium text-[#334155]">
                       Select Linked Insurance
                     </label>
                     <button
@@ -700,7 +700,7 @@ const AssetForm = () => {
                       id="linkedInsurance"
                       value={linkedInsuranceId}
                       onChange={(e) => setLinkedInsuranceId(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="linked-insurance-select"
                     >
                       <option value="">Select an Insurance</option>
@@ -711,7 +711,7 @@ const AssetForm = () => {
                       ))}
                     </select>
                   ) : (
-                    <div className="text-sm text-[#E2E8F0]/60 bg-[#0F172A] rounded-xl px-4 py-3 text-center">
+                    <div className="text-sm text-[#334155]/60 bg-[#0F172A] rounded-xl px-4 py-3 text-center">
                       No insurance policies found. Click "Add Insurance" to create one.
                     </div>
                   )}
@@ -722,7 +722,7 @@ const AssetForm = () => {
             {/* Location (for Property) */}
             {isPropertyType && (
               <div className="w-full">
-                <label htmlFor="assetLocation" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                <label htmlFor="assetLocation" className="block text-sm font-medium text-[#334155] mb-2">
                   Location <span className="text-[#94A3B8] font-normal">(Optional)</span>
                 </label>
                 <input
@@ -732,7 +732,7 @@ const AssetForm = () => {
                   onChange={(e) => setAssetLocation(e.target.value)}
                   placeholder="e.g., Mumbai, Andheri West"
                   maxLength={100}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="location-input"
                 />
               </div>
@@ -740,7 +740,7 @@ const AssetForm = () => {
 
             {/* Notes */}
             <div className="w-full">
-              <label htmlFor="notes" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="notes" className="block text-sm font-medium text-[#334155] mb-2">
                 Notes <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <textarea
@@ -749,7 +749,7 @@ const AssetForm = () => {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any additional notes..."
                 rows={3}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 resize-none"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 resize-none"
                 data-testid="notes-input"
               />
             </div>
@@ -762,7 +762,7 @@ const AssetForm = () => {
       </div>
 
       {/* Sticky Action Buttons */}
-      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
+      <div className="fixed bottom-16 left-0 right-0 border-t border-[#334155] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
         <div className="mx-auto max-w-[620px]">
           {id ? (
             <div className="flex gap-3">
@@ -804,12 +804,12 @@ const AssetForm = () => {
       {showUpdateConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
           <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#E2E8F0] mb-3">Confirm Changes</h3>
-            <p className="text-[#E2E8F0]/70 mb-6">
+            <h3 className="text-xl font-semibold text-[#334155] mb-3">Confirm Changes</h3>
+            <p className="text-[#334155]/70 mb-6">
               Are you sure you want to update this asset?
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
+              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">
                 Cancel
               </button>
               <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium">
@@ -825,11 +825,11 @@ const AssetForm = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
           <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-red-600 mb-3">Delete Asset?</h3>
-            <p className="text-[#E2E8F0]/70 mb-6">
+            <p className="text-[#334155]/70 mb-6">
               Are you sure you want to delete "{assetName}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">
                 Cancel
               </button>
               <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">

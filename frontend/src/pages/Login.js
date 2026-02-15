@@ -256,7 +256,7 @@ const Login = () => {
           <button
             type="button"
             onClick={loginWithGoogle}
-            className="w-full py-3 rounded-xl border border-gray-200 text-[#1F2937] font-medium hover:bg-gray-50 transition-all flex items-center justify-center gap-3"
+            className="w-full py-3 rounded-xl border border-gray-200 text-[#1F2937] font-medium hover:bg-[#1E293B] transition-all flex items-center justify-center gap-3"
             data-testid="google-login-button"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">

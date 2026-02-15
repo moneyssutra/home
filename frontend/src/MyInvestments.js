@@ -92,13 +92,13 @@ const MyInvestments = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
           onClick={() => navigate("/")}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           My Investments
         </h1>
         <div className="h-10 w-10" />
@@ -129,17 +129,17 @@ const MyInvestments = () => {
             </div>
             
             {/* Investment Allocation */}
-            <div className="rounded-xl border border-[#E2E8F0] bg-[#1E293B] p-4">
-              <p className="text-sm font-medium text-[#E2E8F0] mb-3">Portfolio Allocation</p>
+            <div className="rounded-xl border border-[#334155] bg-[#1E293B] p-4">
+              <p className="text-sm font-medium text-[#334155] mb-3">Portfolio Allocation</p>
               <div className="space-y-2">
                 {getInvestmentAllocation().map(({ category, value, percentage }) => (
                   <div key={category} className="flex items-center gap-3">
                     <div className="flex-1">
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-[#E2E8F0]/70">{category}</span>
-                        <span className="font-medium text-[#E2E8F0]">{percentage}%</span>
+                        <span className="text-[#334155]/70">{category}</span>
+                        <span className="font-medium text-[#334155]">{percentage}%</span>
                       </div>
-                      <div className="h-2 bg-[#E2E8F0] rounded-full overflow-hidden">
+                      <div className="h-2 bg-[#334155] rounded-full overflow-hidden">
                         <div 
                           className="h-full bg-[#8B5CF6] rounded-full"
                           style={{ width: `${percentage}%` }}
@@ -159,17 +159,17 @@ const MyInvestments = () => {
         <div className="mx-auto w-full max-w-[620px] px-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="text-[#E2E8F0]/60">Loading...</div>
+              <div className="text-[#334155]/60">Loading...</div>
             </div>
           ) : investments.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-6">
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#DCFCE7] mb-6">
                 <TrendingUp className="h-12 w-12 text-[#10B981]" />
               </div>
-              <h2 className="text-xl font-semibold text-[#E2E8F0] mb-2">
+              <h2 className="text-xl font-semibold text-[#334155] mb-2">
                 No Investments Added Yet
               </h2>
-              <p className="text-[#E2E8F0]/60 text-center mb-8">
+              <p className="text-[#334155]/60 text-center mb-8">
                 Start tracking your investment portfolio
               </p>
               <button
@@ -188,13 +188,13 @@ const MyInvestments = () => {
                 {investments.map((investment) => (
                   <div
                     key={investment.id}
-                    className="flex items-center justify-between rounded-2xl border border-[#E2E8F0] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
+                    className="flex items-center justify-between rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
                     onClick={() => navigate(`/investment/${investment.id}`)}
                     data-testid={`investment-card-${investment.id}`}
                   >
                     <div className="flex-1">
                       {/* Investment Name */}
-                      <h3 className="text-lg font-semibold text-[#E2E8F0] mb-2">
+                      <h3 className="text-lg font-semibold text-[#334155] mb-2">
                         {investment.name}
                       </h3>
 
@@ -211,15 +211,15 @@ const MyInvestments = () => {
                       {/* Current Value */}
                       <div className="flex items-center gap-4">
                         <div>
-                          <span className="text-sm text-[#E2E8F0]/60">Current Value</span>
-                          <p className="text-lg font-semibold text-[#E2E8F0]">
+                          <span className="text-sm text-[#334155]/60">Current Value</span>
+                          <p className="text-lg font-semibold text-[#334155]">
                             ₹ {formatAmount(investment.currentValue || 0)}
                           </p>
                         </div>
                         {investment.principal && (
                           <div>
-                            <span className="text-sm text-[#E2E8F0]/60">Invested</span>
-                            <p className="text-sm font-medium text-[#E2E8F0]">
+                            <span className="text-sm text-[#334155]/60">Invested</span>
+                            <p className="text-sm font-medium text-[#334155]">
                               ₹ {formatAmount(investment.principal)}
                             </p>
                           </div>
@@ -227,7 +227,7 @@ const MyInvestments = () => {
                       </div>
                     </div>
 
-                    <ChevronRight className="h-6 w-6 text-[#E2E8F0]/40" />
+                    <ChevronRight className="h-6 w-6 text-[#334155]/40" />
                   </div>
                 ))}
               </div>

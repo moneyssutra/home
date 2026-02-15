@@ -138,7 +138,7 @@ const Portfolio = () => {
   return (
     <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="portfolio-page">
       {/* Header */}
-      <header className="bg-gradient-to-br from-[#E2E8F0] via-[#134E3E] to-[#E2E8F0] px-6 pt-8 pb-8">
+      <header className="bg-gradient-to-br from-[#334155] via-[#134E3E] to-[#334155] px-6 pt-8 pb-8">
         <h1 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Manrope', sans-serif" }}>
           Portfolio
         </h1>
@@ -161,22 +161,22 @@ const Portfolio = () => {
               </div>
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold text-[#E2E8F0]">{section.title}</h3>
+                  <h3 className="text-base font-semibold text-[#334155]">{section.title}</h3>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${section.bgColor} ${section.textColor}`}>
                     {section.count}
                   </span>
                 </div>
-                <p className={`text-lg font-bold mt-0.5 ${section.isLiability ? "text-rose-500" : "text-[#E2E8F0]"}`}>
+                <p className={`text-lg font-bold mt-0.5 ${section.isLiability ? "text-rose-500" : "text-[#334155]"}`}>
                   {section.isLiability && "-"}₹ {formatAmount(section.value)}
                 </p>
                 {section.label && (
-                  <p className="text-xs text-[#E2E8F0]/50">{section.label}</p>
+                  <p className="text-xs text-[#334155]/50">{section.label}</p>
                 )}
                 {section.extra && (
-                  <p className="text-xs text-[#E2E8F0]/50">{section.extra}</p>
+                  <p className="text-xs text-[#334155]/50">{section.extra}</p>
                 )}
               </div>
-              <ChevronRight className="h-6 w-6 text-[#E2E8F0]/30" />
+              <ChevronRight className="h-6 w-6 text-[#334155]/30" />
             </button>
           );
         })}
@@ -184,7 +184,7 @@ const Portfolio = () => {
 
       {/* Net Position */}
       <div className="px-6 mt-6">
-        <div className="bg-gradient-to-br from-[#E2E8F0] to-[#134E3E] rounded-2xl p-5">
+        <div className="bg-gradient-to-br from-[#334155] to-[#134E3E] rounded-2xl p-5">
           <p className="text-white/60 text-sm mb-1">Net Position</p>
           <h2 className="text-2xl font-bold text-white">
             ₹ {formatAmount(totalAssets + totalInvestments + totalBalance - totalLoans - totalCreditCardOutstanding)}

@@ -262,13 +262,13 @@ const InvestmentForm = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
           onClick={() => navigate("/my-investments")}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           {id ? "Edit Investment" : "Add Investment"}
         </h1>
         <div className="h-10 w-10" />
@@ -280,14 +280,14 @@ const InvestmentForm = () => {
           <div className="space-y-6">
             {/* Investment Category */}
             <div className="w-full">
-              <label htmlFor="investmentCategory" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="investmentCategory" className="block text-sm font-medium text-[#334155] mb-2">
                 Investment Category
               </label>
               <select
                 id="investmentCategory"
                 value={investmentCategory}
                 onChange={(e) => { setInvestmentCategory(e.target.value); setInvestmentMode(""); }}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="category-select"
               >
                 <option value="">Select Category</option>
@@ -300,14 +300,14 @@ const InvestmentForm = () => {
 
             {/* Investment Mode */}
             <div className="w-full">
-              <label htmlFor="investmentMode" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="investmentMode" className="block text-sm font-medium text-[#334155] mb-2">
                 Investment Mode
               </label>
               <select
                 id="investmentMode"
                 value={investmentMode}
                 onChange={(e) => setInvestmentMode(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="mode-select"
               >
                 <option value="">Select Mode</option>
@@ -320,7 +320,7 @@ const InvestmentForm = () => {
 
             {/* Investment Name */}
             <div className="w-full">
-              <label htmlFor="name" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="name" className="block text-sm font-medium text-[#334155] mb-2">
                 Investment Name
               </label>
               <input
@@ -330,7 +330,7 @@ const InvestmentForm = () => {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., SBI FD 2025, HDFC MF Growth"
                 maxLength={100}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="name-input"
               />
               {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
@@ -338,23 +338,23 @@ const InvestmentForm = () => {
 
             {/* Principal / Invested Amount */}
             <div className="w-full">
-              <label htmlFor="principal" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="principal" className="block text-sm font-medium text-[#334155] mb-2">
                 Principal / Invested Amount
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                 <input
                   id="principal"
                   type="text"
                   value={principal}
                   onChange={handleAmountChange(setPrincipal)}
                   placeholder="0"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="principal-input"
                 />
               </div>
               {parseFloat(principal) > 0 && (
-                <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="principal-words">
+                <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="principal-words">
                   {numberToWords(parseFloat(principal))}
                 </p>
               )}
@@ -363,17 +363,17 @@ const InvestmentForm = () => {
 
             {/* Start Date */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label className="block text-sm font-medium text-[#334155] mb-2">
                 Start Date
               </label>
               <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-left text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    className="w-full flex items-center justify-between rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="start-date-input"
                   >
-                    <span className={startDate ? "text-[#E2E8F0]" : "text-[#94A3B8]"}>
+                    <span className={startDate ? "text-[#334155]" : "text-[#94A3B8]"}>
                       {startDate ? format(new Date(startDate), "PPP") : "Select start date"}
                     </span>
                     <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
@@ -399,20 +399,20 @@ const InvestmentForm = () => {
             {/* Recurring Investment (SIP) Fields - Hidden for SGB and SWP */}
             {showFrequencyField && (
               <div className="w-full p-4 rounded-xl bg-[#F0FDF4] border border-[#10B981]/20">
-                <h4 className="text-sm font-semibold text-[#E2E8F0] mb-3 flex items-center gap-2">
+                <h4 className="text-sm font-semibold text-[#334155] mb-3 flex items-center gap-2">
                   <Info className="h-4 w-4 text-[#10B981]" />
                   Recurring Investment (SIP)
                 </h4>
                 <div className="space-y-4">
                   <div className="w-full">
-                    <label htmlFor="investmentFrequency" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                    <label htmlFor="investmentFrequency" className="block text-sm font-medium text-[#334155] mb-2">
                       Investment Frequency
                     </label>
                     <select
                       id="investmentFrequency"
                       value={investmentFrequency}
                       onChange={(e) => setInvestmentFrequency(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="investment-frequency-select"
                     >
                       <option value="">One-time Investment</option>
@@ -426,23 +426,23 @@ const InvestmentForm = () => {
                   
                   {investmentFrequency && investmentFrequency !== "" && (
                     <div className="w-full">
-                      <label htmlFor="sipAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                      <label htmlFor="sipAmount" className="block text-sm font-medium text-[#334155] mb-2">
                         {investmentFrequency} Investment Amount
                       </label>
                       <div className="relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                         <input
                           id="sipAmount"
                           type="text"
                           value={sipAmount}
                           onChange={handleAmountChange(setSipAmount)}
                           placeholder="0"
-                          className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                          className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                           data-testid="sip-amount-input"
                         />
                       </div>
                       {parseFloat(sipAmount) > 0 && (
-                        <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="sip-amount-words">
+                        <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="sip-amount-words">
                           {numberToWords(parseFloat(sipAmount))}
                         </p>
                       )}
@@ -456,7 +456,7 @@ const InvestmentForm = () => {
             {isDigitalMetal && (
               <>
                 <div className="w-full">
-                  <label htmlFor="quantity" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label htmlFor="quantity" className="block text-sm font-medium text-[#334155] mb-2">
                     Quantity (grams)
                   </label>
                   <input
@@ -465,23 +465,23 @@ const InvestmentForm = () => {
                     value={quantity}
                     onChange={handleAmountChange(setQuantity)}
                     placeholder="e.g., 10.5"
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="quantity-input"
                   />
                 </div>
                 <div className="w-full">
-                  <label htmlFor="unitPrice" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label htmlFor="unitPrice" className="block text-sm font-medium text-[#334155] mb-2">
                     Purchase Price per gram
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                     <input
                       id="unitPrice"
                       type="text"
                       value={unitPrice}
                       onChange={handleAmountChange(setUnitPrice)}
                       placeholder="0"
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="unit-price-input"
                     />
                   </div>
@@ -503,7 +503,7 @@ const InvestmentForm = () => {
             {isIncomeGenerating && (
               <>
                 <div className="w-full">
-                  <label htmlFor="returnRate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label htmlFor="returnRate" className="block text-sm font-medium text-[#334155] mb-2">
                     Return Rate (% per annum)
                   </label>
                   <div className="relative">
@@ -513,21 +513,21 @@ const InvestmentForm = () => {
                       value={returnRate}
                       onChange={handleAmountChange(setReturnRate)}
                       placeholder="e.g., 7.5"
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 pr-10 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 pr-10 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="return-rate-input"
                     />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#E2E8F0]/60">%</span>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#334155]/60">%</span>
                   </div>
                 </div>
 
                 <div className="w-full">
-                  <label className="block text-sm font-medium text-[#E2E8F0] mb-2">Interest Type</label>
-                  <div className="flex rounded-lg overflow-hidden border border-[#E2E8F0]">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">Interest Type</label>
+                  <div className="flex rounded-lg overflow-hidden border border-[#334155]">
                     <button
                       type="button"
                       onClick={() => setCompoundingType("Simple")}
                       className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-                        compoundingType === "Simple" ? "bg-[#E2E8F0] text-white" : "bg-[#1E293B] text-[#E2E8F0]"
+                        compoundingType === "Simple" ? "bg-[#334155] text-white" : "bg-[#1E293B] text-[#334155]"
                       }`}
                     >
                       Simple
@@ -536,7 +536,7 @@ const InvestmentForm = () => {
                       type="button"
                       onClick={() => setCompoundingType("Compound")}
                       className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
-                        compoundingType === "Compound" ? "bg-[#E2E8F0] text-white" : "bg-[#1E293B] text-[#E2E8F0]"
+                        compoundingType === "Compound" ? "bg-[#334155] text-white" : "bg-[#1E293B] text-[#334155]"
                       }`}
                     >
                       Compound
@@ -546,14 +546,14 @@ const InvestmentForm = () => {
 
                 {compoundingType === "Compound" && (
                   <div className="w-full">
-                    <label htmlFor="compoundingFrequency" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                    <label htmlFor="compoundingFrequency" className="block text-sm font-medium text-[#334155] mb-2">
                       Compounding Frequency
                     </label>
                     <select
                       id="compoundingFrequency"
                       value={compoundingFrequency}
                       onChange={(e) => setCompoundingFrequency(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     >
                       <option value="">Select Frequency</option>
                       {compoundingFrequencyOptions.map((opt) => (
@@ -564,14 +564,14 @@ const InvestmentForm = () => {
                 )}
 
                 <div className="w-full">
-                  <label htmlFor="payoutFrequency" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label htmlFor="payoutFrequency" className="block text-sm font-medium text-[#334155] mb-2">
                     Payout Frequency
                   </label>
                   <select
                     id="payoutFrequency"
                     value={payoutFrequency}
                     onChange={(e) => setPayoutFrequency(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   >
                     <option value="">Select Frequency</option>
                     {payoutFrequencyOptions.map((opt) => (
@@ -586,7 +586,7 @@ const InvestmentForm = () => {
             {isGrowthWithMaturity && (
               <>
                 <div className="w-full">
-                  <label htmlFor="lockInPeriod" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label htmlFor="lockInPeriod" className="block text-sm font-medium text-[#334155] mb-2">
                     Lock-in Period (months) <span className="text-[#94A3B8] font-normal">(Optional)</span>
                   </label>
                   <input
@@ -595,23 +595,23 @@ const InvestmentForm = () => {
                     value={lockInPeriod}
                     onChange={handleAmountChange(setLockInPeriod)}
                     placeholder="e.g., 36"
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="lock-in-input"
                   />
                 </div>
 
                 <div className="w-full">
-                  <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
                     Maturity Date
                   </label>
                   <Popover open={maturityCalendarOpen} onOpenChange={setMaturityCalendarOpen}>
                     <PopoverTrigger asChild>
                       <button
                         type="button"
-                        className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-left text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                        className="w-full flex items-center justify-between rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                         data-testid="maturity-date-input"
                       >
-                        <span className={maturityDate ? "text-[#E2E8F0]" : "text-[#94A3B8]"}>
+                        <span className={maturityDate ? "text-[#334155]" : "text-[#94A3B8]"}>
                           {maturityDate ? format(new Date(maturityDate), "PPP") : "Select maturity date"}
                         </span>
                         <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
@@ -634,23 +634,23 @@ const InvestmentForm = () => {
                 </div>
 
                 <div className="w-full">
-                  <label htmlFor="expectedMaturityValue" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                  <label htmlFor="expectedMaturityValue" className="block text-sm font-medium text-[#334155] mb-2">
                     Expected Maturity Value
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                     <input
                       id="expectedMaturityValue"
                       type="text"
                       value={expectedMaturityValue}
                       onChange={handleAmountChange(setExpectedMaturityValue)}
                       placeholder="0"
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="maturity-value-input"
                     />
                   </div>
                   {parseFloat(expectedMaturityValue) > 0 && (
-                    <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="maturity-value-words">
+                    <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="maturity-value-words">
                       {numberToWords(parseFloat(expectedMaturityValue))}
                     </p>
                   )}
@@ -660,40 +660,40 @@ const InvestmentForm = () => {
 
             {/* Current Value */}
             <div className="w-full">
-              <label htmlFor="currentValue" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="currentValue" className="block text-sm font-medium text-[#334155] mb-2">
                 Current Value <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
                 <input
                   id="currentValue"
                   type="text"
                   value={currentValue}
                   onChange={handleAmountChange(setCurrentValue)}
                   placeholder="Defaults to principal if empty"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="current-value-input"
                 />
               </div>
               {parseFloat(currentValue) > 0 && (
-                <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="current-value-words">
+                <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="current-value-words">
                   {numberToWords(parseFloat(currentValue))}
                 </p>
               )}
-              <p className="text-xs text-[#E2E8F0]/60 mt-1">This feeds into your Net Worth calculation</p>
+              <p className="text-xs text-[#334155]/60 mt-1">This feeds into your Net Worth calculation</p>
             </div>
 
             {/* Linked Account */}
             {accounts.length > 0 && (
               <div className="w-full">
-                <label htmlFor="linkedAccount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+                <label htmlFor="linkedAccount" className="block text-sm font-medium text-[#334155] mb-2">
                   Linked Account <span className="text-[#94A3B8] font-normal">(Optional)</span>
                 </label>
                 <select
                   id="linkedAccount"
                   value={linkedAccountId}
                   onChange={(e) => setLinkedAccountId(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="linked-account-select"
                 >
                   <option value="">Select Account</option>
@@ -706,7 +706,7 @@ const InvestmentForm = () => {
 
             {/* Notes */}
             <div className="w-full">
-              <label htmlFor="notes" className="block text-sm font-medium text-[#E2E8F0] mb-2">
+              <label htmlFor="notes" className="block text-sm font-medium text-[#334155] mb-2">
                 Notes <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <textarea
@@ -715,7 +715,7 @@ const InvestmentForm = () => {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Any additional notes..."
                 rows={3}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 resize-none"
+                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 resize-none"
                 data-testid="notes-input"
               />
             </div>
@@ -728,7 +728,7 @@ const InvestmentForm = () => {
       </div>
 
       {/* Sticky Action Buttons */}
-      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
+      <div className="fixed bottom-16 left-0 right-0 border-t border-[#334155] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
         <div className="mx-auto max-w-[620px]">
           {id ? (
             <div className="flex gap-3">
@@ -770,10 +770,10 @@ const InvestmentForm = () => {
       {showUpdateConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
           <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#E2E8F0] mb-3">Confirm Changes</h3>
-            <p className="text-[#E2E8F0]/70 mb-6">Are you sure you want to update this investment?</p>
+            <h3 className="text-xl font-semibold text-[#334155] mb-3">Confirm Changes</h3>
+            <p className="text-[#334155]/70 mb-6">Are you sure you want to update this investment?</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">Cancel</button>
+              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">Cancel</button>
               <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium">Yes, Update</button>
             </div>
           </div>
@@ -784,9 +784,9 @@ const InvestmentForm = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
           <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-red-600 mb-3">Delete Investment?</h3>
-            <p className="text-[#E2E8F0]/70 mb-6">Are you sure you want to delete "{name}"? This action cannot be undone.</p>
+            <p className="text-[#334155]/70 mb-6">Are you sure you want to delete "{name}"? This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">Cancel</button>
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">Cancel</button>
               <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">Yes, Delete</button>
             </div>
           </div>

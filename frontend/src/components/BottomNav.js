@@ -37,7 +37,7 @@ const BottomNav = ({ onAddClick }) => {
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#14B8A6] to-[#10B981] flex items-center justify-center shadow-lg shadow-[#14B8A6]/30 transition-all hover:scale-105 active:scale-95">
                   <Plus className="h-7 w-7 text-white" strokeWidth={2.5} />
                 </div>
-                <span className="text-[10px] text-[#E2E8F0]/60 mt-1 font-medium">{tab.label}</span>
+                <span className="text-[10px] text-[#334155]/60 mt-1 font-medium">{tab.label}</span>
               </button>
             );
           }
@@ -51,12 +51,12 @@ const BottomNav = ({ onAddClick }) => {
             >
               <Icon 
                 className={`h-6 w-6 mb-1 transition-colors ${
-                  active ? "text-[#14B8A6]" : "text-[#E2E8F0]/40"
+                  active ? "text-[#14B8A6]" : "text-[#334155]/40"
                 }`}
                 strokeWidth={active ? 2.5 : 2}
               />
               <span className={`text-[10px] font-medium transition-colors ${
-                active ? "text-[#14B8A6]" : "text-[#E2E8F0]/60"
+                active ? "text-[#14B8A6]" : "text-[#334155]/60"
               }`}>
                 {tab.label}
               </span>

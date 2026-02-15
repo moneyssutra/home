@@ -178,7 +178,7 @@ const MyIncome = () => {
       Dividend: "bg-pink-500/20 text-pink-500",
       "Other Income": "bg-violet-500/20 text-violet-500",
     };
-    return colors[type] || "bg-gray-500/20 text-gray-500";
+    return colors[type] || "bg-[#1E293B]0/20 text-slate-400";
   };
 
   const getTypePath = (type) => {
@@ -287,7 +287,7 @@ const MyIncome = () => {
   return (
     <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="my-income-page">
       {/* Header */}
-      <header className="bg-gradient-to-br from-[#E2E8F0] via-[#134E3E] to-[#E2E8F0] px-6 pt-8 pb-8">
+      <header className="bg-gradient-to-br from-[#334155] via-[#134E3E] to-[#334155] px-6 pt-8 pb-8">
         <h1 className="text-2xl font-bold text-white mb-6" style={{ fontFamily: "'Manrope', sans-serif" }}>
           My Income
         </h1>
@@ -316,7 +316,7 @@ const MyIncome = () => {
       {sortedTypes.length > 0 && (
         <div className="px-6 -mt-4">
           <div className="bg-[#1E293B] rounded-2xl p-5 shadow-sm border border-gray-100" data-testid="income-allocation">
-            <h3 className="text-sm font-semibold text-[#E2E8F0] mb-4">Income Sources</h3>
+            <h3 className="text-sm font-semibold text-[#334155] mb-4">Income Sources</h3>
             <div className="space-y-3">
               {sortedTypes.map(([type, data], idx) => {
                 const percentage = totalIncome > 0 ? (data.total / totalIncome) * 100 : 0;
@@ -325,27 +325,27 @@ const MyIncome = () => {
                   <button
                     key={type}
                     onClick={() => navigate(getTypePath(type))}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-[#1E293B] transition-colors"
                   >
                     <div className={`w-10 h-10 rounded-xl ${getTypeColor(type)} flex items-center justify-center`}>
                       <Icon className="h-5 w-5" />
                     </div>
                     <div className="flex-1 text-left">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-[#E2E8F0]">{type}</span>
-                        <span className="text-sm font-semibold text-[#E2E8F0]">₹ {formatAmount(data.total)}</span>
+                        <span className="text-sm font-medium text-[#334155]">{type}</span>
+                        <span className="text-sm font-semibold text-[#334155]">₹ {formatAmount(data.total)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="flex-1 h-2 bg-[#1E293B] rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-500"
                             style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }}
                           />
                         </div>
-                        <span className="text-xs text-[#E2E8F0]/50 w-12 text-right">{percentage.toFixed(0)}%</span>
+                        <span className="text-xs text-[#334155]/50 w-12 text-right">{percentage.toFixed(0)}%</span>
                       </div>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-[#E2E8F0]/30" />
+                    <ChevronRight className="h-5 w-5 text-[#334155]/30" />
                   </button>
                 );
               })}
@@ -356,7 +356,7 @@ const MyIncome = () => {
 
       {/* Income Types Grid */}
       <div className="px-6 mt-6">
-        <h3 className="text-sm font-semibold text-[#E2E8F0] mb-3">Add Income</h3>
+        <h3 className="text-sm font-semibold text-[#334155] mb-3">Add Income</h3>
         <div className="grid grid-cols-3 gap-3">
           {[
             { type: "Business", path: "/business-income" },
@@ -378,7 +378,7 @@ const MyIncome = () => {
                 <div className={`w-12 h-12 rounded-xl ${getTypeColor(item.type)} flex items-center justify-center`}>
                   <Icon className="h-6 w-6" />
                 </div>
-                <span className="text-xs font-medium text-[#E2E8F0]/80">{item.label || item.type}</span>
+                <span className="text-xs font-medium text-[#334155]/80">{item.label || item.type}</span>
               </button>
             );
           })}
@@ -391,8 +391,8 @@ const MyIncome = () => {
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
             <TrendingUp className="h-10 w-10 text-emerald-500" />
           </div>
-          <h3 className="text-lg font-semibold text-[#E2E8F0] mb-2">No Income Added Yet</h3>
-          <p className="text-[#E2E8F0]/60 text-sm">Start tracking your income sources</p>
+          <h3 className="text-lg font-semibold text-[#334155] mb-2">No Income Added Yet</h3>
+          <p className="text-[#334155]/60 text-sm">Start tracking your income sources</p>
         </div>
       )}
 

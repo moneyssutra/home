@@ -22,7 +22,7 @@ const BackButton = ({ fallbackPath = "/", className = "", forceNavigate = false 
   return (
     <button
       type="button"
-      className={`flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A] ${className}`}
+      className={`flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] ${className}`}
       onClick={handleBack}
       data-testid="back-button"
     >
