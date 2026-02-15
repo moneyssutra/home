@@ -1301,25 +1301,79 @@ async def get_networth_summary():
     total_liabilities = sum(loan.get('outstandingAmount', 0) for loan in loans)
     total_liabilities += credit_outstanding + credit_card_outstanding
     
-    # Get all income sources
+    # Get all income sources - Calculate actual monthly income for current month
     incomes = await db.income_sources.find({}, {"_id": 0}).to_list(1000)
     monthly_income = 0
+    current_month = datetime.now(timezone.utc).month
+    current_year = datetime.now(timezone.utc).year
+    today = datetime.now(timezone.utc).date()
+    
     for income in incomes:
         amount = income.get('expectedAmount', 0)
         freq = income.get('frequency', 'Monthly')
+        
+        # For each frequency, determine if this income would be received this month
         if freq == 'Daily':
+            # Daily income is received every day
             monthly_income += amount * 30
         elif freq == 'Weekly':
+            # Weekly income is received ~4 times per month
             monthly_income += amount * 4
         elif freq == 'Monthly':
+            # Monthly income is always received once per month
             monthly_income += amount
         elif freq == 'Quarterly':
-            monthly_income += amount / 3
+            # Check if current month is a payment month (Jan, Apr, Jul, Oct typically)
+            selected_quarter = income.get('selectedQuarter', '')
+            selected_date = income.get('selectedDate', '')
+            # For quarterly, check if it matches this month's quarter
+            quarter_months = {
+                'Q1': [1, 2, 3],
+                'Q2': [4, 5, 6],
+                'Q3': [7, 8, 9],
+                'Q4': [10, 11, 12]
+            }
+            for q_prefix, months in quarter_months.items():
+                if selected_quarter and selected_quarter.startswith(q_prefix):
+                    # First month of each quarter is the payment month
+                    if current_month == months[0]:
+                        monthly_income += amount
+                    break
+            else:
+                # If no quarter specified, assume first month of each quarter
+                if current_month in [1, 4, 7, 10]:
+                    monthly_income += amount
         elif freq == 'Half-Yearly':
-            monthly_income += amount / 6
+            # Check if current month is a payment month (Jan and Jul typically)
+            selected_half = income.get('selectedHalf', '')
+            if 'Jan' in selected_half:
+                if current_month in [1, 7]:
+                    monthly_income += amount
+            else:
+                if current_month in [7, 1]:
+                    monthly_income += amount
         elif freq == 'Yearly':
-            monthly_income += amount / 12
+            # Check if current month matches the selected month
+            selected_month = income.get('selectedMonth', '')
+            month_mapping = {
+                "January": 1, "February": 2, "March": 3, "April": 4, 
+                "May": 5, "June": 6, "July": 7, "August": 8, 
+                "September": 9, "October": 10, "November": 11, "December": 12
+            }
+            if month_mapping.get(selected_month) == current_month:
+                monthly_income += amount
+        elif freq == 'Irregular' or freq == 'Others':
+            # For irregular income, use custom date if it falls in current month
+            custom_date = income.get('customDate', '')
+            if custom_date:
+                try:
+                    date_obj = datetime.fromisoformat(custom_date).date()
+                    if date_obj.month == current_month and date_obj.year == current_year:
+                        monthly_income += amount
+                except:
+                    pass
         else:
+            # Default case - assume monthly
             monthly_income += amount
     
     # Get all expenses
