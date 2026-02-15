@@ -227,6 +227,15 @@ const GoalDetail = () => {
                 {progress.toFixed(1)}%
               </span>
             </div>
+            
+            {/* Milestone Progress Badges */}
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <p className="text-white/50 text-xs mb-2">Milestones</p>
+              <MilestoneProgress 
+                progress={progress} 
+                reachedMilestones={goal.reachedMilestones || []} 
+              />
+            </div>
           </div>
         </div>
       </header>
