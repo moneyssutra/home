@@ -1778,8 +1778,13 @@ async def process_fixed_expense_deductions():
 # ============ INVESTMENT ENDPOINTS ============
 
 @api_router.post("/investments", response_model=Investment)
-async def create_investment(input: InvestmentCreate):
+async def create_investment(input: InvestmentCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
     investment_dict = input.model_dump()
+    investment_dict['userId'] = user.get('user_id')
     investment_obj = Investment(**investment_dict)
     
     doc = investment_obj.model_dump()
@@ -1789,38 +1794,54 @@ async def create_investment(input: InvestmentCreate):
     return investment_obj
 
 @api_router.get("/investments", response_model=List[Investment])
-async def get_investments():
-    investments = await db.investments.find({}, {"_id": 0}).to_list(1000)
+async def get_investments(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
     
     for investment in investments:
-        if isinstance(investment['createdAt'], str):
+        if isinstance(investment.get('createdAt'), str):
             investment['createdAt'] = datetime.fromisoformat(investment['createdAt'])
     
     return investments
 
 @api_router.get("/investments/{investment_id}", response_model=Investment)
-async def get_investment(investment_id: str):
-    investment = await db.investments.find_one({"id": investment_id}, {"_id": 0})
+async def get_investment(investment_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = investment_id
+    investment = await db.investments.find_one(user_filter, {"_id": 0})
     
     if not investment:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Investment not found")
     
-    if isinstance(investment['createdAt'], str):
+    if isinstance(investment.get('createdAt'), str):
         investment['createdAt'] = datetime.fromisoformat(investment['createdAt'])
     
     return investment
 
 @api_router.put("/investments/{investment_id}", response_model=Investment)
-async def update_investment(investment_id: str, input: InvestmentCreate):
-    existing = await db.investments.find_one({"id": investment_id}, {"_id": 0})
+async def update_investment(investment_id: str, input: InvestmentCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = investment_id
+    existing = await db.investments.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Investment not found")
     
     investment_dict = input.model_dump()
     investment_dict['id'] = investment_id
+    investment_dict['userId'] = user.get('user_id')
     investment_dict['createdAt'] = existing['createdAt']
     
     await db.investments.replace_one({"id": investment_id}, investment_dict)
@@ -1832,11 +1853,16 @@ async def update_investment(investment_id: str, input: InvestmentCreate):
     return investment_obj
 
 @api_router.delete("/investments/{investment_id}")
-async def delete_investment(investment_id: str):
-    existing = await db.investments.find_one({"id": investment_id}, {"_id": 0})
+async def delete_investment(investment_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = investment_id
+    existing = await db.investments.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Investment not found")
     
     await db.investments.delete_one({"id": investment_id})
