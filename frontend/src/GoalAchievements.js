@@ -223,7 +223,7 @@ const GoalAchievements = () => {
         
         <div className="relative">
           <div className="flex items-center gap-4 mb-6">
-            <BackButton forceNavigate="/my-goals" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+            <BackButton fallbackPath="/my-goals" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
             <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
               Goal Achievements
             </h1>
