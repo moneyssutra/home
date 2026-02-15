@@ -21,12 +21,10 @@ const MyExpenses = () => {
   const fetchExpenses = async () => {
     try {
       setLoading(true);
-      // Use the new endpoint that includes next deduction dates
       const response = await axios.get(`${backendUrl}/api/expenses/with-next-date`);
       setExpenses(response.data);
     } catch (error) {
       console.error("Error fetching expenses:", error);
-      // Fallback to regular endpoint
       try {
         const fallbackResponse = await axios.get(`${backendUrl}/api/expenses`);
         setExpenses(fallbackResponse.data);
@@ -45,42 +43,29 @@ const MyExpenses = () => {
     return new Intl.NumberFormat("en-IN").format(amount);
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-  };
-
-  // Calculate totals
   const totalExpenses = expenses.reduce((sum, exp) => sum + (exp.expectedAmount || 0), 0);
   const fixedExpenses = expenses.filter(e => e.expenseType === "Fixed");
   const variableExpenses = expenses.filter(e => e.expenseType === "Variable");
   const fixedTotal = fixedExpenses.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
   const variableTotal = variableExpenses.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
 
-  // Determine payment status based on date
   const getPaymentStatus = (expense) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
     if (!expense.selectedDate) return 'upcoming';
-    
     const dueDate = new Date();
     dueDate.setDate(parseInt(expense.selectedDate));
     dueDate.setHours(0, 0, 0, 0);
-    
-    if (dueDate < today) return 'paid'; // Past date assumed paid
+    if (dueDate < today) return 'paid';
     if (dueDate.getTime() === today.getTime()) return 'due-today';
     return 'upcoming';
   };
 
-  // Sort expenses: upcoming first, due today, then paid
   const sortedExpenses = [...expenses].sort((a, b) => {
     const statusOrder = { 'upcoming': 0, 'due-today': 1, 'paid': 2 };
     return statusOrder[getPaymentStatus(a)] - statusOrder[getPaymentStatus(b)];
   });
 
-  // Group by category for allocation
   const expenseByCategory = expenses.reduce((acc, exp) => {
     const cat = exp.category || "Other";
     if (!acc[cat]) acc[cat] = { total: 0, count: 0 };
@@ -89,51 +74,42 @@ const MyExpenses = () => {
     return acc;
   }, {});
 
-  const sortedCategories = Object.entries(expenseByCategory)
-    .sort(([, a], [, b]) => b.total - a.total);
+  const sortedCategories = Object.entries(expenseByCategory).sort(([, a], [, b]) => b.total - a.total);
 
   const getCategoryIcon = (category) => {
     const icons = {
-      "Housing": Home,
-      "Utilities": Zap,
-      "Food": ShoppingBag,
-      "Transport": Car,
-      "Shopping": ShoppingBag,
-      "Medical": Stethoscope,
-      "Education": GraduationCap,
-      "Insurance": Shield,
-      "Subscriptions": Tv,
-      "EMI": CreditCard,
-      "Business Expense": Briefcase,
-      "Salary Paid": Wallet,
+      "Housing": Home, "Utilities": Zap, "Food": ShoppingBag, "Transport": Car,
+      "Shopping": ShoppingBag, "Medical": Stethoscope, "Education": GraduationCap,
+      "Insurance": Shield, "Subscriptions": Tv, "EMI": CreditCard,
+      "Business Expense": Briefcase, "Salary Paid": Wallet,
     };
     return icons[category] || MoreHorizontal;
   };
 
   const getCategoryColor = (category) => {
     const colors = {
-      "Housing": "bg-blue-500/20 text-blue-500",
-      "Utilities": "bg-amber-500/20 text-amber-500",
-      "Food": "bg-emerald-500/20 text-emerald-500",
-      "Transport": "bg-purple-500/20 text-purple-500",
-      "Shopping": "bg-pink-500/20 text-pink-500",
-      "Medical": "bg-red-500/20 text-red-500",
-      "Education": "bg-cyan-500/20 text-cyan-500",
-      "Insurance": "bg-indigo-500/20 text-indigo-500",
-      "Subscriptions": "bg-teal-500/20 text-teal-500",
-      "EMI": "bg-orange-500/20 text-orange-500",
-      "Business Expense": "bg-lime-500/20 text-lime-500",
-      "Salary Paid": "bg-green-500/20 text-green-500",
+      "Housing": { bg: "var(--status-info-soft)", text: "var(--status-info)" },
+      "Utilities": { bg: "var(--status-warning-soft)", text: "var(--status-warning)" },
+      "Food": { bg: "var(--brand-primary-soft)", text: "var(--brand-primary)" },
+      "Transport": { bg: "#F3E8FF", text: "var(--chart-accent2)" },
+      "Shopping": { bg: "#FCE7F3", text: "#DB2777" },
+      "Medical": { bg: "var(--status-error-soft)", text: "var(--status-error)" },
+      "Education": { bg: "#CFFAFE", text: "#0891B2" },
+      "Insurance": { bg: "#E0E7FF", text: "#4F46E5" },
+      "Subscriptions": { bg: "var(--brand-secondary-soft)", text: "var(--brand-secondary)" },
+      "EMI": { bg: "#FFEDD5", text: "#EA580C" },
+      "Business Expense": { bg: "#ECFCCB", text: "#65A30D" },
+      "Salary Paid": { bg: "var(--status-success-soft)", text: "var(--status-success)" },
     };
-    return colors[category] || "bg-[#1E293B]0/20 text-slate-400";
+    return colors[category] || { bg: "var(--bg-subtle)", text: "var(--text-secondary)" };
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'paid': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'due-today': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'upcoming': return 'bg-blue-100 text-blue-700 border-blue-200';
-      default: return 'bg-[#1E293B] text-slate-300 border-gray-200';
+      case 'paid': return { bg: "var(--status-success-soft)", text: "var(--status-success)", border: "var(--status-success)" };
+      case 'due-today': return { bg: "var(--status-warning-soft)", text: "var(--status-warning)", border: "var(--status-warning)" };
+      case 'upcoming': return { bg: "var(--status-info-soft)", text: "var(--status-info)", border: "var(--status-info)" };
+      default: return { bg: "var(--bg-subtle)", text: "var(--text-secondary)", border: "var(--border-light)" };
     }
   };
 
@@ -148,7 +124,6 @@ const MyExpenses = () => {
 
   const chartColors = ["#EF4444", "#F59E0B", "#3B82F6", "#8B5CF6", "#06B6D4", "#EC4899"];
 
-  // Count paid/pending for Fixed and Variable with totals
   const fixedPaidList = fixedExpenses.filter(e => getPaymentStatus(e) === 'paid');
   const fixedPendingList = fixedExpenses.filter(e => getPaymentStatus(e) !== 'paid');
   const variablePaidList = variableExpenses.filter(e => getPaymentStatus(e) === 'paid');
@@ -160,40 +135,39 @@ const MyExpenses = () => {
   const variablePendingTotal = variablePendingList.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="my-expenses-page">
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-expenses-page">
       {/* Header */}
-      <header className="bg-gradient-to-br from-[#DC2626] via-[#EF4444] to-[#DC2626] px-6 pt-8 pb-8">
+      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #DC2626 0%, #EF4444 100%)" }}>
         <div className="flex items-center gap-4 mb-6">
-          <BackButton fallbackPath="/" forceNavigate={true} className="bg-[#1E293B]/20 border-white/30 text-white hover:bg-[#1E293B]/30" />
+          <BackButton fallbackPath="/" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             My Expenses
           </h1>
         </div>
 
         {/* Total Expenses Card */}
-        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="total-expenses-card">
-          <p className="text-white/60 text-sm font-medium mb-1">Total Expenses</p>
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="total-expenses-card">
+          <p className="text-white/70 text-sm font-medium mb-1">Total Expenses</p>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalExpenses)}</h2>
-          <p className="text-white/40 text-xs mt-1">{expenses.length} expense sources</p>
+          <p className="text-white/50 text-xs mt-1">{expenses.length} expense sources</p>
           
-          {/* Status Summary */}
-          <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-sm">
+          <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-white/60 mb-1">Fixed Expenses</p>
+              <p className="text-white/70 mb-1">Fixed Expenses</p>
               <p className="text-white font-medium">
-                <span className="text-emerald-300">₹{formatAmount(fixedPaidTotal)} Paid</span>
+                <span style={{ color: "#A7F3D0" }}>₹{formatAmount(fixedPaidTotal)} Paid</span>
               </p>
               <p className="text-white font-medium">
-                <span className="text-amber-300">₹{formatAmount(fixedPendingTotal)} Pending</span>
+                <span style={{ color: "#FDE68A" }}>₹{formatAmount(fixedPendingTotal)} Pending</span>
               </p>
             </div>
             <div>
-              <p className="text-white/60 mb-1">Variable Expenses</p>
+              <p className="text-white/70 mb-1">Variable Expenses</p>
               <p className="text-white font-medium">
-                <span className="text-emerald-300">₹{formatAmount(variablePaidTotal)} Paid</span>
+                <span style={{ color: "#A7F3D0" }}>₹{formatAmount(variablePaidTotal)} Paid</span>
               </p>
               <p className="text-white font-medium">
-                <span className="text-amber-300">₹{formatAmount(variablePendingTotal)} Pending</span>
+                <span style={{ color: "#FDE68A" }}>₹{formatAmount(variablePendingTotal)} Pending</span>
               </p>
             </div>
           </div>
@@ -203,30 +177,28 @@ const MyExpenses = () => {
       {/* Expense Allocation */}
       {sortedCategories.length > 0 && (
         <div className="px-6 -mt-4">
-          <div className="bg-[#1E293B] rounded-2xl p-5 shadow-sm border border-gray-100" data-testid="expense-allocation">
-            <h3 className="text-sm font-semibold text-[#334155] mb-4">Expense Breakdown</h3>
+          <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="expense-allocation">
+            <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Expense Breakdown</h3>
             <div className="space-y-3">
               {sortedCategories.slice(0, 5).map(([category, data], idx) => {
                 const percentage = totalExpenses > 0 ? (data.total / totalExpenses) * 100 : 0;
                 const Icon = getCategoryIcon(category);
+                const catColor = getCategoryColor(category);
                 return (
                   <div key={category} className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl ${getCategoryColor(category)} flex items-center justify-center`}>
-                      <Icon className="h-5 w-5" />
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: catColor.bg }}>
+                      <Icon className="h-5 w-5" style={{ color: catColor.text }} />
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-[#334155]">{category}</span>
-                        <span className="text-sm font-semibold text-[#334155]">₹ {formatAmount(data.total)}</span>
+                        <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{category}</span>
+                        <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data.total)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-[#1E293B] rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }}
-                          />
+                        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }} />
                         </div>
-                        <span className="text-xs text-[#334155]/50 w-12 text-right">{percentage.toFixed(0)}%</span>
+                        <span className="text-xs w-12 text-right" style={{ color: "var(--text-muted)" }}>{percentage.toFixed(0)}%</span>
                       </div>
                     </div>
                   </div>
@@ -241,51 +213,51 @@ const MyExpenses = () => {
       {expenses.length > 0 && (
         <div className="px-6 mt-4">
           <div className="grid grid-cols-2 gap-3">
-            {/* Fixed Expenses - Clickable */}
             <button
               onClick={() => navigate('/expenses/fixed')}
-              className="bg-[#1E293B] rounded-2xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md hover:border-slate-200 transition-all"
+              className="rounded-2xl p-4 shadow-card text-left hover:shadow-md transition-all"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
               data-testid="fixed-expenses-card"
             >
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                  <Shield className="h-4 w-4 text-slate-600" />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                  <Shield className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
                 </div>
-                <span className="text-sm font-semibold text-[#334155]">Fixed</span>
-                <ChevronRight className="h-4 w-4 text-[#334155]/30 ml-auto" />
+                <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Fixed</span>
+                <ChevronRight className="h-4 w-4 ml-auto" style={{ color: "var(--text-muted)" }} />
               </div>
-              <p className="text-xl font-bold text-[#334155] mb-1">₹ {formatAmount(fixedTotal)}</p>
-              <p className="text-xs text-[#334155]/50">{fixedExpenses.length} expenses</p>
+              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(fixedTotal)}</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{fixedExpenses.length} expenses</p>
               <div className="mt-2 space-y-1">
                 {fixedExpenses.slice(0, 3).map(exp => (
                   <div key={exp.id} className="flex justify-between text-xs">
-                    <span className="text-[#334155]/60 truncate flex-1">{exp.expenseName}</span>
-                    <span className="text-[#334155] font-medium ml-2">₹{formatAmount(exp.expectedAmount)}</span>
+                    <span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{exp.expenseName}</span>
+                    <span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(exp.expectedAmount)}</span>
                   </div>
                 ))}
               </div>
             </button>
 
-            {/* Variable Expenses - Clickable */}
             <button
               onClick={() => navigate('/expenses/variable')}
-              className="bg-[#1E293B] rounded-2xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md hover:border-amber-200 transition-all"
+              className="rounded-2xl p-4 shadow-card text-left hover:shadow-md transition-all"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
               data-testid="variable-expenses-card"
             >
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                  <Zap className="h-4 w-4 text-amber-600" />
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--status-warning-soft)" }}>
+                  <Zap className="h-4 w-4" style={{ color: "var(--status-warning)" }} />
                 </div>
-                <span className="text-sm font-semibold text-[#334155]">Variable</span>
-                <ChevronRight className="h-4 w-4 text-[#334155]/30 ml-auto" />
+                <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Variable</span>
+                <ChevronRight className="h-4 w-4 ml-auto" style={{ color: "var(--text-muted)" }} />
               </div>
-              <p className="text-xl font-bold text-[#334155] mb-1">₹ {formatAmount(variableTotal)}</p>
-              <p className="text-xs text-[#334155]/50">{variableExpenses.length} expenses</p>
+              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(variableTotal)}</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{variableExpenses.length} expenses</p>
               <div className="mt-2 space-y-1">
                 {variableExpenses.slice(0, 3).map(exp => (
                   <div key={exp.id} className="flex justify-between text-xs">
-                    <span className="text-[#334155]/60 truncate flex-1">{exp.expenseName}</span>
-                    <span className="text-[#334155] font-medium ml-2">₹{formatAmount(exp.expectedAmount)}</span>
+                    <span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{exp.expenseName}</span>
+                    <span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(exp.expectedAmount)}</span>
                   </div>
                 ))}
               </div>
@@ -296,22 +268,23 @@ const MyExpenses = () => {
 
       {/* Expense List */}
       <div className="px-6 mt-6">
-        <h3 className="text-sm font-semibold text-[#334155] mb-3">All Expenses</h3>
+        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>All Expenses</h3>
         
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#334155]/60">Loading...</div>
+            <div style={{ color: "var(--text-muted)" }}>Loading...</div>
           </div>
         ) : expenses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-rose-100 mb-4">
-              <Receipt className="h-10 w-10 text-rose-500" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-full mb-4" style={{ backgroundColor: "var(--status-error-soft)" }}>
+              <Receipt className="h-10 w-10" style={{ color: "var(--status-error)" }} />
             </div>
-            <h2 className="text-lg font-semibold text-[#334155] mb-2">No Expenses Added Yet</h2>
-            <p className="text-[#334155]/60 text-center text-sm mb-6">Start tracking your expenses</p>
+            <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>No Expenses Added Yet</h2>
+            <p className="text-center text-sm mb-6" style={{ color: "var(--text-secondary)" }}>Start tracking your expenses</p>
             <button
               onClick={() => navigate("/expense")}
-              className="flex items-center gap-2 rounded-xl bg-[#14B8A6] px-5 py-2.5 text-white font-medium transition-all hover:bg-[#0D9488] active:scale-[0.98]"
+              className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium transition-all active:scale-[0.98]"
+              style={{ backgroundColor: "var(--brand-primary)" }}
             >
               <Plus className="h-5 w-5" />
               Add Expense
@@ -322,6 +295,8 @@ const MyExpenses = () => {
             {sortedExpenses.map((expense) => {
               const status = getPaymentStatus(expense);
               const Icon = getCategoryIcon(expense.category);
+              const catColor = getCategoryColor(expense.category);
+              const statusColor = getStatusColor(status);
               const nextDate = expense.nextDeductionDate ? new Date(expense.nextDeductionDate) : null;
               const formattedNextDate = nextDate ? nextDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : null;
               
@@ -329,52 +304,46 @@ const MyExpenses = () => {
                 <button
                   key={expense.id}
                   onClick={() => navigate(`/expense/${expense.id}`)}
-                  className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all hover:shadow-md ${
-                    status === 'paid' ? 'bg-[#1E293B] border-gray-200 opacity-70' : 'bg-[#1E293B] border-gray-100'
-                  }`}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card"
+                  style={{ 
+                    backgroundColor: "var(--bg-card)", 
+                    border: "1px solid var(--border-light)",
+                    opacity: status === 'paid' ? 0.7 : 1
+                  }}
                   data-testid={`expense-card-${expense.id}`}
                 >
-                  <div className={`w-12 h-12 rounded-xl ${getCategoryColor(expense.category)} flex items-center justify-center`}>
-                    <Icon className="h-6 w-6" />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: catColor.bg }}>
+                    <Icon className="h-6 w-6" style={{ color: catColor.text }} />
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="font-semibold text-[#334155]">{expense.expenseName}</h3>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusColor(status)}`}>
+                      <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>{expense.expenseName}</h3>
+                      <span 
+                        className="px-2 py-0.5 rounded-full text-[10px] font-medium"
+                        style={{ backgroundColor: statusColor.bg, color: statusColor.text, border: `1px solid ${statusColor.border}` }}
+                      >
                         {getStatusLabel(status)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-[#334155]/50">
+                    <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
                       <span>{expense.category}</span>
                       <span>•</span>
                       <span>{expense.expenseType}</span>
                       {formattedNextDate && expense.expenseType === "Fixed" && (
                         <>
                           <span>•</span>
-                          <span className="text-amber-600 font-medium">Next: {formattedNextDate}</span>
-                        </>
-                      )}
-                      {expense.linkedLoanName && (
-                        <>
-                          <span>•</span>
-                          <span className="text-blue-500">Linked: {expense.linkedLoanName}</span>
-                        </>
-                      )}
-                      {expense.linkedInsuranceName && (
-                        <>
-                          <span>•</span>
-                          <span className="text-indigo-500">Linked: {expense.linkedInsuranceName}</span>
+                          <span className="font-medium" style={{ color: "var(--status-warning)" }}>Next: {formattedNextDate}</span>
                         </>
                       )}
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-bold ${status === 'paid' ? 'text-emerald-600' : 'text-[#334155]'}`}>
+                    <p className="font-bold" style={{ color: status === 'paid' ? "var(--status-success)" : "var(--text-primary)" }}>
                       ₹ {formatAmount(expense.expectedAmount)}
                     </p>
-                    <p className="text-xs text-[#334155]/40">{expense.frequency}</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{expense.frequency}</p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-[#334155]/30" />
+                  <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
                 </button>
               );
             })}
@@ -387,7 +356,8 @@ const MyExpenses = () => {
         <div className="px-6 mt-6">
           <button
             onClick={() => navigate("/expense")}
-            className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#14B8A6] py-3 text-[#14B8A6] font-medium transition-all hover:bg-[#14B8A6]/5"
+            className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 font-medium transition-all"
+            style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}
           >
             <Plus className="h-5 w-5" />
             Add New Expense

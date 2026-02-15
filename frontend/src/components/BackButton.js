@@ -5,13 +5,11 @@ const BackButton = ({ fallbackPath = "/", className = "", forceNavigate = false 
   const navigate = useNavigate();
 
   const handleBack = () => {
-    // If forceNavigate is true, always go to fallbackPath (used for main module pages)
     if (forceNavigate) {
       navigate(fallbackPath);
       return;
     }
     
-    // Otherwise, check if there's history to go back to
     if (window.history.length > 2) {
       navigate(-1);
     } else {
@@ -22,7 +20,12 @@ const BackButton = ({ fallbackPath = "/", className = "", forceNavigate = false 
   return (
     <button
       type="button"
-      className={`flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] ${className}`}
+      className={`flex h-10 w-10 items-center justify-center rounded-full transition-colors ${className}`}
+      style={{ 
+        backgroundColor: "var(--bg-card)", 
+        border: "1px solid var(--border-light)",
+        color: "var(--text-primary)"
+      }}
       onClick={handleBack}
       data-testid="back-button"
     >
