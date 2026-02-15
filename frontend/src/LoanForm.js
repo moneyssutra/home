@@ -731,7 +731,7 @@ const LoanIncome = () => {
       </div>
 
       {/* Sticky Action Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-sm px-6 py-4">
+      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-sm px-6 py-4 z-40">
         <div className="mx-auto max-w-[620px]">
           {id ? (
             <div className="flex gap-3">
