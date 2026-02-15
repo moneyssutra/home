@@ -1,8 +1,11 @@
+"""
+MoneySsutra Backend Server
+Modular architecture with models/, routes/, services/
+"""
 from fastapi import FastAPI, APIRouter, HTTPException, Response, Request, Cookie
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 import httpx
@@ -13,17 +16,35 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 
-
+# Load environment
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+# Database connection (imported from database module)
+from database import db, client, shutdown_db_client
 
-# Create the main app without a prefix
-app = FastAPI()
+# Import all models from modular structure
+from models.auth import User, UserSession, JWTLoginRequest, GoogleSessionRequest, RegisterRequest
+from models.workspace import Workspace, WorkspaceCreate, WorkspaceMember, WorkspaceInvite, WorkspaceInviteByCode
+from models.income import IncomeSource, IncomeSourceCreate, OtherIncome, OtherIncomeCreate
+from models.financial import (
+    Account, AccountCreate,
+    Expense, ExpenseCreate,
+    Loan, LoanCreate,
+    Asset, AssetCreate,
+    Investment, InvestmentCreate,
+    CreditCard, CreditCardCreate
+)
+from models.insurance import Insurance, InsuranceCreate
+from models.goals import Goal, GoalCreate, GoalPriorityUpdate
+from models.profile import BasicProfile, BasicProfileCreate, ExtendedProfile, ExtendedProfileCreate
+
+# Import services
+from services.auth import hash_password, verify_password
+from services.workspace import ROLE_PERMISSIONS
+
+# Create the main app
+app = FastAPI(title="MoneySsutra API", version="2.0.0")
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
