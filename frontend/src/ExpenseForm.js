@@ -35,6 +35,10 @@ const ExpenseForm = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [oneTimeDate, setOneTimeDate] = useState("");
   
+  // Calendar popover states
+  const [calendarDate, setCalendarDate] = useState(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  
   // Accounts for linking
   const [accounts, setAccounts] = useState([]);
   
