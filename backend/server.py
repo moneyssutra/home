@@ -261,6 +261,7 @@ class Insurance(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: Optional[str] = None  # User isolation
     insuranceType: str
     policyName: str
     coverageAmount: float
@@ -433,6 +434,7 @@ class CreditCard(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: Optional[str] = None  # User isolation
     cardName: str
     bankName: str
     creditLimit: float
