@@ -137,11 +137,11 @@ const MyIncome = () => {
   const totalOtherIncome = otherIncomes.reduce((sum, inc) => sum + calculateOtherIncomeMonthly(inc), 0);
   const totalIncome = totalRegularIncome + totalOtherIncome;
 
-  // Group incomes by type
+  // Group incomes by type (using monthly amounts)
   const incomeByType = incomes.reduce((acc, inc) => {
     const type = inc.type || "Other";
     if (!acc[type]) acc[type] = { total: 0, count: 0 };
-    acc[type].total += inc.expectedAmount || 0;
+    acc[type].total += calculateMonthlyAmount(inc);
     acc[type].count += 1;
     return acc;
   }, {});
