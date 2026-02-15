@@ -83,7 +83,7 @@ const InvestmentForm = () => {
     if (!investmentMode && investmentCategory) {
       if (investmentCategory === "Sovereign Gold Bond (SGB)") {
         setInvestmentMode("Income Generating");
-      } else if (["Digital Gold", "Digital Silver", "Stocks", "Mutual Fund", "ETF", "Crypto"].includes(investmentCategory)) {
+      } else if (["Digital Gold", "Digital Silver", "Stocks", "US Stocks", "Mutual Fund", "ETF", "Crypto"].includes(investmentCategory)) {
         setInvestmentMode("Growth Only");
       } else if (["Fixed Deposit (FD)", "Recurring Deposit (RD)", "Bonds"].includes(investmentCategory)) {
         setInvestmentMode("Growth with Maturity");
