@@ -1405,28 +1405,39 @@ async def get_expenses_with_next_date(request: Request):
     return result
 
 @api_router.get("/expenses/{expense_id}", response_model=Expense)
-async def get_expense(expense_id: str):
-    expense = await db.expenses.find_one({"id": expense_id}, {"_id": 0})
+async def get_expense(expense_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
     
     if not expense:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Expense not found")
     
-    if isinstance(expense['createdAt'], str):
+    if isinstance(expense.get('createdAt'), str):
         expense['createdAt'] = datetime.fromisoformat(expense['createdAt'])
     
     return expense
 
 @api_router.put("/expenses/{expense_id}", response_model=Expense)
-async def update_expense(expense_id: str, input: ExpenseCreate):
-    existing = await db.expenses.find_one({"id": expense_id}, {"_id": 0})
+async def update_expense(expense_id: str, input: ExpenseCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    existing = await db.expenses.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Expense not found")
     
     expense_dict = input.model_dump()
     expense_dict['id'] = expense_id
+    expense_dict['userId'] = user.get('user_id')
     expense_dict['createdAt'] = existing['createdAt']
     
     await db.expenses.replace_one({"id": expense_id}, expense_dict)
@@ -1438,11 +1449,16 @@ async def update_expense(expense_id: str, input: ExpenseCreate):
     return expense_obj
 
 @api_router.delete("/expenses/{expense_id}")
-async def delete_expense(expense_id: str):
-    existing = await db.expenses.find_one({"id": expense_id}, {"_id": 0})
+async def delete_expense(expense_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    existing = await db.expenses.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Expense not found")
     
     await db.expenses.delete_one({"id": expense_id})
