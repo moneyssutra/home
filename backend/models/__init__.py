@@ -1,14 +1,47 @@
-"""
-Pydantic models for the application
-"""
-from .base import StatusCheck, StatusCheckCreate
-from .income import IncomeSource, IncomeSourceCreate, OtherIncome, OtherIncomeCreate
-from .account import Account, AccountCreate
-from .expense import Expense, ExpenseCreate
-from .insurance import Insurance, InsuranceCreate
-from .loan import Loan, LoanCreate
-from .asset import Asset, AssetCreate
-from .investment import Investment, InvestmentCreate
-from .credit_card import CreditCard, CreditCardCreate
-from .goal import Goal, GoalCreate, GoalPriorityUpdate
-from .profile import BasicProfile, BasicProfileCreate, ExtendedProfile, ExtendedProfileCreate
+"""Models package - exports all Pydantic models."""
+from models.auth import (
+    User, UserSession, JWTLoginRequest, GoogleSessionRequest, RegisterRequest
+)
+from models.workspace import (
+    Workspace, WorkspaceCreate, WorkspaceMember, WorkspaceInvite, WorkspaceInviteByCode
+)
+from models.income import (
+    IncomeSource, IncomeSourceCreate, OtherIncome, OtherIncomeCreate
+)
+from models.financial import (
+    Account, AccountCreate,
+    Expense, ExpenseCreate,
+    Loan, LoanCreate,
+    Asset, AssetCreate,
+    Investment, InvestmentCreate,
+    CreditCard, CreditCardCreate
+)
+from models.insurance import Insurance, InsuranceCreate
+from models.goals import Goal, GoalCreate, GoalPriorityUpdate
+from models.profile import (
+    BasicProfile, BasicProfileCreate,
+    ExtendedProfile, ExtendedProfileCreate
+)
+
+__all__ = [
+    # Auth
+    'User', 'UserSession', 'JWTLoginRequest', 'GoogleSessionRequest', 'RegisterRequest',
+    # Workspace
+    'Workspace', 'WorkspaceCreate', 'WorkspaceMember', 'WorkspaceInvite', 'WorkspaceInviteByCode',
+    # Income
+    'IncomeSource', 'IncomeSourceCreate', 'OtherIncome', 'OtherIncomeCreate',
+    # Financial
+    'Account', 'AccountCreate',
+    'Expense', 'ExpenseCreate',
+    'Loan', 'LoanCreate',
+    'Asset', 'AssetCreate',
+    'Investment', 'InvestmentCreate',
+    'CreditCard', 'CreditCardCreate',
+    # Insurance
+    'Insurance', 'InsuranceCreate',
+    # Goals
+    'Goal', 'GoalCreate', 'GoalPriorityUpdate',
+    # Profile
+    'BasicProfile', 'BasicProfileCreate',
+    'ExtendedProfile', 'ExtendedProfileCreate',
+]
