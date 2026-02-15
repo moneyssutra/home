@@ -321,6 +321,8 @@ class Investment(BaseModel):
     maturityDate: Optional[str] = None
     expectedMaturityValue: Optional[float] = None
     lockInPeriod: Optional[int] = None
+    investmentFrequency: Optional[str] = None  # For SIP: Weekly, Monthly, Quarterly, Yearly
+    sipAmount: Optional[float] = None  # SIP amount per frequency
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class InvestmentCreate(BaseModel):
@@ -342,6 +344,8 @@ class InvestmentCreate(BaseModel):
     maturityDate: Optional[str] = None
     expectedMaturityValue: Optional[float] = None
     lockInPeriod: Optional[int] = None
+    investmentFrequency: Optional[str] = None
+    sipAmount: Optional[float] = None
 
 # Credit Card Model
 class CreditCard(BaseModel):
