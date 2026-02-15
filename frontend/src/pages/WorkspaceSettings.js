@@ -18,6 +18,7 @@ const WorkspaceSettings = () => {
     workspaces,
     pendingInvitations,
     permissions,
+    loading,
     inviteMember,
     joinByCode,
     acceptInvitation,
