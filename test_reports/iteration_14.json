@@ -1,0 +1,96 @@
+{
+  "summary": "All P0/P1 bug fixes verified - 100% pass rate. Fixed Expense Toggle, Variable Expense Toggle, US Stocks category, Daily frequency option, SGB/SWP hidden frequency, and Monthly Cash Flow API all working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_bug_fixes.py",
+    "/app/test_reports/pytest/bug_fixes_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_bug_fixes.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100% (6/6 tests passed)"
+  },
+  "seed_data_creation": "Test data created and cleaned up during testing (TEST_ prefixed)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All P0/P1 bug fixes verified working. Previous db.income vs db.income_sources issue from iteration_13 may still need verification if that feature is used.",
+  "features_verified": {
+    "P0_fixed_expense_toggle": {
+      "status": "PASS",
+      "details": "Navigate from /expenses/fixed -> click 'Add Fixed Expense' -> URL has ?type=Fixed -> Fixed button is pre-selected (dark green bg-[#0B3D2E])"
+    },
+    "P0_variable_expense_toggle": {
+      "status": "PASS",
+      "details": "Navigate from /expenses/variable -> click 'Add Variable Expense' -> URL has ?type=Variable -> Variable button is pre-selected (amber bg-[#F59E0B])"
+    },
+    "P1_us_stocks_category": {
+      "status": "PASS",
+      "details": "Investment form category dropdown includes 'US Stocks' option"
+    },
+    "P1_daily_frequency_option": {
+      "status": "PASS",
+      "details": "Investment frequency dropdown includes 'Daily' option for applicable categories (Mutual Fund, Stocks, US Stocks, ETF, RD)"
+    },
+    "P1_sgb_frequency_hidden": {
+      "status": "PASS",
+      "details": "When 'Sovereign Gold Bond (SGB)' is selected, the Recurring Investment (SIP) section is NOT displayed"
+    },
+    "P1_swp_frequency_hidden": {
+      "status": "PASS",
+      "details": "When 'SWP' is selected, the Recurring Investment (SIP) section is NOT displayed"
+    },
+    "P1_monthly_cashflow_api": {
+      "status": "PASS",
+      "details": "GET /api/dashboard/networth returns monthlyIncome, monthlyExpenses, monthlySavings fields with correct calculations"
+    }
+  },
+  "tests_executed": {
+    "backend_tests": {
+      "test_file": "/app/backend/tests/test_bug_fixes.py",
+      "total": 10,
+      "passed": 10,
+      "failed": 0,
+      "tests": [
+        "TestMonthlyNetWorthAPI::test_networth_api_returns_monthly_income - PASS",
+        "TestMonthlyNetWorthAPI::test_networth_api_returns_monthly_expenses - PASS",
+        "TestMonthlyNetWorthAPI::test_networth_api_returns_monthly_savings - PASS",
+        "TestMonthlyNetWorthAPI::test_networth_api_full_response_structure - PASS",
+        "TestExpenseAPI::test_create_fixed_expense - PASS",
+        "TestExpenseAPI::test_create_variable_expense - PASS",
+        "TestInvestmentAPI::test_create_us_stocks_investment - PASS",
+        "TestInvestmentAPI::test_create_investment_with_daily_frequency - PASS",
+        "TestInvestmentAPI::test_create_sgb_investment_without_frequency - PASS",
+        "TestInvestmentAPI::test_create_swp_investment_without_frequency - PASS"
+      ]
+    },
+    "frontend_tests": {
+      "expense_fixed_toggle_from_fixed_expenses_page": "PASS - URL has ?type=Fixed, Fixed button pre-selected",
+      "expense_variable_toggle_from_variable_expenses_page": "PASS - URL has ?type=Variable, Variable button pre-selected",
+      "investment_us_stocks_in_dropdown": "PASS - US Stocks visible in category dropdown",
+      "investment_daily_frequency_option": "PASS - Daily option available in frequency dropdown",
+      "investment_sgb_hides_frequency": "PASS - Frequency field not present for SGB",
+      "investment_swp_hides_frequency": "PASS - Frequency field not present for SWP"
+    }
+  },
+  "api_response_sample": {
+    "endpoint": "GET /api/dashboard/networth",
+    "response": {
+      "netWorth": 51790639.93,
+      "monthlyIncome": 2286500.0,
+      "monthlyExpenses": 227299.5,
+      "monthlySavings": 2059200.5
+    }
+  }
+}
