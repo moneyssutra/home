@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, Landmark } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Landmark, Home, Building2 } from "lucide-react";
 import axios from "axios";
 
 const MyLoans = () => {
