@@ -2013,15 +2013,62 @@ async def calculate_goal_progress(goal: dict) -> dict:
     
     # For Other/Custom goals - use linked sources or manual amount
     else:
-        # Sum up any linked investments
+        # Sum up any linked investments with SIP projections
         for inv_id in goal.get('linkedInvestmentIds', []):
             investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
             if investment:
-                calculated_amount += investment.get('currentValue', 0)
+                current_value = investment.get('currentValue', 0)
+                calculated_amount += current_value
+                
+                # Calculate SIP projection
+                sip_amount = investment.get('sipAmount', 0)
+                frequency = investment.get('investmentFrequency', '')
+                return_rate = investment.get('returnRate', 0)
+                
+                projected_value = current_value
+                monthly_contribution = 0
+                
+                if sip_amount and frequency and months_to_target > 0:
+                    if frequency == 'Daily':
+                        monthly_contribution = sip_amount * 30
+                    elif frequency == 'Weekly':
+                        monthly_contribution = sip_amount * 4
+                    elif frequency == 'Monthly':
+                        monthly_contribution = sip_amount
+                    elif frequency == 'Quarterly':
+                        monthly_contribution = sip_amount / 3
+                    elif frequency == 'Yearly':
+                        monthly_contribution = sip_amount / 12
+                    
+                    monthly_rate = (return_rate / 100) / 12 if return_rate else 0
+                    n = months_to_target
+                    
+                    if monthly_rate > 0:
+                        pv_growth = current_value * ((1 + monthly_rate) ** n)
+                        pmt_growth = monthly_contribution * (((1 + monthly_rate) ** n - 1) / monthly_rate)
+                        projected_value = pv_growth + pmt_growth
+                    else:
+                        projected_value = current_value + (monthly_contribution * n)
+                    
+                    sip_projections.append({
+                        "investmentId": inv_id,
+                        "investmentName": investment.get('name'),
+                        "currentValue": current_value,
+                        "sipAmount": sip_amount,
+                        "frequency": frequency,
+                        "monthlyContribution": monthly_contribution,
+                        "returnRate": return_rate,
+                        "projectedValue": round(projected_value, 2),
+                        "projectedGain": round(projected_value - current_value, 2),
+                        "monthsToTarget": round(months_to_target, 1)
+                    })
+                
                 linked_details.append({
                     "type": "Investment",
                     "name": investment.get('name'),
-                    "contribution": investment.get('currentValue', 0)
+                    "contribution": current_value,
+                    "hasSIP": bool(sip_amount and frequency),
+                    "projectedValue": round(projected_value, 2) if sip_amount else None
                 })
         
         # Sum up linked accounts
@@ -2035,6 +2082,10 @@ async def calculate_goal_progress(goal: dict) -> dict:
                     "contribution": account.get('currentBalance', 0)
                 })
     
+    # Calculate total projected value from all SIPs
+    total_projected_from_sips = sum(sp.get('projectedValue', 0) for sp in sip_projections)
+    total_monthly_sip_contribution = sum(sp.get('monthlyContribution', 0) for sp in sip_projections)
+    
     # If manual override is set but auto-calculate is also on, use max of both
     if goal.get('manualOverride'):
         manual_amount = goal.get('currentAmount', 0)
@@ -2042,12 +2093,20 @@ async def calculate_goal_progress(goal: dict) -> dict:
             return {
                 "currentAmount": manual_amount,
                 "linkedDetails": linked_details,
+                "sipProjections": sip_projections,
+                "totalProjectedFromSIPs": total_projected_from_sips,
+                "totalMonthlySIPContribution": total_monthly_sip_contribution,
+                "monthsToTarget": round(months_to_target, 1),
                 "calculationMethod": "manual_override"
             }
     
     return {
         "currentAmount": calculated_amount,
         "linkedDetails": linked_details,
+        "sipProjections": sip_projections,
+        "totalProjectedFromSIPs": total_projected_from_sips,
+        "totalMonthlySIPContribution": total_monthly_sip_contribution,
+        "monthsToTarget": round(months_to_target, 1),
         "calculationMethod": "auto"
     }
 
