@@ -29,10 +29,20 @@ const GoalDetail = () => {
   const [isCompleting, setIsCompleting] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  
+  // Milestone notification hook
+  const { checkMilestones } = useMilestoneNotification(id, backendUrl);
 
   useEffect(() => {
     fetchGoal();
   }, [id]);
+
+  // Check milestones after goal data is loaded
+  useEffect(() => {
+    if (goal && !goal.isCompleted) {
+      checkMilestones();
+    }
+  }, [goal?.id, goal?.progressPercent]);
 
   const fetchGoal = async () => {
     try {
