@@ -233,6 +233,24 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
 
 ## Changelog
+- **Dec 15, 2025 (Session 6)**: Goal Prioritization UI with Drag-and-Drop (COMPLETED)
+  - **Backend API**:
+    - Added `GoalPriorityUpdate` Pydantic model for batch updates
+    - New PATCH `/api/goals/reorder` endpoint to update priorities for multiple goals
+  - **Frontend (@dnd-kit integration)**:
+    - Installed `@dnd-kit/core`, `@dnd-kit/sortable`, `@dnd-kit/utilities`
+    - Created `SortableGoalCard` component with drag handles
+    - Added reorder mode toggle with "Reorder" button in header
+    - Reorder mode: Shows drag handles, hides filter tabs, shows Cancel/Save Order buttons
+    - Save Order persists new priorities to backend via API
+    - Cancel restores original order by re-fetching from API
+  - **UX Features**:
+    - Drag handles (GripVertical icons) for intuitive dragging
+    - Visual feedback during drag (opacity, shadow, ring)
+    - Reorder banner with clear instructions
+    - Keyboard accessibility via KeyboardSensor
+  - **Testing**: 100% pass rate (9/9 backend, 14/14 frontend tests)
+
 - **Dec 15, 2025 (Session 6)**: Other Income Module Implementation (COMPLETED)
   - **New Backend API**:
     - Created `OtherIncome` and `OtherIncomeCreate` Pydantic models in server.py
