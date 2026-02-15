@@ -79,10 +79,20 @@ const Dashboard = () => {
   };
 
   const getUserName = () => {
+    // First try from auth context (logged in user)
+    if (user?.name) {
+      return user.name.split(" ")[0];
+    }
+    // Fallback to profile
     if (profile?.fullName) {
       return profile.fullName.split(" ")[0];
     }
     return null;
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
   };
 
   if (loading) {
