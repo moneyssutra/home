@@ -201,6 +201,7 @@ const MyIncome = () => {
             { type: "Commission", path: "/commission-income" },
             { type: "Interest", path: "/interest-income" },
             { type: "Dividend", path: "/dividend-income" },
+            { type: "Other Income", path: "/other-income", label: "Other" },
           ].map((item) => {
             const Icon = getTypeIcon(item.type);
             return (
@@ -208,12 +209,12 @@ const MyIncome = () => {
                 key={item.type}
                 onClick={() => navigate(item.path)}
                 className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all active:scale-95"
-                data-testid={`add-${item.type.toLowerCase()}`}
+                data-testid={`add-${item.type.toLowerCase().replace(' ', '-')}`}
               >
                 <div className={`w-12 h-12 rounded-xl ${getTypeColor(item.type)} flex items-center justify-center`}>
                   <Icon className="h-6 w-6" />
                 </div>
-                <span className="text-xs font-medium text-[#0B3D2E]/80">{item.type}</span>
+                <span className="text-xs font-medium text-[#0B3D2E]/80">{item.label || item.type}</span>
               </button>
             );
           })}
@@ -221,7 +222,7 @@ const MyIncome = () => {
       </div>
 
       {/* Empty State */}
-      {!loading && incomes.length === 0 && (
+      {!loading && incomes.length === 0 && otherIncomes.length === 0 && (
         <div className="px-6 mt-8 text-center">
           <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
             <TrendingUp className="h-10 w-10 text-emerald-500" />
