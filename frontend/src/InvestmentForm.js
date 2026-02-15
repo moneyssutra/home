@@ -606,6 +606,11 @@ const InvestmentForm = () => {
                   data-testid="current-value-input"
                 />
               </div>
+              {parseFloat(currentValue) > 0 && (
+                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="current-value-words">
+                  {numberToWords(parseFloat(currentValue))}
+                </p>
+              )}
               <p className="text-xs text-[#0B3D2E]/60 mt-1">This feeds into your Net Worth calculation</p>
             </div>
 
