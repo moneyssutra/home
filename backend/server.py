@@ -599,7 +599,7 @@ async def create_asset(input: AssetCreate):
     # Auto-create Rental Income if asset generates income
     if asset_obj.generatesIncome and asset_obj.incomeAmount:
         # Check if rental income already exists for this asset
-        existing_income = await db.income.find_one({"linkedAssetId": asset_obj.id}, {"_id": 0})
+        existing_income = await db.income_sources.find_one({"assetId": asset_obj.id}, {"_id": 0})
         
         if not existing_income:
             # Create rental income entry
@@ -607,17 +607,17 @@ async def create_asset(input: AssetCreate):
                 "id": str(uuid.uuid4()),
                 "type": "Rental",
                 "name": asset_obj.assetName,
-                "amount": asset_obj.incomeAmount,
+                "expectedAmount": asset_obj.incomeAmount,
                 "frequency": asset_obj.incomeFrequency or "Monthly",
                 "tenantName": asset_dict.get("renterName") or None,
                 "securityDeposit": asset_dict.get("securityDeposit") or None,
-                "linkedAssetId": asset_obj.id,
+                "assetId": asset_obj.id,
                 "assetValue": asset_obj.currentValue,
                 "rentalYield": round((asset_obj.incomeAmount * 12 / asset_obj.currentValue) * 100, 2) if asset_obj.currentValue else None,
                 "createdAt": datetime.now(timezone.utc).isoformat(),
             }
             
-            await db.income.insert_one(rental_income)
+            await db.income_sources.insert_one(rental_income)
             
             # Update asset with linked income ID
             asset_obj.linkedIncomeId = rental_income["id"]
