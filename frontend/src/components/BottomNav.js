@@ -6,7 +6,7 @@ const BottomNav = ({ onAddClick }) => {
   const location = useLocation();
 
   const tabs = [
-    { id: "home", label: "Home", icon: Home, path: "/" },
+    { id: "home", label: "Home", icon: Home, path: "/home" },
     { id: "income", label: "Income", icon: TrendingUp, path: "/my-income" },
     { id: "add", label: "Add", icon: Plus, path: null },
     { id: "expenses", label: "Expenses", icon: Receipt, path: "/my-expenses" },
@@ -15,7 +15,7 @@ const BottomNav = ({ onAddClick }) => {
 
   const isActive = (path) => {
     if (!path) return false;
-    if (path === "/") return location.pathname === "/";
+    if (path === "/home") return location.pathname === "/home" || location.pathname === "/";
     return location.pathname.startsWith(path);
   };
 
