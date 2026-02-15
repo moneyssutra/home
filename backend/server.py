@@ -1368,7 +1368,7 @@ async def get_networth_summary():
                     date_obj = datetime.fromisoformat(custom_date).date()
                     if date_obj.month == current_month and date_obj.year == current_year:
                         monthly_income += amount
-                except:
+                except (ValueError, TypeError):
                     pass
         else:
             # Default case - assume monthly
@@ -1430,7 +1430,7 @@ async def get_networth_summary():
                     date_obj = datetime.fromisoformat(one_time_date).date()
                     if date_obj.month == current_month and date_obj.year == current_year:
                         monthly_expenses += amount
-                except:
+                except (ValueError, TypeError):
                     pass
         else:
             monthly_expenses += amount
