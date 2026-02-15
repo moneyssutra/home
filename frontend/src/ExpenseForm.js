@@ -702,24 +702,40 @@ const ExpenseForm = () => {
               </div>
             )}
 
-            {/* One-Time - Full Date Picker */}
+            {/* One-Time - Full Calendar Date Picker */}
             {frequency === "One-Time" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="one-time-fields">
-                <label htmlFor="oneTimeDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
                   Select Date
                 </label>
-                <label htmlFor="oneTimeDate" className="relative block cursor-pointer">
-                  <input
-                    id="oneTimeDate"
-                    ref={oneTimeFieldRef}
-                    type="date"
-                    value={oneTimeDate}
-                    onChange={(e) => setOneTimeDate(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
-                    data-testid="one-time-date-input"
-                  />
-                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                </label>
+                <Popover open={oneTimeCalendarOpen} onOpenChange={setOneTimeCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      ref={oneTimeFieldRef}
+                      type="button"
+                      className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="one-time-date-calendar"
+                    >
+                      <span className={oneTimeDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                        {oneTimeDate ? format(new Date(oneTimeDate), "PPP") : "Select date from calendar"}
+                      </span>
+                      <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-white" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={oneTimeDate ? new Date(oneTimeDate) : undefined}
+                      onSelect={(date) => {
+                        if (date) {
+                          setOneTimeDate(format(date, "yyyy-MM-dd"));
+                        }
+                        setOneTimeCalendarOpen(false);
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
                 {errors.oneTimeDate && <p className="text-sm text-red-500 mt-1">{errors.oneTimeDate}</p>}
               </div>
             )}
