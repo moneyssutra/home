@@ -234,6 +234,21 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
 
 ## Changelog
+- **Dec 15, 2025 (Session 6)**: Other Income Module Implementation (COMPLETED)
+  - **New Backend API**:
+    - Created `OtherIncome` and `OtherIncomeCreate` Pydantic models in server.py
+    - Full CRUD endpoints: POST/GET/PUT/DELETE at `/api/other-income`
+    - 13 categories: Gift, Bonus, Incentive, Capital Gain, Asset Sale, Tax Refund, Cashback/Reward, Reimbursement, Freelance/Side Work, Windfall, Refund, Miscellaneous, Other (Custom)
+    - 5 frequency options: One-Time, Monthly, Quarterly, Yearly, Irregular
+    - Dashboard integration: Other income included in monthly income calculation
+  - **New Frontend Pages**:
+    - `MyOtherIncome.js`: List page with total amount, received/pending breakdown, category allocation chart, income cards with status badges
+    - `OtherIncomeForm.js`: Add/Edit form with 13-category grid, frequency-dependent date pickers, "Already Received?" toggle, delete with confirmation
+  - **Integration Updates**:
+    - `MyIncome.js`: Added "Other Income" type with violet color theme, fetches from `/api/other-income`
+    - `App.js`: Added routes for `/my-other-income`, `/other-income`, `/other-income/:id`
+  - **Testing**: 100% pass rate (23/23 backend tests, all frontend components verified)
+
 - **Dec 15, 2025 (Session 5)**: Critical Bug Fixes & Investment Enhancements
   - **P0 Fix: Fixed Expense Toggle Error**:
     - FixedExpenses page now navigates to `/expense?type=Fixed` when adding new expense
