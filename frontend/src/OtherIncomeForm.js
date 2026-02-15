@@ -186,14 +186,14 @@ const OtherIncomeForm = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8FAF9] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
         <div className="w-8 h-8 border-3 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] pb-32" data-testid="other-income-form">
+    <div className="min-h-screen bg-[#0F172A] pb-32" data-testid="other-income-form">
       {/* Header */}
       <header className="bg-gradient-to-br from-[#7C3AED] via-[#8B5CF6] to-[#6D28D9] px-6 pt-8 pb-6">
         <div className="flex items-center gap-3 mb-2">
@@ -209,7 +209,7 @@ const OtherIncomeForm = () => {
 
       {/* Form */}
       <div className="px-6 -mt-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+        <div className="bg-[#1E293B] rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
           {/* Error Message */}
           {error && (
             <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-600 text-sm" data-testid="error-message">
@@ -220,7 +220,7 @@ const OtherIncomeForm = () => {
 
           {/* Income Name */}
           <div>
-            <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+            <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
               Income Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -235,7 +235,7 @@ const OtherIncomeForm = () => {
 
           {/* Category Selection */}
           <div>
-            <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+            <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
               Category <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -264,7 +264,7 @@ const OtherIncomeForm = () => {
           {/* Custom Category Input (when "Other" selected) */}
           {formData.category === "Other" && (
             <div>
-              <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Custom Category Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -289,14 +289,14 @@ const OtherIncomeForm = () => {
 
           {/* Frequency */}
           <div>
-            <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+            <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
               Frequency <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <select
                 value={formData.frequency}
                 onChange={(e) => handleChange("frequency", e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-white"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-[#1E293B]"
                 data-testid="frequency-select"
               >
                 {frequencies.map((freq) => (
@@ -312,7 +312,7 @@ const OtherIncomeForm = () => {
             {/* One-Time / Irregular: Date Picker */}
             {(formData.frequency === "One-Time" || formData.frequency === "Irregular") && (
               <div>
-                <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   Date Received
                 </label>
                 <Popover>
@@ -344,7 +344,7 @@ const OtherIncomeForm = () => {
             {/* Monthly: Day of Month */}
             {formData.frequency === "Monthly" && (
               <div>
-                <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   Day of Month
                 </label>
                 <Popover>
@@ -377,14 +377,14 @@ const OtherIncomeForm = () => {
             {formData.frequency === "Quarterly" && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Quarter
                   </label>
                   <div className="relative">
                     <select
                       value={formData.selectedQuarter}
                       onChange={(e) => handleChange("selectedQuarter", e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-white"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-[#1E293B]"
                       data-testid="quarter-select"
                     >
                       <option value="">Select quarter</option>
@@ -396,7 +396,7 @@ const OtherIncomeForm = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Day of Quarter Start Month
                   </label>
                   <Popover>
@@ -430,14 +430,14 @@ const OtherIncomeForm = () => {
             {formData.frequency === "Yearly" && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Month
                   </label>
                   <div className="relative">
                     <select
                       value={formData.selectedMonth}
                       onChange={(e) => handleChange("selectedMonth", e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-white"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-[#1E293B]"
                       data-testid="month-select"
                     >
                       <option value="">Select month</option>
@@ -449,7 +449,7 @@ const OtherIncomeForm = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Day of Month
                   </label>
                   <Popover>
@@ -485,8 +485,8 @@ const OtherIncomeForm = () => {
             <div className="flex items-center gap-3">
               <CheckCircle className={cn("h-5 w-5", formData.isReceived ? "text-emerald-500" : "text-gray-400")} />
               <div>
-                <p className="font-medium text-[#0B3D2E]">Already Received?</p>
-                <p className="text-xs text-[#0B3D2E]/50">Mark if you've already received this income</p>
+                <p className="font-medium text-[#E2E8F0]">Already Received?</p>
+                <p className="text-xs text-[#E2E8F0]/50">Mark if you've already received this income</p>
               </div>
             </div>
             <button
@@ -500,7 +500,7 @@ const OtherIncomeForm = () => {
             >
               <span
                 className={cn(
-                  "absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform",
+                  "absolute top-1 w-5 h-5 rounded-full bg-[#1E293B] shadow transition-transform",
                   formData.isReceived ? "translate-x-6" : "translate-x-1"
                 )}
               />
@@ -509,7 +509,7 @@ const OtherIncomeForm = () => {
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+            <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
               Notes (Optional)
             </label>
             <textarea
@@ -558,15 +558,15 @@ const OtherIncomeForm = () => {
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6" data-testid="delete-modal">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <h3 className="text-lg font-bold text-[#0B3D2E] mb-2">Delete Entry?</h3>
-            <p className="text-[#0B3D2E]/60 text-sm mb-6">
+          <div className="bg-[#1E293B] rounded-2xl p-6 w-full max-w-sm">
+            <h3 className="text-lg font-bold text-[#E2E8F0] mb-2">Delete Entry?</h3>
+            <p className="text-[#E2E8F0]/60 text-sm mb-6">
               This will permanently delete this income entry. This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-[#0B3D2E] font-medium hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-[#E2E8F0] font-medium hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>

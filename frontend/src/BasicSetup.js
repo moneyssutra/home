@@ -71,12 +71,12 @@ const BasicSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B3D2E] via-[#134E3E] to-[#0B3D2E]" data-testid="basic-setup-page">
+    <div className="min-h-screen bg-gradient-to-br from-[#E2E8F0] via-[#134E3E] to-[#E2E8F0]" data-testid="basic-setup-page">
       {/* Header */}
       <header className="flex items-center px-6 pt-8 pb-4">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E293B]/10 text-white transition-colors hover:bg-[#1E293B]/20"
           onClick={() => navigate("/welcome")}
           data-testid="back-button"
         >
@@ -104,7 +104,7 @@ const BasicSetup = () => {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Enter your name"
-              className="w-full px-4 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+              className="w-full px-4 py-3.5 rounded-xl bg-[#1E293B]/10 border border-white/20 text-white placeholder-white/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
               data-testid="fullname-input"
             />
             {errors.fullName && <p className="text-rose-400 text-xs mt-1">{errors.fullName}</p>}
@@ -122,7 +122,7 @@ const BasicSetup = () => {
                 value={monthlyIncome}
                 onChange={handleIncomeChange}
                 placeholder="0"
-                className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-white/40 focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full pl-10 pr-4 py-3.5 rounded-xl bg-[#1E293B]/10 border border-white/20 text-white placeholder-white/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="income-input"
               />
             </div>
@@ -144,8 +144,8 @@ const BasicSetup = () => {
                     onClick={() => toggleGoal(goal.id)}
                     className={`relative px-4 py-3 rounded-xl text-sm font-medium text-left transition-all ${
                       isSelected
-                        ? "bg-[#00D09C] text-white"
-                        : "bg-white/10 text-white/80 hover:bg-white/15"
+                        ? "bg-[#14B8A6] text-white"
+                        : "bg-[#1E293B]/10 text-white/80 hover:bg-[#1E293B]/15"
                     }`}
                     data-testid={`goal-${goal.id}`}
                   >
@@ -175,8 +175,8 @@ const BasicSetup = () => {
                     onClick={() => setRiskAppetite(option.id)}
                     className={`px-3 py-4 rounded-xl text-center transition-all ${
                       isSelected
-                        ? "bg-[#00D09C] text-white"
-                        : "bg-white/10 text-white/80 hover:bg-white/15"
+                        ? "bg-[#14B8A6] text-white"
+                        : "bg-[#1E293B]/10 text-white/80 hover:bg-[#1E293B]/15"
                     }`}
                     data-testid={`risk-${option.id}`}
                   >
@@ -200,11 +200,11 @@ const BasicSetup = () => {
       </div>
 
       {/* Fixed Button */}
-      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 bg-gradient-to-t from-[#0B3D2E] via-[#0B3D2E] to-transparent">
+      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 bg-gradient-to-t from-[#E2E8F0] via-[#E2E8F0] to-transparent">
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="w-full max-w-md mx-auto block py-4 rounded-2xl bg-gradient-to-r from-[#00D09C] to-[#10B981] text-white text-lg font-semibold shadow-lg shadow-[#00D09C]/30 transition-all hover:shadow-xl disabled:opacity-50"
+          className="w-full max-w-md mx-auto block py-4 rounded-2xl bg-gradient-to-r from-[#14B8A6] to-[#10B981] text-white text-lg font-semibold shadow-lg shadow-[#14B8A6]/30 transition-all hover:shadow-xl disabled:opacity-50"
           data-testid="save-continue-button"
         >
           {isSubmitting ? "Saving..." : "Save & Continue"}

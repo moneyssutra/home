@@ -129,18 +129,18 @@ const VariableExpenses = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="variable-expenses-page">
+    <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="variable-expenses-page">
       {/* Header */}
       <header className="bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#D97706] px-6 pt-8 pb-8">
         <div className="flex items-center gap-4 mb-6">
-          <BackButton fallbackPath="/my-expenses" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <BackButton fallbackPath="/my-expenses" className="bg-[#1E293B]/20 border-white/30 text-white hover:bg-[#1E293B]/30" />
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             Variable Expenses
           </h1>
         </div>
 
         {/* Total Card */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="variable-expenses-total">
+        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="variable-expenses-total">
           <p className="text-white/60 text-sm font-medium mb-1">Total Variable Expenses</p>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalExpenses)}</h2>
           <p className="text-white/40 text-xs mt-1">{expenses.length} flexible expenses</p>
@@ -163,22 +163,22 @@ const VariableExpenses = () => {
 
       {/* Expense List */}
       <div className="px-6 mt-6">
-        <h3 className="text-sm font-semibold text-[#0B3D2E] mb-3">All Variable Expenses</h3>
+        <h3 className="text-sm font-semibold text-[#E2E8F0] mb-3">All Variable Expenses</h3>
         
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#0B3D2E]/60">Loading...</div>
+            <div className="text-[#E2E8F0]/60">Loading...</div>
           </div>
         ) : expenses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 mb-4">
               <Zap className="h-10 w-10 text-amber-500" />
             </div>
-            <h2 className="text-lg font-semibold text-[#0B3D2E] mb-2">No Variable Expenses</h2>
-            <p className="text-[#0B3D2E]/60 text-center text-sm mb-6">Add your one-time or irregular expenses</p>
+            <h2 className="text-lg font-semibold text-[#E2E8F0] mb-2">No Variable Expenses</h2>
+            <p className="text-[#E2E8F0]/60 text-center text-sm mb-6">Add your one-time or irregular expenses</p>
             <button
               onClick={() => navigate("/expense?type=Variable")}
-              className="flex items-center gap-2 rounded-xl bg-[#00D09C] px-5 py-2.5 text-white font-medium transition-all hover:bg-[#00BA89] active:scale-[0.98]"
+              className="flex items-center gap-2 rounded-xl bg-[#14B8A6] px-5 py-2.5 text-white font-medium transition-all hover:bg-[#0D9488] active:scale-[0.98]"
               data-testid="add-variable-expense-empty-btn"
             >
               <Plus className="h-5 w-5" />
@@ -196,7 +196,7 @@ const VariableExpenses = () => {
                   key={expense.id}
                   onClick={() => navigate(`/expense/${expense.id}`)}
                   className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all hover:shadow-md ${
-                    status === 'paid' ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-white border-gray-100'
+                    status === 'paid' ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-[#1E293B] border-gray-100'
                   }`}
                   data-testid={`expense-card-${expense.id}`}
                 >
@@ -205,23 +205,23 @@ const VariableExpenses = () => {
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="font-semibold text-[#0B3D2E]">{expense.expenseName}</h3>
+                      <h3 className="font-semibold text-[#E2E8F0]">{expense.expenseName}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusColor(status)}`}>
                         {getStatusLabel(status)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-[#0B3D2E]/50">
+                    <div className="flex items-center gap-2 text-xs text-[#E2E8F0]/50">
                       <span>{expense.category}</span>
                       <span>•</span>
                       <span>{expense.frequency || "One-time"}</span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-bold ${status === 'paid' ? 'text-emerald-600' : 'text-[#0B3D2E]'}`}>
+                    <p className={`font-bold ${status === 'paid' ? 'text-emerald-600' : 'text-[#E2E8F0]'}`}>
                       ₹ {formatAmount(expense.expectedAmount)}
                     </p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-[#0B3D2E]/30" />
+                  <ChevronRight className="h-5 w-5 text-[#E2E8F0]/30" />
                 </button>
               );
             })}
@@ -234,7 +234,7 @@ const VariableExpenses = () => {
         <div className="px-6 mt-6">
           <button
             onClick={() => navigate("/expense?type=Variable")}
-            className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#00D09C] py-3 text-[#00D09C] font-medium transition-all hover:bg-[#00D09C]/5"
+            className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#14B8A6] py-3 text-[#14B8A6] font-medium transition-all hover:bg-[#14B8A6]/5"
             data-testid="add-variable-expense-btn"
           >
             <Plus className="h-5 w-5" />

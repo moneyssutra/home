@@ -160,18 +160,18 @@ const MyExpenses = () => {
   const variablePendingTotal = variablePendingList.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="my-expenses-page">
+    <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="my-expenses-page">
       {/* Header */}
       <header className="bg-gradient-to-br from-[#DC2626] via-[#EF4444] to-[#DC2626] px-6 pt-8 pb-8">
         <div className="flex items-center gap-4 mb-6">
-          <BackButton fallbackPath="/" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <BackButton fallbackPath="/" forceNavigate={true} className="bg-[#1E293B]/20 border-white/30 text-white hover:bg-[#1E293B]/30" />
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             My Expenses
           </h1>
         </div>
 
         {/* Total Expenses Card */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="total-expenses-card">
+        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="total-expenses-card">
           <p className="text-white/60 text-sm font-medium mb-1">Total Expenses</p>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalExpenses)}</h2>
           <p className="text-white/40 text-xs mt-1">{expenses.length} expense sources</p>
@@ -203,8 +203,8 @@ const MyExpenses = () => {
       {/* Expense Allocation */}
       {sortedCategories.length > 0 && (
         <div className="px-6 -mt-4">
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100" data-testid="expense-allocation">
-            <h3 className="text-sm font-semibold text-[#0B3D2E] mb-4">Expense Breakdown</h3>
+          <div className="bg-[#1E293B] rounded-2xl p-5 shadow-sm border border-gray-100" data-testid="expense-allocation">
+            <h3 className="text-sm font-semibold text-[#E2E8F0] mb-4">Expense Breakdown</h3>
             <div className="space-y-3">
               {sortedCategories.slice(0, 5).map(([category, data], idx) => {
                 const percentage = totalExpenses > 0 ? (data.total / totalExpenses) * 100 : 0;
@@ -216,8 +216,8 @@ const MyExpenses = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-[#0B3D2E]">{category}</span>
-                        <span className="text-sm font-semibold text-[#0B3D2E]">₹ {formatAmount(data.total)}</span>
+                        <span className="text-sm font-medium text-[#E2E8F0]">{category}</span>
+                        <span className="text-sm font-semibold text-[#E2E8F0]">₹ {formatAmount(data.total)}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -226,7 +226,7 @@ const MyExpenses = () => {
                             style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }}
                           />
                         </div>
-                        <span className="text-xs text-[#0B3D2E]/50 w-12 text-right">{percentage.toFixed(0)}%</span>
+                        <span className="text-xs text-[#E2E8F0]/50 w-12 text-right">{percentage.toFixed(0)}%</span>
                       </div>
                     </div>
                   </div>
@@ -244,23 +244,23 @@ const MyExpenses = () => {
             {/* Fixed Expenses - Clickable */}
             <button
               onClick={() => navigate('/expenses/fixed')}
-              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md hover:border-slate-200 transition-all"
+              className="bg-[#1E293B] rounded-2xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md hover:border-slate-200 transition-all"
               data-testid="fixed-expenses-card"
             >
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                   <Shield className="h-4 w-4 text-slate-600" />
                 </div>
-                <span className="text-sm font-semibold text-[#0B3D2E]">Fixed</span>
-                <ChevronRight className="h-4 w-4 text-[#0B3D2E]/30 ml-auto" />
+                <span className="text-sm font-semibold text-[#E2E8F0]">Fixed</span>
+                <ChevronRight className="h-4 w-4 text-[#E2E8F0]/30 ml-auto" />
               </div>
-              <p className="text-xl font-bold text-[#0B3D2E] mb-1">₹ {formatAmount(fixedTotal)}</p>
-              <p className="text-xs text-[#0B3D2E]/50">{fixedExpenses.length} expenses</p>
+              <p className="text-xl font-bold text-[#E2E8F0] mb-1">₹ {formatAmount(fixedTotal)}</p>
+              <p className="text-xs text-[#E2E8F0]/50">{fixedExpenses.length} expenses</p>
               <div className="mt-2 space-y-1">
                 {fixedExpenses.slice(0, 3).map(exp => (
                   <div key={exp.id} className="flex justify-between text-xs">
-                    <span className="text-[#0B3D2E]/60 truncate flex-1">{exp.expenseName}</span>
-                    <span className="text-[#0B3D2E] font-medium ml-2">₹{formatAmount(exp.expectedAmount)}</span>
+                    <span className="text-[#E2E8F0]/60 truncate flex-1">{exp.expenseName}</span>
+                    <span className="text-[#E2E8F0] font-medium ml-2">₹{formatAmount(exp.expectedAmount)}</span>
                   </div>
                 ))}
               </div>
@@ -269,23 +269,23 @@ const MyExpenses = () => {
             {/* Variable Expenses - Clickable */}
             <button
               onClick={() => navigate('/expenses/variable')}
-              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md hover:border-amber-200 transition-all"
+              className="bg-[#1E293B] rounded-2xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md hover:border-amber-200 transition-all"
               data-testid="variable-expenses-card"
             >
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                   <Zap className="h-4 w-4 text-amber-600" />
                 </div>
-                <span className="text-sm font-semibold text-[#0B3D2E]">Variable</span>
-                <ChevronRight className="h-4 w-4 text-[#0B3D2E]/30 ml-auto" />
+                <span className="text-sm font-semibold text-[#E2E8F0]">Variable</span>
+                <ChevronRight className="h-4 w-4 text-[#E2E8F0]/30 ml-auto" />
               </div>
-              <p className="text-xl font-bold text-[#0B3D2E] mb-1">₹ {formatAmount(variableTotal)}</p>
-              <p className="text-xs text-[#0B3D2E]/50">{variableExpenses.length} expenses</p>
+              <p className="text-xl font-bold text-[#E2E8F0] mb-1">₹ {formatAmount(variableTotal)}</p>
+              <p className="text-xs text-[#E2E8F0]/50">{variableExpenses.length} expenses</p>
               <div className="mt-2 space-y-1">
                 {variableExpenses.slice(0, 3).map(exp => (
                   <div key={exp.id} className="flex justify-between text-xs">
-                    <span className="text-[#0B3D2E]/60 truncate flex-1">{exp.expenseName}</span>
-                    <span className="text-[#0B3D2E] font-medium ml-2">₹{formatAmount(exp.expectedAmount)}</span>
+                    <span className="text-[#E2E8F0]/60 truncate flex-1">{exp.expenseName}</span>
+                    <span className="text-[#E2E8F0] font-medium ml-2">₹{formatAmount(exp.expectedAmount)}</span>
                   </div>
                 ))}
               </div>
@@ -296,22 +296,22 @@ const MyExpenses = () => {
 
       {/* Expense List */}
       <div className="px-6 mt-6">
-        <h3 className="text-sm font-semibold text-[#0B3D2E] mb-3">All Expenses</h3>
+        <h3 className="text-sm font-semibold text-[#E2E8F0] mb-3">All Expenses</h3>
         
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#0B3D2E]/60">Loading...</div>
+            <div className="text-[#E2E8F0]/60">Loading...</div>
           </div>
         ) : expenses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-rose-100 mb-4">
               <Receipt className="h-10 w-10 text-rose-500" />
             </div>
-            <h2 className="text-lg font-semibold text-[#0B3D2E] mb-2">No Expenses Added Yet</h2>
-            <p className="text-[#0B3D2E]/60 text-center text-sm mb-6">Start tracking your expenses</p>
+            <h2 className="text-lg font-semibold text-[#E2E8F0] mb-2">No Expenses Added Yet</h2>
+            <p className="text-[#E2E8F0]/60 text-center text-sm mb-6">Start tracking your expenses</p>
             <button
               onClick={() => navigate("/expense")}
-              className="flex items-center gap-2 rounded-xl bg-[#00D09C] px-5 py-2.5 text-white font-medium transition-all hover:bg-[#00BA89] active:scale-[0.98]"
+              className="flex items-center gap-2 rounded-xl bg-[#14B8A6] px-5 py-2.5 text-white font-medium transition-all hover:bg-[#0D9488] active:scale-[0.98]"
             >
               <Plus className="h-5 w-5" />
               Add Expense
@@ -330,7 +330,7 @@ const MyExpenses = () => {
                   key={expense.id}
                   onClick={() => navigate(`/expense/${expense.id}`)}
                   className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all hover:shadow-md ${
-                    status === 'paid' ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-white border-gray-100'
+                    status === 'paid' ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-[#1E293B] border-gray-100'
                   }`}
                   data-testid={`expense-card-${expense.id}`}
                 >
@@ -339,12 +339,12 @@ const MyExpenses = () => {
                   </div>
                   <div className="flex-1 text-left">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="font-semibold text-[#0B3D2E]">{expense.expenseName}</h3>
+                      <h3 className="font-semibold text-[#E2E8F0]">{expense.expenseName}</h3>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusColor(status)}`}>
                         {getStatusLabel(status)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-[#0B3D2E]/50">
+                    <div className="flex items-center gap-2 text-xs text-[#E2E8F0]/50">
                       <span>{expense.category}</span>
                       <span>•</span>
                       <span>{expense.expenseType}</span>
@@ -369,12 +369,12 @@ const MyExpenses = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-bold ${status === 'paid' ? 'text-emerald-600' : 'text-[#0B3D2E]'}`}>
+                    <p className={`font-bold ${status === 'paid' ? 'text-emerald-600' : 'text-[#E2E8F0]'}`}>
                       ₹ {formatAmount(expense.expectedAmount)}
                     </p>
-                    <p className="text-xs text-[#0B3D2E]/40">{expense.frequency}</p>
+                    <p className="text-xs text-[#E2E8F0]/40">{expense.frequency}</p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-[#0B3D2E]/30" />
+                  <ChevronRight className="h-5 w-5 text-[#E2E8F0]/30" />
                 </button>
               );
             })}
@@ -387,7 +387,7 @@ const MyExpenses = () => {
         <div className="px-6 mt-6">
           <button
             onClick={() => navigate("/expense")}
-            className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#00D09C] py-3 text-[#00D09C] font-medium transition-all hover:bg-[#00D09C]/5"
+            className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#14B8A6] py-3 text-[#14B8A6] font-medium transition-all hover:bg-[#14B8A6]/5"
           >
             <Plus className="h-5 w-5" />
             Add New Expense

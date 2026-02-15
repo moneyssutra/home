@@ -431,7 +431,7 @@ const InterestIncome = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D09C]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
           onClick={() => navigate("/my-interest")}
           aria-label="Back to my interest"
           data-testid="back-button"
@@ -439,7 +439,7 @@ const InterestIncome = () => {
           <ChevronLeft className="h-5 w-5" />
         </button>
         <h1
-          className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#0B3D2E]"
+          className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#E2E8F0]"
           style={{ fontFamily: "'Manrope', sans-serif" }}
           data-testid="page-title"
         >
@@ -454,7 +454,7 @@ const InterestIncome = () => {
           <div className="space-y-6">
             {/* Interest Source Name */}
             <div className="w-full">
-              <label htmlFor="sourceName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="sourceName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Interest Source Name
               </label>
               <input
@@ -464,7 +464,7 @@ const InterestIncome = () => {
                 onChange={(e) => setSourceName(e.target.value)}
                 placeholder="e.g., Hand Loan to Rahul, FD – HDFC Bank"
                 maxLength={50}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="source-name-input"
               />
               {errors.sourceName && <p className="text-sm text-red-500 mt-1">{errors.sourceName}</p>}
@@ -472,18 +472,18 @@ const InterestIncome = () => {
 
             {/* Principal Amount */}
             <div className="w-full">
-              <label htmlFor="principal" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="principal" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Principal Amount
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
                 <input
                   id="principal"
                   type="text"
                   value={principal}
                   onChange={handlePrincipalChange}
                   placeholder="0"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="principal-input"
                 />
               </div>
@@ -492,7 +492,7 @@ const InterestIncome = () => {
 
             {/* Rate of Interest */}
             <div className="w-full">
-              <label htmlFor="rate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="rate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Rate of Interest (%)
               </label>
               <div className="relative">
@@ -502,10 +502,10 @@ const InterestIncome = () => {
                   value={rate}
                   onChange={handleRateChange}
                   placeholder="e.g., 8.5"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 pr-10 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 pr-10 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="rate-input"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0B3D2E]/60">%</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#E2E8F0]/60">%</span>
               </div>
               {errors.rate && <p className="text-sm text-red-500 mt-1">{errors.rate}</p>}
             </div>
@@ -514,7 +514,7 @@ const InterestIncome = () => {
             <div className="grid grid-cols-2 gap-4">
               {/* Start Date */}
               <div className="w-full">
-                <label htmlFor="startDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label htmlFor="startDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   Start Date
                 </label>
                 <label htmlFor="startDate" className="relative block cursor-pointer">
@@ -523,7 +523,7 @@ const InterestIncome = () => {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                     data-testid="start-date-input"
                   />
                   <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -533,7 +533,7 @@ const InterestIncome = () => {
 
               {/* End Date */}
               <div className="w-full">
-                <label htmlFor="endDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label htmlFor="endDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   End Date (Maturity)
                 </label>
                 <label htmlFor="endDate" className="relative block cursor-pointer">
@@ -543,7 +543,7 @@ const InterestIncome = () => {
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
                     min={startDate || undefined}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                     data-testid="end-date-input"
                   />
                   <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -554,14 +554,14 @@ const InterestIncome = () => {
 
             {/* Interest Type */}
             <div className="w-full">
-              <label htmlFor="interestType" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="interestType" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Interest Type
               </label>
               <select
                 id="interestType"
                 value={interestType}
                 onChange={(e) => setInterestType(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="interest-type-select"
               >
                 <option value="Simple Interest">Simple Interest</option>
@@ -572,14 +572,14 @@ const InterestIncome = () => {
             {/* Compounding Frequency (only for Compound) */}
             {interestType === "Compound Interest" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="compounding-section">
-                <label htmlFor="compoundingFrequency" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label htmlFor="compoundingFrequency" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   Compounding Frequency
                 </label>
                 <select
                   id="compoundingFrequency"
                   value={compoundingFrequency}
                   onChange={(e) => setCompoundingFrequency(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="compounding-frequency-select"
                 >
                   <option value="">Select Compounding Frequency</option>
@@ -593,12 +593,12 @@ const InterestIncome = () => {
 
             {/* Current Amount Display (Auto-calculated) */}
             {startDate && principal && rate && (
-              <div className="w-full rounded-xl bg-gradient-to-r from-[#0B3D2E] to-[#145A3E] p-5 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="current-amount-section">
+              <div className="w-full rounded-xl bg-gradient-to-r from-[#E2E8F0] to-[#145A3E] p-5 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="current-amount-section">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-white/70 text-sm mb-1">Current Amount (Principal + Interest)</p>
                     <p className="text-white text-2xl font-bold">₹ {formatAmount(currentAmount)}</p>
-                    <p className="text-[#00D09C] text-sm mt-1">
+                    <p className="text-[#14B8A6] text-sm mt-1">
                       +₹ {formatAmount(currentAmount - parseFloat(principal || 0))} interest accrued
                     </p>
                   </div>
@@ -617,14 +617,14 @@ const InterestIncome = () => {
 
             {/* Income Frequency */}
             <div className="w-full">
-              <label htmlFor="frequency" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="frequency" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Interest Payment Frequency
               </label>
               <select
                 id="frequency"
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="frequency-select"
               >
                 <option value="">Select Payment Frequency</option>
@@ -638,7 +638,7 @@ const InterestIncome = () => {
             {/* Monthly Date Selection */}
             {frequency === "Monthly" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
-                <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   Payment Date (Day of Month)
                 </label>
                 <label htmlFor="monthlyDate" className="relative block cursor-pointer">
@@ -647,7 +647,7 @@ const InterestIncome = () => {
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                     data-testid="date-select"
                   />
                   <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -660,14 +660,14 @@ const InterestIncome = () => {
             {frequency === "Quarterly" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="quarterly-fields">
                 <div className="w-full">
-                  <label htmlFor="quarter" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="quarter" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Quarter
                   </label>
                   <select
                     id="quarter"
                     value={selectedQuarter}
                     onChange={(e) => { setSelectedQuarter(e.target.value); setSelectedMonth(""); setSelectedDate(""); }}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="quarter-select"
                   >
                     <option value="">Select Quarter</option>
@@ -678,14 +678,14 @@ const InterestIncome = () => {
 
                 {selectedQuarter && (
                   <div className="w-full">
-                    <label htmlFor="quarterMonth" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    <label htmlFor="quarterMonth" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                       Select Month
                     </label>
                     <select
                       id="quarterMonth"
                       value={selectedMonth}
                       onChange={(e) => { setSelectedMonth(e.target.value); setSelectedDate(""); }}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="month-select"
                     >
                       <option value="">Select Month</option>
@@ -697,7 +697,7 @@ const InterestIncome = () => {
 
                 {selectedMonth && (
                   <div className="w-full">
-                    <label htmlFor="quarterDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    <label htmlFor="quarterDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                       Select Date
                     </label>
                     <label htmlFor="quarterDate" className="relative block cursor-pointer">
@@ -708,7 +708,7 @@ const InterestIncome = () => {
                         onChange={(e) => setSelectedDate(e.target.value)}
                         min={quarterlyDateRange.min}
                         max={quarterlyDateRange.max}
-                        className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                        className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                         data-testid="date-select"
                       />
                       <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -723,14 +723,14 @@ const InterestIncome = () => {
             {frequency === "Half-Yearly" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="half-yearly-fields">
                 <div className="w-full">
-                  <label htmlFor="half" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="half" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Half
                   </label>
                   <select
                     id="half"
                     value={selectedHalf}
                     onChange={(e) => { setSelectedHalf(e.target.value); setSelectedMonth(""); setSelectedDate(""); }}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="half-select"
                   >
                     <option value="">Select Half</option>
@@ -741,14 +741,14 @@ const InterestIncome = () => {
 
                 {selectedHalf && (
                   <div className="w-full">
-                    <label htmlFor="halfMonth" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    <label htmlFor="halfMonth" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                       Select Month
                     </label>
                     <select
                       id="halfMonth"
                       value={selectedMonth}
                       onChange={(e) => { setSelectedMonth(e.target.value); setSelectedDate(""); }}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="month-select"
                     >
                       <option value="">Select Month</option>
@@ -760,7 +760,7 @@ const InterestIncome = () => {
 
                 {selectedMonth && (
                   <div className="w-full">
-                    <label htmlFor="halfDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    <label htmlFor="halfDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                       Select Date
                     </label>
                     <label htmlFor="halfDate" className="relative block cursor-pointer">
@@ -771,7 +771,7 @@ const InterestIncome = () => {
                         onChange={(e) => setSelectedDate(e.target.value)}
                         min={halfYearlyDateRange.min}
                         max={halfYearlyDateRange.max}
-                        className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                        className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                         data-testid="date-select"
                       />
                       <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -786,14 +786,14 @@ const InterestIncome = () => {
             {frequency === "Yearly" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="yearly-fields">
                 <div className="w-full">
-                  <label htmlFor="yearlyMonth" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="yearlyMonth" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Month
                   </label>
                   <select
                     id="yearlyMonth"
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="month-select"
                   >
                     <option value="">Select Month</option>
@@ -802,7 +802,7 @@ const InterestIncome = () => {
                   {errors.selectedMonth && <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>}
                 </div>
                 <div className="w-full">
-                  <label htmlFor="yearlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="yearlyDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Date
                   </label>
                   <label htmlFor="yearlyDate" className="relative block cursor-pointer">
@@ -811,7 +811,7 @@ const InterestIncome = () => {
                       type="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                       data-testid="date-select"
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -825,7 +825,7 @@ const InterestIncome = () => {
             {frequency === "Others" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="others-fields">
                 <div className="w-full">
-                  <label htmlFor="customFreq" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="customFreq" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Enter Custom Frequency
                   </label>
                   <input
@@ -834,13 +834,13 @@ const InterestIncome = () => {
                     value={customFrequency}
                     onChange={(e) => setCustomFrequency(e.target.value)}
                     placeholder="e.g., Every 2 months"
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="custom-frequency-input"
                   />
                   {errors.customFrequency && <p className="text-sm text-red-500 mt-1">{errors.customFrequency}</p>}
                 </div>
                 <div className="w-full">
-                  <label htmlFor="customDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="customDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Date
                   </label>
                   <label htmlFor="customDate" className="relative block cursor-pointer">
@@ -849,7 +849,7 @@ const InterestIncome = () => {
                       type="date"
                       value={customDate}
                       onChange={(e) => setCustomDate(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                       data-testid="custom-date-input"
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -864,12 +864,12 @@ const InterestIncome = () => {
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300 space-y-4" data-testid="expected-income-section">
                 {/* Auto-calculation info */}
                 {!manualOverride && calculatedAmount > 0 && (
-                  <div className="rounded-xl bg-[#E8F8F4] border border-[#00D09C]/30 p-4">
+                  <div className="rounded-xl bg-[#E8F8F4] border border-[#14B8A6]/30 p-4">
                     <div className="flex items-start gap-2">
-                      <Calculator className="h-5 w-5 text-[#00D09C] mt-0.5 flex-shrink-0" />
+                      <Calculator className="h-5 w-5 text-[#14B8A6] mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-[#0B3D2E] mb-1">Auto-Calculated ({frequency})</p>
-                        <p className="text-xs text-[#0B3D2E]/70">
+                        <p className="text-sm font-medium text-[#E2E8F0] mb-1">Auto-Calculated ({frequency})</p>
+                        <p className="text-xs text-[#E2E8F0]/70">
                           {interestType === "Simple Interest" 
                             ? `₹${formatAmount(parseFloat(principal) || 0)} × ${rate}% ÷ ${frequency === "Monthly" ? 12 : frequency === "Quarterly" ? 4 : frequency === "Half-Yearly" ? 2 : 1}`
                             : `Compound: ${compoundingFrequency} compounding`
@@ -882,7 +882,7 @@ const InterestIncome = () => {
 
                 {/* Manual Override Toggle */}
                 <div className="flex items-center justify-between">
-                  <label htmlFor="manualOverride" className="text-sm font-medium text-[#0B3D2E]">
+                  <label htmlFor="manualOverride" className="text-sm font-medium text-[#E2E8F0]">
                     Manual Override
                   </label>
                   <button
@@ -891,12 +891,12 @@ const InterestIncome = () => {
                     aria-checked={manualOverride}
                     onClick={() => setManualOverride(!manualOverride)}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      manualOverride ? "bg-[#00D09C]" : "bg-[#E2E8F0]"
+                      manualOverride ? "bg-[#14B8A6]" : "bg-[#E2E8F0]"
                     }`}
                     data-testid="manual-override-toggle"
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      className={`inline-block h-4 w-4 transform rounded-full bg-[#1E293B] transition-transform ${
                         manualOverride ? "translate-x-6" : "translate-x-1"
                       }`}
                     />
@@ -905,11 +905,11 @@ const InterestIncome = () => {
 
                 {/* Expected Income Field */}
                 <div className="w-full">
-                  <label htmlFor="expectedAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="expectedAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Expected Interest Income ({frequency})
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
                     <input
                       id="expectedAmount"
                       type="text"
@@ -917,8 +917,8 @@ const InterestIncome = () => {
                       onChange={handleExpectedAmountChange}
                       readOnly={!manualOverride}
                       placeholder="0"
-                      className={`w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 ${
-                        !manualOverride ? "bg-[#F8FAF9] cursor-not-allowed" : ""
+                      className={`w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 ${
+                        !manualOverride ? "bg-[#0F172A] cursor-not-allowed" : ""
                       }`}
                       data-testid="expected-amount-input"
                     />
@@ -936,7 +936,7 @@ const InterestIncome = () => {
       </div>
 
       {/* Sticky Action Buttons */}
-      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-sm px-6 py-4 z-40">
+      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
         <div className="mx-auto max-w-[620px]">
           {id ? (
             <div className="flex gap-3">
@@ -944,7 +944,7 @@ const InterestIncome = () => {
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isSubmitting}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-white px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-[#1E293B] px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 data-testid="delete-button"
               >
                 <Trash2 className="h-5 w-5" />
@@ -954,7 +954,7 @@ const InterestIncome = () => {
                 type="button"
                 onClick={handleSave}
                 disabled={isSubmitting}
-                className="flex-1 rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+                className="flex-1 rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
                 data-testid="update-button"
               >
                 {isSubmitting ? "Updating..." : "Update Interest Income"}
@@ -965,7 +965,7 @@ const InterestIncome = () => {
               type="button"
               onClick={handleSave}
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+              className="w-full rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
               data-testid="save-button"
             >
               {isSubmitting ? "Saving..." : "Save Interest Income"}
@@ -977,23 +977,23 @@ const InterestIncome = () => {
       {/* Update Confirmation Dialog */}
       {showUpdateConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">Confirm Changes</h3>
-            <p className="text-[#0B3D2E]/70 mb-6">
+          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold text-[#E2E8F0] mb-3">Confirm Changes</h3>
+            <p className="text-[#E2E8F0]/70 mb-6">
               Are you sure you want to update this interest income? This will replace the existing information.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowUpdateConfirm(false)}
-                className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium transition-colors hover:bg-[#F8FAF9]"
+                className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium transition-colors hover:bg-[#0F172A]"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={performSave}
-                className="flex-1 rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium transition-colors hover:bg-[#00BA89]"
+                className="flex-1 rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium transition-colors hover:bg-[#0D9488]"
               >
                 Yes, Update
               </button>
@@ -1005,16 +1005,16 @@ const InterestIncome = () => {
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-red-600 mb-3">Delete Interest Income?</h3>
-            <p className="text-[#0B3D2E]/70 mb-6">
+            <p className="text-[#E2E8F0]/70 mb-6">
               Are you sure you want to delete "{sourceName}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium transition-colors hover:bg-[#F8FAF9]"
+                className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium transition-colors hover:bg-[#0F172A]"
               >
                 Cancel
               </button>
@@ -1033,30 +1033,30 @@ const InterestIncome = () => {
       {/* Duplicate Interest Dialog */}
       {showDuplicateDialog && existingInterest && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">Interest Source Already Exists</h3>
-            <p className="text-[#0B3D2E]/70 mb-6">
+          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold text-[#E2E8F0] mb-3">Interest Source Already Exists</h3>
+            <p className="text-[#E2E8F0]/70 mb-6">
               An interest source with the name "{sourceName}" already exists. Would you like to edit the existing one or create a new one anyway?
             </p>
             <div className="flex flex-col gap-3">
               <button
                 type="button"
                 onClick={() => { setShowDuplicateDialog(false); navigate(`/interest-income/${existingInterest.id}`); }}
-                className="w-full rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium transition-colors hover:bg-[#00BA89]"
+                className="w-full rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium transition-colors hover:bg-[#0D9488]"
               >
                 Edit Existing Interest
               </button>
               <button
                 type="button"
                 onClick={() => { setShowDuplicateDialog(false); performSave(); }}
-                className="w-full rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium transition-colors hover:bg-[#F8FAF9]"
+                className="w-full rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium transition-colors hover:bg-[#0F172A]"
               >
                 Create New Anyway
               </button>
               <button
                 type="button"
                 onClick={() => setShowDuplicateDialog(false)}
-                className="w-full rounded-xl bg-white px-4 py-3 text-[#0B3D2E]/60 font-medium transition-colors hover:text-[#0B3D2E]"
+                className="w-full rounded-xl bg-[#1E293B] px-4 py-3 text-[#E2E8F0]/60 font-medium transition-colors hover:text-[#E2E8F0]"
               >
                 Cancel
               </button>

@@ -114,7 +114,7 @@ const Login = () => {
         </div>
 
         {/* Auth Card */}
-        <div className="w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl">
+        <div className="w-full max-w-sm bg-[#1E293B] rounded-3xl p-8 shadow-2xl">
           <h2 className="text-xl font-bold text-[#1F2937] mb-6 text-center">
             {isRegisterMode ? "Create Account" : "Welcome Back"}
           </h2>

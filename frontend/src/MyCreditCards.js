@@ -65,18 +65,18 @@ const MyCreditCards = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="my-credit-cards-page">
+    <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="my-credit-cards-page">
       {/* Header */}
       <header className="bg-gradient-to-br from-[#7C3AED] via-[#8B5CF6] to-[#7C3AED] px-6 pt-8 pb-8">
         <div className="flex items-center gap-4 mb-6">
-          <BackButton fallbackPath="/" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <BackButton fallbackPath="/" forceNavigate={true} className="bg-[#1E293B]/20 border-white/30 text-white hover:bg-[#1E293B]/30" />
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             My Credit Cards
           </h1>
         </div>
 
         {/* Total Outstanding Card */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="total-outstanding-card">
+        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="total-outstanding-card">
           <p className="text-white/60 text-sm font-medium mb-1">Total Outstanding</p>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalOutstanding)}</h2>
           <div className="flex items-center gap-4 mt-3">
@@ -84,7 +84,7 @@ const MyCreditCards = () => {
               <p className="text-white/50 text-xs">Credit Limit</p>
               <p className="text-white font-medium">₹ {formatAmount(totalLimit)}</p>
             </div>
-            <div className="h-8 w-px bg-white/20" />
+            <div className="h-8 w-px bg-[#1E293B]/20" />
             <div>
               <p className="text-white/50 text-xs">Utilization</p>
               <p className={`font-semibold ${overallUtilization < 30 ? 'text-emerald-300' : overallUtilization < 50 ? 'text-amber-300' : 'text-rose-300'}`}>
@@ -95,7 +95,7 @@ const MyCreditCards = () => {
           
           {/* Utilization Bar */}
           <div className="mt-4">
-            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+            <div className="h-2 bg-[#1E293B]/20 rounded-full overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-500 ${getUtilizationColor(overallUtilization).split(' ')[1]}`}
                 style={{ width: `${Math.min(overallUtilization, 100)}%` }}
@@ -115,18 +115,18 @@ const MyCreditCards = () => {
       <div className="px-6 -mt-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#0B3D2E]/60">Loading...</div>
+            <div className="text-[#E2E8F0]/60">Loading...</div>
           </div>
         ) : cards.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
+          <div className="bg-[#1E293B] rounded-2xl p-8 shadow-sm border border-gray-100 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-violet-100 mx-auto mb-4">
               <CreditCard className="h-10 w-10 text-violet-500" />
             </div>
-            <h2 className="text-lg font-semibold text-[#0B3D2E] mb-2">No Credit Cards Added</h2>
-            <p className="text-[#0B3D2E]/60 text-sm mb-6">Add your credit cards to track outstanding and utilization</p>
+            <h2 className="text-lg font-semibold text-[#E2E8F0] mb-2">No Credit Cards Added</h2>
+            <p className="text-[#E2E8F0]/60 text-sm mb-6">Add your credit cards to track outstanding and utilization</p>
             <button
               onClick={() => navigate("/credit-card")}
-              className="flex items-center gap-2 rounded-xl bg-[#00D09C] px-5 py-2.5 text-white font-medium mx-auto transition-all hover:bg-[#00BA89] active:scale-[0.98]"
+              className="flex items-center gap-2 rounded-xl bg-[#14B8A6] px-5 py-2.5 text-white font-medium mx-auto transition-all hover:bg-[#0D9488] active:scale-[0.98]"
             >
               <Plus className="h-5 w-5" />
               Add Credit Card
@@ -142,13 +142,13 @@ const MyCreditCards = () => {
                 <button
                   key={card.id}
                   onClick={() => navigate(`/credit-card/${card.id}`)}
-                  className="w-full bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-left transition-all hover:shadow-md"
+                  className="w-full bg-[#1E293B] rounded-2xl p-4 shadow-sm border border-gray-100 text-left transition-all hover:shadow-md"
                   data-testid={`credit-card-${card.id}`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <h3 className="font-semibold text-[#0B3D2E]">{card.cardName}</h3>
-                      <p className="text-sm text-[#0B3D2E]/50">{card.bankName}</p>
+                      <h3 className="font-semibold text-[#E2E8F0]">{card.cardName}</h3>
+                      <p className="text-sm text-[#E2E8F0]/50">{card.bankName}</p>
                     </div>
                     {daysUntilDue !== null && daysUntilDue <= 5 && (
                       <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-rose-100 text-rose-600 text-xs font-medium">
@@ -160,16 +160,16 @@ const MyCreditCards = () => {
                   
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-xs text-[#0B3D2E]/50 mb-0.5">Outstanding</p>
-                      <p className="text-xl font-bold text-[#0B3D2E]">₹ {formatAmount(card.outstandingAmount)}</p>
+                      <p className="text-xs text-[#E2E8F0]/50 mb-0.5">Outstanding</p>
+                      <p className="text-xl font-bold text-[#E2E8F0]">₹ {formatAmount(card.outstandingAmount)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-[#0B3D2E]/50 mb-0.5">Limit: ₹{formatAmount(card.creditLimit)}</p>
+                      <p className="text-xs text-[#E2E8F0]/50 mb-0.5">Limit: ₹{formatAmount(card.creditLimit)}</p>
                       <p className={`text-sm font-semibold ${getUtilizationColor(utilization).split(' ')[0]}`}>
                         {utilization.toFixed(0)}% used
                       </p>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-[#0B3D2E]/30 ml-2" />
+                    <ChevronRight className="h-5 w-5 text-[#E2E8F0]/30 ml-2" />
                   </div>
                   
                   {/* Mini Progress Bar */}

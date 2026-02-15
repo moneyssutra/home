@@ -270,7 +270,7 @@ const WorkspaceSettings = () => {
         )}
 
         {/* Workspace Selector */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-white font-semibold flex items-center gap-2">
               <Building2 className="h-5 w-5 text-emerald-400" />
@@ -279,7 +279,7 @@ const WorkspaceSettings = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => setShowJoinModal(true)}
-                className="px-3 py-1.5 rounded-lg bg-white/10 text-white text-sm hover:bg-white/20 transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-[#1E293B]/10 text-white text-sm hover:bg-[#1E293B]/20 transition-colors"
               >
                 Join
               </button>
@@ -300,7 +300,7 @@ const WorkspaceSettings = () => {
                 className={`w-full p-3 rounded-xl flex items-center justify-between transition-colors ${
                   ws.id === currentWorkspace.id 
                     ? 'bg-emerald-500/20 border border-emerald-500/30' 
-                    : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                    : 'bg-[#1E293B]/5 border border-white/10 hover:bg-[#1E293B]/10'
                 }`}
               >
                 <div className="flex items-center gap-3">
@@ -335,7 +335,7 @@ const WorkspaceSettings = () => {
             </h2>
             <div className="space-y-3">
               {pendingInvitations.map(inv => (
-                <div key={inv.id} className="bg-white/5 rounded-xl p-4 flex items-center justify-between">
+                <div key={inv.id} className="bg-[#1E293B]/5 rounded-xl p-4 flex items-center justify-between">
                   <div>
                     <p className="text-white font-medium">{inv.workspace_name}</p>
                     <p className="text-white/50 text-xs">
@@ -356,7 +356,7 @@ const WorkspaceSettings = () => {
 
         {/* Invite Code Section */}
         {permissions.invite && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+          <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
             <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
               <UserPlus className="h-5 w-5 text-emerald-400" />
               Share Invite Code
@@ -365,7 +365,7 @@ const WorkspaceSettings = () => {
               Share this code with others to let them join as viewers
             </p>
             <div className="flex items-center gap-3">
-              <div className="flex-1 bg-white/5 rounded-xl px-4 py-3 font-mono text-xl text-white tracking-widest text-center border border-white/10">
+              <div className="flex-1 bg-[#1E293B]/5 rounded-xl px-4 py-3 font-mono text-xl text-white tracking-widest text-center border border-white/10">
                 {currentWorkspace.invite_code || 'N/A'}
               </div>
               <button
@@ -376,7 +376,7 @@ const WorkspaceSettings = () => {
               </button>
               <button
                 onClick={handleRegenerateCode}
-                className="p-3 rounded-xl bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
+                className="p-3 rounded-xl bg-[#1E293B]/10 text-white/70 hover:bg-[#1E293B]/20 transition-colors"
               >
                 <RefreshCw className="h-5 w-5" />
               </button>
@@ -386,7 +386,7 @@ const WorkspaceSettings = () => {
 
         {/* Invite by Email */}
         {permissions.invite && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+          <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
             <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
               <Mail className="h-5 w-5 text-emerald-400" />
               Invite by Email
@@ -397,7 +397,7 @@ const WorkspaceSettings = () => {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="Enter email address"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:border-emerald-500/50 focus:outline-none"
+                className="w-full px-4 py-3 rounded-xl bg-[#1E293B]/5 border border-white/10 text-white placeholder-white/40 focus:border-emerald-500/50 focus:outline-none"
               />
               <div className="flex gap-2">
                 {['viewer', 'editor', 'admin'].map(role => (
@@ -408,7 +408,7 @@ const WorkspaceSettings = () => {
                     className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
                       inviteRole === role 
                         ? roleColors[role]
-                        : 'bg-white/5 text-white/50 border-white/10 hover:bg-white/10'
+                        : 'bg-[#1E293B]/5 text-white/50 border-white/10 hover:bg-[#1E293B]/10'
                     }`}
                   >
                     {roleLabels[role]}
@@ -426,7 +426,7 @@ const WorkspaceSettings = () => {
         )}
 
         {/* Members List */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
           <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
             <Users className="h-5 w-5 text-emerald-400" />
             Members ({members.filter(m => m.status === 'active').length})
@@ -436,7 +436,7 @@ const WorkspaceSettings = () => {
             {members.filter(m => m.status === 'active' || m.status === 'pending').map(member => (
               <div 
                 key={member.id} 
-                className={`bg-white/5 rounded-xl p-4 flex items-center justify-between ${
+                className={`bg-[#1E293B]/5 rounded-xl p-4 flex items-center justify-between ${
                   member.status === 'pending' ? 'opacity-60' : ''
                 }`}
               >
@@ -469,7 +469,7 @@ const WorkspaceSettings = () => {
                       <select
                         value={member.role}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                        className="bg-white/10 text-white text-xs rounded-lg px-2 py-1 border border-white/10 focus:outline-none"
+                        className="bg-[#1E293B]/10 text-white text-xs rounded-lg px-2 py-1 border border-white/10 focus:outline-none"
                       >
                         <option value="viewer">Viewer</option>
                         <option value="editor">Editor</option>
@@ -490,7 +490,7 @@ const WorkspaceSettings = () => {
         </div>
 
         {/* Permission Info */}
-        <div className="bg-white/5 rounded-2xl p-5 border border-white/5">
+        <div className="bg-[#1E293B]/5 rounded-2xl p-5 border border-white/5">
           <h3 className="text-white/70 text-sm font-medium mb-3">Role Permissions</h3>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="text-white/50">
@@ -520,7 +520,7 @@ const WorkspaceSettings = () => {
                 value={newWorkspaceName}
                 onChange={(e) => setNewWorkspaceName(e.target.value)}
                 placeholder="Workspace name"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:border-emerald-500/50 focus:outline-none"
+                className="w-full px-4 py-3 rounded-xl bg-[#1E293B]/5 border border-white/10 text-white placeholder-white/40 focus:border-emerald-500/50 focus:outline-none"
               />
               <div className="flex gap-2">
                 {['Personal', 'Business'].map(type => (
@@ -531,7 +531,7 @@ const WorkspaceSettings = () => {
                     className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors border flex items-center justify-center gap-2 ${
                       newWorkspaceType === type 
                         ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                        : 'bg-white/5 text-white/50 border-white/10 hover:bg-white/10'
+                        : 'bg-[#1E293B]/5 text-white/50 border-white/10 hover:bg-[#1E293B]/10'
                     }`}
                   >
                     {type === 'Business' ? <Building2 className="h-4 w-4" /> : <User className="h-4 w-4" />}
@@ -543,7 +543,7 @@ const WorkspaceSettings = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 py-3 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20"
+                  className="flex-1 py-3 rounded-xl bg-[#1E293B]/10 text-white font-medium hover:bg-[#1E293B]/20"
                 >
                   Cancel
                 </button>
@@ -571,13 +571,13 @@ const WorkspaceSettings = () => {
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 placeholder="Enter invite code"
                 maxLength={8}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:border-emerald-500/50 focus:outline-none text-center font-mono text-xl tracking-widest"
+                className="w-full px-4 py-3 rounded-xl bg-[#1E293B]/5 border border-white/10 text-white placeholder-white/40 focus:border-emerald-500/50 focus:outline-none text-center font-mono text-xl tracking-widest"
               />
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setShowJoinModal(false)}
-                  className="flex-1 py-3 rounded-xl bg-white/10 text-white font-medium hover:bg-white/20"
+                  className="flex-1 py-3 rounded-xl bg-[#1E293B]/10 text-white font-medium hover:bg-[#1E293B]/20"
                 >
                   Cancel
                 </button>

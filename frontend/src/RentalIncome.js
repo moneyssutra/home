@@ -385,13 +385,13 @@ const RentalIncome = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A]"
           onClick={() => navigate("/my-rental")}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           Rental Income
         </h1>
         <div className="h-10 w-10" />
@@ -404,7 +404,7 @@ const RentalIncome = () => {
             
             {/* Link to Asset (Optional) */}
             <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
-              <label htmlFor="assetId" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="assetId" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Link to Asset <span className="text-[#94A3B8] font-normal">(Optional - enables Rental Yield calculation)</span>
               </label>
               
@@ -413,7 +413,7 @@ const RentalIncome = () => {
                   id="assetId"
                   value={assetId}
                   onChange={(e) => setAssetId(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="asset-select"
                 >
                   <option value="">Select an Asset (Optional)</option>
@@ -424,7 +424,7 @@ const RentalIncome = () => {
                   ))}
                 </select>
               ) : (
-                <p className="text-sm text-[#0B3D2E]/60 mb-2">No assets available. Add an asset first to enable linking.</p>
+                <p className="text-sm text-[#E2E8F0]/60 mb-2">No assets available. Add an asset first to enable linking.</p>
               )}
               
               <button
@@ -439,11 +439,11 @@ const RentalIncome = () => {
 
             {/* Rental Yield Display */}
             {rentalYield !== null && selectedAsset && (
-              <div className="w-full rounded-xl bg-gradient-to-r from-[#0B3D2E] to-[#145A3E] p-5">
+              <div className="w-full rounded-xl bg-gradient-to-r from-[#E2E8F0] to-[#145A3E] p-5">
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <TrendingUp className="h-4 w-4 text-[#00D09C]" />
+                      <TrendingUp className="h-4 w-4 text-[#14B8A6]" />
                       <p className="text-white/70 text-sm">Rental Yield</p>
                     </div>
                     <p className="text-white text-3xl font-bold">{rentalYield.toFixed(2)}%</p>
@@ -451,7 +451,7 @@ const RentalIncome = () => {
                   </div>
                   <div className="text-right text-white/60 text-xs">
                     <p>Asset Value: ₹{formatAmount(selectedAsset.currentValue)}</p>
-                    <p className="text-[#00D09C]">Annual Rent: ₹{formatAmount(parseFloat(rentalAmount || 0) * (frequency === "Daily" ? 365 : frequency === "Monthly" ? 12 : frequency === "Quarterly" ? 4 : frequency === "Half-Yearly" ? 2 : 1))}</p>
+                    <p className="text-[#14B8A6]">Annual Rent: ₹{formatAmount(parseFloat(rentalAmount || 0) * (frequency === "Daily" ? 365 : frequency === "Monthly" ? 12 : frequency === "Quarterly" ? 4 : frequency === "Half-Yearly" ? 2 : 1))}</p>
                   </div>
                 </div>
               </div>
@@ -459,7 +459,7 @@ const RentalIncome = () => {
 
             {/* Property Name */}
             <div className="w-full">
-              <label htmlFor="propertyName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="propertyName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Property Name
               </label>
               <input
@@ -469,7 +469,7 @@ const RentalIncome = () => {
                 onChange={(e) => setPropertyName(e.target.value)}
                 placeholder="e.g., Green Villa – Flat 302"
                 maxLength={50}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="property-name-input"
               />
               {errors.propertyName && <p className="text-sm text-red-500 mt-1">{errors.propertyName}</p>}
@@ -477,7 +477,7 @@ const RentalIncome = () => {
 
             {/* Renter Name (Optional) */}
             <div className="w-full">
-              <label htmlFor="renterName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="renterName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Renter Name <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <input
@@ -487,7 +487,7 @@ const RentalIncome = () => {
                 onChange={(e) => setRenterName(e.target.value)}
                 placeholder="e.g., Rahul Sharma"
                 maxLength={50}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="renter-name-input"
               />
             </div>
@@ -496,18 +496,18 @@ const RentalIncome = () => {
             <div className="grid grid-cols-2 gap-4">
               {/* Rental Amount */}
               <div className="w-full">
-                <label htmlFor="rentalAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label htmlFor="rentalAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   Rental Amount
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
                   <input
                     id="rentalAmount"
                     type="text"
                     value={rentalAmount}
                     onChange={handleAmountChange(setRentalAmount)}
                     placeholder="0"
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="rental-amount-input"
                   />
                 </div>
@@ -516,18 +516,18 @@ const RentalIncome = () => {
 
               {/* Security Deposit */}
               <div className="w-full">
-                <label htmlFor="securityDeposit" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label htmlFor="securityDeposit" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   Security Deposit <span className="text-[#94A3B8] font-normal">(Opt)</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
                   <input
                     id="securityDeposit"
                     type="text"
                     value={securityDeposit}
                     onChange={handleAmountChange(setSecurityDeposit)}
                     placeholder="0"
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="security-deposit-input"
                   />
                 </div>
@@ -536,14 +536,14 @@ const RentalIncome = () => {
 
             {/* Frequency */}
             <div className="w-full">
-              <label htmlFor="frequency" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="frequency" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Frequency
               </label>
               <select
                 id="frequency"
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="frequency-select"
               >
                 <option value="">Select Frequency</option>
@@ -557,7 +557,7 @@ const RentalIncome = () => {
             {/* Daily Day Selection */}
             {frequency === "Daily" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="daily-fields">
-                <label htmlFor="dailyDay" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label htmlFor="dailyDay" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   Select Day of Week
                 </label>
                 <select
@@ -565,7 +565,7 @@ const RentalIncome = () => {
                   ref={dayFieldRef}
                   value={selectedDay}
                   onChange={(e) => setSelectedDay(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="day-select"
                 >
                   <option value="">Select a Day</option>
@@ -580,7 +580,7 @@ const RentalIncome = () => {
             {/* Monthly Date Selection */}
             {frequency === "Monthly" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
-                <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   Due Date (Day of Month)
                 </label>
                 <label htmlFor="monthlyDate" className="relative block cursor-pointer">
@@ -590,7 +590,7 @@ const RentalIncome = () => {
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
                     min={today}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                     data-testid="date-select"
                   />
                   <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -603,14 +603,14 @@ const RentalIncome = () => {
             {frequency === "Quarterly" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="quarterly-fields">
                 <div className="w-full">
-                  <label htmlFor="quarter" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="quarter" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Quarter
                   </label>
                   <select
                     id="quarter"
                     value={selectedQuarter}
                     onChange={(e) => { setSelectedQuarter(e.target.value); setSelectedMonth(""); setSelectedDate(""); }}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="quarter-select"
                   >
                     <option value="">Select Quarter</option>
@@ -621,14 +621,14 @@ const RentalIncome = () => {
 
                 {selectedQuarter && (
                   <div className="w-full">
-                    <label htmlFor="quarterMonth" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    <label htmlFor="quarterMonth" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                       Select Month
                     </label>
                     <select
                       id="quarterMonth"
                       value={selectedMonth}
                       onChange={(e) => { setSelectedMonth(e.target.value); setSelectedDate(""); }}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="month-select"
                     >
                       <option value="">Select Month</option>
@@ -640,7 +640,7 @@ const RentalIncome = () => {
 
                 {selectedMonth && (
                   <div className="w-full">
-                    <label htmlFor="quarterDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    <label htmlFor="quarterDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                       Select Date
                     </label>
                     <label htmlFor="quarterDate" className="relative block cursor-pointer">
@@ -651,7 +651,7 @@ const RentalIncome = () => {
                         onChange={(e) => setSelectedDate(e.target.value)}
                         min={quarterlyDateRange.min}
                         max={quarterlyDateRange.max}
-                        className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                        className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                         data-testid="date-select"
                       />
                       <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -666,14 +666,14 @@ const RentalIncome = () => {
             {frequency === "Half-Yearly" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="half-yearly-fields">
                 <div className="w-full">
-                  <label htmlFor="half" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="half" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Half
                   </label>
                   <select
                     id="half"
                     value={selectedHalf}
                     onChange={(e) => { setSelectedHalf(e.target.value); setSelectedMonth(""); setSelectedDate(""); }}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="half-select"
                   >
                     <option value="">Select Half</option>
@@ -684,14 +684,14 @@ const RentalIncome = () => {
 
                 {selectedHalf && (
                   <div className="w-full">
-                    <label htmlFor="halfMonth" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    <label htmlFor="halfMonth" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                       Select Month
                     </label>
                     <select
                       id="halfMonth"
                       value={selectedMonth}
                       onChange={(e) => { setSelectedMonth(e.target.value); setSelectedDate(""); }}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       data-testid="month-select"
                     >
                       <option value="">Select Month</option>
@@ -703,7 +703,7 @@ const RentalIncome = () => {
 
                 {selectedMonth && (
                   <div className="w-full">
-                    <label htmlFor="halfDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                    <label htmlFor="halfDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                       Select Date
                     </label>
                     <label htmlFor="halfDate" className="relative block cursor-pointer">
@@ -714,7 +714,7 @@ const RentalIncome = () => {
                         onChange={(e) => setSelectedDate(e.target.value)}
                         min={halfYearlyDateRange.min}
                         max={halfYearlyDateRange.max}
-                        className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                        className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                         data-testid="date-select"
                       />
                       <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -729,14 +729,14 @@ const RentalIncome = () => {
             {frequency === "Yearly" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="yearly-fields">
                 <div className="w-full">
-                  <label htmlFor="yearlyMonth" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="yearlyMonth" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Month
                   </label>
                   <select
                     id="yearlyMonth"
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="month-select"
                   >
                     <option value="">Select Month</option>
@@ -745,7 +745,7 @@ const RentalIncome = () => {
                   {errors.selectedMonth && <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>}
                 </div>
                 <div className="w-full">
-                  <label htmlFor="yearlyDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="yearlyDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Date
                   </label>
                   <label htmlFor="yearlyDate" className="relative block cursor-pointer">
@@ -755,7 +755,7 @@ const RentalIncome = () => {
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
                       min={today}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                       data-testid="date-select"
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -769,7 +769,7 @@ const RentalIncome = () => {
             {frequency === "Others" && (
               <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="others-fields">
                 <div className="w-full">
-                  <label htmlFor="customFreq" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="customFreq" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Enter Custom Frequency
                   </label>
                   <input
@@ -778,13 +778,13 @@ const RentalIncome = () => {
                     value={customFrequency}
                     onChange={(e) => setCustomFrequency(e.target.value)}
                     placeholder="e.g., Every 2 months"
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="custom-frequency-input"
                   />
                   {errors.customFrequency && <p className="text-sm text-red-500 mt-1">{errors.customFrequency}</p>}
                 </div>
                 <div className="w-full">
-                  <label htmlFor="customDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="customDate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Date
                   </label>
                   <label htmlFor="customDate" className="relative block cursor-pointer">
@@ -794,7 +794,7 @@ const RentalIncome = () => {
                       value={customDate}
                       onChange={(e) => setCustomDate(e.target.value)}
                       min={today}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
                       data-testid="custom-date-input"
                     />
                     <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
@@ -812,7 +812,7 @@ const RentalIncome = () => {
       </div>
 
       {/* Sticky Action Buttons */}
-      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-sm px-6 py-4 z-40">
+      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
         <div className="mx-auto max-w-[620px]">
           {id ? (
             <div className="flex gap-3">
@@ -820,7 +820,7 @@ const RentalIncome = () => {
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isSubmitting}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-white px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-[#1E293B] px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
                 data-testid="delete-button"
               >
                 <Trash2 className="h-5 w-5" />
@@ -830,7 +830,7 @@ const RentalIncome = () => {
                 type="button"
                 onClick={handleSave}
                 disabled={isSubmitting}
-                className="flex-1 rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+                className="flex-1 rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
                 data-testid="update-button"
               >
                 {isSubmitting ? "Updating..." : "Update Rental Income"}
@@ -841,7 +841,7 @@ const RentalIncome = () => {
               type="button"
               onClick={handleSave}
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+              className="w-full rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
               data-testid="save-button"
             >
               {isSubmitting ? "Saving..." : "Save Rental Income"}
@@ -853,16 +853,16 @@ const RentalIncome = () => {
       {/* Update Confirmation Dialog */}
       {showUpdateConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">Confirm Changes</h3>
-            <p className="text-[#0B3D2E]/70 mb-6">
+          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold text-[#E2E8F0] mb-3">Confirm Changes</h3>
+            <p className="text-[#E2E8F0]/70 mb-6">
               Are you sure you want to update this rental income?
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
+              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
                 Cancel
               </button>
-              <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium">
+              <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium">
                 Yes, Update
               </button>
             </div>
@@ -873,13 +873,13 @@ const RentalIncome = () => {
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-red-600 mb-3">Delete Rental Income?</h3>
-            <p className="text-[#0B3D2E]/70 mb-6">
+            <p className="text-[#E2E8F0]/70 mb-6">
               Are you sure you want to delete "{propertyName}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
                 Cancel
               </button>
               <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">
@@ -893,19 +893,19 @@ const RentalIncome = () => {
       {/* Duplicate Rental Dialog */}
       {showDuplicateDialog && existingRental && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">Property Already Exists</h3>
-            <p className="text-[#0B3D2E]/70 mb-6">
+          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold text-[#E2E8F0] mb-3">Property Already Exists</h3>
+            <p className="text-[#E2E8F0]/70 mb-6">
               A property with the name "{propertyName}" already exists. Would you like to edit the existing one or create a new one anyway?
             </p>
             <div className="flex flex-col gap-3">
-              <button type="button" onClick={() => { setShowDuplicateDialog(false); navigate(`/rental-income/${existingRental.id}`); }} className="w-full rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium">
+              <button type="button" onClick={() => { setShowDuplicateDialog(false); navigate(`/rental-income/${existingRental.id}`); }} className="w-full rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium">
                 Edit Existing Property
               </button>
-              <button type="button" onClick={() => { setShowDuplicateDialog(false); performSave(); }} className="w-full rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
+              <button type="button" onClick={() => { setShowDuplicateDialog(false); performSave(); }} className="w-full rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
                 Create New Anyway
               </button>
-              <button type="button" onClick={() => setShowDuplicateDialog(false)} className="w-full rounded-xl bg-white px-4 py-3 text-[#0B3D2E]/60 font-medium">
+              <button type="button" onClick={() => setShowDuplicateDialog(false)} className="w-full rounded-xl bg-[#1E293B] px-4 py-3 text-[#E2E8F0]/60 font-medium">
                 Cancel
               </button>
             </div>

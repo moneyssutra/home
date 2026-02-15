@@ -310,7 +310,7 @@ const LoanIncome = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A]"
           onClick={() => {
             if (location.state?.returnTo && location.state?.assetFormData) {
               navigate(location.state.returnTo, {
@@ -324,7 +324,7 @@ const LoanIncome = () => {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           {id ? "Edit Loan" : "Add Loan"}
         </h1>
         <div className="h-10 w-10" />
@@ -336,14 +336,14 @@ const LoanIncome = () => {
           <div className="space-y-6">
             {/* Loan Type */}
             <div className="w-full">
-              <label htmlFor="loanType" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="loanType" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Loan Type
               </label>
               <select
                 id="loanType"
                 value={loanType}
                 onChange={(e) => setLoanType(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="loan-type-select"
               >
                 <option value="">Select Loan Type</option>
@@ -356,7 +356,7 @@ const LoanIncome = () => {
 
             {/* Loan Name */}
             <div className="w-full">
-              <label htmlFor="loanName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="loanName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Loan Name
               </label>
               <input
@@ -366,7 +366,7 @@ const LoanIncome = () => {
                 onChange={(e) => setLoanName(e.target.value)}
                 placeholder="e.g., HDFC Home Loan, SBI Car Loan"
                 maxLength={50}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="loan-name-input"
               />
               {errors.loanName && <p className="text-sm text-red-500 mt-1">{errors.loanName}</p>}
@@ -374,7 +374,7 @@ const LoanIncome = () => {
 
             {/* Lender Name */}
             <div className="w-full">
-              <label htmlFor="lenderName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="lenderName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Lender Name <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <input
@@ -384,30 +384,30 @@ const LoanIncome = () => {
                 onChange={(e) => setLenderName(e.target.value)}
                 placeholder="e.g., HDFC Bank, SBI"
                 maxLength={50}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="lender-name-input"
               />
             </div>
 
             {/* Principal Amount */}
             <div className="w-full">
-              <label htmlFor="principalAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="principalAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Principal Amount
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
                 <input
                   id="principalAmount"
                   type="text"
                   value={principalAmount}
                   onChange={handleAmountChange(setPrincipalAmount)}
                   placeholder="0"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="principal-amount-input"
                 />
               </div>
               {parseFloat(principalAmount) > 0 && (
-                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="principal-amount-words">
+                <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="principal-amount-words">
                   {numberToWords(parseFloat(principalAmount))}
                 </p>
               )}
@@ -416,33 +416,33 @@ const LoanIncome = () => {
 
             {/* Outstanding Amount */}
             <div className="w-full">
-              <label htmlFor="outstandingAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="outstandingAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Current Outstanding Amount
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
                 <input
                   id="outstandingAmount"
                   type="text"
                   value={outstandingAmount}
                   onChange={handleAmountChange(setOutstandingAmount)}
                   placeholder="Auto-calculated or enter manually"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="outstanding-amount-input"
                 />
               </div>
               {parseFloat(outstandingAmount) > 0 && (
-                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="outstanding-amount-words">
+                <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="outstanding-amount-words">
                   {numberToWords(parseFloat(outstandingAmount))}
                 </p>
               )}
               {errors.outstandingAmount && <p className="text-sm text-red-500 mt-1">{errors.outstandingAmount}</p>}
-              <p className="text-xs text-[#0B3D2E]/60 mt-1">This affects your Net Worth calculation</p>
+              <p className="text-xs text-[#E2E8F0]/60 mt-1">This affects your Net Worth calculation</p>
             </div>
 
             {/* Interest Rate */}
             <div className="w-full">
-              <label htmlFor="interestRate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="interestRate" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Interest Rate (% per annum)
               </label>
               <div className="relative">
@@ -452,17 +452,17 @@ const LoanIncome = () => {
                   value={interestRate}
                   onChange={handleAmountChange(setInterestRate)}
                   placeholder="e.g., 8.5"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 pr-10 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 pr-10 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="interest-rate-input"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#0B3D2E]/60">%</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#E2E8F0]/60">%</span>
               </div>
               {errors.interestRate && <p className="text-sm text-red-500 mt-1">{errors.interestRate}</p>}
             </div>
 
             {/* Tenure */}
             <div className="w-full">
-              <label htmlFor="tenureMonths" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="tenureMonths" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Tenure (Months) <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <input
@@ -471,30 +471,30 @@ const LoanIncome = () => {
                 value={tenureMonths}
                 onChange={handleAmountChange(setTenureMonths)}
                 placeholder="e.g., 240 for 20 years"
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="tenure-input"
               />
             </div>
 
             {/* EMI Amount */}
             <div className="w-full">
-              <label htmlFor="emiAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="emiAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 EMI Amount
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
                 <input
                   id="emiAmount"
                   type="text"
                   value={emiAmount}
                   onChange={handleAmountChange(setEmiAmount)}
                   placeholder="Auto-calculated"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="emi-amount-input"
                 />
               </div>
               {parseFloat(emiAmount) > 0 && (
-                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="emi-amount-words">
+                <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="emi-amount-words">
                   {numberToWords(parseFloat(emiAmount))}
                 </p>
               )}
@@ -503,14 +503,14 @@ const LoanIncome = () => {
 
             {/* EMI Frequency */}
             <div className="w-full">
-              <label htmlFor="emiFrequency" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="emiFrequency" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 EMI Frequency
               </label>
               <select
                 id="emiFrequency"
                 value={emiFrequency}
                 onChange={(e) => setEmiFrequency(e.target.value)}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="emi-frequency-select"
               >
                 {emiFrequencyOptions.map((opt) => (
@@ -521,23 +521,23 @@ const LoanIncome = () => {
 
             {/* Start Date */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Loan Start Date
               </label>
               <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-left text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="start-date-input"
                   >
-                    <span className={startDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                    <span className={startDate ? "text-[#E2E8F0]" : "text-[#94A3B8]"}>
                       {startDate ? format(new Date(startDate), "PPP") : "Select start date"}
                     </span>
                     <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-white" align="start">
+                <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
                   <Calendar
                     mode="single"
                     selected={startDate ? new Date(startDate) : undefined}
@@ -556,23 +556,23 @@ const LoanIncome = () => {
 
             {/* End Date */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Loan End Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-left text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="end-date-input"
                   >
-                    <span className={endDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                    <span className={endDate ? "text-[#E2E8F0]" : "text-[#94A3B8]"}>
                       {endDate ? format(new Date(endDate), "PPP") : "Select end date"}
                     </span>
                     <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-white" align="start">
+                <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
                   <Calendar
                     mode="single"
                     selected={endDate ? new Date(endDate) : undefined}
@@ -586,17 +586,17 @@ const LoanIncome = () => {
                   />
                 </PopoverContent>
               </Popover>
-              <p className="text-xs text-[#0B3D2E]/60 mt-1">Auto-calculated from start date + tenure</p>
+              <p className="text-xs text-[#E2E8F0]/60 mt-1">Auto-calculated from start date + tenure</p>
             </div>
 
             {/* Linked Asset Toggle */}
             <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-[#0B3D2E]">
+                  <label className="text-sm font-medium text-[#E2E8F0]">
                     Is This Loan For An Asset?
                   </label>
-                  <p className="text-xs text-[#0B3D2E]/60 mt-0.5">E.g., Home loan, Vehicle loan</p>
+                  <p className="text-xs text-[#E2E8F0]/60 mt-0.5">E.g., Home loan, Vehicle loan</p>
                 </div>
                 <button
                   type="button"
@@ -605,12 +605,12 @@ const LoanIncome = () => {
                     if (hasLinkedAsset) setLinkedAssetId("");
                   }}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    hasLinkedAsset ? "bg-[#00D09C]" : "bg-[#E2E8F0]"
+                    hasLinkedAsset ? "bg-[#14B8A6]" : "bg-[#E2E8F0]"
                   }`}
                   data-testid="has-linked-asset-toggle"
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    className={`inline-block h-4 w-4 transform rounded-full bg-[#1E293B] transition-transform ${
                       hasLinkedAsset ? "translate-x-6" : "translate-x-1"
                     }`}
                   />
@@ -620,14 +620,14 @@ const LoanIncome = () => {
               {/* Asset Dropdown - shown when toggle is ON */}
               {hasLinkedAsset && assets.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-[#E2E8F0]">
-                  <label htmlFor="linkedAsset" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="linkedAsset" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Select Linked Asset
                   </label>
                   <select
                     id="linkedAsset"
                     value={linkedAssetId}
                     onChange={(e) => setLinkedAssetId(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="linked-asset-select"
                   >
                     <option value="">Select Asset</option>
@@ -635,7 +635,7 @@ const LoanIncome = () => {
                       <option key={asset.id} value={asset.id}>{asset.assetName} - {asset.assetType}</option>
                     ))}
                   </select>
-                  <p className="text-xs text-[#0B3D2E]/60 mt-1">Link to Property, Vehicle, or other financed asset</p>
+                  <p className="text-xs text-[#E2E8F0]/60 mt-1">Link to Property, Vehicle, or other financed asset</p>
                 </div>
               )}
             </div>
@@ -652,7 +652,7 @@ const LoanIncome = () => {
                     <button
                       key={asset.id}
                       onClick={() => navigate(`/asset/${asset.id}`)}
-                      className="w-full flex items-center justify-between p-3 rounded-xl bg-white border border-[#E0F2FE] hover:border-[#0EA5E9] transition-colors text-left"
+                      className="w-full flex items-center justify-between p-3 rounded-xl bg-[#1E293B] border border-[#E0F2FE] hover:border-[#0EA5E9] transition-colors text-left"
                       data-testid={`reverse-linked-asset-${asset.id}`}
                     >
                       <div className="flex items-center gap-3">
@@ -662,12 +662,12 @@ const LoanIncome = () => {
                           <Home className="h-5 w-5 text-[#0EA5E9]" />
                         )}
                         <div>
-                          <p className="text-sm font-medium text-[#0B3D2E]">{asset.assetName}</p>
-                          <p className="text-xs text-[#0B3D2E]/60">{asset.assetType}</p>
+                          <p className="text-sm font-medium text-[#E2E8F0]">{asset.assetName}</p>
+                          <p className="text-xs text-[#E2E8F0]/60">{asset.assetType}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-[#00D09C]">₹ {formatAmount(asset.currentValue)}</span>
+                        <span className="text-sm font-semibold text-[#14B8A6]">₹ {formatAmount(asset.currentValue)}</span>
                         <ExternalLink className="h-4 w-4 text-[#0EA5E9]" />
                       </div>
                     </button>
@@ -679,14 +679,14 @@ const LoanIncome = () => {
             {/* Linked Account */}
             {accounts.length > 0 && (
               <div className="w-full">
-                <label htmlFor="linkedAccount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label htmlFor="linkedAccount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   EMI Debit Account <span className="text-[#94A3B8] font-normal">(Optional)</span>
                 </label>
                 <select
                   id="linkedAccount"
                   value={linkedAccountId}
                   onChange={(e) => setLinkedAccountId(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="linked-account-select"
                 >
                   <option value="">Select Account (Optional)</option>
@@ -701,21 +701,21 @@ const LoanIncome = () => {
             <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-[#0B3D2E]">
+                  <label className="text-sm font-medium text-[#E2E8F0]">
                     Auto Create EMI Expense
                   </label>
-                  <p className="text-xs text-[#0B3D2E]/60 mt-0.5">Automatically add EMI to your expense list</p>
+                  <p className="text-xs text-[#E2E8F0]/60 mt-0.5">Automatically add EMI to your expense list</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setAutoCreateExpense(!autoCreateExpense)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    autoCreateExpense ? "bg-[#00D09C]" : "bg-[#E2E8F0]"
+                    autoCreateExpense ? "bg-[#14B8A6]" : "bg-[#E2E8F0]"
                   }`}
                   data-testid="auto-expense-toggle"
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    className={`inline-block h-4 w-4 transform rounded-full bg-[#1E293B] transition-transform ${
                       autoCreateExpense ? "translate-x-6" : "translate-x-1"
                     }`}
                   />
@@ -731,7 +731,7 @@ const LoanIncome = () => {
       </div>
 
       {/* Sticky Action Buttons */}
-      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-sm px-6 py-4 z-40">
+      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
         <div className="mx-auto max-w-[620px]">
           {id ? (
             <div className="flex gap-3">
@@ -739,7 +739,7 @@ const LoanIncome = () => {
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isSubmitting}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-white px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-[#1E293B] px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
                 data-testid="delete-button"
               >
                 <Trash2 className="h-5 w-5" />
@@ -749,7 +749,7 @@ const LoanIncome = () => {
                 type="button"
                 onClick={handleSave}
                 disabled={isSubmitting}
-                className="flex-1 rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+                className="flex-1 rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
                 data-testid="update-button"
               >
                 {isSubmitting ? "Updating..." : "Update Loan"}
@@ -760,7 +760,7 @@ const LoanIncome = () => {
               type="button"
               onClick={handleSave}
               disabled={isSubmitting}
-              className="w-full rounded-xl bg-[#00D09C] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#00BA89] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+              className="w-full rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
               data-testid="save-button"
             >
               {isSubmitting ? "Saving..." : "Save Loan"}
@@ -772,16 +772,16 @@ const LoanIncome = () => {
       {/* Update Confirmation Dialog */}
       {showUpdateConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">Confirm Changes</h3>
-            <p className="text-[#0B3D2E]/70 mb-6">
+          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold text-[#E2E8F0] mb-3">Confirm Changes</h3>
+            <p className="text-[#E2E8F0]/70 mb-6">
               Are you sure you want to update this loan?
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
+              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
                 Cancel
               </button>
-              <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#00D09C] px-4 py-3 text-white font-medium">
+              <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium">
                 Yes, Update
               </button>
             </div>
@@ -792,13 +792,13 @@ const LoanIncome = () => {
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-red-600 mb-3">Delete Loan?</h3>
-            <p className="text-[#0B3D2E]/70 mb-6">
+            <p className="text-[#E2E8F0]/70 mb-6">
               Are you sure you want to delete "{loanName}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
                 Cancel
               </button>
               <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">

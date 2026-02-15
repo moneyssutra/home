@@ -62,7 +62,7 @@ const SortableGoalCard = ({ goal, navigate, getGoalIcon, getGoalColor, getPriori
     <div
       ref={setNodeRef}
       style={style}
-      className={`w-full bg-white rounded-2xl p-4 border transition-all ${
+      className={`w-full bg-[#1E293B] rounded-2xl p-4 border transition-all ${
         goal.isCompleted ? "border-emerald-200 bg-emerald-50/50" : "border-gray-100"
       } ${isDragging ? "shadow-xl ring-2 ring-violet-400" : "hover:shadow-md"}`}
       data-testid={`goal-card-${goal.id}`}
@@ -89,12 +89,12 @@ const SortableGoalCard = ({ goal, navigate, getGoalIcon, getGoalColor, getPriori
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-[#0B3D2E] truncate">{goal.goalName}</h3>
+              <h3 className="font-semibold text-[#E2E8F0] truncate">{goal.goalName}</h3>
               {goal.isCompleted && (
                 <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0" />
               )}
             </div>
-            <div className="flex items-center gap-2 text-xs text-[#0B3D2E]/50 mb-2 flex-wrap">
+            <div className="flex items-center gap-2 text-xs text-[#E2E8F0]/50 mb-2 flex-wrap">
               <span className={`px-2 py-0.5 rounded-full border ${priorityBadge.color}`}>
                 {priorityBadge.label}
               </span>
@@ -128,15 +128,15 @@ const SortableGoalCard = ({ goal, navigate, getGoalIcon, getGoalColor, getPriori
             </div>
             
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#0B3D2E]/70">
+              <span className="text-sm text-[#E2E8F0]/70">
                 ₹ {formatAmount(goal.calculatedAmount || 0)} / ₹ {formatAmount(goal.targetAmount)}
               </span>
-              <span className={`text-sm font-bold ${progress >= 100 ? "text-emerald-600" : "text-[#0B3D2E]"}`}>
+              <span className={`text-sm font-bold ${progress >= 100 ? "text-emerald-600" : "text-[#E2E8F0]"}`}>
                 {progress.toFixed(1)}%
               </span>
             </div>
           </div>
-          {!isReorderMode && <ChevronRight className="h-5 w-5 text-[#0B3D2E]/30 flex-shrink-0" />}
+          {!isReorderMode && <ChevronRight className="h-5 w-5 text-[#E2E8F0]/30 flex-shrink-0" />}
         </button>
       </div>
     </div>
@@ -297,12 +297,12 @@ const MyGoals = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="my-goals-page">
+    <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="my-goals-page">
       {/* Header */}
       <header className="bg-gradient-to-br from-[#7C3AED] via-[#8B5CF6] to-[#7C3AED] px-6 pt-8 pb-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <BackButton forceNavigate="/" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+            <BackButton forceNavigate="/" className="bg-[#1E293B]/20 border-white/30 text-white hover:bg-[#1E293B]/30" />
             <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
               My Goals
             </h1>
@@ -312,7 +312,7 @@ const MyGoals = () => {
           {filteredGoals.length > 1 && !isReorderMode && (
             <button
               onClick={() => setIsReorderMode(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/20 text-white text-sm font-medium hover:bg-white/30 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1E293B]/20 text-white text-sm font-medium hover:bg-[#1E293B]/30 transition-colors"
               data-testid="reorder-btn"
             >
               <ArrowUpDown className="h-4 w-4" />
@@ -322,20 +322,20 @@ const MyGoals = () => {
         </div>
 
         {/* Summary Card */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="goals-summary">
+        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="goals-summary">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-white/60 text-sm font-medium mb-1">Overall Progress</p>
               <h2 className="text-3xl font-bold text-white">{overallProgress.toFixed(1)}%</h2>
             </div>
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E293B]/20">
               <Target className="h-8 w-8 text-white" />
             </div>
           </div>
           
           {/* Progress Bar */}
           <div className="mb-4">
-            <div className="h-3 bg-white/20 rounded-full overflow-hidden">
+            <div className="h-3 bg-[#1E293B]/20 rounded-full overflow-hidden">
               <div 
                 className="h-full bg-gradient-to-r from-emerald-400 to-green-400 rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(overallProgress, 100)}%` }}
@@ -355,7 +355,7 @@ const MyGoals = () => {
             </div>
             <button 
               onClick={() => navigate("/goal-achievements")}
-              className="text-center hover:bg-white/10 rounded-xl transition-colors py-2"
+              className="text-center hover:bg-[#1E293B]/10 rounded-xl transition-colors py-2"
               data-testid="view-achievements-btn"
             >
               <p className="text-white/60 text-sm flex items-center justify-center gap-1">
@@ -400,7 +400,7 @@ const MyGoals = () => {
       {/* Filter Tabs - Hidden in reorder mode */}
       {!isReorderMode && (
         <div className="px-6 mt-4">
-          <div className="flex gap-2 bg-white rounded-xl p-1 shadow-sm">
+          <div className="flex gap-2 bg-[#1E293B] rounded-xl p-1 shadow-sm">
             {["all", "active", "completed"].map((tab) => (
               <button
                 key={tab}
@@ -408,7 +408,7 @@ const MyGoals = () => {
                 className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
                   filter === tab
                     ? "bg-[#7C3AED] text-white"
-                    : "text-[#0B3D2E]/60 hover:bg-gray-100"
+                    : "text-[#E2E8F0]/60 hover:bg-gray-100"
                 }`}
                 data-testid={`filter-${tab}`}
               >
@@ -423,17 +423,17 @@ const MyGoals = () => {
       <div className="px-6 mt-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#0B3D2E]/60">Loading goals...</div>
+            <div className="text-[#E2E8F0]/60">Loading goals...</div>
           </div>
         ) : filteredGoals.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6">
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-violet-100 mb-4">
               <Target className="h-10 w-10 text-violet-500" />
             </div>
-            <h2 className="text-lg font-semibold text-[#0B3D2E] mb-2">
+            <h2 className="text-lg font-semibold text-[#E2E8F0] mb-2">
               {filter === "completed" ? "No Completed Goals Yet" : "No Goals Yet"}
             </h2>
-            <p className="text-[#0B3D2E]/60 text-center text-sm mb-6">
+            <p className="text-[#E2E8F0]/60 text-center text-sm mb-6">
               {filter === "completed" 
                 ? "Complete your first goal to see it here!"
                 : "Set your first financial goal and start tracking your progress"

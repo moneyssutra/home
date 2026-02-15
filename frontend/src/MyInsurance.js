@@ -64,13 +64,13 @@ const MyInsurance = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A]"
           onClick={() => navigate("/")}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           My Insurance
         </h1>
         <div className="h-10 w-10" />
@@ -82,7 +82,7 @@ const MyInsurance = () => {
           <div className="mx-auto max-w-[620px]">
             <div className="rounded-xl bg-[#6366F1]/10 p-4 border border-[#6366F1]/20">
               <p className="text-xs text-[#6366F1] font-medium mb-1">Total Coverage</p>
-              <p className="text-xl font-bold text-[#0B3D2E]">₹ {formatAmount(getTotalCoverage())}</p>
+              <p className="text-xl font-bold text-[#E2E8F0]">₹ {formatAmount(getTotalCoverage())}</p>
             </div>
           </div>
         </div>
@@ -93,23 +93,23 @@ const MyInsurance = () => {
         <div className="mx-auto w-full max-w-[620px] px-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="text-[#0B3D2E]/60">Loading...</div>
+              <div className="text-[#E2E8F0]/60">Loading...</div>
             </div>
           ) : insurances.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 px-6">
               <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#EEF2FF] mb-6">
                 <Shield className="h-12 w-12 text-[#6366F1]" />
               </div>
-              <h2 className="text-xl font-semibold text-[#0B3D2E] mb-2">
+              <h2 className="text-xl font-semibold text-[#E2E8F0] mb-2">
                 No Insurance Added Yet
               </h2>
-              <p className="text-[#0B3D2E]/60 text-center mb-8">
+              <p className="text-[#E2E8F0]/60 text-center mb-8">
                 Add your insurance policies for better tracking
               </p>
               <button
                 type="button"
                 onClick={() => navigate("/insurance")}
-                className="flex items-center gap-2 rounded-xl bg-[#00D09C] px-6 py-3 text-white font-medium transition-all hover:bg-[#00BA89] active:scale-[0.98] shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+                className="flex items-center gap-2 rounded-xl bg-[#14B8A6] px-6 py-3 text-white font-medium transition-all hover:bg-[#0D9488] active:scale-[0.98] shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
                 data-testid="add-insurance-empty-button"
               >
                 <Plus className="h-5 w-5" />
@@ -122,13 +122,13 @@ const MyInsurance = () => {
                 {insurances.map((insurance) => (
                   <div
                     key={insurance.id}
-                    className="flex items-center justify-between rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
+                    className="flex items-center justify-between rounded-2xl border border-[#E2E8F0] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
                     onClick={() => navigate(`/insurance/${insurance.id}`)}
                     data-testid={`insurance-card-${insurance.id}`}
                   >
                     <div className="flex-1">
                       {/* Policy Name */}
-                      <h3 className="text-lg font-semibold text-[#0B3D2E] mb-2">
+                      <h3 className="text-lg font-semibold text-[#E2E8F0] mb-2">
                         {insurance.policyName}
                       </h3>
 
@@ -142,20 +142,20 @@ const MyInsurance = () => {
                       {/* Details */}
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-[#0B3D2E]/60">Coverage:</span>
-                          <span className="text-sm font-semibold text-[#0B3D2E]">
+                          <span className="text-sm text-[#E2E8F0]/60">Coverage:</span>
+                          <span className="text-sm font-semibold text-[#E2E8F0]">
                             ₹ {formatAmount(insurance.coverageAmount)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-[#0B3D2E]/60">Premium:</span>
-                          <span className="text-sm font-medium text-[#0B3D2E]">
+                          <span className="text-sm text-[#E2E8F0]/60">Premium:</span>
+                          <span className="text-sm font-medium text-[#E2E8F0]">
                             ₹ {formatAmount(insurance.premiumAmount)} – {insurance.premiumFrequency}
                           </span>
                         </div>
                         {insurance.endDate && (
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-[#0B3D2E]/60">Expires:</span>
+                            <span className="text-sm text-[#E2E8F0]/60">Expires:</span>
                             <span className="text-sm font-medium text-[#F59E0B]">
                               {formatDate(insurance.endDate)}
                             </span>
@@ -164,7 +164,7 @@ const MyInsurance = () => {
                       </div>
                     </div>
 
-                    <ChevronRight className="h-6 w-6 text-[#0B3D2E]/40" />
+                    <ChevronRight className="h-6 w-6 text-[#E2E8F0]/40" />
                   </div>
                 ))}
               </div>
@@ -173,7 +173,7 @@ const MyInsurance = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/insurance")}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#00D09C] bg-[#E8F8F4] px-6 py-4 text-[#00D09C] font-semibold transition-all hover:bg-[#00D09C] hover:text-white active:scale-[0.98]"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#14B8A6] bg-[#E8F8F4] px-6 py-4 text-[#14B8A6] font-semibold transition-all hover:bg-[#14B8A6] hover:text-white active:scale-[0.98]"
                   data-testid="add-insurance-button"
                 >
                   <Plus className="h-5 w-5" />

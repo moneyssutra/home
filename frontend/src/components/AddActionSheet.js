@@ -32,14 +32,14 @@ const AddActionSheet = ({ isOpen, onClose }) => {
       />
       
       {/* Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl z-50 animate-in slide-in-from-bottom duration-300" data-testid="add-action-sheet">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#1E293B] rounded-t-3xl z-50 animate-in slide-in-from-bottom duration-300" data-testid="add-action-sheet">
         <div className="max-w-lg mx-auto px-6 pb-8 pt-4">
           {/* Handle */}
           <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4" />
           
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            <h2 className="text-xl font-bold text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
               Quick Add
             </h2>
             <button
@@ -65,7 +65,7 @@ const AddActionSheet = ({ isOpen, onClose }) => {
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg`}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <span className="text-xs font-medium text-[#0B3D2E]/80 text-center leading-tight">
+                  <span className="text-xs font-medium text-[#E2E8F0]/80 text-center leading-tight">
                     {action.label.replace('Add ', '')}
                   </span>
                 </button>

@@ -98,9 +98,9 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0B3D2E] via-[#134E3E] to-[#0B3D2E] flex items-center justify-center" data-testid="dashboard-loading">
+      <div className="min-h-screen bg-gradient-to-br from-[#E2E8F0] via-[#134E3E] to-[#E2E8F0] flex items-center justify-center" data-testid="dashboard-loading">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-[#00D09C]/30 border-t-[#00D09C] rounded-full animate-spin" />
+          <div className="w-16 h-16 border-4 border-[#14B8A6]/30 border-t-[#14B8A6] rounded-full animate-spin" />
           <p className="text-white/80 font-medium">Loading your finances...</p>
         </div>
       </div>
@@ -108,7 +108,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B3D2E] via-[#134E3E] to-[#0B3D2E] pb-24" data-testid="dashboard-page">
+    <div className="min-h-screen bg-gradient-to-br from-[#E2E8F0] via-[#134E3E] to-[#E2E8F0] pb-24" data-testid="dashboard-page">
       {/* Header */}
       <header className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djJoLTJ2LTJoMnptMC00aDJ2MmgtMnYtMnptLTQgMHYyaC0ydi0yaDJ6bTIgMGgydjJoLTJ2LTJ6bS0yLTR2MmgtMnYtMmgyek0zNCAyNnYyaC0ydi0yaDJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50" />
@@ -127,14 +127,14 @@ const Dashboard = () => {
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-white/20 active:scale-95 disabled:opacity-50"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E293B]/10 backdrop-blur-sm text-white transition-all hover:bg-[#1E293B]/20 active:scale-95 disabled:opacity-50"
                 data-testid="refresh-button"
               >
                 <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
               </button>
               <button
                 onClick={() => navigate('/workspace-settings')}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-emerald-500/50 active:scale-95"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E293B]/10 backdrop-blur-sm text-white transition-all hover:bg-emerald-500/50 active:scale-95"
                 data-testid="workspace-settings-button"
                 title="Workspace Settings"
               >
@@ -142,7 +142,7 @@ const Dashboard = () => {
               </button>
               <button
                 onClick={handleLogout}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-red-500/50 active:scale-95"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E293B]/10 backdrop-blur-sm text-white transition-all hover:bg-red-500/50 active:scale-95"
                 data-testid="logout-button"
                 title="Logout"
               >
@@ -153,7 +153,7 @@ const Dashboard = () => {
 
           {/* Net Worth Card */}
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#00D09C] via-[#10B981] to-[#00D09C] rounded-3xl blur-lg opacity-30 animate-pulse" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#14B8A6] via-[#10B981] to-[#14B8A6] rounded-3xl blur-lg opacity-30 animate-pulse" />
             <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10" data-testid="networth-card">
               <div className="flex items-start justify-between mb-2">
                 <div>
@@ -178,7 +178,7 @@ const Dashboard = () => {
               
               {/* Net Worth Breakdown Bar */}
               <div className="mt-6 mb-4">
-                <div className="flex h-3 rounded-full overflow-hidden bg-white/10">
+                <div className="flex h-3 rounded-full overflow-hidden bg-[#1E293B]/10">
                   {data && (data.totalAssets + data.totalInvestments + data.liquidBalance) > 0 && (
                     <>
                       <div 
@@ -216,7 +216,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-2 gap-3">
           {/* Assets */}
           <div 
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-white/15 active:scale-[0.98]"
+            className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-[#1E293B]/15 active:scale-[0.98]"
             onClick={() => navigate("/my-assets")}
             data-testid="assets-summary-card"
           >
@@ -232,7 +232,7 @@ const Dashboard = () => {
 
           {/* Investments */}
           <div 
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-white/15 active:scale-[0.98]"
+            className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-[#1E293B]/15 active:scale-[0.98]"
             onClick={() => navigate("/my-investments")}
             data-testid="investments-summary-card"
           >
@@ -248,7 +248,7 @@ const Dashboard = () => {
 
           {/* Liquid Fund */}
           <div 
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-white/15 active:scale-[0.98]"
+            className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-[#1E293B]/15 active:scale-[0.98]"
             onClick={() => navigate("/my-accounts")}
             data-testid="cash-summary-card"
           >
@@ -264,7 +264,7 @@ const Dashboard = () => {
 
           {/* Liabilities */}
           <div 
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-white/15 active:scale-[0.98]"
+            className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-[#1E293B]/15 active:scale-[0.98]"
             onClick={() => navigate("/my-loans")}
             data-testid="liabilities-summary-card"
           >
@@ -280,7 +280,7 @@ const Dashboard = () => {
         </div>
 
         {/* Income vs Expense Card */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="income-expense-card">
+        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="income-expense-card">
           <h3 className="text-white font-semibold mb-4">Monthly Cash Flow</h3>
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center">
@@ -318,7 +318,7 @@ const Dashboard = () => {
                   : "0%"}
               </span>
             </div>
-            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-2 bg-[#1E293B]/10 rounded-full overflow-hidden">
               <div 
                 className={`h-full rounded-full transition-all duration-500 ${
                   (data?.monthlySavings || 0) >= 0 ? "bg-gradient-to-r from-emerald-500 to-teal-400" : "bg-gradient-to-r from-rose-500 to-pink-400"
@@ -333,7 +333,7 @@ const Dashboard = () => {
 
         {/* Goals Widget */}
         <div 
-          className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10 cursor-pointer transition-all hover:bg-white/15"
+          className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10 cursor-pointer transition-all hover:bg-[#1E293B]/15"
           onClick={() => navigate("/my-goals")}
           data-testid="goals-widget"
         >
@@ -365,7 +365,7 @@ const Dashboard = () => {
                         {goal.progressPercent.toFixed(0)}%
                       </span>
                     </div>
-                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-[#1E293B]/10 rounded-full overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all ${
                           goal.progressPercent >= 75 ? "bg-emerald-400" :
@@ -393,8 +393,8 @@ const Dashboard = () => {
 
         {/* Empty State - When no data */}
         {data && data.assetCount === 0 && data.investmentCount === 0 && data.accountCount === 0 && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center" data-testid="empty-state">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#00D09C] to-[#10B981] flex items-center justify-center">
+          <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center" data-testid="empty-state">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#14B8A6] to-[#10B981] flex items-center justify-center">
               <TrendingUp className="h-10 w-10 text-white" />
             </div>
             <h3 className="text-white text-xl font-semibold mb-2">Start Your Financial Journey</h3>
@@ -404,19 +404,19 @@ const Dashboard = () => {
             <div className="flex flex-wrap justify-center gap-3">
               <button
                 onClick={() => navigate("/asset")}
-                className="px-4 py-2 rounded-xl bg-[#00D09C] text-white font-medium text-sm transition-all hover:bg-[#00BA89] active:scale-95"
+                className="px-4 py-2 rounded-xl bg-[#14B8A6] text-white font-medium text-sm transition-all hover:bg-[#0D9488] active:scale-95"
               >
                 Add Asset
               </button>
               <button
                 onClick={() => navigate("/investment")}
-                className="px-4 py-2 rounded-xl bg-white/10 text-white font-medium text-sm transition-all hover:bg-white/20 active:scale-95"
+                className="px-4 py-2 rounded-xl bg-[#1E293B]/10 text-white font-medium text-sm transition-all hover:bg-[#1E293B]/20 active:scale-95"
               >
                 Add Investment
               </button>
               <button
                 onClick={() => navigate("/account")}
-                className="px-4 py-2 rounded-xl bg-white/10 text-white font-medium text-sm transition-all hover:bg-white/20 active:scale-95"
+                className="px-4 py-2 rounded-xl bg-[#1E293B]/10 text-white font-medium text-sm transition-all hover:bg-[#1E293B]/20 active:scale-95"
               >
                 Add Account
               </button>

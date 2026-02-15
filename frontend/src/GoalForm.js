@@ -230,13 +230,13 @@ const GoalForm = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9]"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#1E293B] text-[#E2E8F0] transition-colors hover:bg-[#0F172A]"
           onClick={() => navigate("/my-goals")}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#0B3D2E]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#E2E8F0]" style={{ fontFamily: "'Manrope', sans-serif" }}>
           {id ? "Edit Goal" : "Create Goal"}
         </h1>
         <div className="h-10 w-10" />
@@ -248,7 +248,7 @@ const GoalForm = () => {
           <div className="space-y-6">
             {/* Goal Type Selection */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-[#0B3D2E] mb-3">
+              <label className="block text-sm font-medium text-[#E2E8F0] mb-3">
                 Goal Type
               </label>
               <div className="grid grid-cols-1 gap-2">
@@ -260,7 +260,7 @@ const GoalForm = () => {
                     className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
                       goalType === option.value
                         ? "border-[#7C3AED] bg-[#7C3AED]/5"
-                        : "border-gray-200 bg-white hover:border-[#7C3AED]/50"
+                        : "border-gray-200 bg-[#1E293B] hover:border-[#7C3AED]/50"
                     }`}
                     data-testid={`goal-type-${option.value.toLowerCase().replace(" ", "-")}`}
                   >
@@ -270,10 +270,10 @@ const GoalForm = () => {
                       <Target className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <p className={`font-medium ${goalType === option.value ? "text-[#7C3AED]" : "text-[#0B3D2E]"}`}>
+                      <p className={`font-medium ${goalType === option.value ? "text-[#7C3AED]" : "text-[#E2E8F0]"}`}>
                         {option.label}
                       </p>
-                      <p className="text-xs text-[#0B3D2E]/50">{option.description}</p>
+                      <p className="text-xs text-[#E2E8F0]/50">{option.description}</p>
                     </div>
                   </button>
                 ))}
@@ -284,7 +284,7 @@ const GoalForm = () => {
             {/* Custom Type Name (for Other) */}
             {goalType === "Other" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2">
-                <label htmlFor="customTypeName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                <label htmlFor="customTypeName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                   Custom Goal Type Name
                 </label>
                 <input
@@ -294,7 +294,7 @@ const GoalForm = () => {
                   onChange={(e) => setCustomTypeName(e.target.value)}
                   placeholder="e.g., Vacation, Wedding, Car"
                   maxLength={50}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
                   data-testid="custom-type-name-input"
                 />
                 {errors.customTypeName && <p className="text-sm text-red-500 mt-1">{errors.customTypeName}</p>}
@@ -303,7 +303,7 @@ const GoalForm = () => {
 
             {/* Goal Name */}
             <div className="w-full">
-              <label htmlFor="goalName" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="goalName" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Goal Name
               </label>
               <input
@@ -313,7 +313,7 @@ const GoalForm = () => {
                 onChange={(e) => setGoalName(e.target.value)}
                 placeholder="e.g., House Down Payment, Pay off Car Loan"
                 maxLength={100}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
                 data-testid="goal-name-input"
               />
               {errors.goalName && <p className="text-sm text-red-500 mt-1">{errors.goalName}</p>}
@@ -321,23 +321,23 @@ const GoalForm = () => {
 
             {/* Target Amount */}
             <div className="w-full">
-              <label htmlFor="targetAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="targetAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Target Amount
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
                 <input
                   id="targetAmount"
                   type="text"
                   value={targetAmount}
                   onChange={handleAmountChange(setTargetAmount)}
                   placeholder="0"
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
                   data-testid="target-amount-input"
                 />
               </div>
               {parseFloat(targetAmount) > 0 && (
-                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="target-amount-words">
+                <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic" data-testid="target-amount-words">
                   {numberToWords(parseFloat(targetAmount))}
                 </p>
               )}
@@ -346,23 +346,23 @@ const GoalForm = () => {
 
             {/* Target Date */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Target Date
               </label>
               <Popover open={targetCalendarOpen} onOpenChange={setTargetCalendarOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
+                    className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-left text-[#E2E8F0] focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
                     data-testid="target-date-input"
                   >
-                    <span className={targetDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                    <span className={targetDate ? "text-[#E2E8F0]" : "text-[#94A3B8]"}>
                       {targetDate ? format(new Date(targetDate), "PPP") : "Select target date"}
                     </span>
                     <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-white" align="start">
+                <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
                   <Calendar
                     mode="single"
                     selected={targetDate ? new Date(targetDate) : undefined}
@@ -382,7 +382,7 @@ const GoalForm = () => {
 
             {/* Priority */}
             <div className="w-full">
-              <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Priority
               </label>
               <div className="flex gap-2">
@@ -396,7 +396,7 @@ const GoalForm = () => {
                     type="button"
                     onClick={() => setPriority(p.value)}
                     className={`flex-1 py-2.5 rounded-xl border-2 font-medium transition-all ${
-                      priority === p.value ? p.color : "border-gray-200 bg-white text-[#0B3D2E]/50"
+                      priority === p.value ? p.color : "border-gray-200 bg-[#1E293B] text-[#E2E8F0]/50"
                     }`}
                     data-testid={`priority-${p.label.toLowerCase()}`}
                   >
@@ -408,11 +408,11 @@ const GoalForm = () => {
 
             {/* Link Sources Section */}
             <div className="w-full p-4 rounded-xl bg-[#F0F4FF] border border-[#7C3AED]/20">
-              <h4 className="text-sm font-semibold text-[#0B3D2E] mb-3 flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-[#E2E8F0] mb-3 flex items-center gap-2">
                 <Link2 className="h-4 w-4 text-[#7C3AED]" />
                 Link Financial Sources
               </h4>
-              <p className="text-xs text-[#0B3D2E]/60 mb-4">
+              <p className="text-xs text-[#E2E8F0]/60 mb-4">
                 Link investments, accounts, or debts to automatically track progress
               </p>
 
@@ -420,11 +420,11 @@ const GoalForm = () => {
               {showDebtFields && (
                 <div className="space-y-4 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-[#0B3D2E] mb-2">Link Loan</label>
+                    <label className="block text-sm font-medium text-[#E2E8F0] mb-2">Link Loan</label>
                     <select
                       value={linkedLoanId}
                       onChange={(e) => setLinkedLoanId(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#7C3AED] focus:outline-none"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#7C3AED] focus:outline-none"
                       data-testid="linked-loan-select"
                     >
                       <option value="">Select a loan (optional)</option>
@@ -436,11 +436,11 @@ const GoalForm = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#0B3D2E] mb-2">Link Credit Card</label>
+                    <label className="block text-sm font-medium text-[#E2E8F0] mb-2">Link Credit Card</label>
                     <select
                       value={linkedCreditCardId}
                       onChange={(e) => setLinkedCreditCardId(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#7C3AED] focus:outline-none"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] focus:border-[#7C3AED] focus:outline-none"
                       data-testid="linked-card-select"
                     >
                       <option value="">Select a credit card (optional)</option>
@@ -460,10 +460,10 @@ const GoalForm = () => {
                   {/* Investments */}
                   {investments.length > 0 && (
                     <div>
-                      <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                      <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                         Link Investments ({linkedInvestmentIds.length} selected)
                       </label>
-                      <div className="max-h-40 overflow-y-auto space-y-2 p-2 bg-white rounded-lg border border-gray-200">
+                      <div className="max-h-40 overflow-y-auto space-y-2 p-2 bg-[#1E293B] rounded-lg border border-gray-200">
                         {investments.map((inv) => (
                           <label
                             key={inv.id}
@@ -478,8 +478,8 @@ const GoalForm = () => {
                               className="w-4 h-4 text-[#7C3AED] rounded focus:ring-[#7C3AED]"
                             />
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-[#0B3D2E] truncate">{inv.name}</p>
-                              <p className="text-xs text-[#0B3D2E]/50">
+                              <p className="text-sm font-medium text-[#E2E8F0] truncate">{inv.name}</p>
+                              <p className="text-xs text-[#E2E8F0]/50">
                                 {inv.investmentCategory} • ₹{inv.currentValue?.toLocaleString('en-IN')}
                               </p>
                             </div>
@@ -492,10 +492,10 @@ const GoalForm = () => {
                   {/* Accounts */}
                   {accounts.length > 0 && (
                     <div>
-                      <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                      <label className="block text-sm font-medium text-[#E2E8F0] mb-2">
                         Link Accounts ({linkedAccountIds.length} selected)
                       </label>
-                      <div className="max-h-40 overflow-y-auto space-y-2 p-2 bg-white rounded-lg border border-gray-200">
+                      <div className="max-h-40 overflow-y-auto space-y-2 p-2 bg-[#1E293B] rounded-lg border border-gray-200">
                         {accounts.map((acc) => (
                           <label
                             key={acc.id}
@@ -510,8 +510,8 @@ const GoalForm = () => {
                               className="w-4 h-4 text-[#7C3AED] rounded focus:ring-[#7C3AED]"
                             />
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-[#0B3D2E] truncate">{acc.accountName}</p>
-                              <p className="text-xs text-[#0B3D2E]/50">
+                              <p className="text-sm font-medium text-[#E2E8F0] truncate">{acc.accountName}</p>
+                              <p className="text-xs text-[#E2E8F0]/50">
                                 {acc.accountType} • ₹{acc.currentBalance?.toLocaleString('en-IN')}
                               </p>
                             </div>
@@ -528,10 +528,10 @@ const GoalForm = () => {
             <div className="w-full rounded-xl border border-[#E2E8F0] p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-[#0B3D2E]">
+                  <label className="text-sm font-medium text-[#E2E8F0]">
                     Manual Progress Entry
                   </label>
-                  <p className="text-xs text-[#0B3D2E]/60 mt-0.5">
+                  <p className="text-xs text-[#E2E8F0]/60 mt-0.5">
                     Override auto-calculation and enter progress manually
                   </p>
                 </div>
@@ -544,7 +544,7 @@ const GoalForm = () => {
                   data-testid="manual-override-toggle"
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    className={`inline-block h-4 w-4 transform rounded-full bg-[#1E293B] transition-transform ${
                       manualOverride ? "translate-x-6" : "translate-x-1"
                     }`}
                   />
@@ -553,23 +553,23 @@ const GoalForm = () => {
               
               {manualOverride && (
                 <div className="mt-4 animate-in fade-in">
-                  <label htmlFor="currentAmount" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label htmlFor="currentAmount" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                     Current Progress Amount
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0B3D2E] font-medium">₹</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#E2E8F0] font-medium">₹</span>
                     <input
                       id="currentAmount"
                       type="text"
                       value={currentAmount}
                       onChange={handleAmountChange(setCurrentAmount)}
                       placeholder="0"
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#7C3AED] focus:outline-none"
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] pl-10 pr-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#7C3AED] focus:outline-none"
                       data-testid="current-amount-input"
                     />
                   </div>
                   {parseFloat(currentAmount) > 0 && (
-                    <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic">
+                    <p className="mt-1.5 text-xs text-[#E2E8F0]/50 italic">
                       {numberToWords(parseFloat(currentAmount))}
                     </p>
                   )}
@@ -579,7 +579,7 @@ const GoalForm = () => {
 
             {/* Notes */}
             <div className="w-full">
-              <label htmlFor="notes" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+              <label htmlFor="notes" className="block text-sm font-medium text-[#E2E8F0] mb-2">
                 Notes <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <textarea
@@ -589,7 +589,7 @@ const GoalForm = () => {
                 placeholder="Add any notes about this goal..."
                 rows={3}
                 maxLength={500}
-                className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] placeholder-[#94A3B8] focus:border-[#7C3AED] focus:outline-none resize-none"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] placeholder-[#94A3B8] focus:border-[#7C3AED] focus:outline-none resize-none"
                 data-testid="notes-input"
               />
             </div>
@@ -602,7 +602,7 @@ const GoalForm = () => {
       </div>
 
       {/* Sticky Action Buttons */}
-      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-white/95 backdrop-blur-sm px-6 py-4 z-40">
+      <div className="fixed bottom-16 left-0 right-0 border-t border-[#E2E8F0] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
         <div className="mx-auto max-w-[620px]">
           {id ? (
             <div className="flex gap-3">
@@ -610,7 +610,7 @@ const GoalForm = () => {
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isSubmitting}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-white px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
+                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-[#1E293B] px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
                 data-testid="delete-button"
               >
                 <Trash2 className="h-5 w-5" />
@@ -643,13 +643,13 @@ const GoalForm = () => {
       {/* Update Confirmation Dialog */}
       {showUpdateConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#0B3D2E] mb-3">Confirm Changes</h3>
-            <p className="text-[#0B3D2E]/70 mb-6">
+          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+            <h3 className="text-xl font-semibold text-[#E2E8F0] mb-3">Confirm Changes</h3>
+            <p className="text-[#E2E8F0]/70 mb-6">
               Are you sure you want to update this goal?
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
+              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
                 Cancel
               </button>
               <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#7C3AED] px-4 py-3 text-white font-medium">
@@ -663,13 +663,13 @@ const GoalForm = () => {
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
+          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="text-xl font-semibold text-red-600 mb-3">Delete Goal?</h3>
-            <p className="text-[#0B3D2E]/70 mb-6">
+            <p className="text-[#E2E8F0]/70 mb-6">
               Are you sure you want to delete "{goalName}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] font-medium">
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#E2E8F0] bg-[#1E293B] px-4 py-3 text-[#E2E8F0] font-medium">
                 Cancel
               </button>
               <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">
