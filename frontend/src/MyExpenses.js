@@ -181,13 +181,19 @@ const MyExpenses = () => {
             <div>
               <p className="text-white/60 mb-1">Fixed Expenses</p>
               <p className="text-white font-medium">
-                <span className="text-emerald-300">{fixedPaid} Paid</span> / <span className="text-amber-300">{fixedPending} Pending</span>
+                <span className="text-emerald-300">₹{formatAmount(fixedPaidTotal)} Paid</span>
+              </p>
+              <p className="text-white font-medium">
+                <span className="text-amber-300">₹{formatAmount(fixedPendingTotal)} Pending</span>
               </p>
             </div>
             <div>
               <p className="text-white/60 mb-1">Variable Expenses</p>
               <p className="text-white font-medium">
-                <span className="text-emerald-300">{variablePaid} Paid</span> / <span className="text-amber-300">{variablePending} Pending</span>
+                <span className="text-emerald-300">₹{formatAmount(variablePaidTotal)} Paid</span>
+              </p>
+              <p className="text-white font-medium">
+                <span className="text-amber-300">₹{formatAmount(variablePendingTotal)} Pending</span>
               </p>
             </div>
           </div>
