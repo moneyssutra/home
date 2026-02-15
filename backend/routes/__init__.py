@@ -2,11 +2,17 @@
 from routes.auth import router as auth_router
 from routes.workspace import router as workspace_router
 from routes.income import router as income_router
+from routes.other_income import router as other_income_router
 from routes.loans import router as loans_router
 from routes.assets import router as assets_router
 from routes.accounts import router as accounts_router
+from routes.expenses import router as expenses_router
 from routes.investments import router as investments_router
 from routes.credit_cards import router as credit_cards_router
+from routes.insurance import router as insurance_router
+from routes.goals import router as goals_router
+from routes.dashboard import router as dashboard_router
+from routes.profile import router as profile_router
 
 # Re-export commonly used functions
 from routes.auth import get_current_user
@@ -24,11 +30,17 @@ __all__ = [
     'auth_router',
     'workspace_router', 
     'income_router',
+    'other_income_router',
     'loans_router',
     'assets_router',
     'accounts_router',
+    'expenses_router',
     'investments_router',
     'credit_cards_router',
+    'insurance_router',
+    'goals_router',
+    'dashboard_router',
+    'profile_router',
     # Functions
     'get_current_user',
     'get_user_workspace',
