@@ -81,18 +81,26 @@ body {
 /* Subtle honeycomb pattern for app background - Light Theme */
 .honeycomb-bg {
     background-color: var(--bg-app);
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='52' viewBox='0 0 60 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 1 L45 1 L59 26 L45 51 L15 51 L1 26 Z' fill='none' stroke='%23E5E7EB' stroke-opacity='0.3' stroke-width='1'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='52' viewBox='0 0 60 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 1 L45 1 L59 26 L45 51 L15 51 L1 26 Z' fill='none' stroke='%23059669' stroke-opacity='0.15' stroke-width='1'/%3E%3C/svg%3E");
     background-size: 30px 26px;
     background-repeat: repeat;
 }
 
-/* Light Theme Form Styles - Override dark theme colors */
+/* Light Theme Form Styles */
 .honeycomb-bg input,
 .honeycomb-bg select,
 .honeycomb-bg textarea {
-    background-color: var(--bg-subtle) !important;
-    border-color: var(--border-light) !important;
+    background-color: #FFFFFF !important;
+    border: 1px solid var(--border-light) !important;
     color: var(--text-primary) !important;
+}
+
+.honeycomb-bg input:focus,
+.honeycomb-bg select:focus,
+.honeycomb-bg textarea:focus {
+    border-color: var(--brand-primary) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1) !important;
 }
 
 .honeycomb-bg input::placeholder,
@@ -111,10 +119,62 @@ body {
     color: var(--text-primary) !important;
 }
 
-/* Form cards in honeycomb-bg */
-.honeycomb-bg .rounded-xl,
-.honeycomb-bg .rounded-2xl {
+/* Override dark theme backgrounds in honeycomb pages */
+.honeycomb-bg .bg-\[\#1E293B\],
+.honeycomb-bg .bg-\[\#0F172A\] {
+    background-color: var(--bg-card) !important;
+}
+
+.honeycomb-bg .border-\[\#334155\] {
     border-color: var(--border-light) !important;
+}
+
+.honeycomb-bg .text-\[\#334155\] {
+    color: var(--text-primary) !important;
+}
+
+.honeycomb-bg .text-\[\#334155\]\/60,
+.honeycomb-bg .text-\[\#334155\]\/70 {
+    color: var(--text-secondary) !important;
+}
+
+/* Toggle button styles for light theme */
+.toggle-light {
+    background-color: var(--border-light);
+}
+
+.toggle-light.active {
+    background-color: var(--brand-primary);
+}
+
+/* Back button for light theme */
+.back-btn-light {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-light) !important;
+    color: var(--text-primary) !important;
+}
+
+.back-btn-light:hover {
+    background-color: var(--bg-subtle) !important;
+}
+
+/* Calendar styles for light theme */
+.calendar-light {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-light) !important;
+}
+
+.calendar-light button {
+    color: var(--text-primary) !important;
+}
+
+.calendar-light button:hover {
+    background-color: var(--bg-subtle) !important;
+}
+
+.calendar-light button.selected {
+    background-color: var(--brand-primary) !important;
+    color: white !important;
 }
 
 code {
