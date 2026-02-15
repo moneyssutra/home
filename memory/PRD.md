@@ -210,7 +210,6 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 ## Backlog / Future Tasks
 
 ### P1 - High Priority (Next)
-- Goal milestone notifications and alerts (notify at 25%, 50%, 75%, 100%)
 - Asset ↔ Loan bidirectional linking display on Asset detail page
 
 ### P2 - Medium Priority
