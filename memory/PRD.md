@@ -351,6 +351,23 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
   - 13 categories: Housing, Utilities, Food, Transport, Shopping, Medical, Education, Insurance, Subscriptions, EMI, Business Expense, Salary Paid, Other
   - Fixed/Variable toggle, 7 frequency options
   - Linked Account support
+- **Feb 15, 2026**: TESTING V4 Implementation Complete
+  - **Global UI Standardization**:
+    - Amount in Words (Indian numbering: Lakh, Crore) for ALL amount fields across forms
+    - Calendar popover component for ALL date fields (replacing HTML date inputs)
+    - Implemented in: LoanForm, InvestmentForm, InsuranceForm, AssetForm, AccountForm
+  - **Expense Module Enhancements**:
+    - MyExpenses shows monetary totals (₹ amounts) for Fixed Paid/Pending and Variable Paid/Pending
+    - New FixedExpenses page (/expenses/fixed) for dedicated fixed expense management
+    - New VariableExpenses page (/expenses/variable) for dedicated variable expense management
+    - Clickable Fixed/Variable cards navigate to dedicated pages
+  - **Smart Back Button Navigation**:
+    - Main module pages (MyExpenses, MyCreditCards) now navigate to Home (/) on back
+    - BackButton component updated with forceNavigate prop
+  - **Asset "Add Insurance" Shortcut**:
+    - Button appears in AssetForm when "Is This Asset Insured?" toggle is ON
+    - Preserves form state when navigating to InsuranceForm
+    - Returns to AssetForm with state restored and new insurance pre-selected
 - **Feb 12, 2026**: Dividend Income module fully implemented
   - 3 pages: My Dividend (list with category badges), Dividend Income (create/edit)
   - 5 source categories: Direct Stocks, Mutual Funds (IDCW), REITs, InvITs, Others
