@@ -396,24 +396,75 @@ const GoalDetail = () => {
           </div>
         )}
 
-        {/* Smart Suggestions (Future AI Feature Placeholder) */}
+        {/* Smart Suggestions with Monthly Breakdown */}
         <div className="bg-gradient-to-br from-[#7C3AED]/5 to-[#7C3AED]/10 rounded-2xl p-5 border border-[#7C3AED]/20">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-5 w-5 text-[#7C3AED]" />
             <h3 className="text-sm font-semibold text-[#7C3AED]">Smart Suggestions</h3>
           </div>
           {progress < 100 ? (
-            <div className="space-y-2">
-              <p className="text-sm text-[#0B3D2E]/70">
-                To reach your goal by {new Date(goal.targetDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}, 
-                consider saving approximately:
-              </p>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-[#7C3AED]">
-                  ₹ {formatAmount(remaining / Math.max(goal.daysRemaining / 30, 1))}
-                </span>
-                <span className="text-sm text-[#0B3D2E]/50">per month</span>
+            <div className="space-y-4">
+              {/* Monthly Contribution Summary */}
+              <div className="bg-white/50 rounded-xl p-4">
+                <p className="text-xs text-[#0B3D2E]/60 mb-3">
+                  Monthly Contribution Breakdown
+                </p>
+                <div className="space-y-2">
+                  {goal.totalMonthlySIPContribution > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-emerald-700">Existing SIP Contributions</span>
+                      <span className="text-sm font-semibold text-emerald-700">
+                        ₹ {formatAmount(goal.totalMonthlySIPContribution)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-amber-700">Additional Savings Needed</span>
+                    <span className="text-sm font-semibold text-amber-700">
+                      ₹ {formatAmount(goal.additionalMonthlySavingsNeeded || (remaining / Math.max(goal.daysRemaining / 30, 1)))}
+                    </span>
+                  </div>
+                  <div className="border-t border-[#7C3AED]/20 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-[#7C3AED]">Total Monthly Needed</span>
+                      <span className="text-lg font-bold text-[#7C3AED]">
+                        ₹ {formatAmount(goal.totalMonthlyNeeded || (remaining / Math.max(goal.daysRemaining / 30, 1)))}
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
+              
+              <p className="text-sm text-[#0B3D2E]/70">
+                To reach your goal of <span className="font-semibold">₹{formatAmount(goal.targetAmount)}</span> by{" "}
+                {new Date(goal.targetDate).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}, 
+                {goal.totalMonthlySIPContribution > 0 ? (
+                  <> your existing SIPs will contribute significantly. Consider adding <span className="font-semibold text-amber-700">₹{formatAmount(goal.additionalMonthlySavingsNeeded || 0)}</span> more per month.</>
+                ) : (
+                  <> consider saving approximately <span className="font-semibold text-[#7C3AED]">₹{formatAmount(remaining / Math.max(goal.daysRemaining / 30, 1))}</span> per month.</>
+                )}
+              </p>
+              
+              {/* Projected vs Target */}
+              {goal.totalProjectedFromSIPs > 0 && (
+                <div className="bg-white/50 rounded-lg p-3 mt-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[#0B3D2E]/60">Projected at Target Date (from SIPs)</span>
+                    <span className={`text-sm font-bold ${goal.totalProjectedFromSIPs >= goal.targetAmount ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      ₹ {formatAmount(goal.totalProjectedFromSIPs)}
+                    </span>
+                  </div>
+                  {goal.totalProjectedFromSIPs >= goal.targetAmount ? (
+                    <p className="text-xs text-emerald-600 mt-1">
+                      Great news! Your current SIPs are on track to exceed your goal!
+                    </p>
+                  ) : (
+                    <p className="text-xs text-amber-600 mt-1">
+                      Gap to fill: ₹{formatAmount(goal.targetAmount - goal.totalProjectedFromSIPs)}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-sm text-emerald-600 font-medium">
