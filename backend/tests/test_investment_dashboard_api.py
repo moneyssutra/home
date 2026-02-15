@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 # Get base URL from environment
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://money-tracker-ui-1.preview.emergentagent.com"
+    BASE_URL = "https://color-audit-deploy.preview.emergentagent.com"
 
 
 class TestInvestmentCRUD:
