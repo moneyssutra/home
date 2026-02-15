@@ -122,14 +122,24 @@ const Dashboard = () => {
                 Moneyssutra
               </h1>
             </div>
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-white/20 active:scale-95 disabled:opacity-50"
-              data-testid="refresh-button"
-            >
-              <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-white/20 active:scale-95 disabled:opacity-50"
+                data-testid="refresh-button"
+              >
+                <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-red-500/50 active:scale-95"
+                data-testid="logout-button"
+                title="Logout"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
           {/* Net Worth Card */}
