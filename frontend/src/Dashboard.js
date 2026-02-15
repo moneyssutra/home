@@ -25,6 +25,7 @@ const Dashboard = () => {
   const [data, setData] = useState(null);
   const [profile, setProfile] = useState(null);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [goalsSummary, setGoalsSummary] = useState(null);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
@@ -35,12 +36,14 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [networthRes, profileRes] = await Promise.all([
+      const [networthRes, profileRes, goalsRes] = await Promise.all([
         axios.get(`${backendUrl}/api/dashboard/networth`),
         axios.get(`${backendUrl}/api/profile/basic`),
+        axios.get(`${backendUrl}/api/goals/summary/dashboard`).catch(() => ({ data: null })),
       ]);
       setData(networthRes.data);
       setProfile(profileRes.data);
+      setGoalsSummary(goalsRes.data);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
