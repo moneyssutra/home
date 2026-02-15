@@ -164,7 +164,7 @@ const MyExpenses = () => {
       {/* Header */}
       <header className="bg-gradient-to-br from-[#DC2626] via-[#EF4444] to-[#DC2626] px-6 pt-8 pb-8">
         <div className="flex items-center gap-4 mb-6">
-          <BackButton fallbackPath="/" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <BackButton fallbackPath="/" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             My Expenses
           </h1>
