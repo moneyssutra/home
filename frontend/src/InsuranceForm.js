@@ -505,6 +505,11 @@ const InsuranceForm = () => {
                     data-testid="expected-maturity-input"
                   />
                 </div>
+                {parseFloat(expectedMaturityAmount) > 0 && (
+                  <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="expected-maturity-words">
+                    {numberToWords(parseFloat(expectedMaturityAmount))}
+                  </p>
+                )}
               </div>
             )}
 
