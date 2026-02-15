@@ -245,15 +245,6 @@ const Login = () => {
             </button>
           </div>
 
-          {/* Demo Credentials - only show in login mode */}
-          {!isRegisterMode && (
-            <div className="mt-4 p-3 rounded-xl bg-[#FFB300]/10 border border-[#FFB300]/30">
-              <p className="text-xs text-[#FFB300] text-center">
-                <span className="font-semibold">Demo:</span> Username: <code className="bg-[#FFB300]/20 px-1 rounded">test</code>, Password: <code className="bg-[#FFB300]/20 px-1 rounded">test</code>
-              </p>
-            </div>
-          )}
-
           {/* Divider */}
           <div className="flex items-center gap-4 my-6">
             <div className="flex-1 h-px bg-gray-200" />
