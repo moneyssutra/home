@@ -828,17 +828,17 @@ const ExpenseForm = () => {
 
       {/* Update Confirmation Dialog */}
       {showUpdateConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#334155] mb-3">Confirm Changes</h3>
-            <p className="text-[#334155]/70 mb-6">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6">
+          <div className="rounded-2xl p-6 max-w-md w-full shadow-modal" style={{ backgroundColor: "var(--bg-card)" }}>
+            <h3 className="text-xl font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Confirm Changes</h3>
+            <p className="mb-6" style={{ color: "var(--text-secondary)" }}>
               Are you sure you want to update this expense?
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">
+              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl px-4 py-3 font-medium" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-primary)", border: "1px solid var(--border-light)" }}>
                 Cancel
               </button>
-              <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium">
+              <button type="button" onClick={performSave} className="flex-1 rounded-xl px-4 py-3 text-white font-medium" style={{ backgroundColor: "var(--btn-primary-bg)" }}>
                 Yes, Update
               </button>
             </div>
@@ -848,17 +848,17 @@ const ExpenseForm = () => {
 
       {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-red-600 mb-3">Delete Expense?</h3>
-            <p className="text-[#334155]/70 mb-6">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-6">
+          <div className="rounded-2xl p-6 max-w-md w-full shadow-modal" style={{ backgroundColor: "var(--bg-card)" }}>
+            <h3 className="text-xl font-semibold mb-3" style={{ color: "var(--status-error)" }}>Delete Expense?</h3>
+            <p className="mb-6" style={{ color: "var(--text-secondary)" }}>
               Are you sure you want to delete "{expenseName}"? This action cannot be undone.
             </p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl px-4 py-3 font-medium" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-primary)", border: "1px solid var(--border-light)" }}>
                 Cancel
               </button>
-              <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">
+              <button type="button" onClick={handleDelete} className="flex-1 rounded-xl px-4 py-3 text-white font-medium" style={{ backgroundColor: "var(--status-error)" }}>
                 Yes, Delete
               </button>
             </div>
