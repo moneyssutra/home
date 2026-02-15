@@ -556,6 +556,14 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
     - Monthly income × 1
     - Quarterly/Half-Yearly/Yearly only when applicable for current month
   - Now both pages show consistent ₹19.07 L for February 2026
+- **Feb 15, 2026**: Fixed "Received vs Yet to Receive" Calculation
+  - **Issue**: Daily/Weekly income was marked as fully received instead of proportional
+  - **Fix**: Implemented proportional calculation for Daily/Weekly income:
+    - Daily: (currentDay / 30) of monthly amount is received
+    - Weekly: (weeksElapsed / 4) of monthly amount is received
+    - Monthly: Based on due date vs current day
+    - Quarterly/Half-Yearly/Yearly: Based on full date comparison
+  - Example: On day 15, Weekly income (₹16L/month) shows ₹8L received, ₹8L pending
     - Investment Frequency dropdown: One-time, Weekly, Monthly (SIP), Quarterly, Yearly
     - SIP Amount field appears when frequency is selected
     - Backend Investment model updated with investmentFrequency and sipAmount fields
