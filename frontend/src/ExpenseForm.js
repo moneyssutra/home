@@ -334,13 +334,14 @@ const ExpenseForm = () => {
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <button
           type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
+          className="flex h-10 w-10 items-center justify-center rounded-full transition-colors shadow-card"
+          style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
           onClick={() => navigate("/my-expenses")}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight" style={{ fontFamily: "'Manrope', sans-serif", color: "var(--text-primary)" }}>
           {id ? "Edit Expense" : "Add Expense"}
         </h1>
         <div className="h-10 w-10" />
