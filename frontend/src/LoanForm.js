@@ -109,6 +109,14 @@ const LoanIncome = () => {
       setHasLinkedAsset(!!data.linkedAssetId);
       setLinkedAccountId(data.linkedAccountId || "");
       setAutoCreateExpense(data.autoCreateExpense !== false);
+      
+      // Fetch reverse-linked assets (assets that have this loan linked)
+      try {
+        const linkedResponse = await axios.get(`${backendUrl}/api/loans/${id}/linked-assets`);
+        setReverseLinkedAssets(linkedResponse.data || []);
+      } catch (e) {
+        console.log("No reverse linked assets found");
+      }
     } catch (error) {
       console.error("Error fetching loan data:", error);
       setErrors({ submit: "Failed to load loan data" });
