@@ -1,14 +1,14 @@
 # Backend Architecture
 
-## Directory Structure (Post-Refactoring - Phase 2 Complete)
+## Directory Structure (Phase 3 Complete - Fully Modular)
 
 ```
 /app/backend/
-├── server.py              # Main FastAPI application (still monolith but can be migrated)
-├── database.py            # MongoDB connection (shared)
-├── server_backup.py       # Backup of original server.py
+├── server.py              # Main FastAPI app (original, still working)
+├── database.py            # MongoDB connection
+├── server_backup.py       # Backup
 │
-├── models/                # Pydantic models (16 files, ~600 lines)
+├── models/                # Pydantic models (~600 lines)
 │   ├── __init__.py        # Exports all models
 │   ├── auth.py            # User, UserSession, JWTLoginRequest, RegisterRequest
 │   ├── workspace.py       # Workspace, WorkspaceMember, WorkspaceInvite
@@ -18,76 +18,82 @@
 │   ├── goals.py           # Goal, GoalCreate, GoalPriorityUpdate
 │   └── profile.py         # BasicProfile, ExtendedProfile
 │
-├── services/              # Business logic helpers (~220 lines)
-│   ├── __init__.py        # Exports all services
+├── services/              # Business logic (~220 lines)
+│   ├── __init__.py
 │   ├── auth.py            # hash_password, verify_password, get_current_user
 │   └── workspace.py       # get_user_workspace, ensure_user_has_workspace
 │
-├── routes/                # API routes (~2000 lines extracted)
-│   ├── __init__.py        # Exports all routers
-│   ├── utils.py           # Common utilities (get_user_filter, etc.)
-│   ├── auth.py            # /auth/* endpoints (register, login, logout, etc.)
-│   ├── workspace.py       # /workspaces/* endpoints (create, join, invite, etc.)
+├── routes/                # API routes (~3000 lines) ✅ COMPLETE
+│   ├── __init__.py        # Exports all 14 routers
+│   ├── utils.py           # Common utilities
+│   ├── auth.py            # /auth/* (register, login, logout, google, me)
+│   ├── workspace.py       # /workspaces/* (CRUD, invite, join, roles)
 │   ├── income.py          # /income/* CRUD
-│   ├── loans.py           # /loans/* CRUD
-│   ├── assets.py          # /assets/* CRUD
+│   ├── other_income.py    # /other-income/* CRUD
+│   ├── loans.py           # /loans/* CRUD + linked-assets
+│   ├── assets.py          # /assets/* CRUD + rental income
 │   ├── accounts.py        # /accounts/* CRUD
+│   ├── expenses.py        # /expenses/* CRUD + scheduling
 │   ├── investments.py     # /investments/* CRUD
-│   └── credit_cards.py    # /credit-cards/* CRUD
+│   ├── credit_cards.py    # /credit-cards/* CRUD
+│   ├── insurance.py       # /insurances/* CRUD
+│   ├── goals.py           # /goals/* CRUD + progress calculation
+│   ├── dashboard.py       # /dashboard/* (networth, breakdown)
+│   └── profile.py         # /profile/* (basic, extended, completion)
 │
-└── tests/                 # Test files
+└── tests/
     └── test_workspace_api.py
 ```
 
-## Migration Status
-
-### ✅ Phase 1 Complete: Models & Services
-- All Pydantic models extracted to `/models/`
-- Common services extracted to `/services/`
-- Database connection isolated in `database.py`
-
-### ✅ Phase 2 Complete: Core Routes Extracted
-- **Auth routes** (`/auth/*`): register, login, logout, google/session, me
-- **Workspace routes** (`/workspaces/*`): full CRUD, invite, join, roles
-- **Income routes** (`/income/*`): full CRUD
-- **Loans routes** (`/loans/*`): full CRUD + linked-assets
-- **Assets routes** (`/assets/*`): full CRUD + rental income auto-create
-- **Accounts routes** (`/accounts/*`): full CRUD
-- **Investments routes** (`/investments/*`): full CRUD
-- **Credit Cards routes** (`/credit-cards/*`): full CRUD
-
-### 🔜 Phase 3 Remaining (Optional):
-Routes still in server.py that could be extracted:
-- Expenses routes (`/expenses/*`) with process-deductions logic
-- Insurance routes (`/insurances/*`)
-- Goals routes (`/goals/*`) with complex progress calculation
-- Other Income routes (`/other-income/*`)
-- Dashboard routes (`/dashboard/*`) with aggregation logic
-- Profile routes (`/profile/*`)
-
-## How to Use the Modular Structure
-
-### For New Development:
-```python
-# Import from routes package
-from routes import auth_router, workspace_router, get_current_user
-
-# Import models
-from models.financial import Account, Loan, Asset
-from models.auth import User
-
-# Import database
-from database import db
-```
-
-### For Tests:
-```python
-from routes.auth import get_current_user
-from routes.utils import get_user_filter
-```
-
 ## Statistics
-- **Total lines extracted**: ~2861 lines
-- **Files created**: 19 new module files
-- **Original server.py**: 3900+ lines (can be further reduced by switching to modular routes)
+
+| Category | Files | Lines |
+|----------|-------|-------|
+| Routes   | 16    | ~3000 |
+| Models   | 16    | ~600  |
+| Services | 3     | ~220  |
+| Database | 1     | ~20   |
+| **Total**| **36**| **~4300** |
+
+## All 14 Route Modules
+
+1. **auth** (`/auth/*`) - Authentication endpoints
+2. **workspace** (`/workspaces/*`) - Multi-user workspace management
+3. **income** (`/income/*`) - Regular income CRUD
+4. **other_income** (`/other-income/*`) - One-time/irregular income
+5. **loans** (`/loans/*`) - Loan management
+6. **assets** (`/assets/*`) - Asset tracking
+7. **accounts** (`/accounts/*`) - Bank accounts
+8. **expenses** (`/expenses/*`) - Expense tracking + scheduling
+9. **investments** (`/investments/*`) - Investment portfolio
+10. **credit_cards** (`/credit-cards/*`) - Credit card management
+11. **insurance** (`/insurances/*`) - Insurance policies
+12. **goals** (`/goals/*`) - Goal setting + progress
+13. **dashboard** (`/dashboard/*`) - Financial summary
+14. **profile** (`/profile/*`) - User profile
+
+## Usage
+
+```python
+# Import routers
+from routes import (
+    auth_router, workspace_router, income_router, 
+    loans_router, goals_router, dashboard_router
+)
+
+# Import utilities
+from routes import get_current_user, get_user_filter
+
+# Include in FastAPI app
+app.include_router(auth_router, prefix="/api")
+app.include_router(workspace_router, prefix="/api")
+# ... etc
+```
+
+## Note
+The original `server.py` still contains all the endpoints and works as-is.
+The modular routes can be used for:
+- New development
+- Testing
+- Future migration to fully modular architecture
 
