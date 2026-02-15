@@ -247,6 +247,10 @@ const MyAccounts = () => {
           )}
         </div>
       </div>
+
+      {/* Bottom Navigation */}
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };
