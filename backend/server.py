@@ -1376,12 +1376,14 @@ async def get_networth_summary():
             # Default case - assume monthly
             monthly_income += amount
     
-    # Get all expenses
+    # Get all expenses - Calculate actual monthly expenses for current month
     expenses = await db.expenses.find({}, {"_id": 0}).to_list(1000)
     monthly_expenses = 0
     for expense in expenses:
         amount = expense.get('expectedAmount', 0)
         freq = expense.get('frequency', 'Monthly')
+        
+        # For each frequency, determine if this expense would occur this month
         if freq == 'Daily':
             monthly_expenses += amount * 30
         elif freq == 'Weekly':
@@ -1389,13 +1391,49 @@ async def get_networth_summary():
         elif freq == 'Monthly':
             monthly_expenses += amount
         elif freq == 'Quarterly':
-            monthly_expenses += amount / 3
+            # Check if current month is a payment month
+            selected_quarter = expense.get('selectedQuarter', '')
+            quarter_months = {
+                'Q1': [1, 2, 3],
+                'Q2': [4, 5, 6],
+                'Q3': [7, 8, 9],
+                'Q4': [10, 11, 12]
+            }
+            for q_prefix, months in quarter_months.items():
+                if selected_quarter and selected_quarter.startswith(q_prefix):
+                    if current_month == months[0]:
+                        monthly_expenses += amount
+                    break
+            else:
+                if current_month in [1, 4, 7, 10]:
+                    monthly_expenses += amount
         elif freq == 'Half-Yearly':
-            monthly_expenses += amount / 6
+            selected_half = expense.get('selectedHalf', '')
+            if 'Jan' in selected_half:
+                if current_month in [1, 7]:
+                    monthly_expenses += amount
+            else:
+                if current_month in [7, 1]:
+                    monthly_expenses += amount
         elif freq == 'Yearly':
-            monthly_expenses += amount / 12
+            selected_month = expense.get('selectedMonth', '')
+            month_mapping = {
+                "January": 1, "February": 2, "March": 3, "April": 4, 
+                "May": 5, "June": 6, "July": 7, "August": 8, 
+                "September": 9, "October": 10, "November": 11, "December": 12
+            }
+            if month_mapping.get(selected_month) == current_month:
+                monthly_expenses += amount
         elif freq == 'One-Time':
-            monthly_expenses += 0  # Don't include one-time in monthly
+            # Check if one-time expense falls in current month
+            one_time_date = expense.get('oneTimeDate', '')
+            if one_time_date:
+                try:
+                    date_obj = datetime.fromisoformat(one_time_date).date()
+                    if date_obj.month == current_month and date_obj.year == current_year:
+                        monthly_expenses += amount
+                except:
+                    pass
         else:
             monthly_expenses += amount
     
