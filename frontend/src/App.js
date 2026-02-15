@@ -109,6 +109,8 @@ function App() {
           
           {/* Expenses */}
           <Route path="/my-expenses" element={<MyExpenses />} />
+          <Route path="/expenses/fixed" element={<FixedExpenses />} />
+          <Route path="/expenses/variable" element={<VariableExpenses />} />
           <Route path="/expense" element={<ExpenseForm />} />
           <Route path="/expense/:id" element={<ExpenseForm />} />
           
