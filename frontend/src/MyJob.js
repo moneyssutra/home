@@ -173,7 +173,7 @@ const MyJob = () => {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 overflow-y-auto pb-32">
         <div className="mx-auto w-full max-w-[620px] px-6">
           {loading ? (
             <div className="flex items-center justify-center py-12">
