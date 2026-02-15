@@ -103,10 +103,22 @@ const AssetForm = () => {
       setIsInsured(data.isInsured || false);
       setAssetLocation(data.location || "");
       setNotes(data.notes || "");
+      setRenterName(data.renterName || "");
+      setRentalAmount(data.rentalAmount || "");
+      setSecurityDeposit(data.securityDeposit || "");
+      setRentalFrequency(data.rentalFrequency || "Monthly");
+      
       // If a new loan was just created, set it as linked
       if (location.state?.newLoanId) {
         fetchLoans().then(() => {
           setLinkedLoanId(location.state.newLoanId);
+        });
+      }
+      // If a new insurance was just created, set it as linked
+      if (location.state?.newInsuranceId) {
+        fetchInsurances().then(() => {
+          setLinkedInsuranceId(location.state.newInsuranceId);
+          setIsInsured(true);
         });
       }
     }
