@@ -230,8 +230,31 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 
 ## Known Issues
 - **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
+- **P2**: Backend monolith (`server.py` ~2700+ lines) - model definitions created in `/app/backend/models/` as foundation for future refactoring
 
 ## Changelog
+- **Feb 15, 2026 (Session 8)**: Asset ↔ Loan Bidirectional Linking (COMPLETED)
+  - **Backend API**:
+    - New GET `/api/loans/{loan_id}/linked-assets` endpoint for reverse lookup
+    - Returns array of assets where `linkedLoanId` matches the given loan
+    - Response: `{id, assetName, assetType, currentValue, purchaseValue, location}`
+  - **Frontend MyAssets**:
+    - Enhanced linked loan section with "Linked Loan" header, loan name, amount
+    - Clickable card navigates to LoanForm page
+    - Added `ExternalLink` icon indicator
+  - **Frontend MyLoans**:
+    - Enhanced linked asset badge with clickable navigation to AssetForm
+    - Added `ExternalLink` icon indicator
+  - **Frontend LoanForm**:
+    - New "Assets Financed by This Loan" section (reverse-linked assets display)
+    - Clickable asset cards with name, type, current value, navigation to AssetForm
+    - Only shows when editing existing loan with linked assets
+  - **Backend Refactoring (Foundation)**:
+    - Created `/app/backend/models/` with Pydantic model definitions
+    - Models: base, income, account, expense, insurance, loan, asset, investment, credit_card, goal, profile
+    - Documentation for future migration from monolithic server.py
+  - **Testing**: 100% pass rate (13/13 backend tests, all frontend flows verified)
+
 - **Feb 15, 2026 (Session 7)**: Goal Achievements Summary Page (COMPLETED)
   - **Backend API**:
     - New GET `/api/goals/achievements` endpoint returns completed goals with milestone history
