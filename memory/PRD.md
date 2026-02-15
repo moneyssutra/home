@@ -232,6 +232,23 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
 
 ## Changelog
+- **Dec 15, 2025 (Session 6)**: Goal Milestone Notifications (COMPLETED)
+  - **Backend API**:
+    - Added `reachedMilestones: List[int]` field to Goal model
+    - New GET `/api/goals/{id}/milestones` endpoint to check/update milestone status
+    - Returns `newlyReached` array for triggering notifications (prevents duplicates)
+  - **Frontend Components**:
+    - Created `MilestoneNotification.js` with `useMilestoneNotification` hook
+    - `MilestoneProgress` component shows 4 badges (25%, 50%, 75%, 100%)
+    - `MilestoneBadge` component with icon emojis (🌱, 🔥, 🚀, 🎉)
+    - Integration with `canvas-confetti` for celebration animations
+    - Toast notifications via `sonner` for milestone alerts
+  - **GoalDetail Integration**:
+    - Added milestone check on page load and goal completion
+    - Display `MilestoneProgress` below progress bar
+    - Reached badges highlighted (emerald), unreached grayed out
+  - **Testing**: 100% pass rate (8/8 backend, all frontend verified)
+
 - **Dec 15, 2025 (Session 6)**: Goal Prioritization UI with Drag-and-Drop (COMPLETED)
   - **Backend API**:
     - Added `GoalPriorityUpdate` Pydantic model for batch updates
