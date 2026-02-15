@@ -1,11 +1,8 @@
-"""
-MoneySsutra Backend Server
-Modular architecture with models/, routes/, services/
-"""
 from fastapi import FastAPI, APIRouter, HTTPException, Response, Request, Cookie
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 import httpx
@@ -16,43 +13,25 @@ from typing import List, Optional
 import uuid
 from datetime import datetime, timezone, timedelta
 
-# Load environment
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Database connection (imported from database module)
-from database import db, client, shutdown_db_client
+# MongoDB connection
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
 
-# Import all models from modular structure
-from models.auth import User, UserSession, JWTLoginRequest, GoogleSessionRequest, RegisterRequest
-from models.workspace import Workspace, WorkspaceCreate, WorkspaceMember, WorkspaceInvite, WorkspaceInviteByCode
-from models.income import IncomeSource, IncomeSourceCreate, OtherIncome, OtherIncomeCreate
-from models.financial import (
-    Account, AccountCreate,
-    Expense, ExpenseCreate,
-    Loan, LoanCreate,
-    Asset, AssetCreate,
-    Investment, InvestmentCreate,
-    CreditCard, CreditCardCreate
-)
-from models.insurance import Insurance, InsuranceCreate
-from models.goals import Goal, GoalCreate, GoalPriorityUpdate
-from models.profile import BasicProfile, BasicProfileCreate, ExtendedProfile, ExtendedProfileCreate
-
-# Import services
-from services.auth import hash_password, verify_password
-from services.workspace import ROLE_PERMISSIONS
-
-# Create the main app
-app = FastAPI(title="MoneySsutra API", version="2.0.0")
+# Create the main app without a prefix
+app = FastAPI()
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
 
-# Status Check Models (only used in this file for health checks)
+# Define Models
 class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_name: str
@@ -61,19 +40,8 @@ class StatusCheck(BaseModel):
 class StatusCheckCreate(BaseModel):
     client_name: str
 
-# NOTE: All other models are now imported from the models/ package
-# - Auth models: User, UserSession, JWTLoginRequest, etc.
-# - Workspace models: Workspace, WorkspaceMember, etc.
-# - Financial models: Account, Expense, Loan, Asset, Investment, CreditCard
-# - Income models: IncomeSource, OtherIncome
-# - Goals models: Goal, GoalCreate
-# - Profile models: BasicProfile, ExtendedProfile
-# - Insurance models: Insurance
-
-# Add your routes to the router instead of directly to app
-@api_router.get("/")
-async def root():
-    return {"message": "Hello World"}
+# ============ AUTH MODELS ============
+class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     user_id: str = Field(default_factory=lambda: f"user_{uuid.uuid4().hex[:12]}")
