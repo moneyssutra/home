@@ -209,13 +209,12 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 
 ## Backlog / Future Tasks
 
-### P0 - High Priority (Next)
-- **Other Income Module** (Gift, Bonus, Capital Gain, Tax Refund, Inheritance tracking)
-
-### P1 - High Priority
-- Asset ↔ Loan bidirectional linking display on Asset detail page
-- Goal milestone notifications and alerts
+### P1 - High Priority (Next)
 - Goal prioritization drag-and-drop reordering UI
+- Goal milestone notifications and alerts
+- Asset ↔ Loan bidirectional linking display on Asset detail page
+
+### P2 - Medium Priority
 
 ### P2 - Medium Priority
 - Expense Transaction Module (actual spending tracker against budgeted expenses)
