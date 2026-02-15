@@ -510,6 +510,11 @@ async def get_status_checks():
 
 # ============ AUTH ENDPOINTS ============
 
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+
 def hash_password(password: str) -> str:
     """Hash password using SHA-256"""
     return hashlib.sha256(password.encode()).hexdigest()
@@ -517,6 +522,59 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed: str) -> bool:
     """Verify password against hash"""
     return hash_password(password) == hashed
+
+@api_router.post("/auth/register")
+async def register_user(request: RegisterRequest, response: Response):
+    """Register a new user with email/password"""
+    # Check if email already exists
+    existing_user = await db.users.find_one({"email": request.email}, {"_id": 0})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create new user
+    user_id = f"user_{uuid.uuid4().hex[:12]}"
+    user = {
+        "user_id": user_id,
+        "email": request.email,
+        "name": request.name,
+        "picture": None,
+        "auth_type": "jwt",
+        "password_hash": hash_password(request.password),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.users.insert_one(user)
+    
+    # Create session
+    session_token = str(uuid.uuid4())
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    session = {
+        "session_id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.user_sessions.insert_one(session)
+    
+    # Set cookie
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+        max_age=7 * 24 * 60 * 60
+    )
+    
+    return {
+        "user_id": user_id,
+        "email": request.email,
+        "name": request.name,
+        "picture": None,
+        "session_token": session_token
+    }
 
 async def get_current_user(request: Request, session_token: Optional[str] = Cookie(None)):
     """Get current user from session token (cookie or header)"""
