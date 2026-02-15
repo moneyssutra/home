@@ -2127,8 +2127,13 @@ async def create_insurance(input: InsuranceCreate, request: Request):
     return insurance_obj
 
 @api_router.get("/insurances", response_model=List[Insurance])
-async def get_insurances():
-    insurances = await db.insurances.find({}, {"_id": 0}).to_list(1000)
+async def get_insurances(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    insurances = await db.insurances.find(user_filter, {"_id": 0}).to_list(1000)
     
     for insurance in insurances:
         if isinstance(insurance['createdAt'], str):
@@ -2137,11 +2142,16 @@ async def get_insurances():
     return insurances
 
 @api_router.get("/insurances/{insurance_id}", response_model=Insurance)
-async def get_insurance(insurance_id: str):
-    insurance = await db.insurances.find_one({"id": insurance_id}, {"_id": 0})
+async def get_insurance(insurance_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = insurance_id
+    insurance = await db.insurances.find_one(user_filter, {"_id": 0})
     
     if not insurance:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Insurance not found")
     
     if isinstance(insurance['createdAt'], str):
@@ -2150,15 +2160,21 @@ async def get_insurance(insurance_id: str):
     return insurance
 
 @api_router.put("/insurances/{insurance_id}", response_model=Insurance)
-async def update_insurance(insurance_id: str, input: InsuranceCreate):
-    existing = await db.insurances.find_one({"id": insurance_id}, {"_id": 0})
+async def update_insurance(insurance_id: str, input: InsuranceCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = insurance_id
+    existing = await db.insurances.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Insurance not found")
     
     insurance_dict = input.model_dump()
     insurance_dict['id'] = insurance_id
+    insurance_dict['userId'] = user.get('user_id')
     insurance_dict['createdAt'] = existing['createdAt']
     
     await db.insurances.replace_one({"id": insurance_id}, insurance_dict)
@@ -2170,11 +2186,16 @@ async def update_insurance(insurance_id: str, input: InsuranceCreate):
     return insurance_obj
 
 @api_router.delete("/insurances/{insurance_id}")
-async def delete_insurance(insurance_id: str):
-    existing = await db.insurances.find_one({"id": insurance_id}, {"_id": 0})
+async def delete_insurance(insurance_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = insurance_id
+    existing = await db.insurances.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Insurance not found")
     
     await db.insurances.delete_one({"id": insurance_id})
