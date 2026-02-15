@@ -26,25 +26,30 @@ const AddActionSheet = ({ isOpen, onClose }) => {
     <>
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/50 z-50 animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/40 z-50 animate-in fade-in duration-200"
         onClick={onClose}
         data-testid="add-sheet-backdrop"
       />
       
       {/* Sheet */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[#1E293B] rounded-t-3xl z-50 animate-in slide-in-from-bottom duration-300" data-testid="add-action-sheet">
+      <div 
+        className="fixed bottom-0 left-0 right-0 rounded-t-3xl z-50 animate-in slide-in-from-bottom duration-300 shadow-modal"
+        style={{ backgroundColor: "var(--bg-card)" }}
+        data-testid="add-action-sheet"
+      >
         <div className="max-w-lg mx-auto px-6 pb-8 pt-4">
           {/* Handle */}
-          <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-4" />
+          <div className="w-12 h-1.5 rounded-full mx-auto mb-4" style={{ backgroundColor: "var(--border-medium)" }} />
           
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            <h2 className="text-xl font-bold" style={{ fontFamily: "'Manrope', sans-serif", color: "var(--text-primary)" }}>
               Quick Add
             </h2>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-[#1E293B] flex items-center justify-center text-slate-400 hover:bg-gray-200 transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors hover:opacity-80"
+              style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-muted)" }}
               data-testid="close-sheet"
             >
               <X className="h-5 w-5" />
@@ -59,13 +64,14 @@ const AddActionSheet = ({ isOpen, onClose }) => {
                 <button
                   key={action.label}
                   onClick={() => handleAction(action.path)}
-                  className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#1E293B] border border-gray-100 transition-all hover:bg-[#1E293B] active:scale-95"
+                  className="flex flex-col items-center gap-2 p-4 rounded-2xl transition-all active:scale-95 shadow-card"
+                  style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
                   data-testid={`add-${action.label.toLowerCase().replace(' ', '-')}`}
                 >
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg`}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
-                  <span className="text-xs font-medium text-[#334155]/80 text-center leading-tight">
+                  <span className="text-xs font-medium text-center leading-tight" style={{ color: "var(--text-secondary)" }}>
                     {action.label.replace('Add ', '')}
                   </span>
                 </button>

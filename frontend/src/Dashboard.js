@@ -30,7 +30,6 @@ const Dashboard = () => {
   const [profile, setProfile] = useState(null);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [goalsSummary, setGoalsSummary] = useState(null);
-  const [showLogoutMenu, setShowLogoutMenu] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
@@ -80,14 +79,8 @@ const Dashboard = () => {
   };
 
   const getUserName = () => {
-    // First try from auth context (logged in user)
-    if (user?.name) {
-      return user.name.split(" ")[0];
-    }
-    // Fallback to profile
-    if (profile?.fullName) {
-      return profile.fullName.split(" ")[0];
-    }
+    if (user?.name) return user.name.split(" ")[0];
+    if (profile?.fullName) return profile.fullName.split(" ")[0];
     return null;
   };
 
@@ -98,25 +91,23 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#334155] via-[#134E3E] to-[#334155] flex items-center justify-center" data-testid="dashboard-loading">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }} data-testid="dashboard-loading">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-[#14B8A6]/30 border-t-[#14B8A6] rounded-full animate-spin" />
-          <p className="text-white/80 font-medium">Loading your finances...</p>
+          <div className="w-16 h-16 border-4 rounded-full animate-spin" style={{ borderColor: "var(--brand-primary-soft)", borderTopColor: "var(--brand-primary)" }} />
+          <p className="font-medium" style={{ color: "var(--text-secondary)" }}>Loading your finances...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#334155] via-[#134E3E] to-[#334155] pb-24" data-testid="dashboard-page">
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="dashboard-page">
       {/* Header */}
-      <header className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djJoLTJ2LTJoMnptMC00aDJ2MmgtMnYtMnptLTQgMHYyaC0ydi0yaDJ6bTIgMGgydjJoLTJ2LTJ6bS0yLTR2MmgtMnYtMmgyek0zNCAyNnYyaC0ydi0yaDJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-50" />
-        
+      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
         <div className="relative px-6 pt-8 pb-6">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <p className="text-white/60 text-sm font-medium">
+              <p className="text-white/70 text-sm font-medium">
                 Welcome back{getUserName() ? `, ${getUserName()}` : ""}
               </p>
               <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
@@ -127,14 +118,14 @@ const Dashboard = () => {
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E293B]/10 backdrop-blur-sm text-white transition-all hover:bg-[#1E293B]/20 active:scale-95 disabled:opacity-50"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-white/20 active:scale-95 disabled:opacity-50"
                 data-testid="refresh-button"
               >
                 <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
               </button>
               <button
                 onClick={() => navigate('/workspace-settings')}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E293B]/10 backdrop-blur-sm text-white transition-all hover:bg-emerald-500/50 active:scale-95"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-white/20 active:scale-95"
                 data-testid="workspace-settings-button"
                 title="Workspace Settings"
               >
@@ -142,7 +133,7 @@ const Dashboard = () => {
               </button>
               <button
                 onClick={handleLogout}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E293B]/10 backdrop-blur-sm text-white transition-all hover:bg-red-500/50 active:scale-95"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-red-500/50 active:scale-95"
                 data-testid="logout-button"
                 title="Logout"
               >
@@ -153,19 +144,18 @@ const Dashboard = () => {
 
           {/* Net Worth Card */}
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#14B8A6] via-[#10B981] to-[#14B8A6] rounded-3xl blur-lg opacity-30 animate-pulse" />
-            <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl rounded-3xl p-6 border border-white/10" data-testid="networth-card">
+            <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20" data-testid="networth-card">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <p className="text-white/60 text-sm font-medium mb-1">Total Net Worth</p>
+                  <p className="text-white/70 text-sm font-medium mb-1">Total Net Worth</p>
                   <h2 className="text-4xl font-bold text-white tracking-tight" style={{ fontFamily: "'Manrope', sans-serif" }}>
                     ₹ {formatFullAmount(data?.netWorth || 0)}
                   </h2>
                 </div>
                 <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
                   getNetWorthTrend() === "positive" 
-                    ? "bg-emerald-500/20 text-emerald-300" 
-                    : "bg-rose-500/20 text-rose-300"
+                    ? "bg-emerald-500/20 text-emerald-100" 
+                    : "bg-rose-500/20 text-rose-100"
                 }`}>
                   {getNetWorthTrend() === "positive" ? (
                     <TrendingUp className="h-4 w-4" />
@@ -178,31 +168,31 @@ const Dashboard = () => {
               
               {/* Net Worth Breakdown Bar */}
               <div className="mt-6 mb-4">
-                <div className="flex h-3 rounded-full overflow-hidden bg-[#1E293B]/10">
+                <div className="flex h-3 rounded-full overflow-hidden bg-white/10">
                   {data && (data.totalAssets + data.totalInvestments + data.liquidBalance) > 0 && (
                     <>
                       <div 
-                        className="bg-blue-500 transition-all duration-500"
-                        style={{ width: `${(data.totalAssets / (data.totalAssets + data.totalInvestments + data.liquidBalance)) * 100}%` }}
+                        className="transition-all duration-500"
+                        style={{ width: `${(data.totalAssets / (data.totalAssets + data.totalInvestments + data.liquidBalance)) * 100}%`, backgroundColor: "var(--chart-accent1)" }}
                         title={`Assets: ₹${formatFullAmount(data.totalAssets)}`}
                       />
                       <div 
-                        className="bg-violet-500 transition-all duration-500"
-                        style={{ width: `${(data.totalInvestments / (data.totalAssets + data.totalInvestments + data.liquidBalance)) * 100}%` }}
+                        className="transition-all duration-500"
+                        style={{ width: `${(data.totalInvestments / (data.totalAssets + data.totalInvestments + data.liquidBalance)) * 100}%`, backgroundColor: "var(--chart-accent2)" }}
                         title={`Investments: ₹${formatFullAmount(data.totalInvestments)}`}
                       />
                       <div 
-                        className="bg-emerald-500 transition-all duration-500"
-                        style={{ width: `${(data.liquidBalance / (data.totalAssets + data.totalInvestments + data.liquidBalance)) * 100}%` }}
+                        className="transition-all duration-500"
+                        style={{ width: `${(data.liquidBalance / (data.totalAssets + data.totalInvestments + data.liquidBalance)) * 100}%`, backgroundColor: "var(--brand-primary-light)" }}
                         title={`Cash: ₹${formatFullAmount(data.liquidBalance)}`}
                       />
                     </>
                   )}
                 </div>
-                <div className="flex justify-between mt-2 text-xs text-white/50">
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500" /> Assets</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-violet-500" /> Investments</span>
-                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Cash</span>
+                <div className="flex justify-between mt-2 text-xs text-white/60">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--chart-accent1)" }} /> Assets</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--chart-accent2)" }} /> Investments</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--brand-primary-light)" }} /> Cash</span>
                 </div>
               </div>
             </div>
@@ -211,98 +201,102 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      <div className="px-6 pb-8 space-y-6">
+      <div className="px-6 pb-8 space-y-6 -mt-2">
         {/* Financial Summary Cards */}
         <div className="grid grid-cols-2 gap-3">
           {/* Assets */}
           <div 
-            className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-[#1E293B]/15 active:scale-[0.98]"
+            className="rounded-2xl p-4 cursor-pointer transition-all hover:shadow-md active:scale-[0.98] shadow-card"
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
             onClick={() => navigate("/my-assets")}
             data-testid="assets-summary-card"
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <Building2 className="h-4 w-4 text-blue-400" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--status-info-soft)" }}>
+                <Building2 className="h-4 w-4" style={{ color: "var(--status-info)" }} />
               </div>
-              <span className="text-white/60 text-xs font-medium">Assets</span>
+              <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Assets</span>
             </div>
-            <p className="text-xl font-bold text-white">₹ {formatAmount(data?.totalAssets || 0)}</p>
-            <p className="text-white/40 text-xs mt-1">{data?.assetCount || 0} items</p>
+            <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.totalAssets || 0)}</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{data?.assetCount || 0} items</p>
           </div>
 
           {/* Investments */}
           <div 
-            className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-[#1E293B]/15 active:scale-[0.98]"
+            className="rounded-2xl p-4 cursor-pointer transition-all hover:shadow-md active:scale-[0.98] shadow-card"
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
             onClick={() => navigate("/my-investments")}
             data-testid="investments-summary-card"
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
-                <LineChart className="h-4 w-4 text-violet-400" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#F3E8FF" }}>
+                <LineChart className="h-4 w-4" style={{ color: "var(--chart-accent2)" }} />
               </div>
-              <span className="text-white/60 text-xs font-medium">Investments</span>
+              <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Investments</span>
             </div>
-            <p className="text-xl font-bold text-white">₹ {formatAmount(data?.totalInvestments || 0)}</p>
-            <p className="text-white/40 text-xs mt-1">{data?.investmentCount || 0} items</p>
+            <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.totalInvestments || 0)}</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{data?.investmentCount || 0} items</p>
           </div>
 
           {/* Liquid Fund */}
           <div 
-            className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-[#1E293B]/15 active:scale-[0.98]"
+            className="rounded-2xl p-4 cursor-pointer transition-all hover:shadow-md active:scale-[0.98] shadow-card"
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
             onClick={() => navigate("/my-accounts")}
             data-testid="cash-summary-card"
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <Wallet className="h-4 w-4 text-emerald-400" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--brand-primary-soft)" }}>
+                <Wallet className="h-4 w-4" style={{ color: "var(--brand-primary)" }} />
               </div>
-              <span className="text-white/60 text-xs font-medium">Liquid Fund</span>
+              <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Liquid Fund</span>
             </div>
-            <p className="text-xl font-bold text-white">₹ {formatAmount(data?.liquidBalance || 0)}</p>
-            <p className="text-white/40 text-xs mt-1">{data?.accountCount || 0} accounts</p>
+            <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.liquidBalance || 0)}</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{data?.accountCount || 0} accounts</p>
           </div>
 
           {/* Liabilities */}
           <div 
-            className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 cursor-pointer transition-all hover:bg-[#1E293B]/15 active:scale-[0.98]"
+            className="rounded-2xl p-4 cursor-pointer transition-all hover:shadow-md active:scale-[0.98] shadow-card"
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
             onClick={() => navigate("/my-loans")}
             data-testid="liabilities-summary-card"
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-rose-500/20 flex items-center justify-center">
-                <CreditCard className="h-4 w-4 text-rose-400" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--status-error-soft)" }}>
+                <CreditCard className="h-4 w-4" style={{ color: "var(--status-error)" }} />
               </div>
-              <span className="text-white/60 text-xs font-medium">Liabilities</span>
+              <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Liabilities</span>
             </div>
-            <p className="text-xl font-bold text-rose-300">₹ {formatAmount(data?.totalLiabilities || 0)}</p>
-            <p className="text-white/40 text-xs mt-1">{data?.loanCount || 0} loans</p>
+            <p className="text-xl font-bold" style={{ color: "var(--finance-loss)" }}>₹ {formatAmount(data?.totalLiabilities || 0)}</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{data?.loanCount || 0} loans</p>
           </div>
         </div>
 
         {/* Income vs Expense Card */}
-        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="income-expense-card">
-          <h3 className="text-white font-semibold mb-4">Monthly Cash Flow</h3>
+        <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="income-expense-card">
+          <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Monthly Cash Flow</h3>
           <div className="grid grid-cols-3 gap-3">
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-emerald-400 mb-1">
+              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--finance-gain)" }}>
                 <ArrowUpRight className="h-4 w-4" />
                 <span className="text-xs font-medium">Income</span>
               </div>
-              <p className="text-lg font-bold text-white">₹ {formatAmount(data?.monthlyIncome || 0)}</p>
+              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyIncome || 0)}</p>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-rose-400 mb-1">
+              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--finance-loss)" }}>
                 <ArrowDownRight className="h-4 w-4" />
                 <span className="text-xs font-medium">Expense</span>
               </div>
-              <p className="text-lg font-bold text-white">₹ {formatAmount(data?.monthlyExpenses || 0)}</p>
+              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyExpenses || 0)}</p>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center gap-1 text-amber-400 mb-1">
+              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--status-warning)" }}>
                 <PiggyBank className="h-4 w-4" />
                 <span className="text-xs font-medium">Savings</span>
               </div>
-              <p className={`text-lg font-bold ${(data?.monthlySavings || 0) >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
+              <p className="text-lg font-bold" style={{ color: (data?.monthlySavings || 0) >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
                 ₹ {formatAmount(Math.abs(data?.monthlySavings || 0))}
               </p>
             </div>
@@ -310,7 +304,7 @@ const Dashboard = () => {
           
           {/* Savings Progress Bar */}
           <div className="mt-4">
-            <div className="flex justify-between text-xs text-white/50 mb-1">
+            <div className="flex justify-between text-xs mb-1" style={{ color: "var(--text-muted)" }}>
               <span>Savings Rate</span>
               <span>
                 {data?.monthlyIncome > 0 
@@ -318,13 +312,14 @@ const Dashboard = () => {
                   : "0%"}
               </span>
             </div>
-            <div className="h-2 bg-[#1E293B]/10 rounded-full overflow-hidden">
+            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
               <div 
-                className={`h-full rounded-full transition-all duration-500 ${
-                  (data?.monthlySavings || 0) >= 0 ? "bg-gradient-to-r from-emerald-500 to-teal-400" : "bg-gradient-to-r from-rose-500 to-pink-400"
-                }`}
+                className="h-full rounded-full transition-all duration-500"
                 style={{ 
-                  width: `${Math.min(Math.abs(data?.monthlyIncome > 0 ? (data.monthlySavings / data.monthlyIncome) * 100 : 0), 100)}%` 
+                  width: `${Math.min(Math.abs(data?.monthlyIncome > 0 ? (data.monthlySavings / data.monthlyIncome) * 100 : 0), 100)}%`,
+                  background: (data?.monthlySavings || 0) >= 0 
+                    ? "linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-secondary) 100%)"
+                    : "linear-gradient(90deg, var(--status-error) 0%, #F87171 100%)"
                 }}
               />
             </div>
@@ -333,23 +328,24 @@ const Dashboard = () => {
 
         {/* Goals Widget */}
         <div 
-          className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10 cursor-pointer transition-all hover:bg-[#1E293B]/15"
+          className="rounded-2xl p-5 cursor-pointer transition-all hover:shadow-md shadow-card"
+          style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
           onClick={() => navigate("/my-goals")}
           data-testid="goals-widget"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                <Target className="h-5 w-5 text-emerald-400" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: "var(--brand-primary-soft)" }}>
+                <Target className="h-5 w-5" style={{ color: "var(--brand-primary)" }} />
               </div>
               <div>
-                <h3 className="text-white font-semibold">Financial Goals</h3>
-                <p className="text-white/50 text-xs">
+                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Financial Goals</h3>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                   {goalsSummary?.totalActiveGoals || 0} active goals
                 </p>
               </div>
             </div>
-            <ChevronRight className="h-5 w-5 text-white/50" />
+            <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
           </div>
           
           {goalsSummary?.goals && goalsSummary.goals.length > 0 ? (
@@ -358,65 +354,69 @@ const Dashboard = () => {
                 <div key={goal.id} className="flex items-center gap-3">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-white/80 text-sm font-medium truncate max-w-[150px]">
+                      <span className="text-sm font-medium truncate max-w-[150px]" style={{ color: "var(--text-secondary)" }}>
                         {goal.goalName}
                       </span>
-                      <span className="text-white text-sm font-bold">
+                      <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
                         {goal.progressPercent.toFixed(0)}%
                       </span>
                     </div>
-                    <div className="h-1.5 bg-[#1E293B]/10 rounded-full overflow-hidden">
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
                       <div 
-                        className={`h-full rounded-full transition-all ${
-                          goal.progressPercent >= 75 ? "bg-emerald-400" :
-                          goal.progressPercent >= 50 ? "bg-amber-400" : "bg-emerald-400"
-                        }`}
-                        style={{ width: `${Math.min(goal.progressPercent, 100)}%` }}
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${Math.min(goal.progressPercent, 100)}%`,
+                          backgroundColor: goal.progressPercent >= 75 ? "var(--brand-primary)" : 
+                                          goal.progressPercent >= 50 ? "var(--status-warning)" : "var(--brand-primary)"
+                        }}
                       />
                     </div>
                   </div>
                 </div>
               ))}
               {goalsSummary.totalActiveGoals > 2 && (
-                <p className="text-white/40 text-xs text-center pt-1">
+                <p className="text-xs text-center pt-1" style={{ color: "var(--text-muted)" }}>
                   +{goalsSummary.totalActiveGoals - 2} more goals
                 </p>
               )}
             </div>
           ) : (
             <div className="text-center py-2">
-              <p className="text-white/60 text-sm">No active goals yet</p>
-              <p className="text-emerald-300 text-xs mt-1">Tap to create your first goal</p>
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>No active goals yet</p>
+              <p className="text-xs mt-1" style={{ color: "var(--brand-primary)" }}>Tap to create your first goal</p>
             </div>
           )}
         </div>
 
         {/* Empty State - When no data */}
         {data && data.assetCount === 0 && data.investmentCount === 0 && data.accountCount === 0 && (
-          <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-8 border border-white/10 text-center" data-testid="empty-state">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#14B8A6] to-[#10B981] flex items-center justify-center">
+          <div className="rounded-2xl p-8 text-center shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="empty-state">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%)" }}>
               <TrendingUp className="h-10 w-10 text-white" />
             </div>
-            <h3 className="text-white text-xl font-semibold mb-2">Start Your Financial Journey</h3>
-            <p className="text-white/60 text-sm mb-6">
+            <h3 className="text-xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Start Your Financial Journey</h3>
+            <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
               Add your assets, investments, and accounts to see your complete financial picture.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <button
                 onClick={() => navigate("/asset")}
-                className="px-4 py-2 rounded-xl bg-[#14B8A6] text-white font-medium text-sm transition-all hover:bg-[#0D9488] active:scale-95"
+                className="px-4 py-2 rounded-xl text-white font-medium text-sm transition-all hover:opacity-90 active:scale-95"
+                style={{ backgroundColor: "var(--brand-primary)" }}
               >
                 Add Asset
               </button>
               <button
                 onClick={() => navigate("/investment")}
-                className="px-4 py-2 rounded-xl bg-[#1E293B]/10 text-white font-medium text-sm transition-all hover:bg-[#1E293B]/20 active:scale-95"
+                className="px-4 py-2 rounded-xl font-medium text-sm transition-all active:scale-95"
+                style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-primary)" }}
               >
                 Add Investment
               </button>
               <button
                 onClick={() => navigate("/account")}
-                className="px-4 py-2 rounded-xl bg-[#1E293B]/10 text-white font-medium text-sm transition-all hover:bg-[#1E293B]/20 active:scale-95"
+                className="px-4 py-2 rounded-xl font-medium text-sm transition-all active:scale-95"
+                style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-primary)" }}
               >
                 Add Account
               </button>
