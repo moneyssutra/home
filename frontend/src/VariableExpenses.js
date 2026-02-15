@@ -1,0 +1,250 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronRight, Plus, Zap, Home, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal } from "lucide-react";
+import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
+import BackButton from "@/components/BackButton";
+
+const VariableExpenses = () => {
+  const navigate = useNavigate();
+  const [expenses, setExpenses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddSheet, setShowAddSheet] = useState(false);
+
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
+
+  const fetchExpenses = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${backendUrl}/api/expenses/with-next-date`);
+      // Filter only variable expenses
+      const variableExpenses = response.data.filter(e => e.expenseType === "Variable");
+      setExpenses(variableExpenses);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+      try {
+        const fallbackResponse = await axios.get(`${backendUrl}/api/expenses`);
+        const variableExpenses = fallbackResponse.data.filter(e => e.expenseType === "Variable");
+        setExpenses(variableExpenses);
+      } catch (fallbackError) {
+        console.error("Error fetching expenses (fallback):", fallbackError);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatAmount = (amount) => {
+    if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
+    if (amount >= 100000) return `${(amount / 100000).toFixed(2)} L`;
+    if (amount >= 1000) return `${(amount / 1000).toFixed(1)} K`;
+    return new Intl.NumberFormat("en-IN").format(amount);
+  };
+
+  const getPaymentStatus = (expense) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (!expense.selectedDate) return 'upcoming';
+    
+    const dueDate = new Date();
+    dueDate.setDate(parseInt(expense.selectedDate));
+    dueDate.setHours(0, 0, 0, 0);
+    
+    if (dueDate < today) return 'paid';
+    if (dueDate.getTime() === today.getTime()) return 'due-today';
+    return 'upcoming';
+  };
+
+  // Calculate totals
+  const totalExpenses = expenses.reduce((sum, exp) => sum + (exp.expectedAmount || 0), 0);
+  const paidExpenses = expenses.filter(e => getPaymentStatus(e) === 'paid');
+  const pendingExpenses = expenses.filter(e => getPaymentStatus(e) !== 'paid');
+  const paidTotal = paidExpenses.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
+  const pendingTotal = pendingExpenses.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      "Housing": Home,
+      "Utilities": Zap,
+      "Food": ShoppingBag,
+      "Transport": Car,
+      "Shopping": ShoppingBag,
+      "Medical": Stethoscope,
+      "Education": GraduationCap,
+      "Insurance": Shield,
+      "Subscriptions": Tv,
+      "EMI": CreditCard,
+      "Business Expense": Briefcase,
+      "Salary Paid": Wallet,
+    };
+    return icons[category] || MoreHorizontal;
+  };
+
+  const getCategoryColor = (category) => {
+    const colors = {
+      "Housing": "bg-blue-500/20 text-blue-500",
+      "Utilities": "bg-amber-500/20 text-amber-500",
+      "Food": "bg-emerald-500/20 text-emerald-500",
+      "Transport": "bg-purple-500/20 text-purple-500",
+      "Shopping": "bg-pink-500/20 text-pink-500",
+      "Medical": "bg-red-500/20 text-red-500",
+      "Education": "bg-cyan-500/20 text-cyan-500",
+      "Insurance": "bg-indigo-500/20 text-indigo-500",
+      "Subscriptions": "bg-teal-500/20 text-teal-500",
+      "EMI": "bg-orange-500/20 text-orange-500",
+      "Business Expense": "bg-lime-500/20 text-lime-500",
+      "Salary Paid": "bg-green-500/20 text-green-500",
+    };
+    return colors[category] || "bg-gray-500/20 text-gray-500";
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'paid': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'due-today': return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'upcoming': return 'bg-blue-100 text-blue-700 border-blue-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'paid': return 'Paid';
+      case 'due-today': return 'Due Today';
+      case 'upcoming': return 'Upcoming';
+      default: return '';
+    }
+  };
+
+  // Sort expenses: upcoming first, due today, then paid
+  const sortedExpenses = [...expenses].sort((a, b) => {
+    const statusOrder = { 'upcoming': 0, 'due-today': 1, 'paid': 2 };
+    return statusOrder[getPaymentStatus(a)] - statusOrder[getPaymentStatus(b)];
+  });
+
+  return (
+    <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="variable-expenses-page">
+      {/* Header */}
+      <header className="bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#D97706] px-6 pt-8 pb-8">
+        <div className="flex items-center gap-4 mb-6">
+          <BackButton fallbackPath="/my-expenses" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            Variable Expenses
+          </h1>
+        </div>
+
+        {/* Total Card */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="variable-expenses-total">
+          <p className="text-white/60 text-sm font-medium mb-1">Total Variable Expenses</p>
+          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalExpenses)}</h2>
+          <p className="text-white/40 text-xs mt-1">{expenses.length} flexible expenses</p>
+          
+          {/* Status Summary */}
+          <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-white/60 mb-1">Paid</p>
+              <p className="text-emerald-300 font-medium">₹ {formatAmount(paidTotal)}</p>
+              <p className="text-white/40 text-xs">{paidExpenses.length} expenses</p>
+            </div>
+            <div>
+              <p className="text-white/60 mb-1">Pending</p>
+              <p className="text-amber-300 font-medium">₹ {formatAmount(pendingTotal)}</p>
+              <p className="text-white/40 text-xs">{pendingExpenses.length} expenses</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Expense List */}
+      <div className="px-6 mt-6">
+        <h3 className="text-sm font-semibold text-[#0B3D2E] mb-3">All Variable Expenses</h3>
+        
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-[#0B3D2E]/60">Loading...</div>
+          </div>
+        ) : expenses.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 mb-4">
+              <Zap className="h-10 w-10 text-amber-500" />
+            </div>
+            <h2 className="text-lg font-semibold text-[#0B3D2E] mb-2">No Variable Expenses</h2>
+            <p className="text-[#0B3D2E]/60 text-center text-sm mb-6">Add your one-time or irregular expenses</p>
+            <button
+              onClick={() => navigate("/expense")}
+              className="flex items-center gap-2 rounded-xl bg-[#00D09C] px-5 py-2.5 text-white font-medium transition-all hover:bg-[#00BA89] active:scale-[0.98]"
+            >
+              <Plus className="h-5 w-5" />
+              Add Variable Expense
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sortedExpenses.map((expense) => {
+              const status = getPaymentStatus(expense);
+              const Icon = getCategoryIcon(expense.category);
+              
+              return (
+                <button
+                  key={expense.id}
+                  onClick={() => navigate(`/expense/${expense.id}`)}
+                  className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all hover:shadow-md ${
+                    status === 'paid' ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-white border-gray-100'
+                  }`}
+                  data-testid={`expense-card-${expense.id}`}
+                >
+                  <div className={`w-12 h-12 rounded-xl ${getCategoryColor(expense.category)} flex items-center justify-center`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <h3 className="font-semibold text-[#0B3D2E]">{expense.expenseName}</h3>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusColor(status)}`}>
+                        {getStatusLabel(status)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-[#0B3D2E]/50">
+                      <span>{expense.category}</span>
+                      <span>•</span>
+                      <span>{expense.frequency || "One-time"}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-bold ${status === 'paid' ? 'text-emerald-600' : 'text-[#0B3D2E]'}`}>
+                      ₹ {formatAmount(expense.expectedAmount)}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-[#0B3D2E]/30" />
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Add Button */}
+      {expenses.length > 0 && (
+        <div className="px-6 mt-6">
+          <button
+            onClick={() => navigate("/expense")}
+            className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#00D09C] py-3 text-[#00D09C] font-medium transition-all hover:bg-[#00D09C]/5"
+          >
+            <Plus className="h-5 w-5" />
+            Add Variable Expense
+          </button>
+        </div>
+      )}
+
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
+    </div>
+  );
+};
+
+export default VariableExpenses;
