@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Plus, Briefcase, Banknote, Home, Percent, TrendingUp, PieChart, MoreHorizontal } from "lucide-react";
+import { ChevronRight, Plus, Briefcase, Banknote, Home, Percent, TrendingUp, PieChart, MoreHorizontal, Gift } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -8,20 +8,25 @@ import AddActionSheet from "@/components/AddActionSheet";
 const MyIncome = () => {
   const navigate = useNavigate();
   const [incomes, setIncomes] = useState([]);
+  const [otherIncomes, setOtherIncomes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
-    fetchIncomes();
+    fetchAllIncomes();
   }, []);
 
-  const fetchIncomes = async () => {
+  const fetchAllIncomes = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/income`);
-      setIncomes(response.data);
+      const [regularRes, otherRes] = await Promise.all([
+        axios.get(`${backendUrl}/api/income`),
+        axios.get(`${backendUrl}/api/other-income`).catch(() => ({ data: [] })),
+      ]);
+      setIncomes(regularRes.data);
+      setOtherIncomes(otherRes.data);
     } catch (error) {
       console.error("Error fetching incomes:", error);
     } finally {
@@ -36,8 +41,10 @@ const MyIncome = () => {
     return new Intl.NumberFormat("en-IN").format(amount);
   };
 
-  // Calculate total income
-  const totalIncome = incomes.reduce((sum, inc) => sum + (inc.expectedAmount || 0), 0);
+  // Calculate total income (including other income)
+  const totalRegularIncome = incomes.reduce((sum, inc) => sum + (inc.expectedAmount || 0), 0);
+  const totalOtherIncome = otherIncomes.reduce((sum, inc) => sum + (inc.amount || 0), 0);
+  const totalIncome = totalRegularIncome + totalOtherIncome;
 
   // Group incomes by type
   const incomeByType = incomes.reduce((acc, inc) => {
@@ -47,6 +54,11 @@ const MyIncome = () => {
     acc[type].count += 1;
     return acc;
   }, {});
+
+  // Add Other Income as a separate type if exists
+  if (otherIncomes.length > 0) {
+    incomeByType["Other Income"] = { total: totalOtherIncome, count: otherIncomes.length };
+  }
 
   // Sort by total descending
   const sortedTypes = Object.entries(incomeByType)
@@ -60,6 +72,7 @@ const MyIncome = () => {
       Commission: Percent,
       Interest: TrendingUp,
       Dividend: PieChart,
+      "Other Income": Gift,
     };
     return icons[type] || MoreHorizontal;
   };
@@ -72,6 +85,7 @@ const MyIncome = () => {
       Commission: "bg-purple-500/20 text-purple-500",
       Interest: "bg-cyan-500/20 text-cyan-500",
       Dividend: "bg-pink-500/20 text-pink-500",
+      "Other Income": "bg-violet-500/20 text-violet-500",
     };
     return colors[type] || "bg-gray-500/20 text-gray-500";
   };
@@ -84,6 +98,7 @@ const MyIncome = () => {
       Commission: "/my-commission",
       Interest: "/my-interest",
       Dividend: "/my-dividend",
+      "Other Income": "/my-other-income",
     };
     return paths[type] || "/";
   };
