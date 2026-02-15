@@ -68,11 +68,9 @@ const MyAssets = () => {
     return asset.currentValue - loan.outstandingAmount;
   };
 
-  // Calculate totals
   const totalAssetValue = assets.reduce((sum, a) => sum + a.currentValue, 0);
   const totalNetValue = assets.reduce((sum, a) => sum + getNetAssetValue(a), 0);
 
-  // Calculate asset allocation
   const getAssetAllocation = () => {
     const allocation = {};
     assets.forEach(asset => {
@@ -85,198 +83,201 @@ const MyAssets = () => {
         value,
         percentage: ((value / totalAssetValue) * 100).toFixed(1)
       }))
-      .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage)); // Sort by percentage descending
+      .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
   };
 
   return (
-    <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="my-assets-page">
+    <div className="min-h-screen pb-24 honeycomb-bg" data-testid="my-assets-page">
       {/* Header */}
-      <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
-          onClick={() => navigate("/")}
-          data-testid="back-button"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
-          My Assets
-        </h1>
-        <div className="h-10 w-10" />
+      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)" }}>
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            onClick={() => navigate("/")}
+            data-testid="back-button"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            My Assets
+          </h1>
+        </div>
+
+        {/* Summary Card */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
+          <p className="text-white/70 text-sm font-medium mb-1">Total Asset Value</p>
+          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalAssetValue)}</h2>
+          <p className="text-white/50 text-xs mt-1">{assets.length} assets</p>
+          
+          {totalNetValue !== totalAssetValue && (
+            <div className="mt-3 pt-3 border-t border-white/20">
+              <div className="flex justify-between text-sm">
+                <span className="text-white/70">Net Value (after loans)</span>
+                <span className="font-semibold text-white">₹ {formatAmount(totalNetValue)}</span>
+              </div>
+            </div>
+          )}
+        </div>
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-32">
-        <div className="mx-auto w-full max-w-[620px] px-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-[#334155]/60">Loading...</div>
+      <div className="px-6 -mt-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div style={{ color: "var(--text-muted)" }}>Loading...</div>
+          </div>
+        ) : assets.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-6">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full mb-6" style={{ backgroundColor: "var(--status-info-soft)" }}>
+              <Building2 className="h-12 w-12" style={{ color: "var(--status-info)" }} />
             </div>
-          ) : assets.length === 0 ? (
-            /* Empty State */
-            <div className="flex flex-col items-center justify-center py-16 px-6">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E0F2FE] mb-6">
-                <Building2 className="h-12 w-12 text-[#0EA5E9]" />
+            <h2 className="text-xl font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
+              No Assets Added Yet
+            </h2>
+            <p className="text-center mb-8" style={{ color: "var(--text-secondary)" }}>
+              Start by adding your first asset
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/asset")}
+              className="flex items-center gap-2 rounded-xl px-6 py-3 text-white font-medium transition-all active:scale-[0.98]"
+              style={{ backgroundColor: "var(--status-info)", boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)" }}
+              data-testid="add-asset-empty-button"
+            >
+              <Plus className="h-5 w-5" />
+              Add New Asset
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Asset Allocation Card */}
+            {assets.length > 0 && (
+              <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+                <p className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Asset Allocation</p>
+                <div className="space-y-3">
+                  {getAssetAllocation().map(({ type, value, percentage }) => (
+                    <div key={type} className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span style={{ color: "var(--text-secondary)" }}>{type}</span>
+                          <span className="font-medium" style={{ color: "var(--text-primary)" }}>{percentage}%</span>
+                        </div>
+                        <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                          <div 
+                            className="h-full rounded-full"
+                            style={{ width: `${percentage}%`, backgroundColor: "var(--status-info)" }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h2 className="text-xl font-semibold text-[#334155] mb-2">
-                No Assets Added Yet
-              </h2>
-              <p className="text-[#334155]/60 text-center mb-8">
-                Start by adding your first asset
-              </p>
+            )}
+
+            {/* Asset List */}
+            <div className="space-y-3">
+              {assets.map((asset) => {
+                const linkedLoan = asset.linkedLoanId ? getLinkedLoan(asset.linkedLoanId) : null;
+                const netValue = getNetAssetValue(asset);
+                
+                return (
+                  <div
+                    key={asset.id}
+                    className="rounded-2xl p-5 shadow-card transition-all hover:shadow-md cursor-pointer"
+                    style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+                    onClick={() => navigate(`/asset/${asset.id}`)}
+                    data-testid={`asset-card-${asset.id}`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl flex-shrink-0" style={{ backgroundColor: "var(--status-info-soft)", color: "var(--status-info)" }}>
+                        {getAssetIcon(asset.assetType)}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-1" style={{ backgroundColor: "var(--status-info-soft)", color: "var(--status-info)" }}>
+                          {asset.assetType}
+                        </span>
+                        
+                        <h3 className="text-lg font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+                          {asset.assetName}
+                        </h3>
+
+                        <div className="flex items-baseline gap-2 mt-2">
+                          <span className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
+                            ₹ {formatAmount(asset.currentValue)}
+                          </span>
+                        </div>
+
+                        {linkedLoan && (
+                          <div 
+                            className="mt-2 pt-2 -mx-2 px-2 py-1 rounded-lg transition-colors"
+                            style={{ borderTop: "1px solid var(--border-light)" }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/loan/${linkedLoan.id}`);
+                            }}
+                            data-testid={`linked-loan-${linkedLoan.id}`}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <Landmark className="h-4 w-4" style={{ color: "var(--status-warning)" }} />
+                              <span className="text-xs font-medium" style={{ color: "var(--status-warning)" }}>Linked Loan</span>
+                              <ExternalLink className="h-3 w-3 ml-auto" style={{ color: "var(--text-muted)" }} />
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="truncate" style={{ color: "var(--text-secondary)" }}>{linkedLoan.loanName}</span>
+                              <span className="font-medium flex-shrink-0" style={{ color: "var(--status-warning)" }}>
+                                - ₹{formatAmount(linkedLoan.outstandingAmount)}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm mt-1">
+                              <span style={{ color: "var(--text-muted)" }}>Net Value:</span>
+                              <span className="font-bold" style={{ color: netValue >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
+                                ₹ {formatAmount(netValue)}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+
+                        {asset.purchaseValue && (
+                          <div className="mt-2">
+                            {(() => {
+                              const appreciation = ((asset.currentValue - asset.purchaseValue) / asset.purchaseValue) * 100;
+                              return (
+                                <span className="text-xs font-medium" style={{ color: appreciation >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
+                                  {appreciation >= 0 ? '↑' : '↓'} {Math.abs(appreciation).toFixed(1)}% since purchase
+                                </span>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+
+                      <ChevronRight className="h-6 w-6 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Add Button */}
+            <div className="pt-4">
               <button
                 type="button"
                 onClick={() => navigate("/asset")}
-                className="flex items-center gap-2 rounded-xl bg-[#0EA5E9] px-6 py-3 text-white font-medium transition-all hover:bg-[#0284C7] active:scale-[0.98] shadow-[0_4px_12px_rgba(14,165,233,0.3)]"
-                data-testid="add-asset-empty-button"
+                className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-4 font-semibold transition-all active:scale-[0.98]"
+                style={{ borderColor: "var(--status-info)", color: "var(--status-info)" }}
+                data-testid="add-asset-button"
               >
                 <Plus className="h-5 w-5" />
                 Add New Asset
               </button>
             </div>
-          ) : (
-            /* Asset List */
-            <div className="space-y-4">
-              {/* Summary Card - Single centered card */}
-              <div className="rounded-2xl bg-gradient-to-r from-[#0EA5E9] to-[#0284C7] p-4 text-white text-center mb-4">
-                <p className="text-white/80 text-xs mb-1">Total Asset Value</p>
-                <p className="text-2xl font-bold">₹ {formatAmount(totalAssetValue)}</p>
-                <p className="text-white/60 text-xs mt-1">{assets.length} assets</p>
-              </div>
-
-              {/* Asset Allocation */}
-              {assets.length > 0 && (
-                <div className="rounded-xl border border-[#334155] bg-[#1E293B] p-4 mb-4">
-                  <p className="text-sm font-medium text-[#334155] mb-3">Asset Allocation</p>
-                  <div className="space-y-2">
-                    {getAssetAllocation().map(({ type, value, percentage }) => (
-                      <div key={type} className="flex items-center gap-3">
-                        <div className="flex-1">
-                          <div className="flex justify-between text-sm mb-1">
-                            <span className="text-[#334155]/70">{type}</span>
-                            <span className="font-medium text-[#334155]">{percentage}%</span>
-                          </div>
-                          <div className="h-2 bg-[#334155] rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-[#0EA5E9] rounded-full"
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-3">
-                {assets.map((asset) => {
-                  const linkedLoan = asset.linkedLoanId ? getLinkedLoan(asset.linkedLoanId) : null;
-                  const netValue = getNetAssetValue(asset);
-                  
-                  return (
-                    <div
-                      key={asset.id}
-                      className="rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
-                      onClick={() => navigate(`/asset/${asset.id}`)}
-                      data-testid={`asset-card-${asset.id}`}
-                    >
-                      <div className="flex items-start gap-4">
-                        {/* Asset Icon */}
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#E0F2FE] text-[#0EA5E9] flex-shrink-0">
-                          {getAssetIcon(asset.assetType)}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          {/* Asset Type Badge */}
-                          <span className="inline-block text-xs font-medium text-[#0EA5E9] bg-[#E0F2FE] px-2 py-0.5 rounded-full mb-1">
-                            {asset.assetType}
-                          </span>
-                          
-                          {/* Asset Name */}
-                          <h3 className="text-lg font-semibold text-[#334155] truncate">
-                            {asset.assetName}
-                          </h3>
-
-                          {/* Value */}
-                          <div className="flex items-baseline gap-2 mt-2">
-                            <span className="text-xl font-bold text-[#334155]">
-                              ₹ {formatAmount(asset.currentValue)}
-                            </span>
-                          </div>
-
-                          {/* Linked Loan Info - Clickable */}
-                          {linkedLoan && (
-                            <div 
-                              className="mt-2 pt-2 border-t border-[#334155] cursor-pointer hover:bg-[#FEF3C7]/30 -mx-2 px-2 py-1 rounded-lg transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/loan/${linkedLoan.id}`);
-                              }}
-                              data-testid={`linked-loan-${linkedLoan.id}`}
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <Landmark className="h-4 w-4 text-[#F59E0B]" />
-                                <span className="text-xs font-medium text-[#F59E0B]">Linked Loan</span>
-                                <ExternalLink className="h-3 w-3 text-[#F59E0B]/60 ml-auto" />
-                              </div>
-                              <div className="flex items-center justify-between text-sm">
-                                <span className="text-[#334155]/70 truncate">{linkedLoan.loanName}</span>
-                                <span className="font-medium text-[#F59E0B] flex-shrink-0">
-                                  - ₹{formatAmount(linkedLoan.outstandingAmount)}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-sm mt-1">
-                                <span className="text-[#334155]/60">Net Value:</span>
-                                <span className={`font-bold ${netValue >= 0 ? 'text-[#14B8A6]' : 'text-red-500'}`}>
-                                  ₹ {formatAmount(netValue)}
-                                </span>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Appreciation if available */}
-                          {asset.purchaseValue && (
-                            <div className="mt-2">
-                              {(() => {
-                                const appreciation = ((asset.currentValue - asset.purchaseValue) / asset.purchaseValue) * 100;
-                                return (
-                                  <span className={`text-xs font-medium ${appreciation >= 0 ? 'text-[#14B8A6]' : 'text-red-500'}`}>
-                                    {appreciation >= 0 ? '↑' : '↓'} {Math.abs(appreciation).toFixed(1)}% since purchase
-                                  </span>
-                                );
-                              })()}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Chevron */}
-                        <ChevronRight className="h-6 w-6 text-[#334155]/40 flex-shrink-0" />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Add New Asset Button */}
-              <div className="pt-4">
-                <button
-                  type="button"
-                  onClick={() => navigate("/asset")}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#0EA5E9] bg-[#E0F2FE] px-6 py-4 text-[#0EA5E9] font-semibold transition-all hover:bg-[#0EA5E9] hover:text-white active:scale-[0.98]"
-                  data-testid="add-asset-button"
-                >
-                  <Plus className="h-5 w-5" />
-                  Add New Asset
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Bottom Navigation */}
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
