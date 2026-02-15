@@ -12,7 +12,8 @@ import {
   CheckCircle2,
   AlertCircle,
   GripVertical,
-  ArrowUpDown
+  ArrowUpDown,
+  Trophy
 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
