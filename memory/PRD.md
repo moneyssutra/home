@@ -211,12 +211,13 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 
 ### P1 - High Priority (Next)
 - Goal Achievements Summary Page (COMPLETED - Feb 15, 2026)
+- Asset ↔ Loan Bidirectional Linking (COMPLETED - Feb 15, 2026)
 
 ### P2 - Medium Priority
-
-### P2 - Medium Priority
+- Backend Refactoring - Split `server.py` into modular structure
+  - FOUNDATION CREATED (Feb 15, 2026): Model definitions in `/app/backend/models/`
+  - Pending: Routes and services migration
 - Expense Transaction Module (actual spending tracker against budgeted expenses)
-- Backend refactoring: Break server.py into routes/, models/, services/ structure
 - Frontend refactoring: Consolidate similar form components into reusable generic forms
 - Advanced Loan features: Amortization schedule, prepayment calculator
 - AI Smart Insights section on Dashboard
