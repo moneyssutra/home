@@ -390,6 +390,11 @@ const LoanIncome = () => {
                   data-testid="principal-amount-input"
                 />
               </div>
+              {parseFloat(principalAmount) > 0 && (
+                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="principal-amount-words">
+                  {numberToWords(parseFloat(principalAmount))}
+                </p>
+              )}
               {errors.principalAmount && <p className="text-sm text-red-500 mt-1">{errors.principalAmount}</p>}
             </div>
 
@@ -410,6 +415,11 @@ const LoanIncome = () => {
                   data-testid="outstanding-amount-input"
                 />
               </div>
+              {parseFloat(outstandingAmount) > 0 && (
+                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="outstanding-amount-words">
+                  {numberToWords(parseFloat(outstandingAmount))}
+                </p>
+              )}
               {errors.outstandingAmount && <p className="text-sm text-red-500 mt-1">{errors.outstandingAmount}</p>}
               <p className="text-xs text-[#0B3D2E]/60 mt-1">This affects your Net Worth calculation</p>
             </div>
@@ -467,6 +477,11 @@ const LoanIncome = () => {
                   data-testid="emi-amount-input"
                 />
               </div>
+              {parseFloat(emiAmount) > 0 && (
+                <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="emi-amount-words">
+                  {numberToWords(parseFloat(emiAmount))}
+                </p>
+              )}
               {errors.emiAmount && <p className="text-sm text-red-500 mt-1">{errors.emiAmount}</p>}
             </div>
 
