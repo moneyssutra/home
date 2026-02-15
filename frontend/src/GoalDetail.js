@@ -149,7 +149,7 @@ const GoalDetail = () => {
   const remaining = goal.targetAmount - (goal.calculatedAmount || 0);
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] pb-8" data-testid="goal-detail-page">
+    <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="goal-detail-page">
       {/* Header */}
       <header className={`bg-gradient-to-br ${colors.bg} px-6 pt-8 pb-12 relative overflow-hidden`}>
         {/* Background Pattern */}
