@@ -938,8 +938,13 @@ async def delete_income_source(income_id: str, request: Request):
 # ============ LOAN ENDPOINTS ============
 
 @api_router.post("/loans", response_model=Loan)
-async def create_loan(input: LoanCreate):
+async def create_loan(input: LoanCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
     loan_dict = input.model_dump()
+    loan_dict['userId'] = user.get('user_id')
     loan_obj = Loan(**loan_dict)
     
     doc = loan_obj.model_dump()
@@ -949,19 +954,17 @@ async def create_loan(input: LoanCreate):
     
     # Auto-create EMI expense if enabled
     if loan_obj.autoCreateExpense:
-        # Check if expense already exists for this loan
         existing_expense = await db.expenses.find_one({"linkedLoanId": loan_obj.id}, {"_id": 0})
         if not existing_expense:
-            # Map EMI frequency to expense frequency
             freq_map = {"Monthly": "Monthly", "Quarterly": "Quarterly", "Half-Yearly": "Half-Yearly"}
             expense_freq = freq_map.get(loan_obj.emiFrequency, "Monthly")
             
-            # Calculate selectedDate from startDate
             start_date = datetime.fromisoformat(loan_obj.startDate) if loan_obj.startDate else datetime.now(timezone.utc)
             selected_date = str(start_date.day)
             
             expense_data = {
                 "id": str(uuid.uuid4()),
+                "userId": user.get('user_id'),
                 "expenseName": f"{loan_obj.loanName} EMI",
                 "expenseType": "Fixed",
                 "category": "EMI",
@@ -985,38 +988,54 @@ async def create_loan(input: LoanCreate):
     return loan_obj
 
 @api_router.get("/loans", response_model=List[Loan])
-async def get_loans():
-    loans = await db.loans.find({}, {"_id": 0}).to_list(1000)
+async def get_loans(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    loans = await db.loans.find(user_filter, {"_id": 0}).to_list(1000)
     
     for loan in loans:
-        if isinstance(loan['createdAt'], str):
+        if isinstance(loan.get('createdAt'), str):
             loan['createdAt'] = datetime.fromisoformat(loan['createdAt'])
     
     return loans
 
 @api_router.get("/loans/{loan_id}", response_model=Loan)
-async def get_loan(loan_id: str):
-    loan = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+async def get_loan(loan_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = loan_id
+    loan = await db.loans.find_one(user_filter, {"_id": 0})
     
     if not loan:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Loan not found")
     
-    if isinstance(loan['createdAt'], str):
+    if isinstance(loan.get('createdAt'), str):
         loan['createdAt'] = datetime.fromisoformat(loan['createdAt'])
     
     return loan
 
 @api_router.put("/loans/{loan_id}", response_model=Loan)
-async def update_loan(loan_id: str, input: LoanCreate):
-    existing = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+async def update_loan(loan_id: str, input: LoanCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = loan_id
+    existing = await db.loans.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Loan not found")
     
     loan_dict = input.model_dump()
     loan_dict['id'] = loan_id
+    loan_dict['userId'] = user.get('user_id')
     loan_dict['createdAt'] = existing['createdAt']
     
     await db.loans.replace_one({"id": loan_id}, loan_dict)
@@ -1028,21 +1047,31 @@ async def update_loan(loan_id: str, input: LoanCreate):
     return loan_obj
 
 @api_router.delete("/loans/{loan_id}")
-async def delete_loan(loan_id: str):
-    existing = await db.loans.find_one({"id": loan_id}, {"_id": 0})
+async def delete_loan(loan_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = loan_id
+    existing = await db.loans.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Loan not found")
     
     await db.loans.delete_one({"id": loan_id})
     return {"message": "Loan deleted successfully", "id": loan_id}
 
 @api_router.get("/loans/{loan_id}/linked-assets")
-async def get_loan_linked_assets(loan_id: str):
+async def get_loan_linked_assets(loan_id: str, request: Request):
     """Get all assets that are linked to this loan (reverse lookup)"""
-    # Find assets where linkedLoanId matches this loan
-    linked_assets = await db.assets.find({"linkedLoanId": loan_id}, {"_id": 0}).to_list(1000)
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["linkedLoanId"] = loan_id
+    linked_assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
     
     result = []
     for asset in linked_assets:
