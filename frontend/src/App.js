@@ -133,6 +133,12 @@ function App() {
           <Route path="/my-credit-cards" element={<MyCreditCards />} />
           <Route path="/credit-card" element={<CreditCardForm />} />
           <Route path="/credit-card/:id" element={<CreditCardForm />} />
+          
+          {/* Goals */}
+          <Route path="/my-goals" element={<MyGoals />} />
+          <Route path="/goal" element={<GoalForm />} />
+          <Route path="/goal/:id" element={<GoalDetail />} />
+          <Route path="/goal/:id/edit" element={<GoalForm />} />
         </Routes>
       </BrowserRouter>
     </div>
