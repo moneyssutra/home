@@ -659,6 +659,48 @@ async def update_asset(asset_id: str, input: AssetCreate):
     asset_dict['id'] = asset_id
     asset_dict['createdAt'] = existing['createdAt']
     
+    # Handle rental income linking
+    if asset_dict.get('generatesIncome') and asset_dict.get('incomeAmount'):
+        # Check if rental income already exists for this asset
+        existing_income = await db.income.find_one({"linkedAssetId": asset_id}, {"_id": 0})
+        
+        if existing_income:
+            # Update existing rental income
+            await db.income.update_one(
+                {"linkedAssetId": asset_id},
+                {"$set": {
+                    "name": asset_dict['assetName'],
+                    "amount": asset_dict['incomeAmount'],
+                    "frequency": asset_dict.get('incomeFrequency') or "Monthly",
+                    "tenantName": asset_dict.get('renterName'),
+                    "securityDeposit": asset_dict.get('securityDeposit'),
+                    "assetValue": asset_dict['currentValue'],
+                    "rentalYield": round((asset_dict['incomeAmount'] * 12 / asset_dict['currentValue']) * 100, 2) if asset_dict['currentValue'] else None,
+                }}
+            )
+            asset_dict['linkedIncomeId'] = existing_income['id']
+        else:
+            # Create new rental income
+            rental_income = {
+                "id": str(uuid.uuid4()),
+                "type": "Rental",
+                "name": asset_dict['assetName'],
+                "amount": asset_dict['incomeAmount'],
+                "frequency": asset_dict.get('incomeFrequency') or "Monthly",
+                "tenantName": asset_dict.get('renterName'),
+                "securityDeposit": asset_dict.get('securityDeposit'),
+                "linkedAssetId": asset_id,
+                "assetValue": asset_dict['currentValue'],
+                "rentalYield": round((asset_dict['incomeAmount'] * 12 / asset_dict['currentValue']) * 100, 2) if asset_dict['currentValue'] else None,
+                "createdAt": datetime.now(timezone.utc).isoformat(),
+            }
+            await db.income.insert_one(rental_income)
+            asset_dict['linkedIncomeId'] = rental_income['id']
+    elif not asset_dict.get('generatesIncome'):
+        # If income generation turned off, remove the linked income
+        asset_dict['linkedIncomeId'] = None
+        await db.income.delete_many({"linkedAssetId": asset_id})
+    
     await db.assets.replace_one({"id": asset_id}, asset_dict)
     
     asset_obj = Asset(**asset_dict)
