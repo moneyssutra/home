@@ -196,7 +196,7 @@ const MyIncome = () => {
 
   const chartColors = ["#10B981", "#3B82F6", "#F59E0B", "#8B5CF6", "#06B6D4", "#EC4899"];
 
-  // Calculate received vs yet to receive based on date
+  // Calculate received vs yet to receive based on date (frequency-aware)
   const today = new Date();
   const currentDay = today.getDate();
   
@@ -207,9 +207,9 @@ const MyIncome = () => {
   };
 
   const receivedIncome = incomes.filter(inc => getIncomeStatus(inc) === 'received')
-    .reduce((sum, inc) => sum + (inc.expectedAmount || 0), 0);
+    .reduce((sum, inc) => sum + calculateMonthlyAmount(inc), 0);
   const pendingIncome = incomes.filter(inc => getIncomeStatus(inc) === 'pending')
-    .reduce((sum, inc) => sum + (inc.expectedAmount || 0), 0);
+    .reduce((sum, inc) => sum + calculateMonthlyAmount(inc), 0);
 
   return (
     <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="my-income-page">
