@@ -663,6 +663,27 @@ async def delete_loan(loan_id: str):
     await db.loans.delete_one({"id": loan_id})
     return {"message": "Loan deleted successfully", "id": loan_id}
 
+@api_router.get("/loans/{loan_id}/linked-assets")
+async def get_loan_linked_assets(loan_id: str):
+    """Get all assets that are linked to this loan (reverse lookup)"""
+    # Find assets where linkedLoanId matches this loan
+    linked_assets = await db.assets.find({"linkedLoanId": loan_id}, {"_id": 0}).to_list(1000)
+    
+    result = []
+    for asset in linked_assets:
+        if isinstance(asset.get('createdAt'), str):
+            asset['createdAt'] = datetime.fromisoformat(asset['createdAt'])
+        result.append({
+            "id": asset.get('id'),
+            "assetName": asset.get('assetName'),
+            "assetType": asset.get('assetType'),
+            "currentValue": asset.get('currentValue', 0),
+            "purchaseValue": asset.get('purchaseValue'),
+            "location": asset.get('location')
+        })
+    
+    return result
+
 # ============ ASSET ENDPOINTS ============
 
 @api_router.post("/assets", response_model=Asset)
