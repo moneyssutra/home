@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Calendar, Trash2 } from "lucide-react";
 import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const BusinessIncome = () => {
   const navigate = useNavigate();
@@ -9,6 +11,7 @@ const BusinessIncome = () => {
   const [businessName, setBusinessName] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
   const [frequency, setFrequency] = useState("");
+  const [showAddSheet, setShowAddSheet] = useState(false);
   
   // Conditional fields
   const [selectedDay, setSelectedDay] = useState("");

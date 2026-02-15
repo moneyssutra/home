@@ -2,12 +2,15 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Plus, Landmark, Home, Building2, ExternalLink } from "lucide-react";
 import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const MyLoans = () => {
   const navigate = useNavigate();
   const [loans, setLoans] = useState([]);
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddSheet, setShowAddSheet] = useState(false);
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
