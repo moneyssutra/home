@@ -238,6 +238,19 @@ const InsuranceForm = () => {
 
   const showAssetSelector = ["Vehicle Insurance", "Property Insurance", "Asset Insurance", "Business Insurance"].includes(insuranceType);
   const showPersonSelector = ["Life Insurance", "Health Insurance"].includes(insuranceType);
+  
+  // Handle back navigation - returns to asset form if came from there
+  const handleBackNavigation = () => {
+    if (location.state?.returnTo === '/asset' && location.state?.assetFormData) {
+      navigate('/asset', {
+        state: {
+          assetFormData: location.state.assetFormData
+        }
+      });
+    } else {
+      navigate("/my-insurance");
+    }
+  };
 
   return (
     <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="insurance-form-page">
@@ -246,7 +259,7 @@ const InsuranceForm = () => {
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E2E8F0] bg-white text-[#0B3D2E] transition-colors hover:bg-[#F8FAF9]"
-          onClick={() => navigate("/my-insurance")}
+          onClick={handleBackNavigation}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
