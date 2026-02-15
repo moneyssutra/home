@@ -1754,8 +1754,15 @@ async def get_networth_summary(request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     user_id = user.get('user_id')
-    # User filter - only show data belonging to this user (or legacy data for test user)
-    user_filter = {"$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]}
+    user_email = user.get('email', '')
+    
+    # User filter - strict isolation for new users, legacy data only for test user
+    if user_email == 'test@moneyssutra.com' or user_id == 'test':
+        # Test user can see legacy data (no userId)
+        user_filter = {"$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]}
+    else:
+        # New users only see their own data
+        user_filter = {"userId": user_id}
     
     # Get all assets
     assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
