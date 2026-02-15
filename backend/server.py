@@ -508,7 +508,256 @@ async def get_status_checks():
     
     return status_checks
 
-@api_router.post("/income", response_model=IncomeSource)
+# ============ AUTH ENDPOINTS ============
+
+def hash_password(password: str) -> str:
+    """Hash password using SHA-256"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify password against hash"""
+    return hash_password(password) == hashed
+
+async def get_current_user(request: Request, session_token: Optional[str] = Cookie(None)):
+    """Get current user from session token (cookie or header)"""
+    token = session_token
+    
+    # Fallback to Authorization header
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    
+    if not token:
+        return None
+    
+    # Find session
+    session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    if not session:
+        return None
+    
+    # Check expiry
+    expires_at = session.get("expires_at")
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        return None
+    
+    # Get user
+    user = await db.users.find_one({"user_id": session["user_id"]}, {"_id": 0})
+    return user
+
+@api_router.post("/auth/login")
+async def jwt_login(request: JWTLoginRequest, response: Response):
+    """JWT-based username/password login"""
+    # For demo: accept test/test credentials
+    if request.username == "test" and request.password == "test":
+        # Check if test user exists
+        user = await db.users.find_one({"email": "test@moneyssutra.com"}, {"_id": 0})
+        
+        if not user:
+            # Create test user
+            user_id = f"user_{uuid.uuid4().hex[:12]}"
+            user = {
+                "user_id": user_id,
+                "email": "test@moneyssutra.com",
+                "name": "Test User",
+                "picture": None,
+                "auth_type": "jwt",
+                "password_hash": hash_password("test"),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.users.insert_one(user)
+        else:
+            user_id = user["user_id"]
+        
+        # Create session
+        session_token = str(uuid.uuid4())
+        expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+        
+        session = {
+            "session_id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "session_token": session_token,
+            "expires_at": expires_at.isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.user_sessions.insert_one(session)
+        
+        # Set cookie
+        response.set_cookie(
+            key="session_token",
+            value=session_token,
+            httponly=True,
+            secure=True,
+            samesite="none",
+            path="/",
+            max_age=7 * 24 * 60 * 60
+        )
+        
+        return {
+            "user_id": user_id,
+            "email": user.get("email"),
+            "name": user.get("name"),
+            "picture": user.get("picture"),
+            "session_token": session_token
+        }
+    
+    # Check actual user credentials
+    user = await db.users.find_one({"email": request.username, "auth_type": "jwt"}, {"_id": 0})
+    if not user or not verify_password(request.password, user.get("password_hash", "")):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Create session
+    session_token = str(uuid.uuid4())
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    session = {
+        "session_id": str(uuid.uuid4()),
+        "user_id": user["user_id"],
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.user_sessions.insert_one(session)
+    
+    # Set cookie
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+        max_age=7 * 24 * 60 * 60
+    )
+    
+    return {
+        "user_id": user["user_id"],
+        "email": user.get("email"),
+        "name": user.get("name"),
+        "picture": user.get("picture"),
+        "session_token": session_token
+    }
+
+@api_router.post("/auth/google/session")
+async def google_session(request: GoogleSessionRequest, response: Response):
+    """Process Google OAuth session_id from Emergent Auth"""
+    # REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+    
+    try:
+        # Call Emergent Auth to get user data
+        async with httpx.AsyncClient() as client:
+            auth_response = await client.get(
+                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+                headers={"X-Session-ID": request.session_id}
+            )
+            
+            if auth_response.status_code != 200:
+                raise HTTPException(status_code=401, detail="Invalid session")
+            
+            session_data = auth_response.json()
+    except Exception as e:
+        logging.error(f"Google auth error: {e}")
+        raise HTTPException(status_code=401, detail="Authentication failed")
+    
+    # Check if user exists
+    email = session_data.get("email")
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    
+    if not user:
+        # Create new user
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        user = {
+            "user_id": user_id,
+            "email": email,
+            "name": session_data.get("name"),
+            "picture": session_data.get("picture"),
+            "auth_type": "google",
+            "password_hash": None,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.users.insert_one(user)
+    else:
+        user_id = user["user_id"]
+        # Update user data
+        await db.users.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "name": session_data.get("name"),
+                "picture": session_data.get("picture")
+            }}
+        )
+    
+    # Create session
+    session_token = session_data.get("session_token") or str(uuid.uuid4())
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    
+    session = {
+        "session_id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.user_sessions.insert_one(session)
+    
+    # Set cookie
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+        max_age=7 * 24 * 60 * 60
+    )
+    
+    return {
+        "user_id": user_id,
+        "email": email,
+        "name": session_data.get("name"),
+        "picture": session_data.get("picture"),
+        "session_token": session_token
+    }
+
+@api_router.get("/auth/me")
+async def get_me(request: Request, session_token: Optional[str] = Cookie(None)):
+    """Get current authenticated user"""
+    user = await get_current_user(request, session_token)
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    return {
+        "user_id": user.get("user_id"),
+        "email": user.get("email"),
+        "name": user.get("name"),
+        "picture": user.get("picture")
+    }
+
+@api_router.post("/auth/logout")
+async def logout(request: Request, response: Response, session_token: Optional[str] = Cookie(None)):
+    """Logout and invalidate session"""
+    token = session_token
+    
+    # Fallback to Authorization header
+    if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+    
+    if token:
+        await db.user_sessions.delete_one({"session_token": token})
+    
+    # Clear cookie
+    response.delete_cookie(key="session_token", path="/")
+    
+    return {"message": "Logged out successfully"}
+
+# ============ INCOME ENDPOINTS ============
 async def create_income_source(input: IncomeSourceCreate):
     income_dict = input.model_dump()
     income_obj = IncomeSource(**income_dict)
