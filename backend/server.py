@@ -584,9 +584,10 @@ async def register_user(request: RegisterRequest, response: Response):
         "session_token": session_token
     }
 
-async def get_current_user(request: Request, session_token: Optional[str] = Cookie(None)):
+async def get_current_user(request: Request):
     """Get current user from session token (cookie or header)"""
-    token = session_token
+    # Get token from cookies
+    token = request.cookies.get("session_token")
     
     # Fallback to Authorization header
     if not token:
