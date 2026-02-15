@@ -289,6 +289,8 @@ class AssetCreate(BaseModel):
     linkedIncomeId: Optional[str] = None
     incomeAmount: Optional[float] = None
     incomeFrequency: Optional[str] = None
+    renterName: Optional[str] = None
+    securityDeposit: Optional[float] = None
     isInsured: bool = False
     linkedInsuranceId: Optional[str] = None
     location: Optional[str] = None
