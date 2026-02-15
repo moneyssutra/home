@@ -61,6 +61,8 @@ const GoalDetail = () => {
     setShowCompleteConfirm(false);
     try {
       await axios.patch(`${backendUrl}/api/goals/${id}/complete`);
+      // Check for 100% milestone celebration
+      await checkMilestones();
       await fetchGoal();
     } catch (error) {
       console.error("Error marking goal complete:", error);
