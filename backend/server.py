@@ -1747,19 +1747,26 @@ async def delete_investment(investment_id: str):
 # ============ NET WORTH DASHBOARD ENDPOINTS ============
 
 @api_router.get("/dashboard/networth")
-async def get_networth_summary():
+async def get_networth_summary(request: Request):
     """Aggregate all financial data for net worth calculation"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    # User filter - only show data belonging to this user (or legacy data for test user)
+    user_filter = {"$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]}
     
     # Get all assets
-    assets = await db.assets.find({}, {"_id": 0}).to_list(1000)
+    assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
     total_assets = sum(asset.get('currentValue', 0) for asset in assets)
     
     # Get all investments
-    investments = await db.investments.find({}, {"_id": 0}).to_list(1000)
+    investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
     total_investments = sum(inv.get('currentValue', 0) for inv in investments)
     
     # Get all accounts (liquid balance)
-    accounts = await db.accounts.find({}, {"_id": 0}).to_list(1000)
+    accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
     liquid_balance = sum(
         acc.get('currentBalance', 0) for acc in accounts 
         if acc.get('accountType') != 'Credit Card'
@@ -1770,17 +1777,17 @@ async def get_networth_summary():
     )
     
     # Get all credit cards
-    credit_cards = await db.credit_cards.find({}, {"_id": 0}).to_list(1000)
+    credit_cards = await db.credit_cards.find(user_filter, {"_id": 0}).to_list(1000)
     credit_card_outstanding = sum(card.get('outstandingAmount', 0) for card in credit_cards)
     credit_card_limit = sum(card.get('creditLimit', 0) for card in credit_cards)
     
     # Get all loans (liabilities)
-    loans = await db.loans.find({}, {"_id": 0}).to_list(1000)
+    loans = await db.loans.find(user_filter, {"_id": 0}).to_list(1000)
     total_liabilities = sum(loan.get('outstandingAmount', 0) for loan in loans)
     total_liabilities += credit_outstanding + credit_card_outstanding
     
     # Get all income sources - Calculate actual monthly income for current month
-    incomes = await db.income_sources.find({}, {"_id": 0}).to_list(1000)
+    incomes = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
     monthly_income = 0
     current_month = datetime.now(timezone.utc).month
     current_year = datetime.now(timezone.utc).year
