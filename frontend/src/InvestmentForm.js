@@ -532,20 +532,36 @@ const InvestmentForm = () => {
                 </div>
 
                 <div className="w-full">
-                  <label htmlFor="maturityDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
                     Maturity Date
                   </label>
-                  <label htmlFor="maturityDate" className="relative block cursor-pointer">
-                    <input
-                      id="maturityDate"
-                      type="date"
-                      value={maturityDate}
-                      onChange={(e) => setMaturityDate(e.target.value)}
-                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 cursor-pointer"
-                      data-testid="maturity-date-input"
-                    />
-                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                  </label>
+                  <Popover open={maturityCalendarOpen} onOpenChange={setMaturityCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                        data-testid="maturity-date-input"
+                      >
+                        <span className={maturityDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                          {maturityDate ? format(new Date(maturityDate), "PPP") : "Select maturity date"}
+                        </span>
+                        <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-white" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={maturityDate ? new Date(maturityDate) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            setMaturityDate(format(date, "yyyy-MM-dd"));
+                          }
+                          setMaturityCalendarOpen(false);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className="w-full">
@@ -564,6 +580,11 @@ const InvestmentForm = () => {
                       data-testid="maturity-value-input"
                     />
                   </div>
+                  {parseFloat(expectedMaturityValue) > 0 && (
+                    <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="maturity-value-words">
+                      {numberToWords(parseFloat(expectedMaturityValue))}
+                    </p>
+                  )}
                 </div>
               </>
             )}
