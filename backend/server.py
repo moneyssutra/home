@@ -1306,7 +1306,6 @@ async def get_networth_summary():
     monthly_income = 0
     current_month = datetime.now(timezone.utc).month
     current_year = datetime.now(timezone.utc).year
-    today = datetime.now(timezone.utc).date()
     
     for income in incomes:
         amount = income.get('expectedAmount', 0)
@@ -1325,7 +1324,6 @@ async def get_networth_summary():
         elif freq == 'Quarterly':
             # Check if current month is a payment month (Jan, Apr, Jul, Oct typically)
             selected_quarter = income.get('selectedQuarter', '')
-            selected_date = income.get('selectedDate', '')
             # For quarterly, check if it matches this month's quarter
             quarter_months = {
                 'Q1': [1, 2, 3],
