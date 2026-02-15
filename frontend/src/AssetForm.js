@@ -672,25 +672,42 @@ const AssetForm = () => {
                 </button>
               </div>
 
-              {isInsured && availableInsurances.length > 0 && (
+              {isInsured && (
                 <div className="mt-4 pt-4 border-t border-[#E2E8F0]">
-                  <label htmlFor="linkedInsurance" className="block text-sm font-medium text-[#0B3D2E] mb-2">
-                    Select Linked Insurance
-                  </label>
-                  <select
-                    id="linkedInsurance"
-                    value={linkedInsuranceId}
-                    onChange={(e) => setLinkedInsuranceId(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                    data-testid="linked-insurance-select"
-                  >
-                    <option value="">Select an Insurance</option>
-                    {availableInsurances.map((ins) => (
-                      <option key={ins.id} value={ins.id}>
-                        {ins.policyName}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between mb-2">
+                    <label htmlFor="linkedInsurance" className="block text-sm font-medium text-[#0B3D2E]">
+                      Select Linked Insurance
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleAddInsurance}
+                      className="flex items-center gap-1 text-xs font-medium text-[#6366F1] hover:text-[#4F46E5] transition-colors"
+                      data-testid="add-insurance-shortcut"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Add Insurance
+                    </button>
+                  </div>
+                  {availableInsurances.length > 0 ? (
+                    <select
+                      id="linkedInsurance"
+                      value={linkedInsuranceId}
+                      onChange={(e) => setLinkedInsuranceId(e.target.value)}
+                      className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="linked-insurance-select"
+                    >
+                      <option value="">Select an Insurance</option>
+                      {availableInsurances.map((ins) => (
+                        <option key={ins.id} value={ins.id}>
+                          {ins.policyName}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-sm text-[#0B3D2E]/60 bg-[#F8FAF9] rounded-xl px-4 py-3 text-center">
+                      No insurance policies found. Click "Add Insurance" to create one.
+                    </div>
+                  )}
                 </div>
               )}
             </div>
