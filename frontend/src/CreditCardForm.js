@@ -140,7 +140,7 @@ const CreditCardForm = () => {
       </header>
 
       {/* Form */}
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 overflow-y-auto pb-32">
         <form onSubmit={handleSubmit} className="mx-auto w-full max-w-[620px] px-6">
           <div className="space-y-6">
             {/* Card Name */}

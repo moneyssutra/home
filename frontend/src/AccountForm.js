@@ -189,7 +189,7 @@ const AccountForm = () => {
       </header>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto pb-24">
+      <div className="flex-1 overflow-y-auto pb-32">
         <div className="mx-auto w-full max-w-[620px] px-6">
           <div className="space-y-6">
             {/* Account Name */}
