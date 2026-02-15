@@ -824,8 +824,15 @@ async def logout(request: Request, response: Response, session_token: Optional[s
     return {"message": "Logged out successfully"}
 
 # ============ INCOME ENDPOINTS ============
-async def create_income_source(input: IncomeSourceCreate):
+
+@api_router.post("/income", response_model=IncomeSource)
+async def create_income_source(input: IncomeSourceCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
     income_dict = input.model_dump()
+    income_dict['userId'] = user.get('user_id')  # Add user isolation
     income_obj = IncomeSource(**income_dict)
     
     # Convert to dict and serialize datetime to ISO string for MongoDB
@@ -836,44 +843,67 @@ async def create_income_source(input: IncomeSourceCreate):
     return income_obj
 
 @api_router.get("/income", response_model=List[IncomeSource])
-async def get_income_sources():
-    # Exclude MongoDB's _id field from the query results
-    income_sources = await db.income_sources.find({}, {"_id": 0}).to_list(1000)
+async def get_income_sources(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    # Filter by userId - include records with matching userId OR no userId (legacy data)
+    income_sources = await db.income_sources.find(
+        {"$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]},
+        {"_id": 0}
+    ).to_list(1000)
     
     # Convert ISO string timestamps back to datetime objects
     for source in income_sources:
-        if isinstance(source['createdAt'], str):
+        if isinstance(source.get('createdAt'), str):
             source['createdAt'] = datetime.fromisoformat(source['createdAt'])
     
     return income_sources
 
 @api_router.get("/income/{income_id}", response_model=IncomeSource)
-async def get_income_source(income_id: str):
-    # Get a single income source by ID
-    income_source = await db.income_sources.find_one({"id": income_id}, {"_id": 0})
+async def get_income_source(income_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    # Get a single income source by ID (with user check)
+    income_source = await db.income_sources.find_one(
+        {"id": income_id, "$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]},
+        {"_id": 0}
+    )
     
     if not income_source:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Income source not found")
     
     # Convert ISO string timestamp back to datetime object
-    if isinstance(income_source['createdAt'], str):
+    if isinstance(income_source.get('createdAt'), str):
         income_source['createdAt'] = datetime.fromisoformat(income_source['createdAt'])
     
     return income_source
 
 @api_router.put("/income/{income_id}", response_model=IncomeSource)
-async def update_income_source(income_id: str, input: IncomeSourceCreate):
-    # Check if income source exists
-    existing = await db.income_sources.find_one({"id": income_id}, {"_id": 0})
+async def update_income_source(income_id: str, input: IncomeSourceCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    # Check if income source exists and belongs to user
+    existing = await db.income_sources.find_one(
+        {"id": income_id, "$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]},
+        {"_id": 0}
+    )
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Income source not found")
     
     # Update the income source
     income_dict = input.model_dump()
     income_dict['id'] = income_id
+    income_dict['userId'] = user_id  # Ensure userId is set
     income_dict['createdAt'] = existing['createdAt']  # Keep original creation time
     
     # Convert datetime to ISO string for MongoDB
@@ -893,12 +923,19 @@ async def update_income_source(income_id: str, input: IncomeSourceCreate):
     return income_obj
 
 @api_router.delete("/income/{income_id}")
-async def delete_income_source(income_id: str):
-    # Check if income source exists
-    existing = await db.income_sources.find_one({"id": income_id}, {"_id": 0})
+async def delete_income_source(income_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    # Check if income source exists and belongs to user
+    existing = await db.income_sources.find_one(
+        {"id": income_id, "$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]},
+        {"_id": 0}
+    )
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Income source not found")
     
     # Delete the income source
