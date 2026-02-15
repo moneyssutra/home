@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { useAuth } from './AuthContext';
 
 const WorkspaceContext = createContext(null);
 
@@ -13,6 +14,7 @@ export const useWorkspace = () => {
 
 export const WorkspaceProvider = ({ children }) => {
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const { isAuthenticated, loading: authLoading } = useAuth();
   
   const [currentWorkspace, setCurrentWorkspace] = useState(null);
   const [workspaces, setWorkspaces] = useState([]);
