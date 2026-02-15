@@ -820,6 +820,40 @@ async def create_insurance(input: InsuranceCreate):
     
     await db.insurances.insert_one(doc)
     
+    # Auto-create Asset entry for Market Linked / Returns on Maturity insurances
+    maturity_types_needing_asset = ["Market Linked", "Returns on Maturity"]
+    if insurance_obj.maturityType in maturity_types_needing_asset:
+        # Check if asset already exists for this insurance
+        existing_asset = await db.assets.find_one({"linkedInsuranceId": insurance_obj.id}, {"_id": 0})
+        if not existing_asset:
+            # Determine current value - use expectedMaturityAmount or premiumAmount as initial value
+            current_value = insurance_obj.expectedMaturityAmount or insurance_obj.premiumAmount
+            
+            asset_data = {
+                "id": str(uuid.uuid4()),
+                "assetType": "Insurance Asset",
+                "assetName": f"{insurance_obj.policyName} (Maturity Value)",
+                "currentValue": current_value,
+                "purchaseValue": insurance_obj.premiumAmount,  # Initial investment
+                "purchaseDate": insurance_obj.startDate,
+                "isFinanced": False,
+                "linkedLoanId": None,
+                "isInsured": True,  # It's itself an insurance
+                "linkedInsuranceId": insurance_obj.id,
+                "generatesIncome": False,
+                "incomeAmount": None,
+                "incomeFrequency": None,
+                "notes": f"Auto-created from {insurance_obj.insuranceType} policy - {insurance_obj.maturityType}",
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            await db.assets.insert_one(asset_data)
+            
+            # Update insurance with linked asset ID
+            await db.insurances.update_one(
+                {"id": insurance_obj.id},
+                {"$set": {"linkedAssetId": asset_data["id"]}}
+            )
+    
     # Auto-create premium expense if enabled
     if insurance_obj.autoCreateExpense:
         # Check if expense already exists for this insurance
