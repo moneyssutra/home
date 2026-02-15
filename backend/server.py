@@ -142,6 +142,7 @@ class Account(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: Optional[str] = None  # User isolation
     accountName: str
     accountType: str
     currentBalance: float = 0
