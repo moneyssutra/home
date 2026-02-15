@@ -52,9 +52,7 @@ const ExpenseForm = () => {
     "Shopping",
     "Medical",
     "Education",
-    "Insurance",
     "Subscriptions",
-    "EMI",
     "Business Expense",
     "Salary Paid",
     "Other"
