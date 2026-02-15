@@ -241,13 +241,18 @@ const MyExpenses = () => {
       {expenses.length > 0 && (
         <div className="px-6 mt-4">
           <div className="grid grid-cols-2 gap-3">
-            {/* Fixed Expenses */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            {/* Fixed Expenses - Clickable */}
+            <button
+              onClick={() => navigate('/expenses/fixed')}
+              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md hover:border-slate-200 transition-all"
+              data-testid="fixed-expenses-card"
+            >
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                   <Shield className="h-4 w-4 text-slate-600" />
                 </div>
                 <span className="text-sm font-semibold text-[#0B3D2E]">Fixed</span>
+                <ChevronRight className="h-4 w-4 text-[#0B3D2E]/30 ml-auto" />
               </div>
               <p className="text-xl font-bold text-[#0B3D2E] mb-1">₹ {formatAmount(fixedTotal)}</p>
               <p className="text-xs text-[#0B3D2E]/50">{fixedExpenses.length} expenses</p>
@@ -259,15 +264,20 @@ const MyExpenses = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </button>
 
-            {/* Variable Expenses */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            {/* Variable Expenses - Clickable */}
+            <button
+              onClick={() => navigate('/expenses/variable')}
+              className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-left hover:shadow-md hover:border-amber-200 transition-all"
+              data-testid="variable-expenses-card"
+            >
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                   <Zap className="h-4 w-4 text-amber-600" />
                 </div>
                 <span className="text-sm font-semibold text-[#0B3D2E]">Variable</span>
+                <ChevronRight className="h-4 w-4 text-[#0B3D2E]/30 ml-auto" />
               </div>
               <p className="text-xl font-bold text-[#0B3D2E] mb-1">₹ {formatAmount(variableTotal)}</p>
               <p className="text-xs text-[#0B3D2E]/50">{variableExpenses.length} expenses</p>
@@ -279,7 +289,7 @@ const MyExpenses = () => {
                   </div>
                 ))}
               </div>
-            </div>
+            </button>
           </div>
         </div>
       )}
