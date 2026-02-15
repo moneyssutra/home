@@ -204,6 +204,7 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - Job Module: Backend 100%, Frontend 100% (iteration_1.json)
 - Interest Module: Backend 100%, Frontend 100% (iteration_2.json)
 - Expense Auto-Create & Next Date: Backend 100%, Frontend 100% (iteration_10.json)
+- Calendar Date Picker & Insurance→Asset: Backend 100%, Frontend 100% (iteration_11.json)
 - Test files: `/app/backend/tests/`
 
 ## Backlog / Future Tasks
@@ -214,7 +215,7 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - Asset ↔ Income bidirectional linking (rental income toggle)
 - Other Income Module (Gift, Bonus, Capital Gain, etc.)
 - Back button navigation to previous page (partially done)
-- Amount in words below all currency inputs (partially done)
+- Amount in words across ALL forms (only done in Expense form currently)
 
 ### P2 - Medium Priority
 - Expense Transaction Module (actual spending tracker against budgeted expenses)
@@ -234,6 +235,22 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 - **P1**: Inconsistent data type for date fields across modules (technical debt - dates stored as strings)
 
 ## Changelog
+- **Feb 15, 2026 (Session 4)**: Testing V4 Bug Fixes - Global Changes & Insurance→Asset
+  - **Amount in Words (Indian Numbering)**: ExpenseForm now displays amount in words below the Expected Amount field using Indian numbering (Lakh, Crore format)
+  - **Expense Category Cleanup**: Removed "EMI" and "Insurance" from category dropdown - these categories are only for system-generated expenses from Loan/Insurance modules
+  - **Calendar Date Picker**: Replaced ALL numeric date dropdowns with Shadcn Calendar popover:
+    - Monthly: Full calendar to select day of month
+    - Quarterly: Quarter dropdown + Calendar for date
+    - Half-Yearly: Half dropdown + Calendar for date
+    - Yearly: Month dropdown + Calendar for date
+    - One-Time: Full calendar date picker
+  - **Insurance → Asset Linking**: Insurance with maturityType "Market Linked" or "Returns on Maturity" now auto-creates an Asset entry with:
+    - assetType: "Insurance Asset"
+    - assetName: "[PolicyName] (Maturity Value)"
+    - currentValue: expectedMaturityAmount (or premiumAmount if not set)
+    - linkedInsuranceId: references the insurance
+  - **Asset Model Update**: Added incomeAmount and incomeFrequency fields for income-generating assets
+
 - **Feb 13, 2026 (Session 3)**: Testing V3 Bug Fixes - Inter-Module Linking
   - **Expense Form Date Picker Fix**: Changed Monthly frequency from numeric input (1-31) to dropdown with ordinal suffixes (1st, 2nd, 3rd...31st)
   - **Loan → Expense Auto-Creation**: When creating a loan with `autoCreateExpense: true`, system automatically creates an EMI expense with:
