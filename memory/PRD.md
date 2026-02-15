@@ -564,6 +564,18 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
     - Monthly: Based on due date vs current day
     - Quarterly/Half-Yearly/Yearly: Based on full date comparison
   - Example: On day 15, Weekly income (₹16L/month) shows ₹8L received, ₹8L pending
+- **Feb 15, 2026**: Added User Registration Feature
+  - **New Backend Endpoint**: `POST /api/auth/register` with name, email, password fields
+  - **Duplicate Email Check**: Returns error if email already registered
+  - **Auto-Login**: After registration, user is automatically logged in with session cookie
+  - **Frontend**: Updated Login.js with toggle between Sign In / Create Account modes
+  - **Form Fields**: Full Name, Email, Password, Confirm Password with validation
+- **Feb 15, 2026**: Updated Color Scheme to Professional Fintech Design
+  - **Primary Background**: Deep Navy Blue (#0B1F3B → #111827)
+  - **Accent Color**: Emerald Green (#00C853 / #1DB954) for buttons, highlights
+  - **Warning Color**: Amber (#FFB300) for alerts and demo credentials
+  - **Danger Color**: Soft Red (#E53935) for errors
+  - **Text Colors**: Dark Grey (#1F2937) primary, Light Grey (#6B7280) secondary
     - Investment Frequency dropdown: One-time, Weekly, Monthly (SIP), Quarterly, Yearly
     - SIP Amount field appears when frequency is selected
     - Backend Investment model updated with investmentFrequency and sipAmount fields
