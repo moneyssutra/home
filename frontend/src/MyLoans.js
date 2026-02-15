@@ -182,16 +182,24 @@ const MyLoans = () => {
                           </p>
                         )}
 
-                        {/* Linked Asset Badge */}
+                        {/* Linked Asset Badge - Clickable */}
                         {linkedAsset && (
-                          <div className="mb-2">
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E0F2FE] text-xs font-medium text-[#0EA5E9]">
+                          <div 
+                            className="mb-2 cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/asset/${linkedAsset.id}`);
+                            }}
+                            data-testid={`linked-asset-${linkedAsset.id}`}
+                          >
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E0F2FE] text-xs font-medium text-[#0EA5E9] hover:bg-[#BAE6FD] transition-colors">
                               {linkedAsset.assetType?.includes("Property") ? (
                                 <Building2 className="h-3 w-3" />
                               ) : (
                                 <Home className="h-3 w-3" />
                               )}
                               <span>Linked: {linkedAsset.assetName}</span>
+                              <ExternalLink className="h-3 w-3 opacity-60" />
                             </div>
                           </div>
                         )}
