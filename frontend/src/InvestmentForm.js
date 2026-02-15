@@ -131,6 +131,8 @@ const InvestmentForm = () => {
       setMaturityDate(data.maturityDate || "");
       setExpectedMaturityValue(data.expectedMaturityValue?.toString() || "");
       setLockInPeriod(data.lockInPeriod?.toString() || "");
+      setInvestmentFrequency(data.investmentFrequency || "");
+      setSipAmount(data.sipAmount?.toString() || "");
     } catch (error) {
       console.error("Error fetching investment data:", error);
       setErrors({ submit: "Failed to load investment data" });
