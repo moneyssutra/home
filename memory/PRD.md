@@ -645,3 +645,20 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
   - **Updated ALL CRUD endpoints** to filter by authenticated user's ID
   - New users now see empty data, existing test user retains legacy data
 
+- **Feb 15, 2026**: Backend Architecture Refactoring (Phase 1)
+  - **Created modular structure**:
+    - `/models/` - All Pydantic models extracted to separate files:
+      - `auth.py`: User, UserSession, JWTLoginRequest, RegisterRequest
+      - `workspace.py`: Workspace, WorkspaceMember, WorkspaceInvite
+      - `income.py`: IncomeSource, OtherIncome
+      - `financial.py`: Account, Expense, Loan, Asset, Investment, CreditCard
+      - `insurance.py`: Insurance
+      - `goals.py`: Goal, GoalCreate
+      - `profile.py`: BasicProfile, ExtendedProfile
+    - `/services/` - Business logic helpers:
+      - `auth.py`: hash_password, verify_password, get_current_user
+      - `workspace.py`: get_user_workspace, ensure_user_has_workspace, check_permission
+    - `database.py`: MongoDB connection module
+  - **Documentation**: Created `/backend/ARCHITECTURE.md` with migration guide
+  - **Status**: Foundation laid for full modularization (Phase 2 will extract routes)
+  - **Lines refactored**: ~1200 lines of models and services extracted
