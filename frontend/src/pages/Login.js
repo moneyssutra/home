@@ -104,26 +104,26 @@ const Login = () => {
       <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
         {/* Logo & Title */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#00C853] to-[#1DB954] flex items-center justify-center mb-4 shadow-lg shadow-[#00C853]/20">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#14B8A6] to-[#0D9488] flex items-center justify-center mb-4 shadow-lg shadow-[#14B8A6]/20">
             <Wallet className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "'Manrope', sans-serif" }}>
             Moneyssutra
           </h1>
-          <p className="text-white/50 text-sm">Your Personal Finance Tracker</p>
+          <p className="text-slate-400 text-sm">Your Personal Finance Tracker</p>
         </div>
 
         {/* Auth Card */}
-        <div className="w-full max-w-sm bg-[#1E293B] rounded-3xl p-8 shadow-2xl">
-          <h2 className="text-xl font-bold text-[#1F2937] mb-6 text-center">
+        <div className="w-full max-w-sm bg-[#1E293B] rounded-3xl p-8 shadow-2xl border border-slate-700/50">
+          <h2 className="text-xl font-bold text-slate-100 mb-6 text-center">
             {isRegisterMode ? "Create Account" : "Welcome Back"}
           </h2>
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-[#E53935] flex-shrink-0" />
-              <p className="text-sm text-[#E53935]">{error}</p>
+            <div className="mb-4 p-3 rounded-xl bg-red-900/30 border border-red-500/30 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+              <p className="text-sm text-red-400">{error}</p>
             </div>
           )}
 
@@ -132,17 +132,17 @@ const Login = () => {
             {/* Name field - only for registration */}
             {isRegisterMode && (
               <div>
-                <label className="block text-sm font-medium text-[#6B7280] mb-1.5">
+                <label className="block text-sm font-medium text-slate-400 mb-1.5">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#6B7280]" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter your name"
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#00C853] focus:ring-2 focus:ring-[#00C853]/20 outline-none transition-all text-[#1F2937]"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-600 bg-slate-800/50 focus:border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]/20 outline-none transition-all text-slate-100 placeholder-slate-500"
                     data-testid="name-input"
                   />
                 </div>
@@ -150,11 +150,11 @@ const Login = () => {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-[#6B7280] mb-1.5">
+              <label className="block text-sm font-medium text-slate-400 mb-1.5">
                 {isRegisterMode ? "Email" : "Username / Email"}
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[#6B7280]" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
                 <input
                   type={isRegisterMode ? "email" : "text"}
                   value={email}
