@@ -210,16 +210,12 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 ## Backlog / Future Tasks
 
 ### P0 - High Priority (Next)
-- **Goal Module Phase 3: Smart Linking Enhancement**:
-  - Auto-project future SIP contributions towards goal progress
-  - For Debt Elimination goals, auto-sync target with loan outstanding balance changes
-  - Goal milestone notifications and alerts
+- **Other Income Module** (Gift, Bonus, Capital Gain, Tax Refund, Inheritance tracking)
 
 ### P1 - High Priority
 - Asset ↔ Loan bidirectional linking display on Asset detail page
-- Asset ↔ Income bidirectional linking (rental income toggle)
-- Other Income Module (Gift, Bonus, Capital Gain, etc.)
-- Goal prioritization reordering UI
+- Goal milestone notifications and alerts
+- Goal prioritization drag-and-drop reordering UI
 
 ### P2 - Medium Priority
 - Expense Transaction Module (actual spending tracker against budgeted expenses)
