@@ -44,6 +44,9 @@ const AssetForm = () => {
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
+  
+  // Calendar popover state
+  const [purchaseCalendarOpen, setPurchaseCalendarOpen] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
