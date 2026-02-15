@@ -3,8 +3,9 @@ import "@/App.css";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 
-// Auth
+// Auth & Context
 import { AuthProvider } from "@/context/AuthContext";
+import { WorkspaceProvider } from "@/context/WorkspaceContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AuthCallback from "@/components/AuthCallback";
 import Login from "@/pages/Login";
@@ -15,6 +16,7 @@ import Welcome from "@/Welcome";
 import BasicSetup from "@/BasicSetup";
 import MyIncome from "@/MyIncome";
 import Portfolio from "@/Portfolio";
+import WorkspaceSettings from "@/pages/WorkspaceSettings";
 
 // Income Pages
 import BusinessIncome from "@/BusinessIncome";
