@@ -547,6 +547,15 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
     - Updating asset updates the linked rental income; removing generatesIncome deletes the linked income
   - **Investment SIP Frequency**:
     - Added "Recurring Investment (SIP)" section for Mutual Fund, Recurring Deposit (RD), ETF, Stocks categories
+- **Feb 15, 2026**: Fixed Income Calculation Discrepancy Bug
+  - **Issue**: "Current Month Income" on My Income page showed different value than Dashboard's "Monthly Cash Flow"
+  - **Root Cause**: Frontend was simply summing `expectedAmount` without considering frequency
+  - **Fix**: Updated `MyIncome.js` to use frequency-aware calculation matching backend logic:
+    - Daily income × 30 days
+    - Weekly income × 4 weeks
+    - Monthly income × 1
+    - Quarterly/Half-Yearly/Yearly only when applicable for current month
+  - Now both pages show consistent ₹19.07 L for February 2026
     - Investment Frequency dropdown: One-time, Weekly, Monthly (SIP), Quarterly, Yearly
     - SIP Amount field appears when frequency is selected
     - Backend Investment model updated with investmentFrequency and sipAmount fields
