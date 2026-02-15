@@ -148,11 +148,16 @@ const MyExpenses = () => {
 
   const chartColors = ["#EF4444", "#F59E0B", "#3B82F6", "#8B5CF6", "#06B6D4", "#EC4899"];
 
-  // Count paid/pending for Fixed and Variable
-  const fixedPaid = fixedExpenses.filter(e => getPaymentStatus(e) === 'paid').length;
-  const fixedPending = fixedExpenses.length - fixedPaid;
-  const variablePaid = variableExpenses.filter(e => getPaymentStatus(e) === 'paid').length;
-  const variablePending = variableExpenses.length - variablePaid;
+  // Count paid/pending for Fixed and Variable with totals
+  const fixedPaidList = fixedExpenses.filter(e => getPaymentStatus(e) === 'paid');
+  const fixedPendingList = fixedExpenses.filter(e => getPaymentStatus(e) !== 'paid');
+  const variablePaidList = variableExpenses.filter(e => getPaymentStatus(e) === 'paid');
+  const variablePendingList = variableExpenses.filter(e => getPaymentStatus(e) !== 'paid');
+  
+  const fixedPaidTotal = fixedPaidList.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
+  const fixedPendingTotal = fixedPendingList.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
+  const variablePaidTotal = variablePaidList.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
+  const variablePendingTotal = variablePendingList.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
 
   return (
     <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="my-expenses-page">
