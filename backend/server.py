@@ -2554,6 +2554,84 @@ async def get_goals_dashboard_summary():
     
     return summary
 
+# ============ GOAL ACHIEVEMENTS ENDPOINTS ============
+
+@api_router.get("/goals/achievements")
+async def get_goal_achievements():
+    """Get all completed goals with their milestone history for the achievements page"""
+    completed_goals = await db.goals.find({"isCompleted": True}, {"_id": 0}).to_list(1000)
+    
+    achievements = []
+    for goal in completed_goals:
+        if isinstance(goal.get('createdAt'), str):
+            goal['createdAt'] = datetime.fromisoformat(goal['createdAt'])
+        
+        # Calculate final progress data
+        progress_data = await calculate_goal_progress(goal)
+        
+        # Build milestone history with dates
+        reached_milestones = goal.get('reachedMilestones', [])
+        milestone_history = []
+        
+        # For each standard milestone, check if it was reached
+        for milestone in [25, 50, 75, 100]:
+            is_reached = milestone in reached_milestones
+            milestone_history.append({
+                "milestone": milestone,
+                "reached": is_reached,
+                "label": f"{milestone}% Complete"
+            })
+        
+        # Calculate duration from creation to completion
+        created_at = goal.get('createdAt')
+        completed_date = goal.get('completedDate')
+        duration_days = None
+        
+        if created_at and completed_date:
+            try:
+                if isinstance(created_at, str):
+                    created_dt = datetime.fromisoformat(created_at)
+                else:
+                    created_dt = created_at
+                completed_dt = datetime.fromisoformat(completed_date)
+                duration_days = (completed_dt - created_dt).days
+            except (ValueError, TypeError):
+                pass
+        
+        achievement = {
+            "id": goal.get('id'),
+            "goalName": goal.get('goalName'),
+            "goalType": goal.get('goalType'),
+            "customTypeName": goal.get('customTypeName'),
+            "targetAmount": goal.get('targetAmount', 0),
+            "finalAmount": progress_data['currentAmount'],
+            "targetDate": goal.get('targetDate'),
+            "completedDate": goal.get('completedDate'),
+            "createdAt": goal.get('createdAt').isoformat() if isinstance(goal.get('createdAt'), datetime) else goal.get('createdAt'),
+            "milestoneHistory": milestone_history,
+            "reachedMilestones": reached_milestones,
+            "durationDays": duration_days,
+            "priority": goal.get('priority', 1),
+            "notes": goal.get('notes'),
+            "linkedDetails": progress_data.get('linkedDetails', [])
+        }
+        
+        achievements.append(achievement)
+    
+    # Sort by completion date (most recent first)
+    achievements.sort(key=lambda x: x.get('completedDate') or '', reverse=True)
+    
+    # Calculate summary stats
+    total_achieved = sum(a.get('finalAmount', 0) for a in achievements)
+    avg_duration = sum(a.get('durationDays', 0) or 0 for a in achievements) / len(achievements) if achievements else 0
+    
+    return {
+        "totalCompleted": len(achievements),
+        "totalAmountAchieved": total_achieved,
+        "averageDurationDays": round(avg_duration),
+        "achievements": achievements
+    }
+
 # ============ OTHER INCOME ENDPOINTS ============
 
 @api_router.post("/other-income", response_model=OtherIncome)
