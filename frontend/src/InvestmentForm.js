@@ -206,6 +206,8 @@ const InvestmentForm = () => {
         maturityDate: maturityDate || null,
         expectedMaturityValue: expectedMaturityValue ? parseFloat(expectedMaturityValue) : null,
         lockInPeriod: lockInPeriod ? parseInt(lockInPeriod) : null,
+        investmentFrequency: investmentFrequency || null,
+        sipAmount: sipAmount ? parseFloat(sipAmount) : null,
       };
 
       if (id) {
