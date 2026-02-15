@@ -143,6 +143,11 @@ function App() {
           <Route path="/goal" element={<GoalForm />} />
           <Route path="/goal/:id" element={<GoalDetail />} />
           <Route path="/goal/:id/edit" element={<GoalForm />} />
+          
+          {/* Other Income */}
+          <Route path="/my-other-income" element={<MyOtherIncome />} />
+          <Route path="/other-income" element={<OtherIncomeForm />} />
+          <Route path="/other-income/:id" element={<OtherIncomeForm />} />
         </Routes>
       </BrowserRouter>
     </div>
