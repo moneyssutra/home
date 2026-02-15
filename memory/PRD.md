@@ -256,6 +256,30 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
     - `showFrequencyField` variable controls visibility based on category
   - **Testing**: 100% pass rate (10/10 backend, 6/6 frontend tests)
 
+- **Dec 15, 2025 (Session 5 - Part 3)**: Goal Module Phase 3 - SIP Projections & Monthly Breakdown
+  - **Backend Enhancements**:
+    - Enhanced `calculate_goal_progress` to calculate SIP projections using compound interest formula: FV = PV*(1+r)^n + PMT*[((1+r)^n-1)/r]
+    - New response fields: sipProjections[], totalProjectedFromSIPs, totalMonthlySIPContribution, monthsToTarget
+    - `get_goal` endpoint now returns additionalMonthlySavingsNeeded and totalMonthlyNeeded
+    - Frequency conversion for SIP: Daily×30, Weekly×4, Monthly×1, Quarterly÷3, Yearly÷12
+    - linkedDetails now includes hasSIP flag and projectedValue for SIP investments
+  - **Frontend GoalDetail Enhancements**:
+    - New "SIP Projections at Target Date" section showing:
+      - Total projected value from all SIPs
+      - Monthly SIP contributions summary
+      - Months to target
+      - Individual SIP cards with current value, SIP amount, return rate, projected value
+    - Enhanced "Linked Sources" section:
+      - "Has SIP" badge for investments with recurring contributions
+      - Arrow showing current → projected value
+    - Enhanced "Smart Suggestions" with Monthly Contribution Breakdown:
+      - Existing SIP Contributions (green)
+      - Additional Savings Needed (amber)
+      - Total Monthly Needed (purple)
+      - Dynamic text mentioning SIP contributions
+      - Gap to fill display if projection is below target
+  - **Testing**: 100% pass rate (28/28 tests: 11 new SIP tests + 17 existing goal tests)
+
 - **Dec 15, 2025 (Session 5 - Part 2)**: Goal Module Implementation (MAJOR FEATURE)
   - **Backend API (Phase 1)**:
     - Created Goal model with fields: id, goalName, goalType, customTypeName, targetAmount, currentAmount, targetDate, linkedInvestmentIds[], linkedLoanId, linkedCreditCardId, linkedAccountIds[], autoCalculate, manualOverride, priority, notes, isCompleted, completedDate
