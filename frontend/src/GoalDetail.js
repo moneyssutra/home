@@ -243,10 +243,10 @@ const GoalDetail = () => {
       </header>
 
       {/* Content */}
-      <div className="px-6 -mt-4 space-y-4">
+      <div className="px-6 -mt-4 space-y-4 relative z-10">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm" data-testid="target-date-card">
             <div className="flex items-center gap-2 mb-2">
               <Calendar className="h-4 w-4 text-[#7C3AED]" />
               <span className="text-xs text-[#0B3D2E]/50">Target Date</span>
@@ -259,7 +259,7 @@ const GoalDetail = () => {
               })}
             </p>
           </div>
-          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm" data-testid="time-remaining-card">
             <div className="flex items-center gap-2 mb-2">
               <Clock className="h-4 w-4 text-[#7C3AED]" />
               <span className="text-xs text-[#0B3D2E]/50">Time Remaining</span>
