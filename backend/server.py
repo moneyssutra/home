@@ -2434,6 +2434,73 @@ async def get_goals_dashboard_summary():
     
     return summary
 
+# ============ OTHER INCOME ENDPOINTS ============
+
+@api_router.post("/other-income", response_model=OtherIncome)
+async def create_other_income(input: OtherIncomeCreate):
+    income_dict = input.model_dump()
+    income_obj = OtherIncome(**income_dict)
+    
+    doc = income_obj.model_dump()
+    doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    await db.other_income.insert_one(doc)
+    return income_obj
+
+@api_router.get("/other-income", response_model=List[OtherIncome])
+async def get_other_incomes():
+    incomes = await db.other_income.find({}, {"_id": 0}).to_list(1000)
+    
+    for income in incomes:
+        if isinstance(income.get('createdAt'), str):
+            income['createdAt'] = datetime.fromisoformat(income['createdAt'])
+    
+    return incomes
+
+@api_router.get("/other-income/{income_id}", response_model=OtherIncome)
+async def get_other_income(income_id: str):
+    income = await db.other_income.find_one({"id": income_id}, {"_id": 0})
+    
+    if not income:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Other income not found")
+    
+    if isinstance(income.get('createdAt'), str):
+        income['createdAt'] = datetime.fromisoformat(income['createdAt'])
+    
+    return income
+
+@api_router.put("/other-income/{income_id}", response_model=OtherIncome)
+async def update_other_income(income_id: str, input: OtherIncomeCreate):
+    existing = await db.other_income.find_one({"id": income_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Other income not found")
+    
+    income_dict = input.model_dump()
+    income_dict['id'] = income_id
+    income_dict['createdAt'] = existing['createdAt']
+    
+    await db.other_income.replace_one({"id": income_id}, income_dict)
+    
+    income_obj = OtherIncome(**income_dict)
+    if isinstance(income_obj.createdAt, str):
+        income_obj.createdAt = datetime.fromisoformat(income_obj.createdAt)
+    
+    return income_obj
+
+@api_router.delete("/other-income/{income_id}")
+async def delete_other_income(income_id: str):
+    existing = await db.other_income.find_one({"id": income_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Other income not found")
+    
+    await db.other_income.delete_one({"id": income_id})
+    return {"message": "Other income deleted successfully", "id": income_id}
+
 # Include the router in the main app
 app.include_router(api_router)
 
