@@ -257,6 +257,60 @@ const GoalDetail = () => {
           </div>
         </div>
 
+        {/* SIP Projections - Only show if there are SIP investments */}
+        {goal.sipProjections && goal.sipProjections.length > 0 && (
+          <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-5 border border-emerald-200" data-testid="sip-projections-section">
+            <h3 className="text-sm font-semibold text-emerald-800 mb-4 flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-emerald-600" />
+              SIP Projections at Target Date
+            </h3>
+            
+            {/* Total Projection Summary */}
+            <div className="bg-white/70 rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-[#0B3D2E]/70">Projected Value from SIPs</span>
+                <span className="text-lg font-bold text-emerald-600">
+                  ₹ {formatAmount(goal.totalProjectedFromSIPs || 0)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-[#0B3D2E]/70">Monthly SIP Contributions</span>
+                <span className="text-sm font-semibold text-[#0B3D2E]">
+                  ₹ {formatAmount(goal.totalMonthlySIPContribution || 0)}/month
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-[#0B3D2E]/70">Months to Target</span>
+                <span className="text-sm font-semibold text-[#0B3D2E]">
+                  {Math.round(goal.monthsToTarget || 0)} months
+                </span>
+              </div>
+            </div>
+            
+            {/* Individual SIP Details */}
+            <div className="space-y-2">
+              {goal.sipProjections.map((sip, index) => (
+                <div key={index} className="bg-white/50 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-[#0B3D2E]">{sip.investmentName}</span>
+                    <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">
+                      {sip.frequency} SIP
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-[#0B3D2E]/60">
+                    <div>Current: ₹{formatAmount(sip.currentValue)}</div>
+                    <div>SIP: ₹{formatAmount(sip.sipAmount)}/{sip.frequency?.toLowerCase()}</div>
+                    <div>Return: {sip.returnRate || 0}% p.a.</div>
+                    <div className="text-emerald-600 font-medium">
+                      Projected: ₹{formatAmount(sip.projectedValue)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Linked Sources */}
         {(goal.linkedDetails?.length > 0 || goal.linkedLoan || goal.linkedCreditCard) && (
           <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm" data-testid="linked-sources-section">
@@ -287,6 +341,7 @@ const GoalDetail = () => {
                       <p className="text-xs text-[#0B3D2E]/50">
                         {source.type}{source.category ? ` • ${source.category}` : ""}
                         {source.accountType ? ` • ${source.accountType}` : ""}
+                        {source.hasSIP && <span className="ml-1 text-emerald-600">• Has SIP</span>}
                       </p>
                     </div>
                   </div>
@@ -294,10 +349,17 @@ const GoalDetail = () => {
                     <p className="text-sm font-semibold text-[#0B3D2E]">
                       ₹ {formatAmount(source.contribution)}
                     </p>
-                    <p className="text-xs text-emerald-600 flex items-center justify-end gap-0.5">
-                      <ArrowUpRight className="h-3 w-3" />
-                      Contributing
-                    </p>
+                    {source.projectedValue && source.projectedValue > source.contribution && (
+                      <p className="text-xs text-emerald-600">
+                        → ₹{formatAmount(source.projectedValue)}
+                      </p>
+                    )}
+                    {!source.projectedValue && (
+                      <p className="text-xs text-emerald-600 flex items-center justify-end gap-0.5">
+                        <ArrowUpRight className="h-3 w-3" />
+                        Contributing
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
