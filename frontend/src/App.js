@@ -32,6 +32,8 @@ import AccountForm from "@/AccountForm";
 import MyAccounts from "@/MyAccounts";
 import ExpenseForm from "@/ExpenseForm";
 import MyExpenses from "@/MyExpenses";
+import FixedExpenses from "@/FixedExpenses";
+import VariableExpenses from "@/VariableExpenses";
 import InsuranceForm from "@/InsuranceForm";
 import MyInsurance from "@/MyInsurance";
 import InvestmentForm from "@/InvestmentForm";
