@@ -32,6 +32,7 @@ const LoanIncome = () => {
   // Assets and Accounts for linking
   const [assets, setAssets] = useState([]);
   const [accounts, setAccounts] = useState([]);
+  const [reverseLinkedAssets, setReverseLinkedAssets] = useState([]); // Assets that link to this loan
   
   // UI state
   const [errors, setErrors] = useState({});
