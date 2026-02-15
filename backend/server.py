@@ -1091,19 +1091,23 @@ async def get_loan_linked_assets(loan_id: str, request: Request):
 # ============ ASSET ENDPOINTS ============
 
 @api_router.post("/assets", response_model=Asset)
-async def create_asset(input: AssetCreate):
+async def create_asset(input: AssetCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
     asset_dict = input.model_dump()
+    asset_dict['userId'] = user.get('user_id')
     asset_obj = Asset(**asset_dict)
     
     # Auto-create Rental Income if asset generates income
     if asset_obj.generatesIncome and asset_obj.incomeAmount:
-        # Check if rental income already exists for this asset
         existing_income = await db.income_sources.find_one({"assetId": asset_obj.id}, {"_id": 0})
         
         if not existing_income:
-            # Create rental income entry
             rental_income = {
                 "id": str(uuid.uuid4()),
+                "userId": user.get('user_id'),
                 "type": "Rental",
                 "name": asset_obj.assetName,
                 "expectedAmount": asset_obj.incomeAmount,
@@ -1117,8 +1121,6 @@ async def create_asset(input: AssetCreate):
             }
             
             await db.income_sources.insert_one(rental_income)
-            
-            # Update asset with linked income ID
             asset_obj.linkedIncomeId = rental_income["id"]
     
     doc = asset_obj.model_dump()
@@ -1128,47 +1130,61 @@ async def create_asset(input: AssetCreate):
     return asset_obj
 
 @api_router.get("/assets", response_model=List[Asset])
-async def get_assets():
-    assets = await db.assets.find({}, {"_id": 0}).to_list(1000)
+async def get_assets(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
     
     for asset in assets:
-        if isinstance(asset['createdAt'], str):
+        if isinstance(asset.get('createdAt'), str):
             asset['createdAt'] = datetime.fromisoformat(asset['createdAt'])
     
     return assets
 
 @api_router.get("/assets/{asset_id}", response_model=Asset)
-async def get_asset(asset_id: str):
-    asset = await db.assets.find_one({"id": asset_id}, {"_id": 0})
+async def get_asset(asset_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = asset_id
+    asset = await db.assets.find_one(user_filter, {"_id": 0})
     
     if not asset:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Asset not found")
     
-    if isinstance(asset['createdAt'], str):
+    if isinstance(asset.get('createdAt'), str):
         asset['createdAt'] = datetime.fromisoformat(asset['createdAt'])
     
     return asset
 
 @api_router.put("/assets/{asset_id}", response_model=Asset)
-async def update_asset(asset_id: str, input: AssetCreate):
-    existing = await db.assets.find_one({"id": asset_id}, {"_id": 0})
+async def update_asset(asset_id: str, input: AssetCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = asset_id
+    existing = await db.assets.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Asset not found")
     
     asset_dict = input.model_dump()
     asset_dict['id'] = asset_id
+    asset_dict['userId'] = user.get('user_id')
     asset_dict['createdAt'] = existing['createdAt']
     
     # Handle rental income linking
     if asset_dict.get('generatesIncome') and asset_dict.get('incomeAmount'):
-        # Check if rental income already exists for this asset
         existing_income = await db.income_sources.find_one({"assetId": asset_id}, {"_id": 0})
         
         if existing_income:
-            # Update existing rental income
             await db.income_sources.update_one(
                 {"assetId": asset_id},
                 {"$set": {
@@ -1183,9 +1199,9 @@ async def update_asset(asset_id: str, input: AssetCreate):
             )
             asset_dict['linkedIncomeId'] = existing_income['id']
         else:
-            # Create new rental income
             rental_income = {
                 "id": str(uuid.uuid4()),
+                "userId": user.get('user_id'),
                 "type": "Rental",
                 "name": asset_dict['assetName'],
                 "expectedAmount": asset_dict['incomeAmount'],
@@ -1200,7 +1216,6 @@ async def update_asset(asset_id: str, input: AssetCreate):
             await db.income_sources.insert_one(rental_income)
             asset_dict['linkedIncomeId'] = rental_income['id']
     elif not asset_dict.get('generatesIncome'):
-        # If income generation turned off, remove the linked income
         asset_dict['linkedIncomeId'] = None
         await db.income_sources.delete_many({"assetId": asset_id})
     
@@ -1213,11 +1228,16 @@ async def update_asset(asset_id: str, input: AssetCreate):
     return asset_obj
 
 @api_router.delete("/assets/{asset_id}")
-async def delete_asset(asset_id: str):
-    existing = await db.assets.find_one({"id": asset_id}, {"_id": 0})
+async def delete_asset(asset_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = asset_id
+    existing = await db.assets.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Asset not found")
     
     await db.assets.delete_one({"id": asset_id})
@@ -1226,8 +1246,13 @@ async def delete_asset(asset_id: str):
 # ============ ACCOUNT ENDPOINTS ============
 
 @api_router.post("/accounts", response_model=Account)
-async def create_account(input: AccountCreate):
+async def create_account(input: AccountCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
     account_dict = input.model_dump()
+    account_dict['userId'] = user.get('user_id')
     account_obj = Account(**account_dict)
     
     doc = account_obj.model_dump()
@@ -1237,38 +1262,54 @@ async def create_account(input: AccountCreate):
     return account_obj
 
 @api_router.get("/accounts", response_model=List[Account])
-async def get_accounts():
-    accounts = await db.accounts.find({}, {"_id": 0}).to_list(1000)
+async def get_accounts(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
     
     for account in accounts:
-        if isinstance(account['createdAt'], str):
+        if isinstance(account.get('createdAt'), str):
             account['createdAt'] = datetime.fromisoformat(account['createdAt'])
     
     return accounts
 
 @api_router.get("/accounts/{account_id}", response_model=Account)
-async def get_account(account_id: str):
-    account = await db.accounts.find_one({"id": account_id}, {"_id": 0})
+async def get_account(account_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = account_id
+    account = await db.accounts.find_one(user_filter, {"_id": 0})
     
     if not account:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Account not found")
     
-    if isinstance(account['createdAt'], str):
+    if isinstance(account.get('createdAt'), str):
         account['createdAt'] = datetime.fromisoformat(account['createdAt'])
     
     return account
 
 @api_router.put("/accounts/{account_id}", response_model=Account)
-async def update_account(account_id: str, input: AccountCreate):
-    existing = await db.accounts.find_one({"id": account_id}, {"_id": 0})
+async def update_account(account_id: str, input: AccountCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = account_id
+    existing = await db.accounts.find_one(user_filter, {"_id": 0})
     
     if not existing:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Account not found")
     
     account_dict = input.model_dump()
     account_dict['id'] = account_id
+    account_dict['userId'] = user.get('user_id')
     account_dict['createdAt'] = existing['createdAt']
     
     await db.accounts.replace_one({"id": account_id}, account_dict)
