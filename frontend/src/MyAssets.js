@@ -203,12 +203,24 @@ const MyAssets = () => {
                             </span>
                           </div>
 
-                          {/* Linked Loan Info */}
+                          {/* Linked Loan Info - Clickable */}
                           {linkedLoan && (
-                            <div className="mt-2 pt-2 border-t border-[#E2E8F0]">
+                            <div 
+                              className="mt-2 pt-2 border-t border-[#E2E8F0] cursor-pointer hover:bg-[#FEF3C7]/30 -mx-2 px-2 py-1 rounded-lg transition-colors"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/loan/${linkedLoan.id}`);
+                              }}
+                              data-testid={`linked-loan-${linkedLoan.id}`}
+                            >
+                              <div className="flex items-center gap-2 mb-1">
+                                <Landmark className="h-4 w-4 text-[#F59E0B]" />
+                                <span className="text-xs font-medium text-[#F59E0B]">Linked Loan</span>
+                                <ExternalLink className="h-3 w-3 text-[#F59E0B]/60 ml-auto" />
+                              </div>
                               <div className="flex items-center justify-between text-sm">
-                                <span className="text-[#0B3D2E]/60">Loan Outstanding:</span>
-                                <span className="font-medium text-[#F59E0B]">
+                                <span className="text-[#0B3D2E]/70 truncate">{linkedLoan.loanName}</span>
+                                <span className="font-medium text-[#F59E0B] flex-shrink-0">
                                   - ₹{formatAmount(linkedLoan.outstandingAmount)}
                                 </span>
                               </div>
