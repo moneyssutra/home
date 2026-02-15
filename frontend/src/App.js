@@ -175,98 +175,12 @@ function App() {
 
   return (
     <div className="App">
-      <BrowserRouter>
-        <Routes>
-          {/* Main Routes */}
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/setup" element={<BasicSetup />} />
-          
-          {/* Navigation Routes */}
-          <Route path="/my-income" element={<MyIncome />} />
-          <Route path="/portfolio" element={<Portfolio />} />
-          
-          {/* Business Income */}
-          <Route path="/my-business" element={<MyBusiness />} />
-          <Route path="/business-income" element={<BusinessIncome />} />
-          <Route path="/business-income/:id" element={<BusinessIncome />} />
-          
-          {/* Job Income */}
-          <Route path="/my-job" element={<MyJob />} />
-          <Route path="/job-income" element={<JobIncome />} />
-          <Route path="/job-income/:id" element={<JobIncome />} />
-          
-          {/* Interest Income */}
-          <Route path="/my-interest" element={<MyInterest />} />
-          <Route path="/interest-income" element={<InterestIncome />} />
-          <Route path="/interest-income/:id" element={<InterestIncome />} />
-          
-          {/* Rental Income */}
-          <Route path="/my-rental" element={<MyRental />} />
-          <Route path="/rental-income" element={<RentalIncome />} />
-          <Route path="/rental-income/:id" element={<RentalIncome />} />
-          
-          {/* Commission Income */}
-          <Route path="/my-commission" element={<MyCommission />} />
-          <Route path="/commission-income" element={<CommissionIncome />} />
-          <Route path="/commission-income/:id" element={<CommissionIncome />} />
-          
-          {/* Dividend Income */}
-          <Route path="/my-dividend" element={<MyDividend />} />
-          <Route path="/dividend-income" element={<DividendIncome />} />
-          <Route path="/dividend-income/:id" element={<DividendIncome />} />
-          
-          {/* Loans */}
-          <Route path="/my-loans" element={<MyLoans />} />
-          <Route path="/loan" element={<LoanForm />} />
-          <Route path="/loan/:id" element={<LoanForm />} />
-          
-          {/* Assets */}
-          <Route path="/my-assets" element={<MyAssets />} />
-          <Route path="/asset" element={<AssetForm />} />
-          <Route path="/asset/:id" element={<AssetForm />} />
-          
-          {/* Accounts */}
-          <Route path="/my-accounts" element={<MyAccounts />} />
-          <Route path="/account" element={<AccountForm />} />
-          <Route path="/account/:id" element={<AccountForm />} />
-          
-          {/* Expenses */}
-          <Route path="/my-expenses" element={<MyExpenses />} />
-          <Route path="/expenses/fixed" element={<FixedExpenses />} />
-          <Route path="/expenses/variable" element={<VariableExpenses />} />
-          <Route path="/expense" element={<ExpenseForm />} />
-          <Route path="/expense/:id" element={<ExpenseForm />} />
-          
-          {/* Insurance */}
-          <Route path="/my-insurance" element={<MyInsurance />} />
-          <Route path="/insurance" element={<InsuranceForm />} />
-          <Route path="/insurance/:id" element={<InsuranceForm />} />
-          
-          {/* Investments */}
-          <Route path="/my-investments" element={<MyInvestments />} />
-          <Route path="/investment" element={<InvestmentForm />} />
-          <Route path="/investment/:id" element={<InvestmentForm />} />
-          
-          {/* Credit Cards */}
-          <Route path="/my-credit-cards" element={<MyCreditCards />} />
-          <Route path="/credit-card" element={<CreditCardForm />} />
-          <Route path="/credit-card/:id" element={<CreditCardForm />} />
-          
-          {/* Goals */}
-          <Route path="/my-goals" element={<MyGoals />} />
-          <Route path="/goal" element={<GoalForm />} />
-          <Route path="/goal/:id" element={<GoalDetail />} />
-          <Route path="/goal/:id/edit" element={<GoalForm />} />
-          <Route path="/goal-achievements" element={<GoalAchievements />} />
-          
-          {/* Other Income */}
-          <Route path="/my-other-income" element={<MyOtherIncome />} />
-          <Route path="/other-income" element={<OtherIncomeForm />} />
-          <Route path="/other-income/:id" element={<OtherIncomeForm />} />
-        </Routes>
-        <Toaster />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppRouter />
+          <Toaster />
+        </BrowserRouter>
+      </AuthProvider>
     </div>
   );
 }
