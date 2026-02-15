@@ -149,6 +149,35 @@ const AssetForm = () => {
       setAvailableInsurances([]);
     }
   };
+  
+  // Handle adding new insurance - preserves form state
+  const handleAddInsurance = () => {
+    const formData = {
+      assetType,
+      assetName,
+      purchaseValue,
+      currentValue,
+      purchaseDate,
+      depreciationType,
+      isFinanced,
+      generatesIncome,
+      isInsured: true, // Set to true since they're adding insurance
+      location: assetLocation,
+      notes,
+      renterName,
+      rentalAmount,
+      securityDeposit,
+      rentalFrequency
+    };
+    
+    // Navigate to insurance form with return state
+    navigate('/insurance', {
+      state: {
+        returnTo: '/asset',
+        assetFormData: formData
+      }
+    });
+  };
 
   const fetchAssetData = async () => {
     try {
