@@ -158,7 +158,10 @@ const MyLoans = () => {
               )}
 
               <div className="space-y-3">
-                {loans.map((loan) => (
+                {loans.map((loan) => {
+                  const linkedAsset = loan.linkedAssetId ? getLinkedAsset(loan.linkedAssetId) : null;
+                  
+                  return (
                   <div
                     key={loan.id}
                     className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
@@ -177,6 +180,20 @@ const MyLoans = () => {
                           <p className="text-sm text-[#0B3D2E]/60 mb-2">
                             {loan.lenderName}
                           </p>
+                        )}
+
+                        {/* Linked Asset Badge */}
+                        {linkedAsset && (
+                          <div className="mb-2">
+                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#E0F2FE] text-xs font-medium text-[#0EA5E9]">
+                              {linkedAsset.assetType?.includes("Property") ? (
+                                <Building2 className="h-3 w-3" />
+                              ) : (
+                                <Home className="h-3 w-3" />
+                              )}
+                              <span>Linked: {linkedAsset.assetName}</span>
+                            </div>
+                          </div>
                         )}
 
                         {/* Outstanding Amount */}
