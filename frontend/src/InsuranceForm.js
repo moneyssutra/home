@@ -541,17 +541,36 @@ const InsuranceForm = () => {
               {/* Premium End Date - only visible when toggle is ON */}
               {autoCreateExpense && (
                 <div className="mt-4 pt-4 border-t border-[#E2E8F0]">
-                  <label htmlFor="premiumEndDate" className="block text-sm font-medium text-[#0B3D2E] mb-2">
+                  <label className="block text-sm font-medium text-[#0B3D2E] mb-2">
                     Premium End Date
                   </label>
-                  <input
-                    id="premiumEndDate"
-                    type="date"
-                    value={premiumEndDate}
-                    onChange={(e) => setPremiumEndDate(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
-                    data-testid="premium-end-date-input"
-                  />
+                  <Popover open={premiumEndCalendarOpen} onOpenChange={setPremiumEndCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="w-full flex items-center justify-between rounded-xl border border-[#E2E8F0] bg-white px-4 py-3 text-left text-[#0B3D2E] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                        data-testid="premium-end-date-input"
+                      >
+                        <span className={premiumEndDate ? "text-[#0B3D2E]" : "text-[#94A3B8]"}>
+                          {premiumEndDate ? format(new Date(premiumEndDate), "PPP") : "Select premium end date"}
+                        </span>
+                        <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 bg-white" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={premiumEndDate ? new Date(premiumEndDate) : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            setPremiumEndDate(format(date, "yyyy-MM-dd"));
+                          }
+                          setPremiumEndCalendarOpen(false);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                   <p className="text-xs text-[#0B3D2E]/50 mt-1">After this date, premium won't show in expenses</p>
                 </div>
               )}
