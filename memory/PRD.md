@@ -1,124 +1,141 @@
-# Moneyssutra - Personal Finance Tracker
-
-## Product Overview
-Moneyssutra is a comprehensive personal finance management application built with React (frontend), FastAPI (backend), and MongoDB (database). It supports multi-user workspaces with role-based access control.
+# Moneyssutra - Personal Finance Tracker PRD
 
 ## Original Problem Statement
-Build an intelligent financial tracker with:
-- Goal Module as the strategic brain
-- Other Income module
-- Goal Prioritization UI
-- Goal Milestone notification system
-- Goal Achievements Summary page
-- Asset ↔ Loan Bidirectional Linking
-- Full authentication system (JWT & Google OAuth)
-- User registration feature
-- Enterprise-grade multi-user Workspace architecture
+Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
-## Tech Stack
-- **Frontend**: React with Craco, Tailwind CSS, Lucide React icons
-- **Backend**: FastAPI with Pydantic models
-- **Database**: MongoDB (Motor async driver)
-- **Auth**: JWT sessions + Emergent-managed Google OAuth
+## Current Status
+**Light Theme Implementation: COMPLETE ✅**
 
-## Core Features Implemented
+The application has been updated with a new, professional light theme based on Groww-style design principles following the user's detailed color token system.
 
-### Authentication System
-- JWT-based username/password login
-- User registration
-- Google OAuth (Emergent-managed)
-- Session management with cookies
+## Implemented Features
 
-### Workspace System (Multi-User)
-- Create/join workspaces
-- Invite members via email or code
-- Role-based permissions (owner, admin, editor, viewer)
-- Data isolation per workspace
+### Authentication & User Management
+- JWT-based authentication with login/registration
+- Google OAuth integration (Emergent-managed)
+- Multi-user Workspace architecture with data isolation
+- User profile management
 
 ### Financial Modules
-1. **Income Sources** - Salary, rental, interest, dividends, etc.
-2. **Other Income** - Non-recurring: gifts, bonuses, capital gains
-3. **Expenses** - Fixed and variable expense tracking
-4. **Loans** - Loan management with EMI auto-expense creation
-5. **Assets** - Asset tracking with rental income linking
-6. **Investments** - Portfolio tracking (SIP, lumpsum, etc.)
-7. **Goals** - Financial goals with milestone tracking
-8. **Accounts** - Bank account management
-9. **Credit Cards** - Credit card tracking
-10. **Insurance** - Insurance policy management
+- **Income Tracking**: Business, Job, Rental, Commission, Interest, Dividend, Other Income
+- **Expense Management**: Fixed and Variable expenses with categories
+- **Assets**: Real estate, vehicles, jewelry, etc. with linked loans
+- **Investments**: Stocks, mutual funds, bonds, etc.
+- **Loans**: EMI tracking, linked assets, outstanding balance
+- **Insurance**: Life, health, vehicle, property insurance
+- **Credit Cards**: Outstanding balance, credit limit tracking
+- **Bank Accounts**: Multiple account types
+
+### Goals Module
+- Goal creation with types (Wealth Creation, Debt Elimination, etc.)
+- Progress tracking with milestones
+- Priority-based ordering (drag-and-drop)
+- Goal achievements summary
 
 ### Dashboard
-- Net worth calculation
-- Income vs expense summary
-- Goal progress tracking
-- Investment performance
+- Net worth overview with breakdown
+- Monthly cash flow (Income vs Expense)
+- Goals progress widget
+- Quick navigation to all modules
 
-## Architecture
-```
-/app/
-├── backend/
-│   ├── server.py          # Main FastAPI app with all models & routes
-│   ├── database.py        # MongoDB connection
-│   ├── .env               # MONGO_URL, DB_NAME, CORS_ORIGINS
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── contexts/      # AuthContext, WorkspaceContext
-│   │   ├── pages/         # All page components
-│   │   └── components/ui/ # Shadcn UI components
-│   ├── .env               # REACT_APP_BACKEND_URL
-│   └── package.json
-└── memory/
-    └── PRD.md
-```
+## Technical Stack
+- **Frontend**: React 18, Tailwind CSS, Shadcn/UI, React Router
+- **Backend**: FastAPI (Python), Modular architecture (routes, models, services)
+- **Database**: MongoDB
+- **Authentication**: JWT + Google OAuth
 
-## API Endpoints
-- `/api/auth/*` - Authentication (login, register, logout, google, me)
-- `/api/workspaces/*` - Workspace management
-- `/api/income/*` - Income sources CRUD
-- `/api/other-income/*` - Other income CRUD
-- `/api/expenses/*` - Expenses CRUD
-- `/api/loans/*` - Loans CRUD
-- `/api/assets/*` - Assets CRUD
-- `/api/investments/*` - Investments CRUD
-- `/api/goals/*` - Goals CRUD
-- `/api/accounts/*` - Accounts CRUD
-- `/api/credit-cards/*` - Credit cards CRUD
-- `/api/insurance/*` - Insurance CRUD
-- `/api/dashboard/*` - Dashboard data
+## Light Theme Color System (NEW)
+
+### Brand Colors
+- `brand-primary`: #059669 (Green)
+- `brand-primary-light`: #10B981
+- `brand-primary-soft`: #D1FAE5
+- `brand-secondary`: #14B8A6 (Teal)
+- `brand-secondary-soft`: #CCFBF1
+
+### Background Colors
+- `bg-app`: #F5F7FA (Soft grey)
+- `bg-card`: #FFFFFF (White)
+- `bg-subtle`: #F8FAFC
+- `bg-disabled`: #F1F5F9
+
+### Text Colors
+- `text-primary`: #1F2937 (Dark charcoal)
+- `text-secondary`: #6B7280
+- `text-muted`: #94A3B8
+- `text-inverse`: #FFFFFF
+
+### Status Colors
+- Success: #16A34A / #DCFCE7
+- Error: #EF4444 / #FEE2E2
+- Warning: #F59E0B / #FEF3C7
+- Info: #3B82F6 / #DBEAFE
+
+### Navigation
+- Active: #059669 (Green)
+- Inactive: #9CA3AF (Grey)
+- Background: #FFFFFF (White)
+
+### Design Principles Applied
+✅ Lots of whitespace
+✅ Rounded corners (12-16px)
+✅ Thin dividers (1px borders)
+✅ No thick borders
+✅ Green only for meaningful actions
+✅ Soft shadows (Groww style)
+✅ No neon shades
+
+## Upcoming Tasks
+
+### P0 - Immediate
+- **Expense Transaction Module**: Track spending transactions with receipt upload
+
+### P1 - High Priority
+- PWA features (offline support, install prompt)
+- Data export functionality (PDF/Excel)
+
+### P2 - Medium Priority
+- AI Smart Insights on Dashboard
+- Backend scheduler for automatic fixed expense deductions
+- Loan amortization schedule view
+
+### P3 - Future
+- Mobile OTP, PIN, Biometric Login
+- Two-Factor Authentication (2FA)
+- Dark mode toggle
+
+## Files Updated (Light Theme)
+
+### Core Pages
+- `frontend/src/Dashboard.js`
+- `frontend/src/pages/Login.js`
+- `frontend/src/Welcome.js`
+- `frontend/src/Portfolio.js`
+- `frontend/src/MyIncome.js`
+- `frontend/src/MyExpenses.js`
+- `frontend/src/MyGoals.js`
+
+### Components
+- `frontend/src/components/BottomNav.js`
+- `frontend/src/components/AddActionSheet.js`
+- `frontend/src/components/BackButton.js`
+
+### Styles
+- `frontend/src/index.css` - CSS variables and honeycomb-bg overrides
+
+### Form Pages (CSS Override Applied)
+- ExpenseForm.js (Header, buttons, dialogs updated)
+- Other forms use honeycomb-bg CSS overrides
 
 ## Test Credentials
-- **Demo User**: username: `test`, password: `test`
-- **Email**: test@moneyssutra.com
+- **Test User**: test / test
+- **New Users**: Register via the UI
 
-## Deployment Status
-- **Preview URL**: https://money-tracker-ui-1.preview.emergentagent.com
-- **Status**: Ready for production deployment
-- **Health**: All systems operational
-
-## Completed Tasks (Feb 2025)
-- [x] Full authentication system (JWT + Google OAuth)
-- [x] User registration
-- [x] Workspace multi-user architecture
-- [x] All financial modules (income, expenses, loans, assets, investments, goals)
-- [x] Dashboard with net worth calculations
-- [x] Backend refactoring (modular architecture attempted, consolidated for stability)
-- [x] Bug fixes (clipboard copy, workspace settings, etc.)
-- [x] Health check passed
-- [x] Bottom navigation added to ALL pages (27 pages updated)
-- [x] Demo credentials removed from login page
-
-## Backlog (P1/P2)
-- [ ] **Expense Transaction Module** (P1) - Daily spending tracker
-- [ ] Mobile OTP/PIN/Biometric Login (P2)
-- [ ] Two-Factor Authentication (P2)
-- [ ] Data export functionality (P2)
-- [ ] AI Smart Insights (P2)
-- [ ] Backend scheduler for auto expense deductions (P2)
-- [ ] Loan amortization schedule view (P2)
-
-## Known Issues
-None - All reported issues have been resolved.
-
-## 3rd Party Integrations
-- **Emergent-managed Google Auth**: Handles Google OAuth flow
+## API Endpoints (Key)
+- `/api/auth/*` - Authentication
+- `/api/dashboard/networth` - Dashboard data
+- `/api/income/*`, `/api/expenses/*` - Income/Expense CRUD
+- `/api/assets/*`, `/api/investments/*` - Assets/Investments
+- `/api/loans/*`, `/api/insurances/*` - Loans/Insurance
+- `/api/goals/*` - Goals management
+- `/api/workspaces/*` - Workspace management
