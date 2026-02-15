@@ -1784,6 +1784,412 @@ async def delete_credit_card(card_id: str):
     await db.credit_cards.delete_one({"id": card_id})
     return {"message": "Credit card deleted successfully", "id": card_id}
 
+# ============ GOAL ENDPOINTS ============
+
+async def calculate_goal_progress(goal: dict) -> dict:
+    """Calculate the current progress of a goal based on linked sources"""
+    calculated_amount = 0
+    linked_details = []
+    
+    # If manual override is set, use the stored currentAmount
+    if goal.get('manualOverride') and not goal.get('autoCalculate'):
+        return {
+            "currentAmount": goal.get('currentAmount', 0),
+            "linkedDetails": [],
+            "calculationMethod": "manual"
+        }
+    
+    goal_type = goal.get('goalType', '')
+    
+    # For Debt Elimination goals - track loan/credit card payoff
+    if goal_type == "Debt Elimination":
+        if goal.get('linkedLoanId'):
+            loan = await db.loans.find_one({"id": goal['linkedLoanId']}, {"_id": 0})
+            if loan:
+                # Progress = Principal - Outstanding (amount paid off)
+                principal = loan.get('principalAmount', 0)
+                outstanding = loan.get('outstandingAmount', 0)
+                paid_off = principal - outstanding
+                calculated_amount += paid_off
+                linked_details.append({
+                    "type": "Loan",
+                    "name": loan.get('loanName'),
+                    "contribution": paid_off,
+                    "principal": principal,
+                    "outstanding": outstanding
+                })
+        
+        if goal.get('linkedCreditCardId'):
+            card = await db.credit_cards.find_one({"id": goal['linkedCreditCardId']}, {"_id": 0})
+            if card:
+                # For credit card, progress is credit limit - outstanding
+                limit = card.get('creditLimit', 0)
+                outstanding = card.get('outstandingAmount', 0)
+                available = limit - outstanding
+                calculated_amount += available
+                linked_details.append({
+                    "type": "Credit Card",
+                    "name": card.get('cardName'),
+                    "contribution": available,
+                    "creditLimit": limit,
+                    "outstanding": outstanding
+                })
+    
+    # For Investment Target / Wealth Creation goals
+    elif goal_type in ["Investment Target", "Wealth Creation"]:
+        # Sum up linked investments' current values
+        linked_investment_ids = goal.get('linkedInvestmentIds', [])
+        for inv_id in linked_investment_ids:
+            investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
+            if investment:
+                current_value = investment.get('currentValue', 0)
+                calculated_amount += current_value
+                linked_details.append({
+                    "type": "Investment",
+                    "name": investment.get('name'),
+                    "category": investment.get('investmentCategory'),
+                    "contribution": current_value,
+                    "principal": investment.get('principal', 0)
+                })
+        
+        # Also add linked account balances
+        linked_account_ids = goal.get('linkedAccountIds', [])
+        for acc_id in linked_account_ids:
+            account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
+            if account and account.get('accountType') != 'Credit Card':
+                balance = account.get('currentBalance', 0)
+                calculated_amount += balance
+                linked_details.append({
+                    "type": "Account",
+                    "name": account.get('accountName'),
+                    "accountType": account.get('accountType'),
+                    "contribution": balance
+                })
+    
+    # For Emergency Fund goals
+    elif goal_type == "Emergency Fund":
+        # Sum up linked account balances (savings, FDs, etc.)
+        linked_account_ids = goal.get('linkedAccountIds', [])
+        for acc_id in linked_account_ids:
+            account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
+            if account and account.get('accountType') != 'Credit Card':
+                balance = account.get('currentBalance', 0)
+                calculated_amount += balance
+                linked_details.append({
+                    "type": "Account",
+                    "name": account.get('accountName'),
+                    "accountType": account.get('accountType'),
+                    "contribution": balance
+                })
+        
+        # Also include liquid investments
+        linked_investment_ids = goal.get('linkedInvestmentIds', [])
+        for inv_id in linked_investment_ids:
+            investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
+            if investment:
+                current_value = investment.get('currentValue', 0)
+                calculated_amount += current_value
+                linked_details.append({
+                    "type": "Investment",
+                    "name": investment.get('name'),
+                    "category": investment.get('investmentCategory'),
+                    "contribution": current_value
+                })
+    
+    # For Other/Custom goals - use linked sources or manual amount
+    else:
+        # Sum up any linked investments
+        for inv_id in goal.get('linkedInvestmentIds', []):
+            investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
+            if investment:
+                calculated_amount += investment.get('currentValue', 0)
+                linked_details.append({
+                    "type": "Investment",
+                    "name": investment.get('name'),
+                    "contribution": investment.get('currentValue', 0)
+                })
+        
+        # Sum up linked accounts
+        for acc_id in goal.get('linkedAccountIds', []):
+            account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
+            if account and account.get('accountType') != 'Credit Card':
+                calculated_amount += account.get('currentBalance', 0)
+                linked_details.append({
+                    "type": "Account",
+                    "name": account.get('accountName'),
+                    "contribution": account.get('currentBalance', 0)
+                })
+    
+    # If manual override is set but auto-calculate is also on, use max of both
+    if goal.get('manualOverride'):
+        manual_amount = goal.get('currentAmount', 0)
+        if manual_amount > calculated_amount:
+            return {
+                "currentAmount": manual_amount,
+                "linkedDetails": linked_details,
+                "calculationMethod": "manual_override"
+            }
+    
+    return {
+        "currentAmount": calculated_amount,
+        "linkedDetails": linked_details,
+        "calculationMethod": "auto"
+    }
+
+@api_router.post("/goals", response_model=Goal)
+async def create_goal(input: GoalCreate):
+    goal_dict = input.model_dump()
+    goal_obj = Goal(**goal_dict)
+    
+    # For Debt Elimination, auto-set target to outstanding amount
+    if goal_obj.goalType == "Debt Elimination":
+        if goal_obj.linkedLoanId:
+            loan = await db.loans.find_one({"id": goal_obj.linkedLoanId}, {"_id": 0})
+            if loan and goal_obj.targetAmount == 0:
+                goal_obj.targetAmount = loan.get('outstandingAmount', 0)
+        elif goal_obj.linkedCreditCardId:
+            card = await db.credit_cards.find_one({"id": goal_obj.linkedCreditCardId}, {"_id": 0})
+            if card and goal_obj.targetAmount == 0:
+                goal_obj.targetAmount = card.get('outstandingAmount', 0)
+    
+    doc = goal_obj.model_dump()
+    doc['createdAt'] = doc['createdAt'].isoformat()
+    
+    await db.goals.insert_one(doc)
+    return goal_obj
+
+@api_router.get("/goals")
+async def get_goals():
+    """Get all goals with calculated progress"""
+    goals = await db.goals.find({}, {"_id": 0}).to_list(1000)
+    
+    result = []
+    for goal in goals:
+        if isinstance(goal.get('createdAt'), str):
+            goal['createdAt'] = datetime.fromisoformat(goal['createdAt'])
+        
+        # Calculate progress
+        progress_data = await calculate_goal_progress(goal)
+        goal['calculatedAmount'] = progress_data['currentAmount']
+        goal['linkedDetails'] = progress_data['linkedDetails']
+        goal['calculationMethod'] = progress_data['calculationMethod']
+        
+        # Calculate progress percentage
+        target = goal.get('targetAmount', 0)
+        current = progress_data['currentAmount']
+        goal['progressPercent'] = round((current / target) * 100, 1) if target > 0 else 0
+        
+        # Calculate days remaining
+        target_date = goal.get('targetDate')
+        if target_date:
+            try:
+                target_dt = datetime.fromisoformat(target_date).date()
+                today = datetime.now(timezone.utc).date()
+                days_remaining = (target_dt - today).days
+                goal['daysRemaining'] = days_remaining
+                goal['isOverdue'] = days_remaining < 0
+            except (ValueError, TypeError):
+                goal['daysRemaining'] = None
+                goal['isOverdue'] = False
+        
+        result.append(goal)
+    
+    # Sort by priority (1=high first) then by days remaining
+    result.sort(key=lambda x: (x.get('priority', 1), x.get('daysRemaining') or 9999))
+    
+    return result
+
+@api_router.get("/goals/{goal_id}")
+async def get_goal(goal_id: str):
+    """Get a single goal with full details"""
+    goal = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    
+    if not goal:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Goal not found")
+    
+    if isinstance(goal.get('createdAt'), str):
+        goal['createdAt'] = datetime.fromisoformat(goal['createdAt'])
+    
+    # Calculate progress
+    progress_data = await calculate_goal_progress(goal)
+    goal['calculatedAmount'] = progress_data['currentAmount']
+    goal['linkedDetails'] = progress_data['linkedDetails']
+    goal['calculationMethod'] = progress_data['calculationMethod']
+    
+    # Calculate progress percentage
+    target = goal.get('targetAmount', 0)
+    current = progress_data['currentAmount']
+    goal['progressPercent'] = round((current / target) * 100, 1) if target > 0 else 0
+    
+    # Calculate days remaining
+    target_date = goal.get('targetDate')
+    if target_date:
+        try:
+            target_dt = datetime.fromisoformat(target_date).date()
+            today = datetime.now(timezone.utc).date()
+            days_remaining = (target_dt - today).days
+            goal['daysRemaining'] = days_remaining
+            goal['isOverdue'] = days_remaining < 0
+        except (ValueError, TypeError):
+            goal['daysRemaining'] = None
+            goal['isOverdue'] = False
+    
+    # Get full details of linked sources
+    linked_investments = []
+    for inv_id in goal.get('linkedInvestmentIds', []):
+        inv = await db.investments.find_one({"id": inv_id}, {"_id": 0})
+        if inv:
+            linked_investments.append(inv)
+    goal['linkedInvestments'] = linked_investments
+    
+    linked_accounts = []
+    for acc_id in goal.get('linkedAccountIds', []):
+        acc = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
+        if acc:
+            linked_accounts.append(acc)
+    goal['linkedAccounts'] = linked_accounts
+    
+    if goal.get('linkedLoanId'):
+        loan = await db.loans.find_one({"id": goal['linkedLoanId']}, {"_id": 0})
+        goal['linkedLoan'] = loan
+    
+    if goal.get('linkedCreditCardId'):
+        card = await db.credit_cards.find_one({"id": goal['linkedCreditCardId']}, {"_id": 0})
+        goal['linkedCreditCard'] = card
+    
+    return goal
+
+@api_router.put("/goals/{goal_id}")
+async def update_goal(goal_id: str, input: GoalCreate):
+    existing = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Goal not found")
+    
+    goal_dict = input.model_dump()
+    goal_dict['id'] = goal_id
+    goal_dict['createdAt'] = existing['createdAt']
+    goal_dict['isCompleted'] = existing.get('isCompleted', False)
+    goal_dict['completedDate'] = existing.get('completedDate')
+    
+    await db.goals.replace_one({"id": goal_id}, goal_dict)
+    
+    # Return updated goal with progress
+    updated = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    progress_data = await calculate_goal_progress(updated)
+    updated['calculatedAmount'] = progress_data['currentAmount']
+    updated['progressPercent'] = round((progress_data['currentAmount'] / updated.get('targetAmount', 1)) * 100, 1) if updated.get('targetAmount', 0) > 0 else 0
+    
+    return updated
+
+@api_router.patch("/goals/{goal_id}/complete")
+async def mark_goal_complete(goal_id: str):
+    """Mark a goal as completed"""
+    existing = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Goal not found")
+    
+    await db.goals.update_one(
+        {"id": goal_id},
+        {"$set": {
+            "isCompleted": True,
+            "completedDate": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Goal marked as completed", "id": goal_id}
+
+@api_router.patch("/goals/{goal_id}/progress")
+async def update_goal_progress(goal_id: str, current_amount: float):
+    """Manually update the current amount for a goal"""
+    existing = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Goal not found")
+    
+    await db.goals.update_one(
+        {"id": goal_id},
+        {"$set": {
+            "currentAmount": current_amount,
+            "manualOverride": True
+        }}
+    )
+    
+    # Check if goal is now complete
+    target = existing.get('targetAmount', 0)
+    if current_amount >= target and target > 0:
+        await db.goals.update_one(
+            {"id": goal_id},
+            {"$set": {
+                "isCompleted": True,
+                "completedDate": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        return {"message": "Goal progress updated and marked as completed!", "id": goal_id, "currentAmount": current_amount}
+    
+    return {"message": "Goal progress updated", "id": goal_id, "currentAmount": current_amount}
+
+@api_router.delete("/goals/{goal_id}")
+async def delete_goal(goal_id: str):
+    existing = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    
+    if not existing:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Goal not found")
+    
+    await db.goals.delete_one({"id": goal_id})
+    return {"message": "Goal deleted successfully", "id": goal_id}
+
+@api_router.get("/goals/summary/dashboard")
+async def get_goals_dashboard_summary():
+    """Get summary of goals for dashboard widget"""
+    goals = await db.goals.find({"isCompleted": False}, {"_id": 0}).to_list(1000)
+    
+    total_goals = len(goals)
+    completed_count = await db.goals.count_documents({"isCompleted": True})
+    
+    summary = {
+        "totalActiveGoals": total_goals,
+        "completedGoals": completed_count,
+        "goals": []
+    }
+    
+    for goal in goals[:5]:  # Top 5 goals for dashboard
+        progress_data = await calculate_goal_progress(goal)
+        target = goal.get('targetAmount', 0)
+        current = progress_data['currentAmount']
+        
+        target_date = goal.get('targetDate')
+        days_remaining = None
+        if target_date:
+            try:
+                target_dt = datetime.fromisoformat(target_date).date()
+                today = datetime.now(timezone.utc).date()
+                days_remaining = (target_dt - today).days
+            except (ValueError, TypeError):
+                pass
+        
+        summary["goals"].append({
+            "id": goal.get('id'),
+            "goalName": goal.get('goalName'),
+            "goalType": goal.get('goalType'),
+            "targetAmount": target,
+            "currentAmount": current,
+            "progressPercent": round((current / target) * 100, 1) if target > 0 else 0,
+            "daysRemaining": days_remaining,
+            "priority": goal.get('priority', 1)
+        })
+    
+    # Sort by priority then by progress (lowest progress first - needs attention)
+    summary["goals"].sort(key=lambda x: (x.get('priority', 1), x.get('progressPercent', 0)))
+    
+    return summary
+
 # Include the router in the main app
 app.include_router(api_router)
 
