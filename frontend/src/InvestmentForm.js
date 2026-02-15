@@ -55,6 +55,7 @@ const InvestmentForm = () => {
     "Fixed Deposit (FD)",
     "Recurring Deposit (RD)",
     "Stocks",
+    "US Stocks",
     "Mutual Fund",
     "ETF",
     "Bonds",
@@ -246,8 +247,11 @@ const InvestmentForm = () => {
 
   const isDigitalMetal = ["Digital Gold", "Digital Silver"].includes(investmentCategory);
   const isSGB = investmentCategory === "Sovereign Gold Bond (SGB)";
+  const isSWP = investmentCategory === "SWP";
   const isIncomeGenerating = investmentMode === "Income Generating";
   const isGrowthWithMaturity = investmentMode === "Growth with Maturity";
+  // Hide frequency field for SGB and SWP
+  const showFrequencyField = !isSGB && !isSWP && (investmentCategory === "Mutual Fund" || investmentCategory === "Recurring Deposit (RD)" || investmentCategory === "ETF" || investmentCategory === "Stocks" || investmentCategory === "US Stocks");
 
   return (
     <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="investment-form-page">
@@ -389,8 +393,8 @@ const InvestmentForm = () => {
               {errors.startDate && <p className="text-sm text-red-500 mt-1">{errors.startDate}</p>}
             </div>
 
-            {/* Recurring Investment (SIP) Fields */}
-            {(investmentCategory === "Mutual Fund" || investmentCategory === "Recurring Deposit (RD)" || investmentCategory === "ETF" || investmentCategory === "Stocks") && (
+            {/* Recurring Investment (SIP) Fields - Hidden for SGB and SWP */}
+            {showFrequencyField && (
               <div className="w-full p-4 rounded-xl bg-[#F0FDF4] border border-[#10B981]/20">
                 <h4 className="text-sm font-semibold text-[#0B3D2E] mb-3 flex items-center gap-2">
                   <Info className="h-4 w-4 text-[#10B981]" />
@@ -409,6 +413,7 @@ const InvestmentForm = () => {
                       data-testid="investment-frequency-select"
                     >
                       <option value="">One-time Investment</option>
+                      <option value="Daily">Daily</option>
                       <option value="Weekly">Weekly</option>
                       <option value="Monthly">Monthly (SIP)</option>
                       <option value="Quarterly">Quarterly</option>
