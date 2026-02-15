@@ -458,6 +458,7 @@ class OtherIncome(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: Optional[str] = None  # User isolation
     incomeName: str
     category: str  # Gift, Bonus, Incentive, Capital Gain, Asset Sale, Tax Refund, Cashback / Reward, Reimbursement, Freelance / Side Work, Windfall, Refund, Miscellaneous, Other
     customCategory: Optional[str] = None  # For "Other" category
