@@ -416,6 +416,7 @@ class Goal(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: Optional[str] = None  # User isolation
     goalName: str
     goalType: str  # Wealth Creation, Debt Elimination, Investment Target, Emergency Fund, Other
     customTypeName: Optional[str] = None  # For "Other" type
