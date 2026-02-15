@@ -44,10 +44,10 @@ const WorkspaceSettings = () => {
   const [success, setSuccess] = useState('');
 
   const roleIcons = {
-    owner: <Crown className="h-4 w-4 text-amber-400" />,
-    admin: <Shield className="h-4 w-4 text-blue-400" />,
-    editor: <Edit3 className="h-4 w-4 text-emerald-400" />,
-    viewer: <Eye className="h-4 w-4 text-gray-400" />
+    owner: <Crown className="h-4 w-4 text-amber-600" />,
+    admin: <Shield className="h-4 w-4 text-blue-600" />,
+    editor: <Edit3 className="h-4 w-4 text-emerald-600" />,
+    viewer: <Eye className="h-4 w-4 text-gray-500" />
   };
 
   const roleLabels = {
@@ -58,10 +58,10 @@ const WorkspaceSettings = () => {
   };
 
   const roleColors = {
-    owner: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-    admin: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-    editor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-    viewer: 'bg-[#1E293B]0/20 text-gray-300 border-gray-500/30'
+    owner: 'bg-amber-100 text-amber-700 border-amber-300',
+    admin: 'bg-blue-100 text-blue-700 border-blue-300',
+    editor: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+    viewer: 'bg-gray-100 text-gray-600 border-gray-300'
   };
 
   useEffect(() => {
@@ -232,26 +232,26 @@ const WorkspaceSettings = () => {
 
   if (loading || !currentWorkspace) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#0B1F3B] via-[#111827] to-[#0B1F3B] flex items-center justify-center">
+      <div className="min-h-screen honeycomb-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-white/60">Loading workspace...</p>
+          <p className="text-gray-500">Loading workspace...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B1F3B] via-[#111827] to-[#0B1F3B] pb-24">
+    <div className="min-h-screen honeycomb-bg pb-24">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#0B1F3B] to-[#111827] px-4 py-6 sticky top-0 z-20">
+      <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-6 sticky top-0 z-20">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="text-white/70 hover:text-white">
+          <button onClick={() => navigate(-1)} className="text-white/80 hover:text-white">
             <ChevronLeft className="h-6 w-6" />
           </button>
           <div>
             <h1 className="text-xl font-bold text-white">Workspace Settings</h1>
-            <p className="text-white/50 text-sm">{currentWorkspace.name}</p>
+            <p className="text-white/70 text-sm">{currentWorkspace.name}</p>
           </div>
         </div>
       </div>
@@ -259,33 +259,33 @@ const WorkspaceSettings = () => {
       <div className="px-4 space-y-6 mt-4">
         {/* Messages */}
         {error && (
-          <div className="p-3 rounded-xl bg-red-500/20 border border-red-500/30 text-red-300 text-sm">
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
             {error}
           </div>
         )}
         {success && (
-          <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-sm">
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-sm">
             {success}
           </div>
         )}
 
         {/* Workspace Selector */}
-        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
+        <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-white font-semibold flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-emerald-400" />
+            <h2 className="text-gray-800 font-semibold flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-emerald-600" />
               Your Workspaces
             </h2>
             <div className="flex gap-2">
               <button
                 onClick={() => setShowJoinModal(true)}
-                className="px-3 py-1.5 rounded-lg bg-[#1E293B]/10 text-white text-sm hover:bg-[#1E293B]/20 transition-colors"
+                className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 text-sm hover:bg-gray-200 transition-colors"
               >
                 Join
               </button>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-sm hover:bg-emerald-500/30 transition-colors flex items-center gap-1"
+                className="px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 text-sm hover:bg-emerald-200 transition-colors flex items-center gap-1"
               >
                 <Plus className="h-4 w-4" /> New
               </button>
@@ -299,27 +299,27 @@ const WorkspaceSettings = () => {
                 onClick={() => switchWorkspace(ws.id)}
                 className={`w-full p-3 rounded-xl flex items-center justify-between transition-colors ${
                   ws.id === currentWorkspace.id 
-                    ? 'bg-emerald-500/20 border border-emerald-500/30' 
-                    : 'bg-[#1E293B]/5 border border-white/10 hover:bg-[#1E293B]/10'
+                    ? 'bg-emerald-50 border border-emerald-300' 
+                    : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    ws.type === 'Business' ? 'bg-blue-500/20' : 'bg-emerald-500/20'
+                    ws.type === 'Business' ? 'bg-blue-100' : 'bg-emerald-100'
                   }`}>
                     {ws.type === 'Business' ? (
-                      <Building2 className="h-5 w-5 text-blue-400" />
+                      <Building2 className="h-5 w-5 text-blue-600" />
                     ) : (
-                      <User className="h-5 w-5 text-emerald-400" />
+                      <User className="h-5 w-5 text-emerald-600" />
                     )}
                   </div>
                   <div className="text-left">
-                    <p className="text-white font-medium">{ws.name}</p>
-                    <p className="text-white/50 text-xs">{ws.type} • {ws.role}</p>
+                    <p className="text-gray-800 font-medium">{ws.name}</p>
+                    <p className="text-gray-500 text-xs">{ws.type} • {ws.role}</p>
                   </div>
                 </div>
                 {ws.id === currentWorkspace.id && (
-                  <Check className="h-5 w-5 text-emerald-400" />
+                  <Check className="h-5 w-5 text-emerald-600" />
                 )}
               </button>
             ))}
@@ -328,23 +328,23 @@ const WorkspaceSettings = () => {
 
         {/* Pending Invitations */}
         {pendingInvitations.length > 0 && (
-          <div className="bg-amber-500/10 backdrop-blur-sm rounded-2xl p-5 border border-amber-500/20">
-            <h2 className="text-amber-300 font-semibold mb-4 flex items-center gap-2">
+          <div className="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+            <h2 className="text-amber-700 font-semibold mb-4 flex items-center gap-2">
               <Mail className="h-5 w-5" />
               Pending Invitations ({pendingInvitations.length})
             </h2>
             <div className="space-y-3">
               {pendingInvitations.map(inv => (
-                <div key={inv.id} className="bg-[#1E293B]/5 rounded-xl p-4 flex items-center justify-between">
+                <div key={inv.id} className="bg-white rounded-xl p-4 flex items-center justify-between border border-amber-100">
                   <div>
-                    <p className="text-white font-medium">{inv.workspace_name}</p>
-                    <p className="text-white/50 text-xs">
+                    <p className="text-gray-800 font-medium">{inv.workspace_name}</p>
+                    <p className="text-gray-500 text-xs">
                       Invited by {inv.invited_by_name || 'Unknown'} as {inv.role}
                     </p>
                   </div>
                   <button
                     onClick={() => handleAcceptInvitation(inv.id)}
-                    className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 text-sm hover:bg-emerald-500/30"
+                    className="px-4 py-2 rounded-lg bg-emerald-100 text-emerald-700 text-sm hover:bg-emerald-200"
                   >
                     Accept
                   </button>
@@ -356,27 +356,27 @@ const WorkspaceSettings = () => {
 
         {/* Invite Code Section */}
         {permissions.invite && (
-          <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
-            <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-emerald-400" />
+          <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+            <h2 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-emerald-600" />
               Share Invite Code
             </h2>
-            <p className="text-white/60 text-sm mb-4">
+            <p className="text-gray-500 text-sm mb-4">
               Share this code with others to let them join as viewers
             </p>
             <div className="flex items-center gap-3">
-              <div className="flex-1 bg-[#1E293B]/5 rounded-xl px-4 py-3 font-mono text-xl text-white tracking-widest text-center border border-white/10">
+              <div className="flex-1 bg-gray-50 rounded-xl px-4 py-3 font-mono text-xl text-gray-800 tracking-widest text-center border border-gray-200">
                 {currentWorkspace.invite_code || 'N/A'}
               </div>
               <button
                 onClick={copyInviteCode}
-                className="p-3 rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition-colors"
+                className="p-3 rounded-xl bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors"
               >
                 {copiedCode ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
               </button>
               <button
                 onClick={handleRegenerateCode}
-                className="p-3 rounded-xl bg-[#1E293B]/10 text-white/70 hover:bg-[#1E293B]/20 transition-colors"
+                className="p-3 rounded-xl bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
               >
                 <RefreshCw className="h-5 w-5" />
               </button>
@@ -386,9 +386,9 @@ const WorkspaceSettings = () => {
 
         {/* Invite by Email */}
         {permissions.invite && (
-          <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
-            <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <Mail className="h-5 w-5 text-emerald-400" />
+          <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+            <h2 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
+              <Mail className="h-5 w-5 text-emerald-600" />
               Invite by Email
             </h2>
             <form onSubmit={handleInvite} className="space-y-4">
@@ -397,7 +397,7 @@ const WorkspaceSettings = () => {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="Enter email address"
-                className="w-full px-4 py-3 rounded-xl bg-[#1E293B]/5 border border-white/10 text-white placeholder-white/40 focus:border-emerald-500/50 focus:outline-none"
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
               />
               <div className="flex gap-2">
                 {['viewer', 'editor', 'admin'].map(role => (
@@ -408,7 +408,7 @@ const WorkspaceSettings = () => {
                     className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${
                       inviteRole === role 
                         ? roleColors[role]
-                        : 'bg-[#1E293B]/5 text-white/50 border-white/10 hover:bg-[#1E293B]/10'
+                        : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
                     }`}
                   >
                     {roleLabels[role]}
@@ -426,9 +426,9 @@ const WorkspaceSettings = () => {
         )}
 
         {/* Members List */}
-        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10">
-          <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
-            <Users className="h-5 w-5 text-emerald-400" />
+        <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm">
+          <h2 className="text-gray-800 font-semibold mb-4 flex items-center gap-2">
+            <Users className="h-5 w-5 text-emerald-600" />
             Members ({members.filter(m => m.status === 'active').length})
           </h2>
           
@@ -436,7 +436,7 @@ const WorkspaceSettings = () => {
             {members.filter(m => m.status === 'active' || m.status === 'pending').map(member => (
               <div 
                 key={member.id} 
-                className={`bg-[#1E293B]/5 rounded-xl p-4 flex items-center justify-between ${
+                className={`bg-gray-50 rounded-xl p-4 flex items-center justify-between border border-gray-100 ${
                   member.status === 'pending' ? 'opacity-60' : ''
                 }`}
               >
@@ -446,15 +446,15 @@ const WorkspaceSettings = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-white font-medium">{member.user_name}</p>
+                      <p className="text-gray-800 font-medium">{member.user_name}</p>
                       {member.user_id === user?.user_id && (
-                        <span className="text-xs text-white/50">(You)</span>
+                        <span className="text-xs text-gray-500">(You)</span>
                       )}
                       {member.status === 'pending' && (
-                        <span className="text-xs text-amber-400">(Pending)</span>
+                        <span className="text-xs text-amber-600">(Pending)</span>
                       )}
                     </div>
-                    <p className="text-white/50 text-xs">{member.user_email}</p>
+                    <p className="text-gray-500 text-xs">{member.user_email}</p>
                   </div>
                 </div>
                 
@@ -469,7 +469,7 @@ const WorkspaceSettings = () => {
                       <select
                         value={member.role}
                         onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                        className="bg-[#1E293B]/10 text-white text-xs rounded-lg px-2 py-1 border border-white/10 focus:outline-none"
+                        className="bg-white text-gray-700 text-xs rounded-lg px-2 py-1 border border-gray-200 focus:outline-none focus:border-emerald-500"
                       >
                         <option value="viewer">Viewer</option>
                         <option value="editor">Editor</option>
@@ -477,7 +477,7 @@ const WorkspaceSettings = () => {
                       </select>
                       <button
                         onClick={() => handleRemoveMember(member.id)}
-                        className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                        className="p-1.5 rounded-lg bg-red-100 text-red-600 hover:bg-red-200"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -490,20 +490,20 @@ const WorkspaceSettings = () => {
         </div>
 
         {/* Permission Info */}
-        <div className="bg-[#1E293B]/5 rounded-2xl p-5 border border-white/5">
-          <h3 className="text-white/70 text-sm font-medium mb-3">Role Permissions</h3>
+        <div className="bg-gray-50 rounded-2xl p-5 border border-gray-200">
+          <h3 className="text-gray-600 text-sm font-medium mb-3">Role Permissions</h3>
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="text-white/50">
-              <span className="text-amber-300">Owner:</span> Full access
+            <div className="text-gray-500">
+              <span className="text-amber-600 font-medium">Owner:</span> Full access
             </div>
-            <div className="text-white/50">
-              <span className="text-blue-300">Admin:</span> Add, Edit, View
+            <div className="text-gray-500">
+              <span className="text-blue-600 font-medium">Admin:</span> Add, Edit, View
             </div>
-            <div className="text-white/50">
-              <span className="text-emerald-300">Editor:</span> Add, Edit, View
+            <div className="text-gray-500">
+              <span className="text-emerald-600 font-medium">Editor:</span> Add, Edit, View
             </div>
-            <div className="text-white/50">
-              <span className="text-gray-300">Viewer:</span> View only
+            <div className="text-gray-500">
+              <span className="text-gray-600 font-medium">Viewer:</span> View only
             </div>
           </div>
         </div>
@@ -511,16 +511,16 @@ const WorkspaceSettings = () => {
 
       {/* Create Workspace Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1E293B] rounded-2xl p-6 w-full max-w-sm border border-white/10">
-            <h3 className="text-white font-semibold text-lg mb-4">Create New Workspace</h3>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm border border-gray-200 shadow-xl">
+            <h3 className="text-gray-800 font-semibold text-lg mb-4">Create New Workspace</h3>
             <form onSubmit={handleCreateWorkspace} className="space-y-4">
               <input
                 type="text"
                 value={newWorkspaceName}
                 onChange={(e) => setNewWorkspaceName(e.target.value)}
                 placeholder="Workspace name"
-                className="w-full px-4 py-3 rounded-xl bg-[#1E293B]/5 border border-white/10 text-white placeholder-white/40 focus:border-emerald-500/50 focus:outline-none"
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-100"
               />
               <div className="flex gap-2">
                 {['Personal', 'Business'].map(type => (
@@ -530,8 +530,8 @@ const WorkspaceSettings = () => {
                     onClick={() => setNewWorkspaceType(type)}
                     className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors border flex items-center justify-center gap-2 ${
                       newWorkspaceType === type 
-                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                        : 'bg-[#1E293B]/5 text-white/50 border-white/10 hover:bg-[#1E293B]/10'
+                        ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                        : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
                     }`}
                   >
                     {type === 'Business' ? <Building2 className="h-4 w-4" /> : <User className="h-4 w-4" />}
@@ -543,7 +543,7 @@ const WorkspaceSettings = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 py-3 rounded-xl bg-[#1E293B]/10 text-white font-medium hover:bg-[#1E293B]/20"
+                  className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-medium hover:bg-gray-200"
                 >
                   Cancel
                 </button>
@@ -561,9 +561,9 @@ const WorkspaceSettings = () => {
 
       {/* Join Workspace Modal */}
       {showJoinModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1E293B] rounded-2xl p-6 w-full max-w-sm border border-white/10">
-            <h3 className="text-white font-semibold text-lg mb-4">Join Workspace</h3>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm border border-gray-200 shadow-xl">
+            <h3 className="text-gray-800 font-semibold text-lg mb-4">Join Workspace</h3>
             <form onSubmit={handleJoinByCode} className="space-y-4">
               <input
                 type="text"
@@ -571,13 +571,13 @@ const WorkspaceSettings = () => {
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                 placeholder="Enter invite code"
                 maxLength={8}
-                className="w-full px-4 py-3 rounded-xl bg-[#1E293B]/5 border border-white/10 text-white placeholder-white/40 focus:border-emerald-500/50 focus:outline-none text-center font-mono text-xl tracking-widest"
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 text-gray-800 placeholder-gray-400 focus:border-emerald-500 focus:outline-none text-center font-mono text-xl tracking-widest"
               />
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setShowJoinModal(false)}
-                  className="flex-1 py-3 rounded-xl bg-[#1E293B]/10 text-white font-medium hover:bg-[#1E293B]/20"
+                  className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-700 font-medium hover:bg-gray-200"
                 >
                   Cancel
                 </button>
