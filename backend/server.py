@@ -2907,12 +2907,17 @@ async def get_goal_achievements(request: Request):
     }
 
 @api_router.get("/goals/{goal_id}")
-async def get_goal(goal_id: str):
+async def get_goal(goal_id: str, request: Request):
     """Get a single goal with full details"""
-    goal = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    user_filter["id"] = goal_id
+    goal = await db.goals.find_one(user_filter, {"_id": 0})
     
     if not goal:
-        from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Goal not found")
     
     if isinstance(goal.get('createdAt'), str):
