@@ -210,25 +210,16 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
 ## Backlog / Future Tasks
 
 ### P0 - High Priority (Next)
-- **Goal Module (Major Feature)**:
-  - Phase 1: Backend models and API endpoints for Goals
-    - Goal schema: id, goalName, goalType, targetAmount, targetDate, linkedInvestmentIds[], linkedLoanId, linkedCreditCardId, autoProjectionEnabled
-    - CRUD endpoints: /api/goals
-  - Phase 2: Frontend pages (MyGoals, AddGoal, GoalDetail)
-    - My Goals page with summary cards showing name, target, progress %, time remaining
-    - Add Goal page with fields for Name, Type, Target Amount, Target Date, linked sources
-    - Goal Detail page with progress graph, amount breakdown, linked sources
-  - Phase 3: Investment & Debt linking logic
-    - Auto-project contributions from linked SIP investments
-    - For "Debt Closure" goals, auto-set target to outstanding balance
+- **Goal Module Phase 3: Smart Linking Enhancement**:
+  - Auto-project future SIP contributions towards goal progress
+  - For Debt Elimination goals, auto-sync target with loan outstanding balance changes
+  - Goal milestone notifications and alerts
 
 ### P1 - High Priority
-- Investment Form fixes (frequency date selection, SIP options) - MOSTLY DONE
 - Asset ↔ Loan bidirectional linking display on Asset detail page
 - Asset ↔ Income bidirectional linking (rental income toggle)
 - Other Income Module (Gift, Bonus, Capital Gain, etc.)
-- Back button navigation to previous page (partially done)
-- Amount in words across ALL forms (only done in Expense form currently) - DONE
+- Goal prioritization reordering UI
 
 ### P2 - Medium Priority
 - Expense Transaction Module (actual spending tracker against budgeted expenses)
