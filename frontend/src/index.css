@@ -4,18 +4,84 @@
 @tailwind components;
 @tailwind utilities;
 
+/* MONEYSSUTRA COLOR TOKEN SYSTEM - LIGHT THEME */
+:root {
+    /* Brand Colors */
+    --brand-primary: #059669;
+    --brand-primary-light: #10B981;
+    --brand-primary-soft: #D1FAE5;
+    --brand-secondary: #14B8A6;
+    --brand-secondary-soft: #CCFBF1;
+    
+    /* Background Colors */
+    --bg-app: #F5F7FA;
+    --bg-card: #FFFFFF;
+    --bg-subtle: #F8FAFC;
+    --bg-disabled: #F1F5F9;
+    
+    /* Text Colors */
+    --text-primary: #1F2937;
+    --text-secondary: #6B7280;
+    --text-muted: #94A3B8;
+    --text-inverse: #FFFFFF;
+    
+    /* Status Colors */
+    --status-success: #16A34A;
+    --status-success-soft: #DCFCE7;
+    --status-error: #EF4444;
+    --status-error-soft: #FEE2E2;
+    --status-warning: #F59E0B;
+    --status-warning-soft: #FEF3C7;
+    --status-info: #3B82F6;
+    --status-info-soft: #DBEAFE;
+    
+    /* Financial Colors */
+    --finance-gain: #16A34A;
+    --finance-loss: #DC2626;
+    --finance-neutral: #64748B;
+    
+    /* Border Colors */
+    --border-light: #E5E7EB;
+    --border-medium: #D1D5DB;
+    --border-focus: #059669;
+    
+    /* Button Colors */
+    --btn-primary-bg: #059669;
+    --btn-primary-text: #FFFFFF;
+    --btn-primary-hover: #047857;
+    --btn-secondary-bg: #FFFFFF;
+    --btn-secondary-text: #059669;
+    --btn-secondary-border: #059669;
+    --btn-disabled-bg: #E5E7EB;
+    --btn-disabled-text: #9CA3AF;
+    
+    /* Chart Colors */
+    --chart-primary: #059669;
+    --chart-secondary: #14B8A6;
+    --chart-accent1: #3B82F6;
+    --chart-accent2: #8B5CF6;
+    --chart-accent3: #F59E0B;
+    --chart-loss: #EF4444;
+    
+    /* Nav Colors */
+    --nav-active: #059669;
+    --nav-inactive: #9CA3AF;
+    --nav-background: #FFFFFF;
+}
+
 body {
     margin: 0;
     font-family: "Inter", sans-serif;
-    background-color: #0F172A;
-    color: #E2E8F0;
+    background-color: var(--bg-app);
+    color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Subtle honeycomb pattern for app background */
 .honeycomb-bg {
-    background-color: #0F172A;
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='52' viewBox='0 0 60 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 1 L45 1 L59 26 L45 51 L15 51 L1 26 Z' fill='none' stroke='%231E293B' stroke-opacity='0.8' stroke-width='1.2'/%3E%3C/svg%3E");
+    background-color: var(--bg-app);
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='52' viewBox='0 0 60 52' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15 1 L45 1 L59 26 L45 51 L15 51 L1 26 Z' fill='none' stroke='%23E5E7EB' stroke-opacity='0.5' stroke-width='1'/%3E%3C/svg%3E");
     background-size: 30px 26px;
     background-repeat: repeat;
 }
@@ -27,64 +93,31 @@ code {
 
 @layer base {
     :root {
-        --background: 222 47% 11%;
-        --foreground: 214 32% 91%;
-        --card: 217 33% 17%;
-        --card-foreground: 214 32% 91%;
-        --popover: 217 33% 17%;
-        --popover-foreground: 214 32% 91%;
-        --primary: 173 80% 40%;
-        --primary-foreground: 222 47% 11%;
-        --secondary: 217 33% 17%;
-        --secondary-foreground: 214 32% 91%;
-        --muted: 217 33% 17%;
-        --muted-foreground: 215 20% 65%;
-        --accent: 173 80% 40%;
-        --accent-foreground: 222 47% 11%;
-        --destructive: 0 72% 50%;
+        --background: 210 20% 98%;
+        --foreground: 220 13% 18%;
+        --card: 0 0% 100%;
+        --card-foreground: 220 13% 18%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 220 13% 18%;
+        --primary: 160 84% 39%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 210 20% 98%;
+        --secondary-foreground: 220 13% 18%;
+        --muted: 210 20% 96%;
+        --muted-foreground: 215 16% 47%;
+        --accent: 160 84% 39%;
+        --accent-foreground: 0 0% 100%;
+        --destructive: 0 84% 60%;
         --destructive-foreground: 0 0% 100%;
-        --border: 217 33% 25%;
-        --input: 217 33% 25%;
-        --ring: 173 80% 40%;
-        --chart-1: 173 80% 40%;
-        --chart-2: 142 71% 45%;
-        --chart-3: 38 92% 50%;
-        --chart-4: 214 32% 91%;
-        --chart-5: 217 33% 17%;
+        --border: 220 13% 91%;
+        --input: 220 13% 91%;
+        --ring: 160 84% 39%;
+        --chart-1: 160 84% 39%;
+        --chart-2: 173 80% 40%;
+        --chart-3: 217 91% 60%;
+        --chart-4: 263 70% 50%;
+        --chart-5: 38 92% 50%;
         --radius: 0.75rem;
-        
-        /* Custom theme colors */
-        --slate-base: #0F172A;
-        --slate-card: #1E293B;
-        --accent-turquoise: #14B8A6;
-        --positive-green: #22C55E;
-        --warning-amber: #F59E0B;
-    }
-    .dark {
-        --background: 222 47% 11%;
-        --foreground: 214 32% 91%;
-        --card: 217 33% 17%;
-        --card-foreground: 214 32% 91%;
-        --popover: 217 33% 17%;
-        --popover-foreground: 214 32% 91%;
-        --primary: 173 80% 40%;
-        --primary-foreground: 222 47% 11%;
-        --secondary: 217 33% 17%;
-        --secondary-foreground: 214 32% 91%;
-        --muted: 217 33% 17%;
-        --muted-foreground: 215 20% 65%;
-        --accent: 173 80% 40%;
-        --accent-foreground: 222 47% 11%;
-        --destructive: 0 72% 50%;
-        --destructive-foreground: 0 0% 100%;
-        --border: 217 33% 25%;
-        --input: 217 33% 25%;
-        --ring: 173 80% 40%;
-        --chart-1: 173 80% 40%;
-        --chart-2: 142 71% 45%;
-        --chart-3: 38 92% 50%;
-        --chart-4: 214 32% 91%;
-        --chart-5: 217 33% 17%;
     }
 }
 
@@ -95,6 +128,15 @@ code {
     body {
         @apply bg-background text-foreground;
     }
+}
+
+/* Soft shadows - Groww style */
+.shadow-card {
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-modal {
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 #emergent-badge {
