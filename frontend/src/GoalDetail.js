@@ -18,6 +18,7 @@ import {
   Sparkles
 } from "lucide-react";
 import axios from "axios";
+import { useMilestoneNotification, MilestoneProgress } from "@/components/MilestoneNotification";
 
 const GoalDetail = () => {
   const navigate = useNavigate();
