@@ -155,6 +155,40 @@ body {
     color: var(--text-primary) !important;
 }
 
+/* Fix hover states that reference dark colors */
+[class*="hover:bg-[#0F172A]"]:hover,
+[class*="hover:bg-[#1E293B]"]:hover {
+    background-color: var(--bg-subtle) !important;
+}
+
+/* Fix rounded-full buttons (back buttons, icon buttons) */
+.rounded-full[class*="bg-[#1E293B]"],
+button.rounded-full[class*="bg-[#1E293B]"],
+a.rounded-full[class*="bg-[#1E293B]"] {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-light) !important;
+    color: var(--text-primary) !important;
+}
+
+.rounded-full[class*="bg-[#1E293B]"]:hover,
+button.rounded-full[class*="bg-[#1E293B]"]:hover,
+a.rounded-full[class*="bg-[#1E293B]"]:hover {
+    background-color: var(--bg-subtle) !important;
+}
+
+/* Fix toggle switch knobs */
+.transform.rounded-full[class*="bg-[#1E293B]"] {
+    background-color: white !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Fix PopoverContent calendars */
+[class*="PopoverContent"][class*="bg-[#1E293B]"],
+.bg-\[\#1E293B\].p-0 {
+    background-color: var(--bg-card) !important;
+    border: 1px solid var(--border-light) !important;
+}
+
 /* Fix income sub-pages */
 .min-h-screen.honeycomb-bg {
     background-color: var(--bg-app) !important;
@@ -197,6 +231,45 @@ body {
 .calendar-light button.selected {
     background-color: var(--brand-primary) !important;
     color: white !important;
+}
+
+/* Fix any remaining dark backgrounds in cards and containers */
+.rounded-2xl[class*="bg-[#1E293B]"],
+.rounded-xl[class*="bg-[#1E293B]"] {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-light) !important;
+}
+
+/* Fix bottom bar / footer areas */
+.fixed.bottom-16[class*="bg-[#1E293B]"],
+.fixed.bottom-0[class*="bg-[#1E293B]"] {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-light) !important;
+}
+
+/* Fix modals and dialogs */
+.fixed.inset-0 [class*="bg-[#1E293B]"] {
+    background-color: var(--bg-card) !important;
+}
+
+/* Fix frequency/badge tags */
+span.rounded-full[class*="bg-[#1E293B]"] {
+    background-color: var(--bg-subtle) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* Fix placeholder colors */
+[class*="placeholder-[#334155]"]::placeholder,
+[class*="placeholder-[#94A3B8]"]::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* Fix text opacity variations */
+[class*="text-[#334155]/60"],
+[class*="text-[#334155]/50"],
+[class*="text-[#334155]/70"],
+[class*="text-[#334155]/40"] {
+    color: var(--text-secondary) !important;
 }
 
 code {
