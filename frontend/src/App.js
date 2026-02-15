@@ -150,6 +150,7 @@ function App() {
           <Route path="/other-income" element={<OtherIncomeForm />} />
           <Route path="/other-income/:id" element={<OtherIncomeForm />} />
         </Routes>
+        <Toaster />
       </BrowserRouter>
     </div>
   );
