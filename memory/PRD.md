@@ -269,6 +269,20 @@ Business/Job/Rental also support: Daily (with day-of-week selector)
     - `showFrequencyField` variable controls visibility based on category
   - **Testing**: 100% pass rate (10/10 backend, 6/6 frontend tests)
 
+- **Dec 15, 2025 (Session 5 - Part 2)**: Goal Module Implementation (MAJOR FEATURE)
+  - **Backend API (Phase 1)**:
+    - Created Goal model with fields: id, goalName, goalType, customTypeName, targetAmount, currentAmount, targetDate, linkedInvestmentIds[], linkedLoanId, linkedCreditCardId, linkedAccountIds[], autoCalculate, manualOverride, priority, notes, isCompleted, completedDate
+    - Goal types: Wealth Creation, Debt Elimination, Investment Target, Emergency Fund, Other (custom)
+    - API endpoints: POST /api/goals, GET /api/goals, GET /api/goals/:id, PUT /api/goals/:id, DELETE /api/goals/:id, PATCH /api/goals/:id/progress, PATCH /api/goals/:id/complete, GET /api/goals/summary/dashboard
+    - Auto-calculation of progress from linked investments, accounts, loans, credit cards
+    - Manual override option for progress tracking
+  - **Frontend Pages (Phase 2)**:
+    - MyGoals page: Summary header with overall progress, active/completed counts, filter tabs (All/Active/Completed), goal cards with progress bars, priority badges, days remaining
+    - GoalForm page: Goal type selection cards, goal name, target amount with amount-in-words, date picker, priority selector, link sources section (investments/accounts for wealth goals, loans/cards for debt goals), manual override toggle
+    - GoalDetail page: Progress visualization, target date, time remaining, linked sources breakdown, Smart Suggestions (monthly savings recommendation), Edit/Mark Complete buttons
+    - Dashboard Goals Widget: Shows active goals count and top goals with progress bars
+  - **Testing**: 100% pass rate (17/17 backend tests, all frontend pages verified)
+
 - **Feb 15, 2026 (Session 4)**: Testing V4 Bug Fixes - Global Changes & Insurance→Asset
   - **Amount in Words (Indian Numbering)**: ExpenseForm now displays amount in words below the Expected Amount field using Indian numbering (Lakh, Crore format)
   - **Expense Category Cleanup**: Removed "EMI" and "Insurance" from category dropdown - these categories are only for system-generated expenses from Loan/Insurance modules
