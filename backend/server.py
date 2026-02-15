@@ -1446,6 +1446,60 @@ async def get_networth_summary():
             # Default case - assume monthly
             monthly_income += amount
     
+    # Get all other income - Calculate for current month
+    other_incomes = await db.other_income.find({}, {"_id": 0}).to_list(1000)
+    other_income_total = 0
+    for other_inc in other_incomes:
+        amount = other_inc.get('amount', 0)
+        freq = other_inc.get('frequency', 'One-Time')
+        
+        if freq == 'One-Time':
+            # Check if one-time income falls in current month
+            date_received = other_inc.get('dateReceived', '')
+            if date_received:
+                try:
+                    date_obj = datetime.fromisoformat(date_received).date()
+                    if date_obj.month == current_month and date_obj.year == current_year:
+                        other_income_total += amount
+                except (ValueError, TypeError):
+                    pass
+        elif freq == 'Monthly':
+            other_income_total += amount
+        elif freq == 'Quarterly':
+            selected_quarter = other_inc.get('selectedQuarter', '')
+            quarter_months = {
+                'Q1': [1, 2, 3], 'Q2': [4, 5, 6], 'Q3': [7, 8, 9], 'Q4': [10, 11, 12]
+            }
+            for q_prefix, months in quarter_months.items():
+                if selected_quarter and selected_quarter.startswith(q_prefix):
+                    if current_month == months[0]:
+                        other_income_total += amount
+                    break
+            else:
+                if current_month in [1, 4, 7, 10]:
+                    other_income_total += amount
+        elif freq == 'Yearly':
+            selected_month = other_inc.get('selectedMonth', '')
+            month_mapping = {
+                "January": 1, "February": 2, "March": 3, "April": 4,
+                "May": 5, "June": 6, "July": 7, "August": 8,
+                "September": 9, "October": 10, "November": 11, "December": 12
+            }
+            if month_mapping.get(selected_month) == current_month:
+                other_income_total += amount
+        elif freq == 'Irregular':
+            date_received = other_inc.get('dateReceived', '')
+            if date_received:
+                try:
+                    date_obj = datetime.fromisoformat(date_received).date()
+                    if date_obj.month == current_month and date_obj.year == current_year:
+                        other_income_total += amount
+                except (ValueError, TypeError):
+                    pass
+    
+    # Add other income to monthly income
+    monthly_income += other_income_total
+    
     # Get all expenses - Calculate actual monthly expenses for current month
     expenses = await db.expenses.find({}, {"_id": 0}).to_list(1000)
     monthly_expenses = 0
