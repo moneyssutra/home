@@ -182,8 +182,10 @@ function App() {
     <div className="App">
       <AuthProvider>
         <BrowserRouter>
-          <AppRouter />
-          <Toaster />
+          <WorkspaceProvider>
+            <AppRouter />
+            <Toaster />
+          </WorkspaceProvider>
         </BrowserRouter>
       </AuthProvider>
     </div>
