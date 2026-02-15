@@ -553,6 +553,11 @@ const AssetForm = () => {
                         data-testid="rental-amount-input"
                       />
                     </div>
+                    {parseFloat(rentalAmount) > 0 && (
+                      <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="rental-amount-words">
+                        {numberToWords(parseFloat(rentalAmount))}
+                      </p>
+                    )}
                   </div>
                   
                   <div>
@@ -571,6 +576,11 @@ const AssetForm = () => {
                         data-testid="security-deposit-input"
                       />
                     </div>
+                    {parseFloat(securityDeposit) > 0 && (
+                      <p className="mt-1.5 text-xs text-[#0B3D2E]/50 italic" data-testid="security-deposit-words">
+                        {numberToWords(parseFloat(securityDeposit))}
+                      </p>
+                    )}
                   </div>
                   
                   <div>
