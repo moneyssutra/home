@@ -193,7 +193,7 @@ const OtherIncomeForm = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAF9] pb-8" data-testid="other-income-form">
+    <div className="min-h-screen bg-[#F8FAF9] pb-24" data-testid="other-income-form">
       {/* Header */}
       <header className="bg-gradient-to-br from-[#7C3AED] via-[#8B5CF6] to-[#6D28D9] px-6 pt-8 pb-6">
         <div className="flex items-center gap-3 mb-2">
