@@ -732,7 +732,7 @@ const ExpenseForm = () => {
                       className="date-picker-trigger"
                       data-testid="one-time-date-calendar"
                     >
-                      <span className={oneTimeDate ? "text-[#334155]" : "text-[#94A3B8]"}>
+                      <span className={oneTimeDate ? "value" : "placeholder"}>
                         {oneTimeDate ? format(new Date(oneTimeDate), "PPP") : "Select date from calendar"}
                       </span>
                       <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
