@@ -10,12 +10,13 @@ Build a comprehensive personal finance tracking application with multi-user work
 
 ### AI Smart Insights Bug Fix
 - **Issue**: AI insights were showing incorrect data (e.g., "No cashflow data", "Zero liquid balance" when user had data)
-- **Root Cause**: The `/api/ai/insights` endpoint was:
+- **Root Causes Fixed**:
   1. Using wrong collection name (`db.income` instead of `db.income_sources`)
   2. Not accounting for frequency-based calculations (daily, weekly, monthly, etc.)
   3. Missing `other_income` collection data
-- **Fix Applied**: Updated the endpoint to use the same calculation logic as the dashboard endpoint
-- **Result**: AI now provides accurate, contextually relevant financial insights
+  4. Using wrong field for liquid balance (`balance` instead of `currentBalance`)
+  5. Using wrong field for active goals (`status == 'Active'` instead of `not isCompleted`)
+- **Result**: AI now provides accurate, contextually relevant financial insights with correct amounts
 
 ### AI Smart Insights on Dashboard
 - **Backend**: `/api/ai/insights` endpoint using OpenAI GPT-5.2 via Emergent LLM key
