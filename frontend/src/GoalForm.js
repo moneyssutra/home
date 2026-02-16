@@ -611,7 +611,7 @@ const GoalForm = () => {
                           const linkedAlloc = getLinkedInvestmentAllocation(inv.id);
                           const isLinked = !!linkedAlloc;
                           const totalValue = inv.currentValue || inv.principal || 0;
-                          const allocatedElsewhere = allocInfo.allocatedAmount - (linkedAlloc?.allocatedAmount || 0);
+                          const allocatedElsewhere = (allocInfo.allocatedAmount || 0) - (linkedAlloc?.allocatedAmount || 0);
                           const hasOtherAllocations = allocInfo.allocations?.filter(a => a.goalId !== id).length > 0;
                           
                           return (
@@ -629,22 +629,22 @@ const GoalForm = () => {
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium text-[#334155] truncate">{inv.name}</p>
                                   <p className="text-xs text-[#334155]/50">
-                                    {inv.investmentCategory} • Total: ₹{totalValue.toLocaleString('en-IN')}
+                                    {inv.investmentCategory} • Total: ₹{(totalValue || 0).toLocaleString('en-IN')}
                                   </p>
                                 </div>
-                                {isLinked && (
+                                {isLinked && linkedAlloc?.allocatedAmount && (
                                   <div className="text-right">
                                     <p className="text-sm font-semibold text-[#7C3AED]">
-                                      ₹{linkedAlloc.allocatedAmount.toLocaleString('en-IN')}
+                                      ₹{(linkedAlloc.allocatedAmount || 0).toLocaleString('en-IN')}
                                     </p>
                                     <p className="text-[10px] text-[#334155]/50">allocated</p>
                                   </div>
                                 )}
                               </div>
-                              {hasOtherAllocations && (
+                              {hasOtherAllocations && allocatedElsewhere > 0 && (
                                 <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-600">
                                   <AlertCircle className="w-3 h-3" />
-                                  <span>₹{allocatedElsewhere.toLocaleString('en-IN')} allocated to other goals</span>
+                                  <span>₹{(allocatedElsewhere || 0).toLocaleString('en-IN')} allocated to other goals</span>
                                 </div>
                               )}
                             </div>
