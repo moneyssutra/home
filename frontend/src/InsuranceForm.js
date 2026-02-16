@@ -124,38 +124,65 @@ const InsuranceForm = () => {
   };
 
   const handleAmountChange = (setter) => (e) => {
-    const value = e.target.value.replace(/[^0-9.]/g, "");
+    const value = formatAmountInput(e.target.value);
     setter(value);
   };
 
   const validate = () => {
     const newErrors = {};
 
+    // Insurance Type validation
     if (!insuranceType) {
-      newErrors.insuranceType = "Please select insurance type";
+      newErrors.insuranceType = "Please select insurance type.";
     }
 
-    if (!policyName.trim()) {
-      newErrors.policyName = "Policy name is required";
-    }
+    // Policy Name validation
+    const nameError = validateTextField(policyName, "Policy name", 100);
+    if (nameError) newErrors.policyName = nameError;
 
-    if (!coverageAmount || parseFloat(coverageAmount) <= 0) {
-      newErrors.coverageAmount = "Coverage amount is required";
-    }
+    // Coverage Amount validation
+    const coverageError = validatePositiveAmount(coverageAmount, "Coverage amount");
+    if (coverageError) newErrors.coverageAmount = coverageError;
 
-    if (!premiumAmount || parseFloat(premiumAmount) <= 0) {
-      newErrors.premiumAmount = "Premium amount is required";
-    }
+    // Premium Amount validation
+    const premiumError = validatePositiveAmount(premiumAmount, "Premium amount");
+    if (premiumError) newErrors.premiumAmount = premiumError;
 
+    // Premium Frequency validation
     if (!premiumFrequency) {
-      newErrors.premiumFrequency = "Please select premium frequency";
+      newErrors.premiumFrequency = "Please select premium frequency.";
     }
 
+    // Start Date validation
     if (!startDate) {
-      newErrors.startDate = "Start date is required";
+      newErrors.startDate = "Start date is required.";
+    }
+
+    // End Date validation (if provided, must be after start date)
+    if (endDate && startDate) {
+      const dateError = validateDateRange(startDate, endDate, "Policy Start Date", "Policy End Date");
+      if (dateError) newErrors.endDate = dateError;
+    }
+
+    // Premium End Date validation (if provided and autoCreateExpense)
+    if (autoCreateExpense && premiumEndDate && startDate) {
+      const premiumDateError = validateDateRange(startDate, premiumEndDate, "Policy Start Date", "Premium End Date");
+      if (premiumDateError) newErrors.premiumEndDate = premiumDateError;
+    }
+
+    // Expected Maturity Amount validation (only for non-Pure Protection)
+    if (maturityType && maturityType !== "Pure Protection" && expectedMaturityAmount) {
+      const maturityError = validatePositiveAmount(expectedMaturityAmount, "Expected maturity amount");
+      if (maturityError) newErrors.expectedMaturityAmount = maturityError;
     }
 
     setErrors(newErrors);
+    
+    // Scroll to first error
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
