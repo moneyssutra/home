@@ -315,7 +315,7 @@ const BusinessIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
-      navigate("/my-business");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error saving business income:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -332,7 +332,7 @@ const BusinessIncome = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/income/${id}`);
-      navigate("/my-business");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error deleting business:", error);
       setErrors({ submit: "Failed to delete. Please try again." });

@@ -267,7 +267,7 @@ const CommissionIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
-      navigate("/my-commission");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error saving commission:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -284,7 +284,7 @@ const CommissionIncome = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/income/${id}`);
-      navigate("/my-commission");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error deleting commission:", error);
       setErrors({ submit: "Failed to delete. Please try again." });

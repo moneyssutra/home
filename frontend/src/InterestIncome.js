@@ -389,7 +389,7 @@ const InterestIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
-      navigate("/my-interest");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error saving interest income:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -406,7 +406,7 @@ const InterestIncome = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/income/${id}`);
-      navigate("/my-interest");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error deleting interest:", error);
       setErrors({ submit: "Failed to delete. Please try again." });

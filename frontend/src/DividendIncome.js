@@ -290,7 +290,7 @@ const DividendIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
-      navigate("/my-dividend");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error saving dividend:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -307,7 +307,7 @@ const DividendIncome = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/income/${id}`);
-      navigate("/my-dividend");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error deleting dividend:", error);
       setErrors({ submit: "Failed to delete. Please try again." });

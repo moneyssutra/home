@@ -353,7 +353,7 @@ const RentalIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
-      navigate("/my-rental");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error saving rental income:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -370,7 +370,7 @@ const RentalIncome = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/income/${id}`);
-      navigate("/my-rental");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error deleting rental:", error);
       setErrors({ submit: "Failed to delete. Please try again." });
