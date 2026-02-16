@@ -4070,7 +4070,7 @@ def get_fallback_insights_internal(data: dict) -> list:
     elif data.get('life_coverage', 0) < data.get('monthly_income', 0) * 120:
         insights.append({
             "type": "insurance", "icon": "🛡️", "title": "Increase Life Cover",
-            "description": f"Life cover should be 10x annual income. Consider term insurance.",
+            "description": "Life cover should be 10x annual income. Consider term insurance.",
             "priority": "medium", "actionable": True, "action_text": "View Insurance", "action_link": "/my-insurance"
         })
     
