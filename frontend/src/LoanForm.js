@@ -8,6 +8,15 @@ import { format } from "date-fns";
 import { numberToWords } from "@/lib/formatters";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { ValidationMessage } from "@/components/ValidationMessage";
+import { 
+  validatePositiveAmount, 
+  validateLoanOutstanding, 
+  validateDateRange,
+  validateTextField,
+  formatAmountInput,
+  scrollToFirstError
+} from "@/lib/validations";
 
 const LoanIncome = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
