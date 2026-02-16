@@ -119,6 +119,8 @@ Build a comprehensive personal finance tracking application with multi-user work
 - Two-Factor Authentication (2FA)
 
 ## Recently Fixed (Feb 16, 2026)
+- **Add Expense Title**: Fixed white-on-white text issue by updating CSS specificity for non-gradient headers
+- **Transport → Travel**: Renamed expense category across all expense components
 - **My Liabilities Page**: New combined page showing both Loans and Credit Cards with tab navigation
 - **Calendar Year Selection Bug**: Fixed - Year dropdown now has proper mobile touch targets (44px min-height), touch-manipulation CSS
 - **Date Picker Click Area**: Fixed - Created `date-picker-trigger` CSS class with full-width clickable area
