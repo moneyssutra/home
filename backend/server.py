@@ -4060,6 +4060,20 @@ def get_fallback_insights_internal(data: dict) -> list:
             "priority": "medium", "actionable": True, "action_text": "Add Goal", "action_link": "/my-goals"
         })
     
+    # Insurance insights
+    if not data.get('has_health_insurance', True):
+        insights.append({
+            "type": "insurance", "icon": "🏥", "title": "Get Health Insurance",
+            "description": "No health insurance found. Medical emergencies can drain savings quickly.",
+            "priority": "high", "actionable": True, "action_text": "Add Insurance", "action_link": "/my-insurance"
+        })
+    elif data.get('life_coverage', 0) < data.get('monthly_income', 0) * 120:
+        insights.append({
+            "type": "insurance", "icon": "🛡️", "title": "Increase Life Cover",
+            "description": f"Life cover should be 10x annual income. Consider term insurance.",
+            "priority": "medium", "actionable": True, "action_text": "View Insurance", "action_link": "/my-insurance"
+        })
+    
     return insights
 
 @api_router.get("/ai/insights")
