@@ -4159,7 +4159,7 @@ async def get_ai_insights(request: Request):
         total_investments = sum(inv.get('currentValue', inv.get('principal', 0)) for inv in investments)
         
         loans = await db.loans.find(user_filter, {"_id": 0}).to_list(1000)
-        total_liabilities = sum(l.get('outstandingAmount', 0) for l in loans)
+        total_liabilities = sum(loan.get('outstandingAmount', 0) for loan in loans)
         
         credit_cards = await db.credit_cards.find(user_filter, {"_id": 0}).to_list(1000)
         total_liabilities += sum(cc.get('currentOutstanding', 0) for cc in credit_cards)
