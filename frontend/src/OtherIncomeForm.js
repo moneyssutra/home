@@ -455,6 +455,59 @@ const OtherIncomeForm = () => {
               </div>
             )}
 
+            {/* Half-Yearly: Half + Month + Day */}
+            {formData.frequency === "Half-Yearly" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
+                    Select Half
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={formData.selectedHalf}
+                      onChange={(e) => handleChange("selectedHalf", e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-white"
+                      data-testid="half-select"
+                    >
+                      <option value="">Select half</option>
+                      {halves.map((h) => (
+                        <option key={h.id} value={h.label}>{h.label}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
+                    Day of Month
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal h-12 rounded-xl border-gray-200",
+                          !formData.selectedDate && "text-muted-foreground"
+                        )}
+                        data-testid="half-yearly-date-picker"
+                      >
+                        <CalendarDays className="mr-2 h-4 w-4" />
+                        {formData.selectedDate ? `${formData.selectedDate}${getOrdinal(formData.selectedDate)}` : "Select day"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={formData.selectedDate ? new Date(2024, 0, parseInt(formData.selectedDate)) : undefined}
+                        onSelect={(date) => date && handleChange("selectedDate", String(date.getDate()))}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            )}
+
             {/* Yearly: Month + Day */}
             {formData.frequency === "Yearly" && (
               <div className="space-y-4">
