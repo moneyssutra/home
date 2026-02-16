@@ -57,14 +57,14 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
 
   return (
     <div 
-      className="bg-[#1E293B] rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all"
+      className="bg-[#1E293B] rounded-2xl border border-slate-700 overflow-hidden shadow-sm hover:shadow-md transition-all"
       data-testid={`achievement-card-${achievement.id}`}
     >
       {/* Card Header with gradient */}
       <div className={`bg-gradient-to-r ${colors.gradient} p-4`}>
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-xl bg-[#1E293B]/20 backdrop-blur-sm flex items-center justify-center`}>
+            <div className={`w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center`}>
               <Icon className="h-6 w-6 text-white" />
             </div>
             <div>
@@ -74,7 +74,7 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 px-2 py-1 bg-[#1E293B]/20 backdrop-blur-sm rounded-full">
+          <div className="flex items-center gap-1 px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full">
             <Trophy className="h-4 w-4 text-yellow-300" />
             <span className="text-xs font-semibold text-white">Achieved</span>
           </div>
@@ -84,14 +84,14 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
       {/* Card Body */}
       <div className="p-4">
         {/* Amount Achieved */}
-        <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
+        <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-600">
           <div>
             <p className="text-xs text-slate-400 mb-1">Amount Achieved</p>
-            <p className="text-xl font-bold text-[#334155]">₹ {formatAmount(achievement.finalAmount)}</p>
+            <p className="text-xl font-bold text-white">₹ {formatAmount(achievement.finalAmount)}</p>
           </div>
           <div className="text-right">
             <p className="text-xs text-slate-400 mb-1">Target</p>
-            <p className="text-lg font-semibold text-slate-400">₹ {formatAmount(achievement.targetAmount)}</p>
+            <p className="text-lg font-semibold text-slate-300">₹ {formatAmount(achievement.targetAmount)}</p>
           </div>
         </div>
 
@@ -114,19 +114,19 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
 
         {/* Stats Row */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-[#1E293B] rounded-xl p-3">
+          <div className="bg-slate-800 rounded-xl p-3">
             <div className="flex items-center gap-2 mb-1">
               <Calendar className="h-4 w-4 text-emerald-500" />
               <span className="text-xs text-slate-400">Completed On</span>
             </div>
-            <p className="text-sm font-semibold text-[#334155]">{completedDate}</p>
+            <p className="text-sm font-semibold text-white">{completedDate}</p>
           </div>
-          <div className="bg-[#1E293B] rounded-xl p-3">
+          <div className="bg-slate-800 rounded-xl p-3">
             <div className="flex items-center gap-2 mb-1">
               <Clock className="h-4 w-4 text-violet-500" />
               <span className="text-xs text-slate-400">Journey Duration</span>
             </div>
-            <p className="text-sm font-semibold text-[#334155]">
+            <p className="text-sm font-semibold text-white">
               {achievement.durationDays ? `${achievement.durationDays} days` : 'N/A'}
             </p>
           </div>
@@ -135,7 +135,7 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
         {/* View Details Button */}
         <button
           onClick={() => navigate(`/goal/${achievement.id}`)}
-          className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-[#334155] text-sm font-medium hover:bg-[#1E293B] transition-colors"
+          className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-600 text-white text-sm font-medium hover:bg-slate-700 transition-colors"
           data-testid={`view-achievement-${achievement.id}`}
         >
           View Details
