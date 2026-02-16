@@ -3179,85 +3179,207 @@ async def calculate_goal_progress(goal: dict) -> dict:
                     "projectedValue": round(projected_value, 2) if sip_amount else None
                 })
         
-        # Also add linked account balances
-        linked_account_ids = goal.get('linkedAccountIds', [])
-        for acc_id in linked_account_ids:
+        # Also add linked account balances - support both new and legacy format
+        # New format: linkedAccounts with allocatedAmount
+        for linked_acc in goal.get('linkedAccounts', []):
+            acc_id = linked_acc.get('id')
+            allocated = linked_acc.get('allocatedAmount', 0)
             account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
-            if account and account.get('accountType') != 'Credit Card':
-                balance = account.get('currentBalance', 0)
-                calculated_amount += balance
+            if account and account.get('accountType') != 'Credit Card' and allocated > 0:
+                calculated_amount += allocated
                 linked_details.append({
                     "type": "Account",
                     "name": account.get('accountName'),
                     "accountType": account.get('accountType'),
-                    "contribution": balance
+                    "contribution": allocated,
+                    "totalBalance": account.get('currentBalance', 0),
+                    "isPartialAllocation": allocated < account.get('currentBalance', 0)
                 })
+        
+        # Legacy format: linkedAccountIds (full amount)
+        processed_acc_ids = [a.get('id') for a in goal.get('linkedAccounts', [])]
+        linked_account_ids = goal.get('linkedAccountIds', [])
+        for acc_id in linked_account_ids:
+            if acc_id not in processed_acc_ids:
+                account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
+                if account and account.get('accountType') != 'Credit Card':
+                    balance = account.get('currentBalance', 0)
+                    calculated_amount += balance
+                    linked_details.append({
+                        "type": "Account",
+                        "name": account.get('accountName'),
+                        "accountType": account.get('accountType'),
+                        "contribution": balance,
+                        "isLegacy": True
+                    })
     
     # For Emergency Fund goals
     elif goal_type == "Emergency Fund":
-        # Sum up linked account balances (savings, FDs, etc.)
-        linked_account_ids = goal.get('linkedAccountIds', [])
-        for acc_id in linked_account_ids:
+        # New format: linkedAccounts with allocatedAmount
+        for linked_acc in goal.get('linkedAccounts', []):
+            acc_id = linked_acc.get('id')
+            allocated = linked_acc.get('allocatedAmount', 0)
             account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
-            if account and account.get('accountType') != 'Credit Card':
-                balance = account.get('currentBalance', 0)
-                calculated_amount += balance
+            if account and account.get('accountType') != 'Credit Card' and allocated > 0:
+                calculated_amount += allocated
                 linked_details.append({
                     "type": "Account",
                     "name": account.get('accountName'),
                     "accountType": account.get('accountType'),
-                    "contribution": balance
+                    "contribution": allocated,
+                    "totalBalance": account.get('currentBalance', 0),
+                    "isPartialAllocation": allocated < account.get('currentBalance', 0)
                 })
         
-        # Also include liquid investments with SIP projections
-        linked_investment_ids = goal.get('linkedInvestmentIds', [])
-        for inv_id in linked_investment_ids:
+        # Legacy format: linkedAccountIds (full amount)
+        processed_acc_ids = [a.get('id') for a in goal.get('linkedAccounts', [])]
+        linked_account_ids = goal.get('linkedAccountIds', [])
+        for acc_id in linked_account_ids:
+            if acc_id not in processed_acc_ids:
+                account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
+                if account and account.get('accountType') != 'Credit Card':
+                    balance = account.get('currentBalance', 0)
+                    calculated_amount += balance
+                    linked_details.append({
+                        "type": "Account",
+                        "name": account.get('accountName'),
+                        "accountType": account.get('accountType'),
+                        "contribution": balance,
+                        "isLegacy": True
+                    })
+        
+        # New format: linkedInvestments with allocatedAmount
+        for linked_inv in goal.get('linkedInvestments', []):
+            inv_id = linked_inv.get('id')
+            allocated = linked_inv.get('allocatedAmount', 0)
             investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
-            if investment:
-                current_value = investment.get('currentValue', 0)
-                calculated_amount += current_value
+            if investment and allocated > 0:
+                calculated_amount += allocated
                 
-                # Calculate SIP projection
+                # Calculate SIP projection proportionally
+                current_value = investment.get('currentValue', 0)
+                allocation_ratio = allocated / current_value if current_value > 0 else 0
                 sip_amount = investment.get('sipAmount', 0)
                 frequency = investment.get('investmentFrequency', '')
                 return_rate = investment.get('returnRate', 0)
                 
-                projected_value = current_value
+                projected_value = allocated
                 monthly_contribution = 0
                 
                 if sip_amount and frequency and months_to_target > 0:
                     if frequency == 'Daily':
-                        monthly_contribution = sip_amount * 30
+                        monthly_contribution = sip_amount * 30 * allocation_ratio
                     elif frequency == 'Weekly':
-                        monthly_contribution = sip_amount * 4
+                        monthly_contribution = sip_amount * 4 * allocation_ratio
                     elif frequency == 'Monthly':
-                        monthly_contribution = sip_amount
+                        monthly_contribution = sip_amount * allocation_ratio
                     elif frequency == 'Quarterly':
-                        monthly_contribution = sip_amount / 3
+                        monthly_contribution = (sip_amount / 3) * allocation_ratio
                     elif frequency == 'Yearly':
-                        monthly_contribution = sip_amount / 12
+                        monthly_contribution = (sip_amount / 12) * allocation_ratio
                     
                     monthly_rate = (return_rate / 100) / 12 if return_rate else 0
                     n = months_to_target
                     
                     if monthly_rate > 0:
-                        pv_growth = current_value * ((1 + monthly_rate) ** n)
+                        pv_growth = allocated * ((1 + monthly_rate) ** n)
                         pmt_growth = monthly_contribution * (((1 + monthly_rate) ** n - 1) / monthly_rate)
                         projected_value = pv_growth + pmt_growth
                     else:
-                        projected_value = current_value + (monthly_contribution * n)
+                        projected_value = allocated + (monthly_contribution * n)
                     
                     sip_projections.append({
                         "investmentId": inv_id,
                         "investmentName": investment.get('name'),
+                        "allocatedAmount": allocated,
                         "currentValue": current_value,
                         "sipAmount": sip_amount,
                         "frequency": frequency,
                         "monthlyContribution": monthly_contribution,
                         "returnRate": return_rate,
                         "projectedValue": round(projected_value, 2),
-                        "projectedGain": round(projected_value - current_value, 2),
+                        "projectedGain": round(projected_value - allocated, 2),
                         "monthsToTarget": round(months_to_target, 1)
+                    })
+                
+                linked_details.append({
+                    "type": "Investment",
+                    "name": investment.get('name'),
+                    "category": investment.get('investmentCategory'),
+                    "contribution": allocated,
+                    "totalValue": current_value,
+                    "isPartialAllocation": allocated < current_value,
+                    "hasSIP": bool(sip_amount and frequency),
+                    "sipAmount": sip_amount,
+                    "frequency": frequency,
+                    "projectedValue": round(projected_value, 2) if sip_amount else None
+                })
+        
+        # Legacy format: linkedInvestmentIds (full amount)
+        processed_inv_ids = [i.get('id') for i in goal.get('linkedInvestments', [])]
+        linked_investment_ids = goal.get('linkedInvestmentIds', [])
+        for inv_id in linked_investment_ids:
+            if inv_id not in processed_inv_ids:
+                investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
+                if investment:
+                    current_value = investment.get('currentValue', 0)
+                    calculated_amount += current_value
+                    
+                    sip_amount = investment.get('sipAmount', 0)
+                    frequency = investment.get('investmentFrequency', '')
+                    return_rate = investment.get('returnRate', 0)
+                    
+                    projected_value = current_value
+                    monthly_contribution = 0
+                    
+                    if sip_amount and frequency and months_to_target > 0:
+                        if frequency == 'Daily':
+                            monthly_contribution = sip_amount * 30
+                        elif frequency == 'Weekly':
+                            monthly_contribution = sip_amount * 4
+                        elif frequency == 'Monthly':
+                            monthly_contribution = sip_amount
+                        elif frequency == 'Quarterly':
+                            monthly_contribution = sip_amount / 3
+                        elif frequency == 'Yearly':
+                            monthly_contribution = sip_amount / 12
+                        
+                        monthly_rate = (return_rate / 100) / 12 if return_rate else 0
+                        n = months_to_target
+                        
+                        if monthly_rate > 0:
+                            pv_growth = current_value * ((1 + monthly_rate) ** n)
+                            pmt_growth = monthly_contribution * (((1 + monthly_rate) ** n - 1) / monthly_rate)
+                            projected_value = pv_growth + pmt_growth
+                        else:
+                            projected_value = current_value + (monthly_contribution * n)
+                        
+                        sip_projections.append({
+                            "investmentId": inv_id,
+                            "investmentName": investment.get('name'),
+                            "currentValue": current_value,
+                            "sipAmount": sip_amount,
+                            "frequency": frequency,
+                            "monthlyContribution": monthly_contribution,
+                            "returnRate": return_rate,
+                            "projectedValue": round(projected_value, 2),
+                            "projectedGain": round(projected_value - current_value, 2),
+                            "monthsToTarget": round(months_to_target, 1),
+                            "isLegacy": True
+                        })
+                    
+                    linked_details.append({
+                        "type": "Investment",
+                        "name": investment.get('name'),
+                        "category": investment.get('investmentCategory'),
+                        "contribution": current_value,
+                        "principal": investment.get('principal', 0),
+                        "hasSIP": bool(sip_amount and frequency),
+                        "sipAmount": sip_amount,
+                        "frequency": frequency,
+                        "projectedValue": round(projected_value, 2) if sip_amount else None,
+                        "isLegacy": True
+                    })
                     })
                 
                 linked_details.append({
