@@ -192,42 +192,95 @@ const LoanIncome = () => {
   }, [startDate, tenureMonths]);
 
   const handleAmountChange = (setter) => (e) => {
-    const value = e.target.value.replace(/[^0-9.]/g, "");
+    const value = formatAmountInput(e.target.value);
     setter(value);
+  };
+
+  // Real-time validation for specific fields
+  const validateField = (field, value) => {
+    const newErrors = { ...errors };
+    
+    switch (field) {
+      case 'principalAmount':
+        const principalError = validatePositiveAmount(value, "Principal amount");
+        if (principalError) newErrors.principalAmount = principalError;
+        else delete newErrors.principalAmount;
+        // Also validate outstanding if principal changes
+        if (outstandingAmount) {
+          const outstandingError = validateLoanOutstanding(outstandingAmount, value);
+          if (outstandingError) newErrors.outstandingAmount = outstandingError;
+          else if (!validatePositiveAmount(outstandingAmount)) delete newErrors.outstandingAmount;
+        }
+        break;
+      case 'outstandingAmount':
+        const outstandingValidation = validateLoanOutstanding(value, principalAmount);
+        if (outstandingValidation) newErrors.outstandingAmount = outstandingValidation;
+        else delete newErrors.outstandingAmount;
+        break;
+      case 'endDate':
+        if (startDate && value) {
+          const dateError = validateDateRange(startDate, value, "Start Date", "End Date");
+          if (dateError) newErrors.endDate = dateError;
+          else delete newErrors.endDate;
+        }
+        break;
+      default:
+        break;
+    }
+    
+    setErrors(newErrors);
   };
 
   const validate = () => {
     const newErrors = {};
 
+    // Loan Type validation
     if (!loanType) {
-      newErrors.loanType = "Please select a loan type";
+      newErrors.loanType = "Please select a loan type.";
     }
 
-    if (!loanName.trim()) {
-      newErrors.loanName = "Loan name is required";
-    }
+    // Loan Name validation
+    const nameError = validateTextField(loanName, "Loan name", 100);
+    if (nameError) newErrors.loanName = nameError;
 
-    if (!principalAmount || parseFloat(principalAmount) <= 0) {
-      newErrors.principalAmount = "Principal amount is required";
-    }
+    // Principal Amount validation
+    const principalError = validatePositiveAmount(principalAmount, "Principal amount");
+    if (principalError) newErrors.principalAmount = principalError;
 
+    // Outstanding Amount validation
     if (!outstandingAmount || parseFloat(outstandingAmount) < 0) {
-      newErrors.outstandingAmount = "Outstanding amount is required";
+      newErrors.outstandingAmount = "Outstanding amount cannot be negative.";
+    } else {
+      const outstandingError = validateLoanOutstanding(outstandingAmount, principalAmount);
+      if (outstandingError) newErrors.outstandingAmount = outstandingError;
     }
 
-    if (!interestRate || parseFloat(interestRate) <= 0) {
-      newErrors.interestRate = "Interest rate is required";
-    }
+    // Interest Rate validation
+    const rateError = validatePositiveAmount(interestRate, "Interest rate");
+    if (rateError) newErrors.interestRate = rateError;
 
-    if (!emiAmount || parseFloat(emiAmount) <= 0) {
-      newErrors.emiAmount = "EMI amount is required";
-    }
+    // EMI Amount validation
+    const emiError = validatePositiveAmount(emiAmount, "EMI amount");
+    if (emiError) newErrors.emiAmount = emiError;
 
+    // Start Date validation
     if (!startDate) {
-      newErrors.startDate = "Start date is required";
+      newErrors.startDate = "Start date is required.";
+    }
+
+    // End Date validation (must be after start date)
+    if (startDate && endDate) {
+      const dateError = validateDateRange(startDate, endDate, "Start Date", "End Date");
+      if (dateError) newErrors.endDate = dateError;
     }
 
     setErrors(newErrors);
+    
+    // Scroll to first error
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
