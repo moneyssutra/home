@@ -36,6 +36,7 @@ const InvestmentForm = () => {
   const [expectedMaturityValue, setExpectedMaturityValue] = useState("");
   const [lockInPeriod, setLockInPeriod] = useState("");
   const [investmentFrequency, setInvestmentFrequency] = useState("");
+  const [sipAmount, setSipAmount] = useState("");
   const [isLiquidAsset, setIsLiquidAsset] = useState(false);
   
   // Accounts for linking
