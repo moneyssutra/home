@@ -61,11 +61,31 @@ const Dashboard = () => {
     }
   };
 
+  const fetchInsights = async () => {
+    setInsightsLoading(true);
+    try {
+      const response = await axios.get(`${backendUrl}/api/ai/insights`);
+      setInsights(response.data.insights || []);
+    } catch (error) {
+      console.error("Error fetching AI insights:", error);
+      setInsights([]);
+    } finally {
+      setInsightsLoading(false);
+    }
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchDashboardData();
+    fetchInsights();
     setRefreshing(false);
   };
+
+  useEffect(() => {
+    if (data && !insightsLoading && insights.length === 0) {
+      fetchInsights();
+    }
+  }, [data]);
 
   const formatAmount = (amount) => {
     if (amount >= 10000000) {
