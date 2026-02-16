@@ -15,21 +15,26 @@ function Calendar({
   ...props
 }) {
   // Track the currently displayed month for controlled navigation
-  const [month, setMonth] = React.useState(
-    selected || defaultMonth || new Date()
-  );
+  // This ensures dropdown selection properly updates the calendar view
+  const [displayMonth, setDisplayMonth] = React.useState(() => {
+    if (selected instanceof Date) return selected;
+    if (defaultMonth instanceof Date) return defaultMonth;
+    return new Date();
+  });
 
-  // Update displayed month when selected date changes
+  // Update displayed month when selected date changes externally
   React.useEffect(() => {
-    if (selected) {
-      setMonth(selected);
+    if (selected instanceof Date) {
+      setDisplayMonth(selected);
     }
   }, [selected]);
 
-  // Handle month change from navigation or dropdown
-  const handleMonthChange = (newMonth) => {
-    setMonth(newMonth);
-  };
+  // Handle month change from navigation arrows or dropdown selection
+  const handleMonthChange = React.useCallback((newMonth) => {
+    if (newMonth instanceof Date) {
+      setDisplayMonth(newMonth);
+    }
+  }, []);
 
   return (
     <DayPicker
@@ -37,7 +42,7 @@ function Calendar({
       captionLayout="dropdown-buttons"
       fromYear={1950}
       toYear={2050}
-      month={month}
+      month={displayMonth}
       onMonthChange={handleMonthChange}
       selected={selected}
       onSelect={onSelect}
