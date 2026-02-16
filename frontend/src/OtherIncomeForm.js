@@ -98,6 +98,7 @@ const OtherIncomeForm = () => {
         selectedDate: data.selectedDate || "",
         selectedMonth: data.selectedMonth || "",
         selectedQuarter: data.selectedQuarter || "",
+        selectedHalf: data.selectedHalf || "",
         notes: data.notes || "",
         isReceived: data.isReceived || false,
       });
