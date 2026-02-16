@@ -221,26 +221,52 @@ const AssetForm = () => {
   };
 
   const handleAmountChange = (setter) => (e) => {
-    const value = e.target.value.replace(/[^0-9.]/g, "");
+    const value = formatAmountInput(e.target.value);
     setter(value);
   };
 
   const validate = () => {
     const newErrors = {};
 
+    // Asset Type validation
     if (!assetType) {
-      newErrors.assetType = "Please select asset type";
+      newErrors.assetType = "Please select asset type.";
     }
 
-    if (!assetName.trim()) {
-      newErrors.assetName = "Asset name is required";
+    // Asset Name validation
+    const nameError = validateTextField(assetName, "Asset name", 100);
+    if (nameError) newErrors.assetName = nameError;
+
+    // Current Value validation (required, non-negative)
+    const valueError = validateNonNegativeAmount(currentValue, "Current value");
+    if (valueError) newErrors.currentValue = valueError;
+    else if (!currentValue) newErrors.currentValue = "Current value is required.";
+
+    // Purchase Date validation (if provided, cannot be in the future)
+    if (purchaseDate) {
+      const dateError = validatePastOrTodayDate(purchaseDate, "Purchase date");
+      if (dateError) newErrors.purchaseDate = dateError;
     }
 
-    if (!currentValue || parseFloat(currentValue) < 0) {
-      newErrors.currentValue = "Current value is required";
+    // Insurance validation
+    if (isInsured && !linkedInsuranceId) {
+      const insuranceError = validateInsuranceLink(isInsured, linkedInsuranceId);
+      if (insuranceError) newErrors.linkedInsuranceId = insuranceError;
+    }
+
+    // Rental Amount validation (if generates income)
+    if (generatesIncome) {
+      const rentalError = validatePositiveAmount(rentalAmount, "Rental amount");
+      if (rentalError) newErrors.rentalAmount = rentalError;
     }
 
     setErrors(newErrors);
+    
+    // Scroll to first error
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
