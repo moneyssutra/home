@@ -147,6 +147,7 @@ const OtherIncomeForm = () => {
         selectedDate: formData.selectedDate || null,
         selectedMonth: formData.selectedMonth || null,
         selectedQuarter: formData.selectedQuarter || null,
+        selectedHalf: formData.selectedHalf || null,
         notes: formData.notes.trim() || null,
         isReceived: formData.isReceived,
       };
