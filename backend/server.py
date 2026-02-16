@@ -4255,6 +4255,14 @@ async def get_ai_insights(request: Request):
             ef = emergency_fund_goal_info[0]
             ef_goal_str = f"Emergency Fund Goal: {ef['progress']}% funded (₹{ef['current']:,.0f} of ₹{ef['target']:,.0f})"
         
+        # Build insurance summary
+        insurance_summary = f"Life/Term Coverage: ₹{life_coverage:,.0f}, Health Coverage: ₹{health_coverage:,.0f}, Vehicle Coverage: ₹{vehicle_coverage:,.0f}, Annual Premium: ₹{total_annual_premium:,.0f}"
+        insurance_gaps = []
+        if not has_health_insurance:
+            insurance_gaps.append("No Health Insurance")
+        if life_coverage < monthly_income * 120:  # Rule: Life cover should be 10x annual income
+            insurance_gaps.append(f"Life cover low (have ₹{life_coverage:,.0f}, need ₹{monthly_income * 120:,.0f})")
+        
         financial_data = {
             "net_worth": net_worth, "monthly_income": monthly_income,
             "monthly_expenses": monthly_expenses, "monthly_savings": monthly_savings,
@@ -4264,7 +4272,12 @@ async def get_ai_insights(request: Request):
             "liquid_investments": liquid_investments, "emergency_fund_goals": emergency_fund_goals_amount,
             "emergency_fund_goal_info": ef_goal_str,
             "active_goals": active_goals, "savings_rate": savings_rate,
-            "top_expenses": top_expenses_str
+            "top_expenses": top_expenses_str,
+            "insurance_summary": insurance_summary,
+            "insurance_gaps": ", ".join(insurance_gaps) if insurance_gaps else "Adequate coverage",
+            "has_health_insurance": has_health_insurance,
+            "life_coverage": life_coverage,
+            "total_annual_premium": total_annual_premium
         }
         
         insights = await generate_ai_insights_internal(financial_data)
