@@ -3451,6 +3451,117 @@ async def get_goals(request: Request):
     
     return result
 
+@api_router.get("/goals/allocation-status")
+async def get_allocation_status(request: Request):
+    """Get allocation status of all investments and accounts across goals"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    
+    # Get all goals with their allocations
+    goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
+    
+    # Get all investments and accounts
+    investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+    accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
+    
+    # Build allocation map for investments
+    investment_allocations = {}
+    for inv in investments:
+        inv_id = inv.get('id')
+        total_value = inv.get('currentValue', inv.get('principal', 0))
+        investment_allocations[inv_id] = {
+            "id": inv_id,
+            "name": inv.get('name', 'Unknown'),
+            "category": inv.get('investmentCategory', ''),
+            "totalValue": total_value,
+            "allocatedAmount": 0,
+            "remainingAmount": total_value,
+            "allocations": []
+        }
+    
+    # Build allocation map for accounts
+    account_allocations = {}
+    for acc in accounts:
+        acc_id = acc.get('id')
+        total_balance = acc.get('currentBalance', 0)
+        account_allocations[acc_id] = {
+            "id": acc_id,
+            "name": acc.get('accountName', 'Unknown'),
+            "accountType": acc.get('accountType', ''),
+            "totalBalance": total_balance,
+            "allocatedAmount": 0,
+            "remainingAmount": total_balance,
+            "allocations": []
+        }
+    
+    # Process goal allocations - check both new and legacy formats
+    for goal in goals:
+        goal_id = goal.get('id')
+        goal_name = goal.get('goalName', 'Unknown Goal')
+        
+        # Process new format: linkedInvestments with allocatedAmount
+        for linked_inv in goal.get('linkedInvestments', []):
+            inv_id = linked_inv.get('id')
+            allocated = linked_inv.get('allocatedAmount', 0)
+            if inv_id in investment_allocations and allocated > 0:
+                investment_allocations[inv_id]['allocatedAmount'] += allocated
+                investment_allocations[inv_id]['remainingAmount'] -= allocated
+                investment_allocations[inv_id]['allocations'].append({
+                    "goalId": goal_id,
+                    "goalName": goal_name,
+                    "allocatedAmount": allocated
+                })
+        
+        # Process legacy format: linkedInvestmentIds (full amount)
+        for inv_id in goal.get('linkedInvestmentIds', []):
+            # Skip if already processed via linkedInvestments
+            already_processed = any(a.get('goalId') == goal_id for a in investment_allocations.get(inv_id, {}).get('allocations', []))
+            if inv_id in investment_allocations and not already_processed:
+                total_value = investment_allocations[inv_id]['totalValue']
+                investment_allocations[inv_id]['allocatedAmount'] += total_value
+                investment_allocations[inv_id]['remainingAmount'] = 0
+                investment_allocations[inv_id]['allocations'].append({
+                    "goalId": goal_id,
+                    "goalName": goal_name,
+                    "allocatedAmount": total_value,
+                    "isLegacy": True
+                })
+        
+        # Process new format: linkedAccounts with allocatedAmount
+        for linked_acc in goal.get('linkedAccounts', []):
+            acc_id = linked_acc.get('id')
+            allocated = linked_acc.get('allocatedAmount', 0)
+            if acc_id in account_allocations and allocated > 0:
+                account_allocations[acc_id]['allocatedAmount'] += allocated
+                account_allocations[acc_id]['remainingAmount'] -= allocated
+                account_allocations[acc_id]['allocations'].append({
+                    "goalId": goal_id,
+                    "goalName": goal_name,
+                    "allocatedAmount": allocated
+                })
+        
+        # Process legacy format: linkedAccountIds (full amount)
+        for acc_id in goal.get('linkedAccountIds', []):
+            already_processed = any(a.get('goalId') == goal_id for a in account_allocations.get(acc_id, {}).get('allocations', []))
+            if acc_id in account_allocations and not already_processed:
+                total_balance = account_allocations[acc_id]['totalBalance']
+                account_allocations[acc_id]['allocatedAmount'] += total_balance
+                account_allocations[acc_id]['remainingAmount'] = 0
+                account_allocations[acc_id]['allocations'].append({
+                    "goalId": goal_id,
+                    "goalName": goal_name,
+                    "allocatedAmount": total_balance,
+                    "isLegacy": True
+                })
+    
+    return {
+        "investments": list(investment_allocations.values()),
+        "accounts": list(account_allocations.values())
+    }
+
 @api_router.get("/goals/achievements")
 async def get_goal_achievements(request: Request):
     """Get all completed goals with their milestone history for the achievements page"""
