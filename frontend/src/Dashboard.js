@@ -432,6 +432,85 @@ const Dashboard = () => {
           )}
         </div>
 
+        {/* AI Smart Insights */}
+        <div 
+          className="rounded-2xl p-5 shadow-card"
+          style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+          data-testid="ai-insights-card"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)" }}>
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Smart Insights</h3>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>AI-powered financial tips</p>
+              </div>
+            </div>
+            <button 
+              onClick={fetchInsights}
+              disabled={insightsLoading}
+              className="p-2 rounded-lg transition-all hover:bg-gray-100 active:scale-95"
+            >
+              <RefreshCw className={`h-4 w-4 ${insightsLoading ? 'animate-spin' : ''}`} style={{ color: "var(--text-muted)" }} />
+            </button>
+          </div>
+          
+          {insightsLoading ? (
+            <div className="flex items-center justify-center py-6">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Analyzing your finances...</p>
+              </div>
+            </div>
+          ) : insights.length > 0 ? (
+            <div className="space-y-3">
+              {insights.map((insight, index) => (
+                <div 
+                  key={index}
+                  className={`p-3 rounded-xl transition-all ${insight.actionable ? 'cursor-pointer hover:shadow-sm active:scale-[0.99]' : ''}`}
+                  style={{ 
+                    backgroundColor: insight.priority === 'high' 
+                      ? 'var(--status-error-soft)' 
+                      : insight.priority === 'medium'
+                        ? 'var(--status-warning-soft)'
+                        : 'var(--bg-subtle)'
+                  }}
+                  onClick={() => insight.actionable && insight.action_link && navigate(insight.action_link)}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl">{insight.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>
+                        {insight.title}
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                        {insight.description}
+                      </p>
+                      {insight.actionable && insight.action_text && (
+                        <span 
+                          className="inline-flex items-center gap-1 text-xs font-medium mt-2"
+                          style={{ color: "var(--brand-primary)" }}
+                        >
+                          {insight.action_text}
+                          <ChevronRight className="h-3 w-3" />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                Add more financial data for personalized insights
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Empty State - When no data */}
         {data && data.assetCount === 0 && data.investmentCount === 0 && data.accountCount === 0 && (
           <div className="rounded-2xl p-8 text-center shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="empty-state">
