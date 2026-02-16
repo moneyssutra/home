@@ -211,6 +211,11 @@ const MyInvestments = () => {
                           <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: modeStyle.bg, color: modeStyle.text }}>
                             {investment.investmentMode}
                           </span>
+                          {investment.investmentFrequency && investment.investmentFrequency !== "" && (
+                            <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: "#DCFCE7", color: "#059669" }}>
+                              {investment.investmentFrequency} SIP
+                            </span>
+                          )}
                         </div>
 
                         <div className="flex items-center gap-4">
