@@ -705,29 +705,11 @@ const GoalForm = () => {
                             </div>
                           );
                         })}
-                              data-testid={`account-item-${acc.id}`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-[#334155] truncate">{acc.accountName}</p>
-                                  <p className="text-xs text-[#334155]/50">
-                                    {acc.accountType} • Total: ₹{totalBalance.toLocaleString('en-IN')}
-                                  </p>
-                                </div>
-                                {isLinked && (
-                                  <div className="text-right">
-                                    <p className="text-sm font-semibold text-[#7C3AED]">
-                                      ₹{linkedAlloc.allocatedAmount.toLocaleString('en-IN')}
-                                    </p>
-                                    <p className="text-[10px] text-[#334155]/50">allocated</p>
-                                  </div>
-                                )}
-                              </div>
-                              {hasOtherAllocations && (
-                                <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-600">
-                                  <AlertCircle className="w-3 h-3" />
-                                  <span>₹{allocatedElsewhere.toLocaleString('en-IN')} allocated to other goals</span>
-                                </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
                               )}
                             </div>
                           );
