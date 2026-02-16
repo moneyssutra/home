@@ -198,17 +198,17 @@ const GoalDetail = () => {
           </div>
 
           {/* Progress Section */}
-          <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="progress-section">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 border border-white/20 shadow-lg" data-testid="progress-section">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-white/60 text-sm mb-1">Current Progress</p>
-                <h2 className="text-3xl font-bold text-white" data-testid="current-amount">
+                <p className="text-gray-500 text-sm mb-1">Current Progress</p>
+                <h2 className="text-3xl font-bold text-gray-800" data-testid="current-amount">
                   ₹ {formatAmount(goal.calculatedAmount || 0)}
                 </h2>
               </div>
               <div className="text-right">
-                <p className="text-white/60 text-sm mb-1">Target</p>
-                <h2 className="text-2xl font-bold text-white" data-testid="target-amount">
+                <p className="text-gray-500 text-sm mb-1">Target</p>
+                <h2 className="text-2xl font-bold text-gray-800" data-testid="target-amount">
                   ₹ {formatAmount(goal.targetAmount)}
                 </h2>
               </div>
@@ -216,7 +216,7 @@ const GoalDetail = () => {
 
             {/* Progress Bar */}
             <div className="mb-3">
-              <div className="h-4 bg-[#1E293B]/20 rounded-full overflow-hidden">
+              <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
                 <div 
                   className={`h-full bg-gradient-to-r ${getProgressColor(progress)} rounded-full transition-all duration-500`}
                   style={{ width: `${Math.min(progress, 100)}%` }}
@@ -225,17 +225,17 @@ const GoalDetail = () => {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <span className="text-white/70">
+              <span className="text-gray-600">
                 {progress >= 100 ? "Goal Achieved!" : `₹ ${formatAmount(remaining)} to go`}
               </span>
-              <span className="text-white font-bold text-lg" data-testid="progress-percent">
+              <span className="text-gray-800 font-bold text-lg" data-testid="progress-percent">
                 {progress.toFixed(1)}%
               </span>
             </div>
             
             {/* Milestone Progress Badges */}
-            <div className="mt-4 pt-4 border-t border-white/10">
-              <p className="text-white/50 text-xs mb-2">Milestones</p>
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-gray-500 text-xs mb-2">Milestones</p>
               <MilestoneProgress 
                 progress={progress} 
                 reachedMilestones={goal.reachedMilestones || []} 
