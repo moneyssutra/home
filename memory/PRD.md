@@ -4,16 +4,25 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**AI Smart Insights Feature: COMPLETE ✅** (Feb 16, 2026)
+**AI Smart Insights Feature: BUG FIX COMPLETE ✅** (Feb 16, 2026)
 
 ## What Was Implemented (Latest Session - Feb 16, 2026)
 
+### AI Smart Insights Bug Fix
+- **Issue**: AI insights were showing incorrect data (e.g., "No cashflow data", "Zero liquid balance" when user had data)
+- **Root Cause**: The `/api/ai/insights` endpoint was:
+  1. Using wrong collection name (`db.income` instead of `db.income_sources`)
+  2. Not accounting for frequency-based calculations (daily, weekly, monthly, etc.)
+  3. Missing `other_income` collection data
+- **Fix Applied**: Updated the endpoint to use the same calculation logic as the dashboard endpoint
+- **Result**: AI now provides accurate, contextually relevant financial insights
+
 ### AI Smart Insights on Dashboard
-- **Backend**: New `/api/ai/insights` endpoint using OpenAI GPT-5.2 via Emergent LLM key
+- **Backend**: `/api/ai/insights` endpoint using OpenAI GPT-5.2 via Emergent LLM key
 - **Frontend**: Smart Insights card on Dashboard with:
   - AI-generated personalized financial tips
   - Color-coded priority indicators (high/medium/low)
-  - Actionable insights with navigation to relevant pages
+  - Actionable insights with navigation to relevant pages ✅ WORKING
   - Loading state with spinner
   - Manual refresh capability
   - Fallback insights if AI fails
