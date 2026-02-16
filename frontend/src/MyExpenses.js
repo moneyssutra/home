@@ -312,38 +312,38 @@ const MyExpenses = () => {
                   }}
                   data-testid={`expense-card-${expense.id}`}
                 >
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: catColor.bg }}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: catColor.bg }}>
                     <Icon className="h-6 w-6" style={{ color: catColor.text }} />
                   </div>
-                  <div className="flex-1 text-left">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>{expense.expenseName}</h3>
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <h3 className="font-semibold truncate" style={{ color: "var(--text-primary)" }}>{expense.expenseName}</h3>
                       <span 
-                        className="px-2 py-0.5 rounded-full text-[10px] font-medium"
+                        className="px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap flex-shrink-0"
                         style={{ backgroundColor: statusColor.bg, color: statusColor.text, border: `1px solid ${statusColor.border}` }}
                       >
                         {getStatusLabel(status)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-                      <span>{expense.category}</span>
+                    <div className="flex items-center gap-2 text-xs flex-wrap" style={{ color: "var(--text-muted)" }}>
+                      <span className="truncate max-w-[80px]">{expense.category}</span>
                       <span>•</span>
-                      <span>{expense.expenseType}</span>
+                      <span className="whitespace-nowrap">{expense.expenseType}</span>
                       {formattedNextDate && expense.expenseType === "Fixed" && (
                         <>
                           <span>•</span>
-                          <span className="font-medium" style={{ color: "var(--status-warning)" }}>Next: {formattedNextDate}</span>
+                          <span className="font-medium whitespace-nowrap" style={{ color: "var(--status-warning)" }}>Next: {formattedNextDate}</span>
                         </>
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0 ml-2">
                     <p className="font-bold" style={{ color: status === 'paid' ? "var(--status-success)" : "var(--text-primary)" }}>
                       ₹ {formatAmount(expense.expectedAmount)}
                     </p>
                     <p className="text-xs" style={{ color: "var(--text-muted)" }}>{expense.frequency}</p>
                   </div>
-                  <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
+                  <ChevronRight className="h-5 w-5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
                 </button>
               );
             })}
