@@ -326,7 +326,7 @@ const DividendIncome = () => {
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
-          onClick={() => navigate("/my-dividend")}
+          onClick={() => navigate("/my-income")}}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
