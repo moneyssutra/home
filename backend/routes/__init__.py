@@ -13,6 +13,7 @@ from routes.insurance import router as insurance_router
 from routes.goals import router as goals_router
 from routes.dashboard import router as dashboard_router
 from routes.profile import router as profile_router
+from routes.ai_insights import router as ai_insights_router
 
 # Re-export commonly used functions
 from routes.auth import get_current_user
@@ -41,6 +42,7 @@ __all__ = [
     'goals_router',
     'dashboard_router',
     'profile_router',
+    'ai_insights_router',
     # Functions
     'get_current_user',
     'get_user_workspace',
