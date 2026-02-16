@@ -4171,10 +4171,26 @@ async def get_ai_insights(request: Request):
             for inv in investments 
             if inv.get('investmentCategory') in ['Fixed Deposit (FD)', 'Recurring Deposit (RD)']
         )
-        emergency_fund = liquid_balance + fd_rd_balance
         
+        # Include investments explicitly marked as liquid (exclude FD/RD to avoid double counting)
+        liquid_investments = sum(
+            inv.get('currentValue', inv.get('principal', 0))
+            for inv in investments
+            if inv.get('isLiquidAsset', False) and inv.get('investmentCategory') not in ['Fixed Deposit (FD)', 'Recurring Deposit (RD)']
+        )
+        
+        # Get Emergency Fund goals and their funded amounts
         goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
+        emergency_fund_goals = sum(
+            g.get('currentBalance', 0)
+            for g in goals
+            if g.get('goalType') == 'Emergency Fund' and not g.get('isCompleted', False)
+        )
+        
         active_goals = len([g for g in goals if not g.get('isCompleted', False)])
+        
+        # Total emergency fund = liquid cash + FD/RD + liquid investments + emergency fund goals
+        emergency_fund = liquid_balance + fd_rd_balance + liquid_investments + emergency_fund_goals
         
         monthly_savings = monthly_income - monthly_expenses
         savings_rate = (monthly_savings / monthly_income * 100) if monthly_income > 0 else 0
@@ -4186,6 +4202,7 @@ async def get_ai_insights(request: Request):
             "total_assets": total_assets, "total_investments": total_investments,
             "total_liabilities": total_liabilities, "liquid_balance": liquid_balance,
             "emergency_fund": emergency_fund, "fd_rd_balance": fd_rd_balance,
+            "liquid_investments": liquid_investments, "emergency_fund_goals": emergency_fund_goals,
             "active_goals": active_goals, "savings_rate": savings_rate,
             "top_expenses": top_expenses_str
         }
