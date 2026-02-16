@@ -724,6 +724,42 @@ const InvestmentForm = () => {
               />
             </div>
 
+            {/* Consider as Liquid/Emergency Fund */}
+            <div className="w-full p-4 rounded-xl border border-[#334155] bg-[#1E293B]/50">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <label htmlFor="isLiquidAsset" className="block text-sm font-medium text-[#334155]">
+                    Consider as Emergency Fund
+                  </label>
+                  <p className="text-xs text-[#94A3B8] mt-1">
+                    Include this investment in your liquid/emergency fund calculation for AI insights
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsLiquidAsset(!isLiquidAsset)}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:ring-offset-2 ${
+                    isLiquidAsset ? 'bg-[#14B8A6]' : 'bg-[#334155]'
+                  }`}
+                  data-testid="liquid-asset-toggle"
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      isLiquidAsset ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+              {isLiquidAsset && (
+                <div className="mt-3 flex items-start gap-2 p-2 rounded-lg bg-[#14B8A6]/10 border border-[#14B8A6]/20">
+                  <Info className="h-4 w-4 text-[#14B8A6] mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-[#0D9488]">
+                    This amount will be added to your emergency fund for AI Smart Insights. FDs/RDs are automatically considered.
+                  </p>
+                </div>
+              )}
+            </div>
+
             {errors.submit && (
               <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">{errors.submit}</div>
             )}
