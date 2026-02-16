@@ -320,15 +320,15 @@ const MyLiabilities = () => {
 
         {/* Credit Cards Section */}
         {(activeTab === "all" || activeTab === "cards") && creditCards.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>
+          <div className="space-y-3 mt-6 pt-2">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="font-semibold text-base" style={{ color: "var(--text-primary)" }}>
                 {activeTab === "all" ? "Credit Cards" : `All Credit Cards (${creditCards.length})`}
               </h3>
               {activeTab === "all" && creditCards.length > 2 && (
                 <button 
                   onClick={() => navigate("/my-credit-cards")}
-                  className="text-xs font-medium"
+                  className="text-xs font-medium px-2 py-1"
                   style={{ color: "var(--brand-primary)" }}
                 >
                   View all
