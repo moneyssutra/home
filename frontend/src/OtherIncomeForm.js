@@ -30,6 +30,7 @@ const OtherIncomeForm = () => {
     selectedDate: "",
     selectedMonth: "",
     selectedQuarter: "",
+    selectedHalf: "",
     notes: "",
     isReceived: false,
   });
