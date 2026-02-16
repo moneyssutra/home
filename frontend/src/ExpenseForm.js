@@ -506,7 +506,7 @@ const ExpenseForm = () => {
                     <button
                       ref={dateFieldRef}
                       type="button"
-                      className="w-full flex items-center justify-between rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="date-picker-trigger"
                       data-testid="date-calendar-trigger"
                     >
                       <span className={selectedDate ? "text-[#334155]" : "text-[#94A3B8]"}>
@@ -566,7 +566,7 @@ const ExpenseForm = () => {
                         <button
                           ref={dateFieldRef}
                           type="button"
-                          className="w-full flex items-center justify-between rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                          className="date-picker-trigger"
                           data-testid="quarter-date-calendar"
                         >
                           <span className={selectedDate ? "text-[#334155]" : "text-[#94A3B8]"}>
@@ -627,7 +627,7 @@ const ExpenseForm = () => {
                         <button
                           ref={dateFieldRef}
                           type="button"
-                          className="w-full flex items-center justify-between rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                          className="date-picker-trigger"
                           data-testid="half-date-calendar"
                         >
                           <span className={selectedDate ? "text-[#334155]" : "text-[#94A3B8]"}>
@@ -688,7 +688,7 @@ const ExpenseForm = () => {
                         <button
                           ref={dateFieldRef}
                           type="button"
-                          className="w-full flex items-center justify-between rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                          className="date-picker-trigger"
                           data-testid="yearly-date-calendar"
                         >
                           <span className={selectedDate ? "text-[#334155]" : "text-[#94A3B8]"}>
@@ -729,7 +729,7 @@ const ExpenseForm = () => {
                     <button
                       ref={oneTimeFieldRef}
                       type="button"
-                      className="w-full flex items-center justify-between rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      className="date-picker-trigger"
                       data-testid="one-time-date-calendar"
                     >
                       <span className={oneTimeDate ? "text-[#334155]" : "text-[#94A3B8]"}>
