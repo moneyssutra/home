@@ -5,6 +5,12 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import AmountInput from "@/components/AmountInput";
+import { ValidationMessage } from "@/components/ValidationMessage";
+import { 
+  validatePositiveAmount, 
+  validateTextField,
+  scrollToFirstError
+} from "@/lib/validations";
 
 const BusinessIncome = () => {
   const navigate = useNavigate();
