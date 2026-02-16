@@ -49,6 +49,7 @@ import InvestmentForm from "@/InvestmentForm";
 import MyInvestments from "@/MyInvestments";
 import CreditCardForm from "@/CreditCardForm";
 import MyCreditCards from "@/MyCreditCards";
+import MyLiabilities from "@/MyLiabilities";
 
 // Goal Pages
 import MyGoals from "@/MyGoals";
