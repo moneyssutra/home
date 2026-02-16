@@ -86,18 +86,18 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
         {/* Amount Achieved */}
         <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
           <div>
-            <p className="text-xs text-gray-500 mb-1">Amount Achieved</p>
-            <p className="text-xl font-bold text-gray-800">₹ {formatAmount(achievement.finalAmount)}</p>
+            <p className="text-xs text-black/60 mb-1">Amount Achieved</p>
+            <p className="text-xl font-bold text-black">₹ {formatAmount(achievement.finalAmount)}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-gray-500 mb-1">Target</p>
-            <p className="text-lg font-semibold text-gray-600">₹ {formatAmount(achievement.targetAmount)}</p>
+            <p className="text-xs text-black/60 mb-1">Target</p>
+            <p className="text-lg font-semibold text-black/80">₹ {formatAmount(achievement.targetAmount)}</p>
           </div>
         </div>
 
         {/* Milestone Badges */}
         <div className="mb-4">
-          <p className="text-xs text-gray-500 mb-2 flex items-center gap-1">
+          <p className="text-xs text-black/60 mb-2 flex items-center gap-1">
             <Star className="h-3 w-3" />
             Milestones Achieved
           </p>
@@ -117,16 +117,16 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
           <div className="bg-gray-50 rounded-xl p-3">
             <div className="flex items-center gap-2 mb-1">
               <Calendar className="h-4 w-4 text-emerald-500" />
-              <span className="text-xs text-gray-500">Completed On</span>
+              <span className="text-xs text-black/60">Completed On</span>
             </div>
-            <p className="text-sm font-semibold text-gray-800">{completedDate}</p>
+            <p className="text-sm font-semibold text-black">{completedDate}</p>
           </div>
           <div className="bg-gray-50 rounded-xl p-3">
             <div className="flex items-center gap-2 mb-1">
               <Clock className="h-4 w-4 text-violet-500" />
-              <span className="text-xs text-gray-500">Journey Duration</span>
+              <span className="text-xs text-black/60">Journey Duration</span>
             </div>
-            <p className="text-sm font-semibold text-gray-800">
+            <p className="text-sm font-semibold text-black">
               {achievement.durationDays ? `${achievement.durationDays} days` : 'N/A'}
             </p>
           </div>
@@ -135,7 +135,7 @@ const AchievementCard = ({ achievement, navigate, getGoalIcon, getGoalColor, for
         {/* View Details Button */}
         <button
           onClick={() => navigate(`/goal/${achievement.id}`)}
-          className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+          className="w-full mt-4 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-black text-sm font-medium hover:bg-gray-50 transition-colors"
           data-testid={`view-achievement-${achievement.id}`}
         >
           View Details
