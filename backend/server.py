@@ -4032,7 +4032,7 @@ def get_fallback_insights_internal(data: dict) -> list:
             "priority": "high", "actionable": True, "action_text": "View Expenses", "action_link": "/my-expenses"
         })
     
-    if data.get('total_liabilities', 0) > data.get('liquid_balance', 0) * 2:
+    if data.get('total_liabilities', 0) > data.get('emergency_fund', data.get('liquid_balance', 0)) * 2:
         insights.append({
             "type": "alert", "icon": "💳", "title": "High Debt Ratio",
             "description": "Liabilities exceed 2x your liquid funds. Focus on debt reduction.",
