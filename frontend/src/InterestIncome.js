@@ -268,72 +268,82 @@ const InterestIncome = () => {
   const validate = () => {
     const newErrors = {};
 
-    if (!sourceName.trim()) {
-      newErrors.sourceName = "Interest source name is required";
-    } else if (sourceName.length > 50) {
-      newErrors.sourceName = "Name must be 50 characters or less";
-    }
+    // Source Name validation
+    const nameError = validateTextField(sourceName, "Interest source name", 50);
+    if (nameError) newErrors.sourceName = nameError;
 
-    if (!principal || parseFloat(principal) <= 0) {
-      newErrors.principal = "Principal amount must be greater than 0";
-    }
+    // Principal Amount validation
+    const principalError = validatePositiveAmount(principal, "Principal amount");
+    if (principalError) newErrors.principal = principalError;
 
+    // Rate of Interest validation
     if (!rate || parseFloat(rate) <= 0) {
-      newErrors.rate = "Rate of interest must be greater than 0";
+      newErrors.rate = "Rate of interest must be greater than 0.";
     } else if (parseFloat(rate) > 100) {
-      newErrors.rate = "Rate cannot exceed 100%";
+      newErrors.rate = "Rate cannot exceed 100%.";
     }
 
+    // Start Date validation
     if (!startDate) {
-      newErrors.startDate = "Start date is required";
+      newErrors.startDate = "Start date is required.";
     }
 
+    // End Date validation
     if (!endDate) {
-      newErrors.endDate = "End date is required";
-    } else if (startDate && new Date(endDate) <= new Date(startDate)) {
-      newErrors.endDate = "End date must be after start date";
+      newErrors.endDate = "End date is required.";
+    } else if (startDate) {
+      const dateError = validateDateRange(startDate, endDate, "Start date", "End date");
+      if (dateError) newErrors.endDate = dateError;
     }
 
+    // Compounding Frequency validation (for Compound Interest)
     if (interestType === "Compound Interest" && !compoundingFrequency) {
-      newErrors.compoundingFrequency = "Please select compounding frequency";
+      newErrors.compoundingFrequency = "Please select compounding frequency.";
     }
 
+    // Income Frequency validation
     if (!frequency) {
-      newErrors.frequency = "Please select income frequency";
+      newErrors.frequency = "Please select income frequency.";
     }
 
     // Payment schedule date validation based on frequency
     if (frequency === "Monthly" && !selectedDate) {
-      newErrors.selectedDate = "Please select a payment date";
+      newErrors.selectedDate = "Please select a payment date.";
     }
 
     if (frequency === "Quarterly") {
-      if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter";
-      if (!selectedMonth) newErrors.selectedMonth = "Please select a month";
-      if (!selectedDate) newErrors.selectedDate = "Please select a date";
+      if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter.";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Half-Yearly") {
-      if (!selectedHalf) newErrors.selectedHalf = "Please select a half";
-      if (!selectedMonth) newErrors.selectedMonth = "Please select a month";
-      if (!selectedDate) newErrors.selectedDate = "Please select a date";
+      if (!selectedHalf) newErrors.selectedHalf = "Please select a half.";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Yearly") {
-      if (!selectedMonth) newErrors.selectedMonth = "Please select a month";
-      if (!selectedDate) newErrors.selectedDate = "Please select a date";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Others") {
-      if (!customFrequency.trim()) newErrors.customFrequency = "Please enter custom frequency";
-      if (!customDate) newErrors.customDate = "Please select a date";
+      if (!customFrequency.trim()) newErrors.customFrequency = "Please enter custom frequency.";
+      if (!customDate) newErrors.customDate = "Please select a date.";
     }
 
-    if (!expectedAmount || parseFloat(expectedAmount) <= 0) {
-      newErrors.expectedAmount = "Expected income must be greater than 0";
-    }
+    // Expected Amount validation
+    const expectedError = validatePositiveAmount(expectedAmount, "Expected income");
+    if (expectedError) newErrors.expectedAmount = expectedError;
 
     setErrors(newErrors);
+    
+    // Scroll to first error
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
