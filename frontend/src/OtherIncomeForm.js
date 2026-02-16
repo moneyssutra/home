@@ -150,7 +150,7 @@ const OtherIncomeForm = () => {
       } else {
         await axios.post(`${backendUrl}/api/other-income`, payload);
       }
-      navigate("/my-other-income");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error saving income:", error);
       setError("Failed to save income. Please try again.");
@@ -163,7 +163,7 @@ const OtherIncomeForm = () => {
     try {
       setSaving(true);
       await axios.delete(`${backendUrl}/api/other-income/${id}`);
-      navigate("/my-other-income");
+      navigate("/my-income");
     } catch (error) {
       console.error("Error deleting income:", error);
       setError("Failed to delete. Please try again.");
