@@ -347,6 +347,29 @@ const OtherIncomeForm = () => {
               </div>
             )}
 
+            {/* Weekly: Day of Week */}
+            {formData.frequency === "Weekly" && (
+              <div>
+                <label className="block text-sm font-medium text-[#334155] mb-2">
+                  Day of Week
+                </label>
+                <div className="relative">
+                  <select
+                    value={formData.selectedDay}
+                    onChange={(e) => handleChange("selectedDay", e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-white"
+                    data-testid="weekly-day-select"
+                  >
+                    <option value="">Select day</option>
+                    {days.map((day) => (
+                      <option key={day} value={day}>{day}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+            )}
+
             {/* Monthly: Day of Month */}
             {formData.frequency === "Monthly" && (
               <div>
