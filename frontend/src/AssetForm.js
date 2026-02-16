@@ -8,6 +8,16 @@ import { format } from "date-fns";
 import { numberToWords } from "@/lib/formatters";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { ValidationMessage } from "@/components/ValidationMessage";
+import { 
+  validatePositiveAmount, 
+  validateNonNegativeAmount,
+  validateTextField,
+  validatePastOrTodayDate,
+  validateInsuranceLink,
+  formatAmountInput,
+  scrollToFirstError
+} from "@/lib/validations";
 
 const AssetForm = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);

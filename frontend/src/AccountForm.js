@@ -5,6 +5,15 @@ import axios from "axios";
 import { numberToWords } from "@/lib/formatters";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { ValidationMessage } from "@/components/ValidationMessage";
+import { 
+  validatePositiveAmount, 
+  validateNonNegativeAmount,
+  validateTextField,
+  validateCreditCardOutstanding,
+  formatAmountInput,
+  scrollToFirstError
+} from "@/lib/validations";
 
 const AccountForm = () => {
   const navigate = useNavigate();

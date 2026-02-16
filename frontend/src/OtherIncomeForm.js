@@ -11,6 +11,12 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { ValidationMessage } from "@/components/ValidationMessage";
+import { 
+  validatePositiveAmount, 
+  validateTextField,
+  scrollToFirstError
+} from "@/lib/validations";
 
 const OtherIncomeForm = () => {
   const navigate = useNavigate();

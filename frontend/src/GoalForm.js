@@ -10,6 +10,14 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ValidationMessage } from "@/components/ValidationMessage";
+import { 
+  validatePositiveAmount, 
+  validateTextField,
+  validateFutureDate,
+  formatAmountInput,
+  scrollToFirstError
+} from "@/lib/validations";
 
 const GoalForm = () => {
   const navigate = useNavigate();
