@@ -4,64 +4,42 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**UI Bug Fixes and Enhancements: COMPLETE ✅** (Feb 16, 2026)
-
-All requested bug fixes and feature enhancements have been implemented and tested.
+**AI Smart Insights Feature: COMPLETE ✅** (Feb 16, 2026)
 
 ## What Was Implemented (Latest Session - Feb 16, 2026)
 
+### AI Smart Insights on Dashboard
+- **Backend**: New `/api/ai/insights` endpoint using OpenAI GPT-5.2 via Emergent LLM key
+- **Frontend**: Smart Insights card on Dashboard with:
+  - AI-generated personalized financial tips
+  - Color-coded priority indicators (high/medium/low)
+  - Actionable insights with navigation to relevant pages
+  - Loading state with spinner
+  - Manual refresh capability
+  - Fallback insights if AI fails
+
+### AI Integration Details
+- **Model**: OpenAI GPT-5.2
+- **Provider**: Emergent LLM Key (Universal Key)
+- **Data Analyzed**: Net worth, income, expenses, savings rate, assets, investments, liabilities, goals
+- **Insight Types**: spending, savings, goal, alert, trend
+- **Priority Levels**: high (red), medium (yellow), low (subtle)
+
+### Additional Fixes in This Session
+1. **Back buttons added** to My Income and Portfolio pages
+2. **"Savings" → "Balance"** label change in Monthly Cash Flow
+3. **Amount formatting** - Removed trailing zeros (e.g., "2.00" → "2")
+
+## Previous Session (Feb 16, 2026) - Bug Fixes
+
 ### Bug Fixes Completed
-1. **Calendar Year Navigation** - Added dropdown-buttons captionLayout with year range 1950-2050 for mobile-friendly year selection
-2. **Dashboard Layout** - Monthly Cash Flow card moved ABOVE Assets/Investments cards
-3. **Dashboard Clickable Links** - Income and Expense in Monthly Cash Flow are now clickable (navigate to /my-income and /my-expenses)
-4. **Fixed Expenses Visibility** - Header card styling improved with white text on slate gradient background
-5. **Variable Expenses Visibility** - Header card styling improved with white text on amber gradient background
-6. **Credit Card Form Honeycomb** - Added honeycomb-bg pattern to Credit Card form
-7. **Back Button Navigation** - All income forms (Job, Business, Rental, Interest, Dividend, Commission, Other) now navigate to /my-income instead of individual pages
-
-### Feature Enhancements
-8. **Investment Form SIP Options** - Added Investment Frequency field for ALL investment categories (except SGB and SWP) with options:
-   - Daily
-   - Weekly
-   - Monthly (SIP)
-   - Quarterly
-   - Half-Yearly
-   - Yearly
-   - Other
-
-### CSS Fixes
-- Fixed gradient header text color override (white text preserved in gradient headers)
-- Calendar dropdown styling for year/month navigation
-- Improved CSS specificity for honeycomb-bg pages
-
-## Previous Session (Feb 15, 2026) - Light Theme
-
-### Light Theme Color System
-- **Brand Colors**: Green primary (#059669), Teal secondary (#14B8A6)
-- **Background**: App #F5F7FA, Cards #FFFFFF, Subtle #F8FAFC
-- **Text**: Primary #1F2937, Secondary #6B7280, Muted #94A3B8
-- **Status Colors**: Success #16A34A, Error #EF4444, Warning #F59E0B, Info #3B82F6
-- **Navigation**: Active #059669, Inactive #9CA3AF, Background white
-
-### Pages Updated
-| Page | Header Color | Status |
-|------|--------------|--------|
-| Dashboard | Green gradient | ✅ Fixed overlap + layout reorder |
-| Login/Welcome | Green gradient | ✅ |
-| MyIncome | Green gradient | ✅ |
-| MyExpenses | Orange-red gradient (#F87171) | ✅ |
-| Portfolio | Green gradient | ✅ |
-| MyAssets | Blue gradient | ✅ |
-| MyLoans | Amber gradient | ✅ |
-| MyInsurance | Cyan gradient | ✅ |
-| MyInvestments | Purple gradient | ✅ |
-| MyCreditCards | Purple gradient | ✅ |
-| MyAccounts | Green gradient | ✅ |
-| MyGoals | Purple gradient | ✅ |
-| Fixed Expenses | Slate gradient | ✅ Fixed visibility |
-| Variable Expenses | Amber gradient | ✅ Fixed visibility |
-| Workspace Settings | Emerald header | ✅ |
-| Form pages | Honeycomb pattern | ✅ |
+1. **Calendar Year Navigation** - Added dropdown for year selection (1950-2050)
+2. **Dashboard Layout** - Monthly Cash Flow moved above Assets/Investments
+3. **Dashboard Clickable Links** - Income/Expense in Monthly Cash Flow clickable
+4. **Investment Form SIP** - Frequency for all categories (Daily/Weekly/Monthly/Quarterly/Half-Yearly/Yearly/Other)
+5. **Fixed/Variable Expenses Visibility** - Improved text contrast
+6. **Credit Card Form Honeycomb** - Added background pattern
+7. **Back Button Navigation** - All income forms navigate to /my-income
 | Workspace Settings | Emerald header | ✅ (NEW) |
 
 ### Design Fixes Applied
