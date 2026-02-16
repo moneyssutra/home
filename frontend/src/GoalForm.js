@@ -121,6 +121,8 @@ const GoalForm = () => {
       setLinkedLoanId(data.linkedLoanId || "");
       setLinkedCreditCardId(data.linkedCreditCardId || "");
       setLinkedAccountIds(data.linkedAccountIds || []);
+      setLinkedInvestments(data.linkedInvestments || []);
+      setLinkedAccounts(data.linkedAccounts || []);
     } catch (error) {
       console.error("Error fetching goal data:", error);
       setErrors({ submit: "Failed to load goal data" });
