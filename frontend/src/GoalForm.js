@@ -154,7 +154,7 @@ const GoalForm = () => {
   };
 
   const handleAmountChange = (setter) => (e) => {
-    const value = e.target.value.replace(/[^0-9.]/g, "");
+    const value = formatAmountInput(e.target.value);
     setter(value);
   };
 
@@ -294,27 +294,45 @@ const GoalForm = () => {
   const validate = () => {
     const newErrors = {};
 
-    if (!goalName.trim()) {
-      newErrors.goalName = "Goal name is required";
-    }
+    // Goal Name validation
+    const nameError = validateTextField(goalName, "Goal name", 100);
+    if (nameError) newErrors.goalName = nameError;
 
+    // Goal Type validation
     if (!goalType) {
-      newErrors.goalType = "Please select a goal type";
+      newErrors.goalType = "Please select a goal type.";
     }
 
-    if (goalType === "Other" && !customTypeName.trim()) {
-      newErrors.customTypeName = "Please enter a custom type name";
+    // Custom Type Name validation (for "Other")
+    if (goalType === "Other") {
+      const customNameError = validateTextField(customTypeName, "Custom type name", 50);
+      if (customNameError) newErrors.customTypeName = customNameError;
     }
 
-    if (!targetAmount || parseFloat(targetAmount) <= 0) {
-      newErrors.targetAmount = "Target amount is required";
-    }
+    // Target Amount validation
+    const targetError = validatePositiveAmount(targetAmount, "Target amount");
+    if (targetError) newErrors.targetAmount = targetError;
 
+    // Target Date validation (must be in the future)
     if (!targetDate) {
-      newErrors.targetDate = "Target date is required";
+      newErrors.targetDate = "Target date is required.";
+    } else {
+      const futureDateError = validateFutureDate(targetDate, "Target date");
+      if (futureDateError) newErrors.targetDate = futureDateError;
+    }
+
+    // Manual current amount validation
+    if (manualOverride && currentAmount && parseFloat(currentAmount) < 0) {
+      newErrors.currentAmount = "Current amount cannot be negative.";
     }
 
     setErrors(newErrors);
+    
+    // Scroll to first error
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
