@@ -44,6 +44,7 @@ const OtherIncomeForm = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
