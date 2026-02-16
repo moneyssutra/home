@@ -96,8 +96,6 @@ Build a comprehensive personal finance tracking application with multi-user work
 - None currently
 
 ### P1 - High Priority
-- **Calendar Year Selection Bug**: Year selection not working on mobile devices
-- **Date Picker Click Area**: Make entire date picker input field clickable, not just the icon
 - PWA features (offline support, install prompt)
 - Data export functionality (PDF/Excel)
 
@@ -110,13 +108,26 @@ Build a comprehensive personal finance tracking application with multi-user work
 - Mobile OTP, PIN, Biometric Login
 - Two-Factor Authentication (2FA)
 
+## Recently Fixed (Feb 16, 2026)
+- **Calendar Year Selection Bug**: Fixed - Year dropdown now has proper mobile touch targets (44px min-height), touch-manipulation CSS
+- **Date Picker Click Area**: Fixed - Created `date-picker-trigger` CSS class with full-width clickable area
+- **AI Smart Insights Data**: Fixed - Corrected field names for liquid balance and active goals
+
 ## Test Credentials
-- **Test User**: test / test
+- **Test User**: test@moneyssutra.com / test
 - **New Users**: Register via the UI
 
 ## Key Files Modified
 ```
-frontend/src/index.css - CSS variables, honeycomb pattern, comprehensive dark theme overrides (UPDATED)
+frontend/src/index.css - CSS variables, honeycomb pattern, date-picker-trigger class, mobile calendar styles (UPDATED)
+frontend/src/components/ui/calendar.jsx - Mobile-friendly dropdowns with touch-manipulation (UPDATED)
+frontend/src/LoanForm.js - Updated date picker styling (UPDATED)
+frontend/src/GoalForm.js - Updated date picker styling (UPDATED)
+frontend/src/InsuranceForm.js - Updated date picker styling (UPDATED)
+frontend/src/InvestmentForm.js - Updated date picker styling (UPDATED)
+frontend/src/ExpenseForm.js - Updated date picker styling (UPDATED)
+frontend/src/AssetForm.js - Updated date picker styling (UPDATED)
+backend/server.py - Fixed AI insights endpoint (UPDATED)
 frontend/src/pages/WorkspaceSettings.js - Full light theme refactor (UPDATED)
 frontend/src/Dashboard.js - Spacing fix, light theme
 frontend/src/MyExpenses.js - Lighter red gradient
