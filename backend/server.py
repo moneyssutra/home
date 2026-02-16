@@ -4181,18 +4181,47 @@ async def get_ai_insights(request: Request):
             if inv.get('isLiquidAsset', False) and inv.get('investmentCategory') not in ['Fixed Deposit (FD)', 'Recurring Deposit (RD)']
         )
         
-        # Get Emergency Fund goals and their funded amounts
+        # Get Emergency Fund goals and calculate their actual funded amounts from linked sources
         goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
-        emergency_fund_goals = sum(
-            g.get('currentAmount', 0)
-            for g in goals
-            if g.get('goalType') == 'Emergency Fund' and not g.get('isCompleted', False)
-        )
+        emergency_fund_goals_amount = 0
+        emergency_fund_goal_info = []
+        
+        for g in goals:
+            if g.get('goalType') == 'Emergency Fund' and not g.get('isCompleted', False):
+                # Calculate actual amount from linked investments and accounts
+                goal_amount = 0
+                
+                # Add linked investments
+                for inv_id in g.get('linkedInvestmentIds', []):
+                    inv = await db.investments.find_one({"id": inv_id}, {"_id": 0})
+                    if inv:
+                        goal_amount += inv.get('currentValue', inv.get('principal', 0))
+                
+                # Add linked accounts
+                for acc_id in g.get('linkedAccountIds', []):
+                    acc = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
+                    if acc and acc.get('accountType') != 'Credit Card':
+                        goal_amount += acc.get('currentBalance', 0)
+                
+                # If no linked sources, use stored currentAmount
+                if goal_amount == 0:
+                    goal_amount = g.get('currentAmount', 0)
+                
+                emergency_fund_goals_amount += goal_amount
+                target = g.get('targetAmount', 0)
+                progress = round((goal_amount / target * 100), 1) if target > 0 else 0
+                emergency_fund_goal_info.append({
+                    "name": g.get('goalName'),
+                    "current": goal_amount,
+                    "target": target,
+                    "progress": progress
+                })
         
         active_goals = len([g for g in goals if not g.get('isCompleted', False)])
         
-        # Total emergency fund = liquid cash + FD/RD + liquid investments + emergency fund goals
-        emergency_fund = liquid_balance + fd_rd_balance + liquid_investments + emergency_fund_goals
+        # Total emergency fund = liquid cash + FD/RD + liquid investments (avoid double counting)
+        # Don't add emergency_fund_goals_amount again since those sources are already counted
+        emergency_fund = liquid_balance + fd_rd_balance + liquid_investments
         
         monthly_savings = monthly_income - monthly_expenses
         savings_rate = (monthly_savings / monthly_income * 100) if monthly_income > 0 else 0
