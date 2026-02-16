@@ -509,7 +509,7 @@ const ExpenseForm = () => {
                       className="date-picker-trigger"
                       data-testid="date-calendar-trigger"
                     >
-                      <span className={selectedDate ? "text-[#334155]" : "text-[#94A3B8]"}>
+                      <span className={selectedDate ? "value" : "placeholder"}>
                         {selectedDate ? `${selectedDate}${selectedDate === '1' ? 'st' : selectedDate === '2' ? 'nd' : selectedDate === '3' ? 'rd' : 'th'} of every month` : "Select a date from calendar"}
                       </span>
                       <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
@@ -569,7 +569,7 @@ const ExpenseForm = () => {
                           className="date-picker-trigger"
                           data-testid="quarter-date-calendar"
                         >
-                          <span className={selectedDate ? "text-[#334155]" : "text-[#94A3B8]"}>
+                          <span className={selectedDate ? "value" : "placeholder"}>
                             {selectedDate ? `${selectedDate}${selectedDate === '1' ? 'st' : selectedDate === '2' ? 'nd' : selectedDate === '3' ? 'rd' : 'th'}` : "Select date from calendar"}
                           </span>
                           <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
@@ -630,7 +630,7 @@ const ExpenseForm = () => {
                           className="date-picker-trigger"
                           data-testid="half-date-calendar"
                         >
-                          <span className={selectedDate ? "text-[#334155]" : "text-[#94A3B8]"}>
+                          <span className={selectedDate ? "value" : "placeholder"}>
                             {selectedDate ? `${selectedDate}${selectedDate === '1' ? 'st' : selectedDate === '2' ? 'nd' : selectedDate === '3' ? 'rd' : 'th'}` : "Select date from calendar"}
                           </span>
                           <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
@@ -691,7 +691,7 @@ const ExpenseForm = () => {
                           className="date-picker-trigger"
                           data-testid="yearly-date-calendar"
                         >
-                          <span className={selectedDate ? "text-[#334155]" : "text-[#94A3B8]"}>
+                          <span className={selectedDate ? "value" : "placeholder"}>
                             {selectedDate ? `${selectedDate}${selectedDate === '1' ? 'st' : selectedDate === '2' ? 'nd' : selectedDate === '3' ? 'rd' : 'th'} ${selectedMonth}` : "Select date from calendar"}
                           </span>
                           <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
