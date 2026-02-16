@@ -156,34 +156,91 @@ const InvestmentForm = () => {
   };
 
   const handleAmountChange = (setter) => (e) => {
-    const value = e.target.value.replace(/[^0-9.]/g, "");
+    const value = formatAmountInput(e.target.value);
     setter(value);
+  };
+
+  // Real-time validation for specific fields
+  const validateField = (field, value) => {
+    const newErrors = { ...errors };
+    
+    switch (field) {
+      case 'principal':
+        const principalError = validatePositiveAmount(value, "Principal amount");
+        if (principalError) newErrors.principal = principalError;
+        else delete newErrors.principal;
+        break;
+      case 'currentValue':
+        if (value && parseFloat(value) < 0) {
+          newErrors.currentValue = "Current value cannot be negative.";
+        } else {
+          delete newErrors.currentValue;
+        }
+        break;
+      case 'maturityDate':
+        if (startDate && value) {
+          const dateError = validateDateRange(startDate, value, "Start Date", "Maturity Date");
+          if (dateError) newErrors.maturityDate = dateError;
+          else delete newErrors.maturityDate;
+        }
+        break;
+      default:
+        break;
+    }
+    
+    setErrors(newErrors);
   };
 
   const validate = () => {
     const newErrors = {};
 
+    // Investment Category validation
     if (!investmentCategory) {
-      newErrors.investmentCategory = "Please select investment category";
+      newErrors.investmentCategory = "Please select investment category.";
     }
 
+    // Investment Mode validation
     if (!investmentMode) {
-      newErrors.investmentMode = "Please select investment mode";
+      newErrors.investmentMode = "Please select investment mode.";
     }
 
-    if (!name.trim()) {
-      newErrors.name = "Investment name is required";
-    }
+    // Investment Name validation
+    const nameError = validateTextField(name, "Investment name", 100);
+    if (nameError) newErrors.name = nameError;
 
-    if (!principal || parseFloat(principal) <= 0) {
-      newErrors.principal = "Principal amount is required";
-    }
+    // Principal Amount validation
+    const principalError = validatePositiveAmount(principal, "Principal amount");
+    if (principalError) newErrors.principal = principalError;
 
+    // Start Date validation
     if (!startDate) {
-      newErrors.startDate = "Start date is required";
+      newErrors.startDate = "Start date is required.";
+    }
+
+    // Maturity Date validation (if provided, must be after start date)
+    if (maturityDate && startDate) {
+      const dateError = validateDateRange(startDate, maturityDate, "Start Date", "Maturity Date");
+      if (dateError) newErrors.maturityDate = dateError;
+    }
+
+    // Return Rate validation (if provided)
+    if (returnRate && (isNaN(parseFloat(returnRate)) || parseFloat(returnRate) < 0)) {
+      newErrors.returnRate = "Return rate cannot be negative.";
+    }
+
+    // SIP Amount validation (if frequency selected)
+    if (investmentFrequency && investmentFrequency !== "" && sipAmount) {
+      const sipError = validatePositiveAmount(sipAmount, "SIP amount");
+      if (sipError) newErrors.sipAmount = sipError;
     }
 
     setErrors(newErrors);
+    
+    // Scroll to first error
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
