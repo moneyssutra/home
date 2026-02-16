@@ -397,26 +397,13 @@ const BusinessIncome = () => {
 
             {/* Expected Amount */}
             <div className="w-full">
-              <label
-                htmlFor="expectedAmount"
-                className="block text-sm font-medium text-[#334155] mb-2"
-              >
-                Expected Amount
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">
-                  ₹
-                </span>
-                <input
-                  id="expectedAmount"
-                  type="text"
-                  value={expectedAmount}
-                  onChange={handleAmountChange}
-                  placeholder="0"
-                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                  data-testid="expected-amount-input"
-                />
-              </div>
+              <AmountInput
+                label="Expected Amount"
+                value={expectedAmount}
+                onChange={setExpectedAmount}
+                required
+                testId="expected-amount-input"
+              />
               {errors.expectedAmount && (
                 <p className="text-sm text-red-500 mt-1">{errors.expectedAmount}</p>
               )}
