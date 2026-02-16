@@ -4,6 +4,12 @@ import { ChevronLeft, Calendar, Trash2 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { ValidationMessage } from "@/components/ValidationMessage";
+import { 
+  validatePositiveAmount, 
+  validateTextField,
+  scrollToFirstError
+} from "@/lib/validations";
 
 const CommissionIncome = () => {
   const navigate = useNavigate();
