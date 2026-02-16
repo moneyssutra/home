@@ -4163,6 +4163,14 @@ async def get_ai_insights(request: Request):
         accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
         liquid_balance = sum(a.get('currentBalance', 0) for a in accounts)
         
+        # Include FDs and RDs as liquid/emergency funds (they are accessible in emergencies)
+        fd_rd_balance = sum(
+            inv.get('currentValue', inv.get('principal', 0)) 
+            for inv in investments 
+            if inv.get('investmentCategory') in ['Fixed Deposit (FD)', 'Recurring Deposit (RD)']
+        )
+        emergency_fund = liquid_balance + fd_rd_balance
+        
         goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
         active_goals = len([g for g in goals if not g.get('isCompleted', False)])
         
@@ -4175,6 +4183,7 @@ async def get_ai_insights(request: Request):
             "monthly_expenses": monthly_expenses, "monthly_savings": monthly_savings,
             "total_assets": total_assets, "total_investments": total_investments,
             "total_liabilities": total_liabilities, "liquid_balance": liquid_balance,
+            "emergency_fund": emergency_fund, "fd_rd_balance": fd_rd_balance,
             "active_goals": active_goals, "savings_rate": savings_rate,
             "top_expenses": top_expenses_str
         }
