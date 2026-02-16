@@ -140,7 +140,7 @@ const MyLiabilities = () => {
       </header>
 
       {/* Main Content */}
-      <div className="px-6 -mt-4 space-y-4">
+      <div className="px-6 -mt-4 space-y-5">
         {/* Tab Navigation */}
         <div className="flex gap-2 p-1 rounded-xl" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
           <button
