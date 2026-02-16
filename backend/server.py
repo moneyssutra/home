@@ -4167,6 +4167,28 @@ async def get_ai_insights(request: Request):
         accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
         liquid_balance = sum(a.get('currentBalance', 0) for a in accounts)
         
+        # Get insurance data
+        insurances = await db.insurances.find(user_filter, {"_id": 0}).to_list(1000)
+        
+        # Calculate insurance coverage by type
+        life_coverage = sum(i.get('coverageAmount', 0) for i in insurances if i.get('insuranceType') in ['Life Insurance', 'Term Insurance'])
+        health_coverage = sum(i.get('coverageAmount', 0) for i in insurances if i.get('insuranceType') == 'Health Insurance')
+        vehicle_coverage = sum(i.get('coverageAmount', 0) for i in insurances if i.get('insuranceType') == 'Vehicle Insurance')
+        
+        # Calculate annual premium
+        def get_annual_premium(ins):
+            premium = ins.get('premiumAmount', 0)
+            freq = ins.get('premiumFrequency', 'Yearly')
+            multipliers = {'Monthly': 12, 'Quarterly': 4, 'Half-Yearly': 2, 'Yearly': 1, 'One-Time': 0}
+            return premium * multipliers.get(freq, 1)
+        
+        total_annual_premium = sum(get_annual_premium(i) for i in insurances)
+        
+        # Insurance insights
+        insurance_types = list(set(i.get('insuranceType') for i in insurances))
+        has_health_insurance = 'Health Insurance' in insurance_types
+        has_term_insurance = 'Term Insurance' in insurance_types or life_coverage > 0
+        
         # Include FDs and RDs as liquid/emergency funds (they are accessible in emergencies)
         fd_rd_balance = sum(
             inv.get('currentValue', inv.get('principal', 0)) 
