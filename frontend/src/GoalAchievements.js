@@ -262,15 +262,15 @@ const GoalAchievements = () => {
       <div className="px-6 mt-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#334155]/60">Loading achievements...</div>
+            <div className="text-slate-400">Loading achievements...</div>
           </div>
         ) : achievements.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6">
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-amber-100 mb-4">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-amber-500/20 mb-4">
               <Trophy className="h-12 w-12 text-amber-500" />
             </div>
-            <h2 className="text-lg font-semibold text-[#334155] mb-2">No Achievements Yet</h2>
-            <p className="text-[#334155]/60 text-center text-sm mb-6">
+            <h2 className="text-lg font-semibold text-white mb-2">No Achievements Yet</h2>
+            <p className="text-slate-400 text-center text-sm mb-6">
               Complete your first goal to see it celebrated here!
             </p>
             <button
@@ -285,11 +285,11 @@ const GoalAchievements = () => {
         ) : (
           <div className="space-y-4">
             {/* Celebration Banner */}
-            <div className="bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl p-4 border border-amber-200 flex items-center gap-3">
+            <div className="bg-gradient-to-r from-amber-500/20 to-yellow-500/20 rounded-2xl p-4 border border-amber-500/30 flex items-center gap-3">
               <div className="flex-shrink-0">
                 <Sparkles className="h-6 w-6 text-amber-500" />
               </div>
-              <p className="text-sm text-amber-800">
+              <p className="text-sm text-amber-200">
                 <span className="font-semibold">Congratulations!</span> You've achieved {summary.totalCompleted} {summary.totalCompleted === 1 ? 'goal' : 'goals'}. Keep up the great work!
               </p>
             </div>
