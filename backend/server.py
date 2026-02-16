@@ -3977,19 +3977,25 @@ async def generate_ai_insights_internal(financial_data: dict) -> list:
     - Active Goals: {financial_data.get('active_goals', 0)}
     - Savings Rate: {financial_data.get('savings_rate', 0):.1f}%
     - Top Expense Categories: {financial_data.get('top_expenses', 'N/A')}
+    
+    Insurance Coverage:
+    - {financial_data.get('insurance_summary', 'No insurance data')}
+    - Insurance Gaps: {financial_data.get('insurance_gaps', 'Unknown')}
     """
     
-    system_prompt = """You are a smart financial advisor AI. Analyze the user's financial data and provide 3-4 personalized, actionable insights.
+    system_prompt = """You are a smart financial advisor AI. Analyze the user's financial data and provide 4-5 personalized, actionable insights.
+    
+    IMPORTANT: Always include at least one insurance-related insight if there are coverage gaps or if health insurance is missing.
     
     Return ONLY a valid JSON array with objects containing:
-    - type: "spending", "savings", "goal", "alert", or "trend"
+    - type: "spending", "savings", "goal", "alert", "trend", or "insurance"
     - icon: single emoji
     - title: max 6 words
     - description: max 25 words, practical advice
     - priority: "high", "medium", or "low"
     - actionable: boolean
     - action_text: button text if actionable
-    - action_link: "/my-expenses", "/my-income", "/my-goals", "/my-investments", "/my-loans", or "/portfolio"
+    - action_link: "/my-expenses", "/my-income", "/my-goals", "/my-investments", "/my-loans", "/my-insurance", or "/portfolio"
     
     No markdown, no explanation - ONLY the JSON array. Use ₹ for amounts."""
     
