@@ -4,6 +4,13 @@ import { ChevronLeft, Calendar, Trash2, Plus, TrendingUp } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { ValidationMessage } from "@/components/ValidationMessage";
+import { 
+  validatePositiveAmount, 
+  validateTextField,
+  validateNonNegativeAmount,
+  scrollToFirstError
+} from "@/lib/validations";
 
 const RentalIncome = () => {
   const navigate = useNavigate();
