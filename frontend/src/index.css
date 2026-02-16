@@ -123,14 +123,17 @@ body {
     color: var(--text-primary) !important;
 }
 
-/* Gradient headers should keep white text */
-.honeycomb-bg > header h1,
-.honeycomb-bg > header h2,
-.honeycomb-bg > header p,
+/* Gradient headers should keep white text - only apply to headers WITH gradient bg */
 header[class*="bg-gradient"] h1,
 header[class*="bg-gradient"] h2,
 header[class*="bg-gradient"] p {
     color: white !important;
+}
+
+/* Non-gradient headers in honeycomb-bg should use primary text color */
+.honeycomb-bg > header:not([class*="bg-gradient"]) h1,
+.honeycomb-bg > header:not([class*="bg-gradient"]) h2 {
+    color: var(--text-primary) !important;
 }
 
 header[class*="bg-gradient"] p[class*="text-white"] {
