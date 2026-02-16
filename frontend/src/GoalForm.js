@@ -710,15 +710,6 @@ const GoalForm = () => {
                   )}
                 </div>
               )}
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
 
             {/* Manual Override Toggle */}
