@@ -9,14 +9,38 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  selected,
+  onSelect,
+  defaultMonth,
   ...props
 }) {
+  // Track the currently displayed month for controlled navigation
+  const [month, setMonth] = React.useState(
+    selected || defaultMonth || new Date()
+  );
+
+  // Update displayed month when selected date changes
+  React.useEffect(() => {
+    if (selected) {
+      setMonth(selected);
+    }
+  }, [selected]);
+
+  // Handle month change from navigation or dropdown
+  const handleMonthChange = (newMonth) => {
+    setMonth(newMonth);
+  };
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       captionLayout="dropdown-buttons"
       fromYear={1950}
       toYear={2050}
+      month={month}
+      onMonthChange={handleMonthChange}
+      selected={selected}
+      onSelect={onSelect}
       className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
