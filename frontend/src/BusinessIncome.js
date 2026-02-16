@@ -4,6 +4,7 @@ import { ChevronLeft, Calendar, Trash2 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import AmountInput from "@/components/AmountInput";
 
 const BusinessIncome = () => {
   const navigate = useNavigate();
