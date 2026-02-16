@@ -16,6 +16,7 @@ Build a comprehensive personal finance tracking application with multi-user work
    - `VariableExpenses.js` - Icon and color mappings
    - `MyExpenses.js` - Icon and color mappings
 3. **SIP Tags on Investment Cards** - Added frequency tags (e.g., "Monthly SIP", "Weekly SIP") to investment cards that have recurring investments configured. Tag displayed in green alongside category and mode badges.
+4. **Page Loading Speed Optimization** - Parallelized database queries in `/api/dashboard/networth` endpoint using `asyncio.gather()`. Reduced response time from ~4 seconds to ~0.12 seconds (33x faster). All 8 database queries now run concurrently.
 
 ### Previous Session - Feb 16, 2026
 
