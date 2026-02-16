@@ -470,10 +470,12 @@ class Goal(BaseModel):
     targetAmount: float
     currentAmount: float = 0
     targetDate: str  # ISO date string
-    linkedInvestmentIds: List[str] = []
+    linkedInvestmentIds: List[str] = []  # Deprecated - kept for backward compatibility
+    linkedInvestments: List[dict] = []  # New: [{id: str, allocatedAmount: float, name: str}]
     linkedLoanId: Optional[str] = None
     linkedCreditCardId: Optional[str] = None
-    linkedAccountIds: List[str] = []  # For tracking savings in specific accounts
+    linkedAccountIds: List[str] = []  # Deprecated - kept for backward compatibility
+    linkedAccounts: List[dict] = []  # New: [{id: str, allocatedAmount: float, name: str}]
     autoCalculate: bool = True  # Auto-calculate from linked sources
     manualOverride: bool = False  # User has manually set currentAmount
     priority: int = 1  # 1 = High, 2 = Medium, 3 = Low
