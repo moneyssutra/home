@@ -492,10 +492,12 @@ class GoalCreate(BaseModel):
     targetAmount: float
     currentAmount: float = 0
     targetDate: str
-    linkedInvestmentIds: List[str] = []
+    linkedInvestmentIds: List[str] = []  # Deprecated
+    linkedInvestments: List[dict] = []  # New: [{id, allocatedAmount, name}]
     linkedLoanId: Optional[str] = None
     linkedCreditCardId: Optional[str] = None
-    linkedAccountIds: List[str] = []
+    linkedAccountIds: List[str] = []  # Deprecated
+    linkedAccounts: List[dict] = []  # New: [{id, allocatedAmount, name}]
     autoCalculate: bool = True
     manualOverride: bool = False
     priority: int = 1
