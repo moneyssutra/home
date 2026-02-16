@@ -47,9 +47,9 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const [networthRes, profileRes, goalsRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/dashboard/networth`),
-        axios.get(`${backendUrl}/api/profile/basic`),
-        axios.get(`${backendUrl}/api/goals/summary/dashboard`).catch(() => ({ data: null })),
+        axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/profile/basic`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/goals/summary/dashboard`, { withCredentials: true }).catch(() => ({ data: null })),
       ]);
       setData(networthRes.data);
       setProfile(profileRes.data);
