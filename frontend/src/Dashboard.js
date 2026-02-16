@@ -469,7 +469,7 @@ const Dashboard = () => {
               {insights.map((insight, index) => (
                 <div 
                   key={index}
-                  className={`p-3 rounded-xl transition-all ${insight.actionable ? 'cursor-pointer hover:shadow-sm active:scale-[0.99]' : ''}`}
+                  className={`p-4 rounded-xl transition-all ${insight.actionable ? 'cursor-pointer hover:shadow-sm active:scale-[0.99]' : ''}`}
                   style={{ 
                     backgroundColor: insight.priority === 'high' 
                       ? 'var(--status-error-soft)' 
@@ -480,12 +480,12 @@ const Dashboard = () => {
                   onClick={() => insight.actionable && insight.action_link && navigate(insight.action_link)}
                 >
                   <div className="flex items-start gap-3">
-                    <span className="text-xl">{insight.icon}</span>
+                    <span className="text-xl flex-shrink-0 w-7 h-7 flex items-center justify-center">{insight.icon}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>
+                      <p className="font-medium text-sm leading-tight" style={{ color: "var(--text-primary)" }}>
                         {insight.title}
                       </p>
-                      <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                      <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                         {insight.description}
                       </p>
                       {insight.actionable && insight.action_text && (
