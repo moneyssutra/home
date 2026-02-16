@@ -424,16 +424,16 @@ const AssetForm = () => {
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    className="date-picker-trigger"
                     data-testid="purchase-date-input"
                   >
-                    <span className={purchaseDate ? "text-[#334155]" : "text-[#94A3B8]"}>
+                    <span className={purchaseDate ? "value" : "placeholder"}>
                       {purchaseDate ? format(new Date(purchaseDate), "PPP") : "Select purchase date"}
                     </span>
-                    <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                    <CalendarIcon className="h-5 w-5 icon" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
+                <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
                   <Calendar
                     mode="single"
                     selected={purchaseDate ? new Date(purchaseDate) : undefined}
