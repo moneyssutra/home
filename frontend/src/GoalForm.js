@@ -28,11 +28,20 @@ const GoalForm = () => {
   const [autoCalculate, setAutoCalculate] = useState(true);
   const [manualOverride, setManualOverride] = useState(false);
   
-  // Linked sources
+  // Linked sources - Legacy (for backward compatibility)
   const [linkedInvestmentIds, setLinkedInvestmentIds] = useState([]);
   const [linkedLoanId, setLinkedLoanId] = useState("");
   const [linkedCreditCardId, setLinkedCreditCardId] = useState("");
   const [linkedAccountIds, setLinkedAccountIds] = useState([]);
+  
+  // New allocation-based linking
+  const [linkedInvestments, setLinkedInvestments] = useState([]); // [{id, allocatedAmount, name}]
+  const [linkedAccounts, setLinkedAccounts] = useState([]); // [{id, allocatedAmount, name}]
+  const [allocationStatus, setAllocationStatus] = useState({ investments: [], accounts: [] });
+  
+  // Allocation dialog state
+  const [allocationDialog, setAllocationDialog] = useState({ open: false, type: null, item: null });
+  const [allocationAmount, setAllocationAmount] = useState("");
   
   // Available sources for linking
   const [investments, setInvestments] = useState([]);
