@@ -186,18 +186,18 @@ const OtherIncomeForm = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
+      <div className="min-h-screen honeycomb-bg flex items-center justify-center">
         <div className="w-8 h-8 border-3 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0F172A] pb-32" data-testid="other-income-form">
+    <div className="min-h-screen honeycomb-bg pb-32" data-testid="other-income-form">
       {/* Header */}
       <header className="bg-gradient-to-br from-[#7C3AED] via-[#8B5CF6] to-[#6D28D9] px-6 pt-8 pb-6">
         <div className="flex items-center gap-3 mb-2">
-          <BackButton className="text-white" />
+          <BackButton fallbackPath="/my-income" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             {isEdit ? "Edit Entry" : "Add Other Income"}
           </h1>
@@ -209,7 +209,7 @@ const OtherIncomeForm = () => {
 
       {/* Form */}
       <div className="px-6 -mt-4">
-        <div className="bg-[#1E293B] rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
           {/* Error Message */}
           {error && (
             <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-600 text-sm" data-testid="error-message">
