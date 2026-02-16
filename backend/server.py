@@ -2588,8 +2588,7 @@ async def get_networth_summary(request: Request):
             # Default case - assume monthly
             monthly_income += amount
     
-    # Get all other income - Calculate for current month
-    other_incomes = await db.other_income.find(user_filter, {"_id": 0}).to_list(1000)
+    # Calculate other income for current month
     other_income_total = 0
     for other_inc in other_incomes:
         amount = other_inc.get('amount', 0)
