@@ -4,9 +4,19 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**AI Smart Insights Feature: BUG FIX COMPLETE ✅** (Feb 16, 2026)
+**UI Fixes Complete ✅** (Feb 16, 2026)
 
 ## What Was Implemented (Latest Session - Feb 16, 2026)
+
+### UI Fixes (Feb 16, 2026 - Latest)
+1. **Add Expense Page Title Visibility** - Fixed invisible white text on white background by updating CSS rules in `index.css`. Non-gradient headers in honeycomb-bg now use `var(--text-primary)` instead of white.
+2. **Expense Category Rename** - Changed "Transport" to "Travel" across all expense-related files:
+   - `ExpenseForm.js` - Category dropdown option
+   - `FixedExpenses.js` - Icon and color mappings
+   - `VariableExpenses.js` - Icon and color mappings
+   - `MyExpenses.js` - Icon and color mappings
+
+### Previous Session - Feb 16, 2026
 
 ### AI Smart Insights Bug Fix
 - **Issue**: AI insights were showing incorrect data (e.g., "No cashflow data", "Zero liquid balance" when user had data)
