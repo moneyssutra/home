@@ -356,7 +356,7 @@ const Dashboard = () => {
           <div 
             className="rounded-2xl p-4 cursor-pointer transition-all hover:shadow-md active:scale-[0.98] shadow-card"
             style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-            onClick={() => navigate("/my-loans")}
+            onClick={() => navigate("/my-liabilities")}
             data-testid="liabilities-summary-card"
           >
             <div className="flex items-center gap-2 mb-2">
@@ -366,7 +366,7 @@ const Dashboard = () => {
               <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Liabilities</span>
             </div>
             <p className="text-xl font-bold" style={{ color: "var(--finance-loss)" }}>₹ {formatAmount(data?.totalLiabilities || 0)}</p>
-            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{data?.loanCount || 0} loans</p>
+            <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{data?.loanCount || 0} loans, {data?.creditCardCount || 0} cards</p>
           </div>
         </div>
 
