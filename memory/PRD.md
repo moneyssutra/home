@@ -92,14 +92,15 @@ Build a comprehensive personal finance tracking application with multi-user work
 ## Upcoming Tasks
 
 ### P0 - Immediate
-- **Expense Transaction Module**: Track spending transactions with receipt upload
+- None currently
 
 ### P1 - High Priority
+- **Calendar Year Selection Bug**: Year selection not working on mobile devices
+- **Date Picker Click Area**: Make entire date picker input field clickable, not just the icon
 - PWA features (offline support, install prompt)
 - Data export functionality (PDF/Excel)
 
 ### P2 - Medium Priority
-- AI Smart Insights on Dashboard
 - Backend scheduler for automatic fixed expense deductions
 - Loan amortization schedule view
 
