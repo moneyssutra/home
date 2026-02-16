@@ -57,7 +57,7 @@ const OtherIncomeForm = () => {
     { value: "Other", label: "Other (Custom)", icon: Wallet, color: "bg-[#1E293B]0/10 text-slate-400 border-gray-500/30" },
   ];
 
-  const frequencies = ["One-Time", "Monthly", "Quarterly", "Yearly", "Irregular"];
+  const frequencies = ["One-Time", "Daily", "Weekly", "Monthly", "Quarterly", "Half-Yearly", "Yearly", "Irregular"];
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
