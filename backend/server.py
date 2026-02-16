@@ -4160,7 +4160,7 @@ async def get_ai_insights(request: Request):
         liquid_balance = sum(a.get('currentBalance', 0) for a in accounts)
         
         goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
-        active_goals = len([g for g in goals if g.get('status') == 'Active'])
+        active_goals = len([g for g in goals if not g.get('isCompleted', False)])
         
         monthly_savings = monthly_income - monthly_expenses
         savings_rate = (monthly_savings / monthly_income * 100) if monthly_income > 0 else 0
