@@ -4,26 +4,37 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Light Theme Implementation: COMPLETE ✅** (Feb 15, 2026)
+**UI Bug Fixes and Enhancements: COMPLETE ✅** (Feb 16, 2026)
 
-All pages have been updated with the new professional light theme based on the user's detailed color token system (Groww-style design). Final bug fixes completed.
+All requested bug fixes and feature enhancements have been implemented and tested.
 
-## What Was Implemented (Latest Session - Feb 15, 2026)
+## What Was Implemented (Latest Session - Feb 16, 2026)
 
-### Final Theme Bug Fixes
-1. **Fixed Navy Blue Icon Backgrounds** - Back buttons across all form pages (GoalForm, BusinessIncome, InsuranceForm, LoanForm, etc.) now display white backgrounds instead of navy blue
-2. **Updated Workspace Settings Page** - Completely refactored with light theme (emerald header, white cards, proper role badges)
-3. **Full Theme Audit** - Added comprehensive CSS overrides for all remaining dark theme elements
+### Bug Fixes Completed
+1. **Calendar Year Navigation** - Added dropdown-buttons captionLayout with year range 1950-2050 for mobile-friendly year selection
+2. **Dashboard Layout** - Monthly Cash Flow card moved ABOVE Assets/Investments cards
+3. **Dashboard Clickable Links** - Income and Expense in Monthly Cash Flow are now clickable (navigate to /my-income and /my-expenses)
+4. **Fixed Expenses Visibility** - Header card styling improved with white text on slate gradient background
+5. **Variable Expenses Visibility** - Header card styling improved with white text on amber gradient background
+6. **Credit Card Form Honeycomb** - Added honeycomb-bg pattern to Credit Card form
+7. **Back Button Navigation** - All income forms (Job, Business, Rental, Interest, Dividend, Commission, Other) now navigate to /my-income instead of individual pages
 
-### CSS Overrides Added (index.css)
-- Hover state overrides for dark backgrounds
-- Rounded-full button fixes (back buttons, icon buttons)
-- Toggle switch knob fixes (white knobs)
-- PopoverContent/calendar fixes
-- Bottom bar/footer area fixes
-- Modal dialog fixes
-- Frequency/badge tag fixes
-- Text opacity variation fixes
+### Feature Enhancements
+8. **Investment Form SIP Options** - Added Investment Frequency field for ALL investment categories (except SGB and SWP) with options:
+   - Daily
+   - Weekly
+   - Monthly (SIP)
+   - Quarterly
+   - Half-Yearly
+   - Yearly
+   - Other
+
+### CSS Fixes
+- Fixed gradient header text color override (white text preserved in gradient headers)
+- Calendar dropdown styling for year/month navigation
+- Improved CSS specificity for honeycomb-bg pages
+
+## Previous Session (Feb 15, 2026) - Light Theme
 
 ### Light Theme Color System
 - **Brand Colors**: Green primary (#059669), Teal secondary (#14B8A6)
@@ -35,10 +46,10 @@ All pages have been updated with the new professional light theme based on the u
 ### Pages Updated
 | Page | Header Color | Status |
 |------|--------------|--------|
-| Dashboard | Green gradient | ✅ Fixed overlap issue |
+| Dashboard | Green gradient | ✅ Fixed overlap + layout reorder |
 | Login/Welcome | Green gradient | ✅ |
 | MyIncome | Green gradient | ✅ |
-| MyExpenses | Orange-red gradient (#F87171) | ✅ Lightened per request |
+| MyExpenses | Orange-red gradient (#F87171) | ✅ |
 | Portfolio | Green gradient | ✅ |
 | MyAssets | Blue gradient | ✅ |
 | MyLoans | Amber gradient | ✅ |
@@ -47,6 +58,9 @@ All pages have been updated with the new professional light theme based on the u
 | MyCreditCards | Purple gradient | ✅ |
 | MyAccounts | Green gradient | ✅ |
 | MyGoals | Purple gradient | ✅ |
+| Fixed Expenses | Slate gradient | ✅ Fixed visibility |
+| Variable Expenses | Amber gradient | ✅ Fixed visibility |
+| Workspace Settings | Emerald header | ✅ |
 | Form pages | Honeycomb pattern | ✅ |
 | Workspace Settings | Emerald header | ✅ (NEW) |
 
