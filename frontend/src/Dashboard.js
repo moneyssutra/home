@@ -231,7 +231,7 @@ const Dashboard = () => {
             <div className="text-center p-2">
               <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--status-warning)" }}>
                 <PiggyBank className="h-4 w-4" />
-                <span className="text-xs font-medium">Savings</span>
+                <span className="text-xs font-medium">Balance</span>
               </div>
               <p className="text-lg font-bold" style={{ color: (data?.monthlySavings || 0) >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
                 ₹ {formatAmount(Math.abs(data?.monthlySavings || 0))}
@@ -242,7 +242,7 @@ const Dashboard = () => {
           {/* Savings Progress Bar */}
           <div className="mt-4">
             <div className="flex justify-between text-xs mb-1" style={{ color: "var(--text-muted)" }}>
-              <span>Savings Rate</span>
+              <span>Balance Rate</span>
               <span>
                 {data?.monthlyIncome > 0 
                   ? `${Math.round((data.monthlySavings / data.monthlyIncome) * 100)}%` 
