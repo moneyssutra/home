@@ -215,6 +215,7 @@ const InvestmentForm = () => {
         lockInPeriod: lockInPeriod ? parseInt(lockInPeriod) : null,
         investmentFrequency: investmentFrequency || null,
         sipAmount: sipAmount ? parseFloat(sipAmount) : null,
+        isLiquidAsset: isLiquidAsset,
       };
 
       if (id) {
