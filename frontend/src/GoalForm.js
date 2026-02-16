@@ -353,16 +353,16 @@ const GoalForm = () => {
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#7C3AED] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
+                    className="date-picker-trigger"
                     data-testid="target-date-input"
                   >
-                    <span className={targetDate ? "text-[#334155]" : "text-[#94A3B8]"}>
+                    <span className={targetDate ? "value" : "placeholder"}>
                       {targetDate ? format(new Date(targetDate), "PPP") : "Select target date"}
                     </span>
-                    <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                    <CalendarIcon className="h-5 w-5 icon" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
+                <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
                   <Calendar
                     mode="single"
                     selected={targetDate ? new Date(targetDate) : undefined}
