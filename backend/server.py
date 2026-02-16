@@ -4157,7 +4157,7 @@ async def get_ai_insights(request: Request):
         total_liabilities += sum(cc.get('currentOutstanding', 0) for cc in credit_cards)
         
         accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
-        liquid_balance = sum(a.get('balance', 0) for a in accounts)
+        liquid_balance = sum(a.get('currentBalance', 0) for a in accounts)
         
         goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
         active_goals = len([g for g in goals if g.get('status') == 'Active'])
