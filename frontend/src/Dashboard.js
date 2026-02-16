@@ -435,7 +435,7 @@ const Dashboard = () => {
         {/* AI Smart Insights */}
         <div 
           className="rounded-2xl p-5 shadow-card"
-          style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+          style={{ backgroundColor: "#FFFFFF", border: "1px solid #E5E7EB" }}
           data-testid="ai-insights-card"
         >
           <div className="flex items-center justify-between mb-4">
@@ -444,8 +444,8 @@ const Dashboard = () => {
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Smart Insights</h3>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>AI-powered financial tips</p>
+                <h3 className="font-semibold text-black">Smart Insights</h3>
+                <p className="text-xs text-black/60">AI-powered financial tips</p>
               </div>
             </div>
             <button 
@@ -453,7 +453,7 @@ const Dashboard = () => {
               disabled={insightsLoading}
               className="p-2 rounded-lg transition-all hover:bg-gray-100 active:scale-95"
             >
-              <RefreshCw className={`h-4 w-4 ${insightsLoading ? 'animate-spin' : ''}`} style={{ color: "var(--text-muted)" }} />
+              <RefreshCw className={`h-4 w-4 text-black/50 ${insightsLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
           
@@ -461,7 +461,7 @@ const Dashboard = () => {
             <div className="flex items-center justify-center py-6">
               <div className="flex flex-col items-center gap-2">
                 <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Analyzing your finances...</p>
+                <p className="text-xs text-black/60">Analyzing your finances...</p>
               </div>
             </div>
           ) : insights.length > 0 ? (
