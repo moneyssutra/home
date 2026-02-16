@@ -129,33 +129,33 @@ const VariableExpenses = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="variable-expenses-page">
+    <div className="min-h-screen honeycomb-bg pb-24" data-testid="variable-expenses-page">
       {/* Header */}
-      <header className="bg-gradient-to-br from-[#D97706] via-[#F59E0B] to-[#D97706] px-6 pt-8 pb-8">
+      <header className="bg-gradient-to-br from-amber-500 via-amber-400 to-amber-500 px-6 pt-8 pb-8">
         <div className="flex items-center gap-4 mb-6">
-          <BackButton fallbackPath="/my-expenses" className="bg-[#1E293B]/20 border-white/30 text-white hover:bg-[#1E293B]/30" />
+          <BackButton fallbackPath="/my-expenses" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             Variable Expenses
           </h1>
         </div>
 
         {/* Total Card */}
-        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="variable-expenses-total">
-          <p className="text-white/60 text-sm font-medium mb-1">Total Variable Expenses</p>
+        <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="variable-expenses-total">
+          <p className="text-white/80 text-sm font-medium mb-1">Total Variable Expenses</p>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalExpenses)}</h2>
-          <p className="text-white/40 text-xs mt-1">{expenses.length} flexible expenses</p>
+          <p className="text-white/60 text-xs mt-1">{expenses.length} flexible expenses</p>
           
           {/* Status Summary */}
-          <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-sm">
+          <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-white/60 mb-1">Paid</p>
-              <p className="text-emerald-300 font-medium">₹ {formatAmount(paidTotal)}</p>
-              <p className="text-white/40 text-xs">{paidExpenses.length} expenses</p>
+              <p className="text-white/80 mb-1">Paid</p>
+              <p className="text-emerald-200 font-semibold">₹ {formatAmount(paidTotal)}</p>
+              <p className="text-white/60 text-xs">{paidExpenses.length} expenses</p>
             </div>
             <div>
-              <p className="text-white/60 mb-1">Pending</p>
-              <p className="text-amber-300 font-medium">₹ {formatAmount(pendingTotal)}</p>
-              <p className="text-white/40 text-xs">{pendingExpenses.length} expenses</p>
+              <p className="text-white/80 mb-1">Pending</p>
+              <p className="text-amber-100 font-semibold">₹ {formatAmount(pendingTotal)}</p>
+              <p className="text-white/60 text-xs">{pendingExpenses.length} expenses</p>
             </div>
           </div>
         </div>

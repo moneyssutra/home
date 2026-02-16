@@ -129,7 +129,7 @@ const CreditCardForm = () => {
   const dateOptions = Array.from({ length: 31 }, (_, i) => i + 1);
 
   return (
-    <div className="min-h-screen bg-[#0F172A] flex flex-col" data-testid="credit-card-form-page">
+    <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="credit-card-form-page">
       {/* Header */}
       <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
         <BackButton fallbackPath="/my-credit-cards" />
