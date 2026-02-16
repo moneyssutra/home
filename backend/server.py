@@ -2642,8 +2642,7 @@ async def get_networth_summary(request: Request):
     # Add other income to monthly income
     monthly_income += other_income_total
     
-    # Get all expenses - Calculate actual monthly expenses for current month
-    expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
+    # Process expenses - Calculate actual monthly expenses for current month
     monthly_expenses = 0
     for expense in expenses:
         amount = expense.get('expectedAmount', 0)
