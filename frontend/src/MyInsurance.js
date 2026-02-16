@@ -130,6 +130,92 @@ const MyInsurance = () => {
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Insurance Allocation Section */}
+            <div className="bg-white rounded-2xl p-5 shadow-card" data-testid="insurance-allocation">
+              <h3 className="text-lg font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
+                Insurance Allocation
+              </h3>
+              
+              {/* Allocation by Type */}
+              <div className="space-y-3">
+                {(() => {
+                  // Calculate coverage by type
+                  const coverageByType = insurances.reduce((acc, ins) => {
+                    const type = ins.insuranceType || 'Other';
+                    acc[type] = (acc[type] || 0) + (ins.coverageAmount || 0);
+                    return acc;
+                  }, {});
+                  
+                  const totalCoverage = getTotalCoverage();
+                  const sortedTypes = Object.entries(coverageByType)
+                    .sort((a, b) => b[1] - a[1]);
+                  
+                  return sortedTypes.map(([type, amount]) => {
+                    const percentage = totalCoverage > 0 ? (amount / totalCoverage * 100) : 0;
+                    const typeStyle = getInsuranceTypeStyle(type);
+                    
+                    return (
+                      <div key={type} className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: typeStyle.text }}
+                            />
+                            <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                              {type}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                              ₹{formatAmount(amount)}
+                            </span>
+                            <span className="text-xs ml-2" style={{ color: "var(--text-muted)" }}>
+                              ({percentage.toFixed(1)}%)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ 
+                              width: `${percentage}%`,
+                              backgroundColor: typeStyle.text
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+              
+              {/* Premium Breakdown */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <h4 className="text-sm font-medium mb-3" style={{ color: "var(--text-secondary)" }}>
+                  Premium Breakdown (per frequency)
+                </h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {(() => {
+                    const premiumByFreq = insurances.reduce((acc, ins) => {
+                      const freq = ins.premiumFrequency || 'Other';
+                      acc[freq] = (acc[freq] || 0) + (ins.premiumAmount || 0);
+                      return acc;
+                    }, {});
+                    
+                    return Object.entries(premiumByFreq).map(([freq, amount]) => (
+                      <div key={freq} className="bg-gray-50 rounded-xl p-3">
+                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>{freq}</p>
+                        <p className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                          ₹{formatAmount(amount)}
+                        </p>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+            </div>
+
             {/* Insurance List */}
             <div className="space-y-3">
               {insurances.map((insurance) => {
