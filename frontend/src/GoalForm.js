@@ -69,10 +69,20 @@ const GoalForm = () => {
 
   useEffect(() => {
     fetchSources();
+    fetchAllocationStatus();
     if (id) {
       fetchGoalData();
     }
   }, [id]);
+
+  const fetchAllocationStatus = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/goals/allocation-status`);
+      setAllocationStatus(response.data);
+    } catch (error) {
+      console.error("Error fetching allocation status:", error);
+    }
+  };
 
   const fetchSources = async () => {
     try {
