@@ -78,7 +78,7 @@ const MyExpenses = () => {
 
   const getCategoryIcon = (category) => {
     const icons = {
-      "Housing": Home, "Utilities": Zap, "Food": ShoppingBag, "Transport": Car,
+      "Housing": Home, "Utilities": Zap, "Food": ShoppingBag, "Travel": Car,
       "Shopping": ShoppingBag, "Medical": Stethoscope, "Education": GraduationCap,
       "Insurance": Shield, "Subscriptions": Tv, "EMI": CreditCard,
       "Business Expense": Briefcase, "Salary Paid": Wallet,
@@ -91,7 +91,7 @@ const MyExpenses = () => {
       "Housing": { bg: "var(--status-info-soft)", text: "var(--status-info)" },
       "Utilities": { bg: "var(--status-warning-soft)", text: "var(--status-warning)" },
       "Food": { bg: "var(--brand-primary-soft)", text: "var(--brand-primary)" },
-      "Transport": { bg: "#F3E8FF", text: "var(--chart-accent2)" },
+      "Travel": { bg: "#F3E8FF", text: "var(--chart-accent2)" },
       "Shopping": { bg: "#FCE7F3", text: "#DB2777" },
       "Medical": { bg: "var(--status-error-soft)", text: "var(--status-error)" },
       "Education": { bg: "#CFFAFE", text: "#0891B2" },

@@ -64,7 +64,7 @@ const ExpenseForm = () => {
     "Housing",
     "Utilities",
     "Food",
-    "Transport",
+    "Travel",
     "Shopping",
     "Medical",
     "Education",
@@ -341,7 +341,7 @@ const ExpenseForm = () => {
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight" style={{ fontFamily: "'Manrope', sans-serif", color: "var(--text-primary)" }}>
+        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-gray-900" style={{ fontFamily: "'Manrope', sans-serif" }}>
           {id ? "Edit Expense" : "Add Expense"}
         </h1>
         <div className="h-10 w-10" />
