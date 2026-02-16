@@ -420,7 +420,9 @@ const InvestmentForm = () => {
                       <option value="Weekly">Weekly</option>
                       <option value="Monthly">Monthly (SIP)</option>
                       <option value="Quarterly">Quarterly</option>
+                      <option value="Half-Yearly">Half-Yearly</option>
                       <option value="Yearly">Yearly</option>
+                      <option value="Other">Other</option>
                     </select>
                   </div>
                   
