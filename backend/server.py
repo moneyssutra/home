@@ -4227,13 +4227,20 @@ async def get_ai_insights(request: Request):
         savings_rate = (monthly_savings / monthly_income * 100) if monthly_income > 0 else 0
         net_worth = total_assets + total_investments + liquid_balance - total_liabilities
         
+        # Format emergency fund goal info for AI
+        ef_goal_str = ""
+        if emergency_fund_goal_info:
+            ef = emergency_fund_goal_info[0]
+            ef_goal_str = f"Emergency Fund Goal: {ef['progress']}% funded (₹{ef['current']:,.0f} of ₹{ef['target']:,.0f})"
+        
         financial_data = {
             "net_worth": net_worth, "monthly_income": monthly_income,
             "monthly_expenses": monthly_expenses, "monthly_savings": monthly_savings,
             "total_assets": total_assets, "total_investments": total_investments,
             "total_liabilities": total_liabilities, "liquid_balance": liquid_balance,
             "emergency_fund": emergency_fund, "fd_rd_balance": fd_rd_balance,
-            "liquid_investments": liquid_investments, "emergency_fund_goals": emergency_fund_goals,
+            "liquid_investments": liquid_investments, "emergency_fund_goals": emergency_fund_goals_amount,
+            "emergency_fund_goal_info": ef_goal_str,
             "active_goals": active_goals, "savings_rate": savings_rate,
             "top_expenses": top_expenses_str
         }
