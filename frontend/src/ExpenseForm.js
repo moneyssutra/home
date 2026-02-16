@@ -512,7 +512,7 @@ const ExpenseForm = () => {
                       <span className={selectedDate ? "value" : "placeholder"}>
                         {selectedDate ? `${selectedDate}${selectedDate === '1' ? 'st' : selectedDate === '2' ? 'nd' : selectedDate === '3' ? 'rd' : 'th'} of every month` : "Select a date from calendar"}
                       </span>
-                      <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                      <CalendarIcon className="h-5 w-5 icon" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
@@ -572,7 +572,7 @@ const ExpenseForm = () => {
                           <span className={selectedDate ? "value" : "placeholder"}>
                             {selectedDate ? `${selectedDate}${selectedDate === '1' ? 'st' : selectedDate === '2' ? 'nd' : selectedDate === '3' ? 'rd' : 'th'}` : "Select date from calendar"}
                           </span>
-                          <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                          <CalendarIcon className="h-5 w-5 icon" />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
@@ -633,7 +633,7 @@ const ExpenseForm = () => {
                           <span className={selectedDate ? "value" : "placeholder"}>
                             {selectedDate ? `${selectedDate}${selectedDate === '1' ? 'st' : selectedDate === '2' ? 'nd' : selectedDate === '3' ? 'rd' : 'th'}` : "Select date from calendar"}
                           </span>
-                          <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                          <CalendarIcon className="h-5 w-5 icon" />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
@@ -694,7 +694,7 @@ const ExpenseForm = () => {
                           <span className={selectedDate ? "value" : "placeholder"}>
                             {selectedDate ? `${selectedDate}${selectedDate === '1' ? 'st' : selectedDate === '2' ? 'nd' : selectedDate === '3' ? 'rd' : 'th'} ${selectedMonth}` : "Select date from calendar"}
                           </span>
-                          <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                          <CalendarIcon className="h-5 w-5 icon" />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
@@ -735,7 +735,7 @@ const ExpenseForm = () => {
                       <span className={oneTimeDate ? "value" : "placeholder"}>
                         {oneTimeDate ? format(new Date(oneTimeDate), "PPP") : "Select date from calendar"}
                       </span>
-                      <CalendarIcon className="h-5 w-5 text-[#94A3B8]" />
+                      <CalendarIcon className="h-5 w-5 icon" />
                     </button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
