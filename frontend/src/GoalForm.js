@@ -666,7 +666,7 @@ const GoalForm = () => {
                           const linkedAlloc = getLinkedAccountAllocation(acc.id);
                           const isLinked = !!linkedAlloc;
                           const totalBalance = acc.currentBalance || 0;
-                          const allocatedElsewhere = allocInfo.allocatedAmount - (linkedAlloc?.allocatedAmount || 0);
+                          const allocatedElsewhere = (allocInfo.allocatedAmount || 0) - (linkedAlloc?.allocatedAmount || 0);
                           const hasOtherAllocations = allocInfo.allocations?.filter(a => a.goalId !== id).length > 0;
                           
                           return (
@@ -678,6 +678,33 @@ const GoalForm = () => {
                                   ? "bg-[#7C3AED]/10 border-[#7C3AED]/30" 
                                   : "hover:bg-[#1E293B] border-transparent"
                               }`}
+                              data-testid={`account-item-${acc.id}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-[#334155] truncate">{acc.accountName}</p>
+                                  <p className="text-xs text-[#334155]/50">
+                                    {acc.accountType} • Total: ₹{(totalBalance || 0).toLocaleString('en-IN')}
+                                  </p>
+                                </div>
+                                {isLinked && linkedAlloc?.allocatedAmount && (
+                                  <div className="text-right">
+                                    <p className="text-sm font-semibold text-[#7C3AED]">
+                                      ₹{(linkedAlloc.allocatedAmount || 0).toLocaleString('en-IN')}
+                                    </p>
+                                    <p className="text-[10px] text-[#334155]/50">allocated</p>
+                                  </div>
+                                )}
+                              </div>
+                              {hasOtherAllocations && allocatedElsewhere > 0 && (
+                                <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-600">
+                                  <AlertCircle className="w-3 h-3" />
+                                  <span>₹{(allocatedElsewhere || 0).toLocaleString('en-IN')} allocated to other goals</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                               data-testid={`account-item-${acc.id}`}
                             >
                               <div className="flex items-center justify-between">
