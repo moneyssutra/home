@@ -124,10 +124,18 @@ body {
 }
 
 /* Gradient headers should keep white text - only apply to headers WITH gradient bg */
-header[class*="bg-gradient"] h1,
-header[class*="bg-gradient"] h2,
-header[class*="bg-gradient"] p {
+/* Exclude elements inside progress-section which has white background */
+header[class*="bg-gradient"] h1:not([data-testid="current-amount"]):not([data-testid="target-amount"]),
+header[class*="bg-gradient"] > div > div > h1,
+header[class*="bg-gradient"] > div > div > p:not([data-testid="progress-section"] p) {
     color: white !important;
+}
+
+/* Progress section inside header should have dark text */
+[data-testid="progress-section"] h2,
+[data-testid="progress-section"] p,
+[data-testid="progress-section"] span {
+    color: inherit !important;
 }
 
 /* Non-gradient headers in honeycomb-bg should use primary text color */
