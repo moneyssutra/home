@@ -122,6 +122,11 @@ Build a comprehensive personal finance tracking application with multi-user work
 ```
 frontend/src/index.css - CSS variables, honeycomb pattern, date-picker-trigger class, mobile calendar styles (UPDATED)
 frontend/src/components/ui/calendar.jsx - Mobile-friendly dropdowns with touch-manipulation (UPDATED)
+frontend/src/MyLiabilities.js - NEW combined loans + credit cards page
+frontend/src/MyLoans.js - Updated back button navigation to /my-liabilities
+frontend/src/MyCreditCards.js - Updated back button navigation to /my-liabilities
+frontend/src/Dashboard.js - Updated liabilities card navigation to /my-liabilities
+frontend/src/App.js - Added MyLiabilities route
 frontend/src/LoanForm.js - Updated date picker styling (UPDATED)
 frontend/src/GoalForm.js - Updated date picker styling (UPDATED)
 frontend/src/InsuranceForm.js - Updated date picker styling (UPDATED)
