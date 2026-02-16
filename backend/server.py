@@ -4056,22 +4056,94 @@ async def get_ai_insights(request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     user_filter = get_user_filter(user)
+    current_month = datetime.now(timezone.utc).month
+    current_year = datetime.now(timezone.utc).year
     
     try:
-        # Gather financial data
-        incomes = await db.income.find(user_filter, {"_id": 0}).to_list(1000)
-        monthly_income = sum(inc.get('expectedAmount', 0) for inc in incomes)
+        # Calculate monthly income using the same logic as dashboard
+        incomes = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
+        monthly_income = 0
+        for income in incomes:
+            amount = income.get('expectedAmount', 0)
+            freq = income.get('frequency', 'Monthly')
+            if freq == 'Daily':
+                monthly_income += amount * 30
+            elif freq == 'Weekly':
+                monthly_income += amount * 4
+            elif freq == 'Monthly':
+                monthly_income += amount
+            elif freq == 'Quarterly':
+                if current_month in [1, 4, 7, 10]:
+                    monthly_income += amount
+            elif freq == 'Half-Yearly':
+                if current_month in [1, 7]:
+                    monthly_income += amount
+            elif freq == 'Yearly':
+                selected_month = income.get('selectedMonth', '')
+                month_mapping = {"January": 1, "February": 2, "March": 3, "April": 4, 
+                    "May": 5, "June": 6, "July": 7, "August": 8, 
+                    "September": 9, "October": 10, "November": 11, "December": 12}
+                if month_mapping.get(selected_month) == current_month:
+                    monthly_income += amount
+            else:
+                monthly_income += amount
         
+        # Add other income
+        other_incomes = await db.other_income.find(user_filter, {"_id": 0}).to_list(1000)
+        for other_inc in other_incomes:
+            amount = other_inc.get('amount', 0)
+            freq = other_inc.get('frequency', 'One-Time')
+            if freq == 'Monthly':
+                monthly_income += amount
+            elif freq == 'One-Time':
+                date_received = other_inc.get('dateReceived', '')
+                if date_received:
+                    try:
+                        date_obj = datetime.fromisoformat(date_received).date()
+                        if date_obj.month == current_month and date_obj.year == current_year:
+                            monthly_income += amount
+                    except (ValueError, TypeError):
+                        pass
+        
+        # Calculate monthly expenses using the same logic as dashboard
         expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
-        monthly_expenses = sum(exp.get('amount', 0) for exp in expenses)
-        
+        monthly_expenses = 0
         expense_by_category = {}
-        for exp in expenses:
-            cat = exp.get('category', 'Other')
-            expense_by_category[cat] = expense_by_category.get(cat, 0) + exp.get('amount', 0)
+        for expense in expenses:
+            amount = expense.get('expectedAmount', 0)
+            freq = expense.get('frequency', 'Monthly')
+            cat = expense.get('category', 'Other')
+            
+            expense_amount = 0
+            if freq == 'Daily':
+                expense_amount = amount * 30
+            elif freq == 'Weekly':
+                expense_amount = amount * 4
+            elif freq == 'Monthly':
+                expense_amount = amount
+            elif freq == 'Quarterly':
+                if current_month in [1, 4, 7, 10]:
+                    expense_amount = amount
+            elif freq == 'Half-Yearly':
+                if current_month in [1, 7]:
+                    expense_amount = amount
+            elif freq == 'Yearly':
+                selected_month = expense.get('selectedMonth', '')
+                month_mapping = {"January": 1, "February": 2, "March": 3, "April": 4, 
+                    "May": 5, "June": 6, "July": 7, "August": 8, 
+                    "September": 9, "October": 10, "November": 11, "December": 12}
+                if month_mapping.get(selected_month) == current_month:
+                    expense_amount = amount
+            else:
+                expense_amount = amount
+            
+            monthly_expenses += expense_amount
+            expense_by_category[cat] = expense_by_category.get(cat, 0) + expense_amount
+        
         top_expenses = sorted(expense_by_category.items(), key=lambda x: x[1], reverse=True)[:3]
         top_expenses_str = ", ".join([f"{cat}: ₹{amt:,.0f}" for cat, amt in top_expenses]) or "No expenses"
         
+        # Get assets, investments, loans, accounts, goals
         assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
         total_assets = sum(a.get('currentValue', 0) for a in assets)
         
