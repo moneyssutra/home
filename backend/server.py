@@ -3997,7 +3997,8 @@ async def generate_ai_insights_internal(financial_data: dict) -> list:
     - action_text: button text if actionable
     - action_link: "/my-expenses", "/my-income", "/my-goals", "/my-investments", "/my-loans", "/my-insurance", or "/portfolio"
     
-    No markdown, no explanation - ONLY the JSON array. Use ₹ for amounts."""
+    No markdown, no explanation - ONLY the JSON array. 
+    IMPORTANT: Use Indian number format - ₹ symbol with Lakhs (L) and Crores (Cr). Example: ₹70L, ₹2.3Cr. Never use M (millions)."""
     
     try:
         chat = LlmChat(
