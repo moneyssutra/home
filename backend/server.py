@@ -4207,7 +4207,6 @@ async def get_ai_insights(request: Request):
         # Insurance insights
         insurance_types = list(set(i.get('insuranceType') for i in insurances))
         has_health_insurance = 'Health Insurance' in insurance_types
-        has_term_insurance = 'Term Insurance' in insurance_types or life_coverage > 0
         
         # Include FDs and RDs as liquid/emergency funds (they are accessible in emergencies)
         fd_rd_balance = sum(
