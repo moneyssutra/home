@@ -63,6 +63,10 @@ const OtherIncomeForm = () => {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
   const quarters = ["Q1 (Jan–Mar)", "Q2 (Apr–Jun)", "Q3 (Jul–Sep)", "Q4 (Oct–Dec)"];
+  const halves = [
+    { id: "H1", label: "Jan–Jun" },
+    { id: "H2", label: "Jul–Dec" },
+  ];
 
   useEffect(() => {
     if (isEdit) {
