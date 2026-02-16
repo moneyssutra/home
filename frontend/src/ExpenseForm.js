@@ -515,7 +515,7 @@ const ExpenseForm = () => {
                       <CalendarIcon className="h-5 w-5 icon" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
+                  <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
                     <Calendar
                       mode="single"
                       selected={calendarDate}
@@ -575,7 +575,7 @@ const ExpenseForm = () => {
                           <CalendarIcon className="h-5 w-5 icon" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
                         <Calendar
                           mode="single"
                           selected={calendarDate}
@@ -636,7 +636,7 @@ const ExpenseForm = () => {
                           <CalendarIcon className="h-5 w-5 icon" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
                         <Calendar
                           mode="single"
                           selected={calendarDate}
@@ -697,7 +697,7 @@ const ExpenseForm = () => {
                           <CalendarIcon className="h-5 w-5 icon" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
+                      <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
                         <Calendar
                           mode="single"
                           selected={calendarDate}
@@ -738,7 +738,7 @@ const ExpenseForm = () => {
                       <CalendarIcon className="h-5 w-5 icon" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-[#1E293B]" align="start">
+                  <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
                     <Calendar
                       mode="single"
                       selected={oneTimeDate ? new Date(oneTimeDate) : undefined}
