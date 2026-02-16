@@ -3934,6 +3934,185 @@ async def delete_other_income(income_id: str, request: Request):
     await db.other_income.delete_one({"id": income_id})
     return {"message": "Other income deleted successfully", "id": income_id}
 
+# ============ AI INSIGHTS ============
+from pydantic import BaseModel as PydanticBaseModel
+from typing import List as ListType
+
+class InsightItem(PydanticBaseModel):
+    type: str
+    icon: str
+    title: str
+    description: str
+    priority: str
+    actionable: bool
+    action_text: Optional[str] = None
+    action_link: Optional[str] = None
+
+async def generate_ai_insights_internal(financial_data: dict) -> list:
+    """Generate AI insights using OpenAI GPT-5.2"""
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    
+    api_key = os.environ.get("EMERGENT_LLM_KEY")
+    if not api_key:
+        return get_fallback_insights_internal(financial_data)
+    
+    summary = f"""
+    Financial Summary:
+    - Total Net Worth: ₹{financial_data.get('net_worth', 0):,.0f}
+    - Monthly Income: ₹{financial_data.get('monthly_income', 0):,.0f}
+    - Monthly Expenses: ₹{financial_data.get('monthly_expenses', 0):,.0f}
+    - Monthly Balance: ₹{financial_data.get('monthly_savings', 0):,.0f}
+    - Total Assets: ₹{financial_data.get('total_assets', 0):,.0f}
+    - Total Investments: ₹{financial_data.get('total_investments', 0):,.0f}
+    - Total Liabilities: ₹{financial_data.get('total_liabilities', 0):,.0f}
+    - Liquid Balance: ₹{financial_data.get('liquid_balance', 0):,.0f}
+    - Active Goals: {financial_data.get('active_goals', 0)}
+    - Savings Rate: {financial_data.get('savings_rate', 0):.1f}%
+    - Top Expense Categories: {financial_data.get('top_expenses', 'N/A')}
+    """
+    
+    system_prompt = """You are a smart financial advisor AI. Analyze the user's financial data and provide 3-4 personalized, actionable insights.
+    
+    Return ONLY a valid JSON array with objects containing:
+    - type: "spending", "savings", "goal", "alert", or "trend"
+    - icon: single emoji
+    - title: max 6 words
+    - description: max 25 words, practical advice
+    - priority: "high", "medium", or "low"
+    - actionable: boolean
+    - action_text: button text if actionable
+    - action_link: "/my-expenses", "/my-income", "/my-goals", "/my-investments", "/my-loans", or "/portfolio"
+    
+    No markdown, no explanation - ONLY the JSON array. Use ₹ for amounts."""
+    
+    try:
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"insights-{datetime.now(timezone.utc).timestamp()}",
+            system_message=system_prompt
+        ).with_model("openai", "gpt-5.2")
+        
+        user_message = UserMessage(text=f"Analyze this financial data:\n{summary}")
+        response = await chat.send_message(user_message)
+        
+        import json
+        clean_response = response.strip()
+        if clean_response.startswith("```"):
+            clean_response = clean_response.split("```")[1]
+            if clean_response.startswith("json"):
+                clean_response = clean_response[4:]
+        clean_response = clean_response.strip()
+        
+        return json.loads(clean_response)
+    except Exception as e:
+        logger.error(f"AI Insights Error: {str(e)}")
+        return get_fallback_insights_internal(financial_data)
+
+def get_fallback_insights_internal(data: dict) -> list:
+    """Generate basic insights without AI"""
+    insights = []
+    savings_rate = data.get('savings_rate', 0)
+    
+    if savings_rate > 30:
+        insights.append({
+            "type": "trend", "icon": "🎉", "title": "Excellent Savings!",
+            "description": f"You're saving {savings_rate:.0f}% of income. Great financial discipline!",
+            "priority": "low", "actionable": False
+        })
+    elif savings_rate < 10 and savings_rate >= 0:
+        insights.append({
+            "type": "alert", "icon": "⚠️", "title": "Low Savings Alert",
+            "description": f"Only {savings_rate:.0f}% savings rate. Review your expenses to save more.",
+            "priority": "high", "actionable": True, "action_text": "View Expenses", "action_link": "/my-expenses"
+        })
+    
+    if data.get('total_liabilities', 0) > data.get('liquid_balance', 0) * 2:
+        insights.append({
+            "type": "alert", "icon": "💳", "title": "High Debt Ratio",
+            "description": "Liabilities exceed 2x your liquid funds. Focus on debt reduction.",
+            "priority": "high", "actionable": True, "action_text": "View Loans", "action_link": "/my-loans"
+        })
+    
+    if data.get('active_goals', 0) > 0:
+        insights.append({
+            "type": "goal", "icon": "🎯", "title": "Goals In Progress",
+            "description": f"You have {data.get('active_goals')} active goals. Keep contributing!",
+            "priority": "medium", "actionable": True, "action_text": "View Goals", "action_link": "/my-goals"
+        })
+    else:
+        insights.append({
+            "type": "savings", "icon": "💡", "title": "Set Financial Goals",
+            "description": "Create goals for better financial planning and motivation.",
+            "priority": "medium", "actionable": True, "action_text": "Add Goal", "action_link": "/my-goals"
+        })
+    
+    return insights
+
+@api_router.get("/ai/insights")
+async def get_ai_insights(request: Request):
+    """Get AI-powered financial insights"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    
+    try:
+        # Gather financial data
+        incomes = await db.income.find(user_filter, {"_id": 0}).to_list(1000)
+        monthly_income = sum(inc.get('expectedAmount', 0) for inc in incomes)
+        
+        expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
+        monthly_expenses = sum(exp.get('amount', 0) for exp in expenses)
+        
+        expense_by_category = {}
+        for exp in expenses:
+            cat = exp.get('category', 'Other')
+            expense_by_category[cat] = expense_by_category.get(cat, 0) + exp.get('amount', 0)
+        top_expenses = sorted(expense_by_category.items(), key=lambda x: x[1], reverse=True)[:3]
+        top_expenses_str = ", ".join([f"{cat}: ₹{amt:,.0f}" for cat, amt in top_expenses]) or "No expenses"
+        
+        assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
+        total_assets = sum(a.get('currentValue', 0) for a in assets)
+        
+        investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+        total_investments = sum(inv.get('currentValue', inv.get('principal', 0)) for inv in investments)
+        
+        loans = await db.loans.find(user_filter, {"_id": 0}).to_list(1000)
+        total_liabilities = sum(l.get('outstandingAmount', 0) for l in loans)
+        
+        credit_cards = await db.credit_cards.find(user_filter, {"_id": 0}).to_list(1000)
+        total_liabilities += sum(cc.get('currentOutstanding', 0) for cc in credit_cards)
+        
+        accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
+        liquid_balance = sum(a.get('balance', 0) for a in accounts)
+        
+        goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
+        active_goals = len([g for g in goals if g.get('status') == 'Active'])
+        
+        monthly_savings = monthly_income - monthly_expenses
+        savings_rate = (monthly_savings / monthly_income * 100) if monthly_income > 0 else 0
+        net_worth = total_assets + total_investments + liquid_balance - total_liabilities
+        
+        financial_data = {
+            "net_worth": net_worth, "monthly_income": monthly_income,
+            "monthly_expenses": monthly_expenses, "monthly_savings": monthly_savings,
+            "total_assets": total_assets, "total_investments": total_investments,
+            "total_liabilities": total_liabilities, "liquid_balance": liquid_balance,
+            "active_goals": active_goals, "savings_rate": savings_rate,
+            "top_expenses": top_expenses_str
+        }
+        
+        insights = await generate_ai_insights_internal(financial_data)
+        
+        return {
+            "insights": insights,
+            "generated_at": datetime.now(timezone.utc).isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error generating insights: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Include the router in the main app
 app.include_router(api_router)
 
