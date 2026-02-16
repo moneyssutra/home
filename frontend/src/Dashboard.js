@@ -472,26 +472,26 @@ const Dashboard = () => {
                   className={`p-4 rounded-xl transition-all ${insight.actionable ? 'cursor-pointer hover:shadow-sm active:scale-[0.99]' : ''}`}
                   style={{ 
                     backgroundColor: insight.priority === 'high' 
-                      ? 'var(--status-error-soft)' 
+                      ? '#FEE2E2' 
                       : insight.priority === 'medium'
-                        ? 'var(--status-warning-soft)'
-                        : 'var(--bg-subtle)'
+                        ? '#FEF3C7'
+                        : '#F8FAFC'
                   }}
                   onClick={() => insight.actionable && insight.action_link && navigate(insight.action_link)}
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-xl flex-shrink-0 w-7 h-7 flex items-center justify-center">{insight.icon}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm leading-tight" style={{ color: "var(--text-primary)" }}>
+                      <p className="font-medium text-sm leading-tight text-black">
                         {insight.title}
                       </p>
-                      <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                      <p className="text-xs mt-1 leading-relaxed text-black/70">
                         {insight.description}
                       </p>
                       {insight.actionable && insight.action_text && (
                         <span 
                           className="inline-flex items-center gap-1 text-xs font-medium mt-2"
-                          style={{ color: "var(--brand-primary)" }}
+                          style={{ color: "#059669" }}
                         >
                           {insight.action_text}
                           <ChevronRight className="h-3 w-3" />
@@ -504,7 +504,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="text-center py-4">
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              <p className="text-sm text-black/60">
                 Add more financial data for personalized insights
               </p>
             </div>
