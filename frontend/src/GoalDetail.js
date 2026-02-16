@@ -201,14 +201,14 @@ const GoalDetail = () => {
           <div className="bg-white rounded-2xl p-5 shadow-lg" data-testid="progress-section">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-slate-600 text-sm font-medium mb-1">Current Progress</p>
-                <h2 className="text-3xl font-bold text-slate-900" data-testid="current-amount">
+                <p style={{ color: '#475569' }} className="text-sm font-medium mb-1">Current Progress</p>
+                <h2 style={{ color: '#0f172a' }} className="text-3xl font-bold" data-testid="current-amount">
                   ₹ {formatAmount(goal.calculatedAmount || 0)}
                 </h2>
               </div>
               <div className="text-right">
-                <p className="text-slate-600 text-sm font-medium mb-1">Target</p>
-                <h2 className="text-2xl font-bold text-slate-900" data-testid="target-amount">
+                <p style={{ color: '#475569' }} className="text-sm font-medium mb-1">Target</p>
+                <h2 style={{ color: '#0f172a' }} className="text-2xl font-bold" data-testid="target-amount">
                   ₹ {formatAmount(goal.targetAmount)}
                 </h2>
               </div>
@@ -225,17 +225,17 @@ const GoalDetail = () => {
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <span className="text-slate-600 font-medium">
+              <span style={{ color: '#475569' }} className="font-medium">
                 {progress >= 100 ? "Goal Achieved!" : `₹ ${formatAmount(remaining)} to go`}
               </span>
-              <span className="text-slate-900 font-bold text-lg" data-testid="progress-percent">
+              <span style={{ color: '#0f172a' }} className="font-bold text-lg" data-testid="progress-percent">
                 {progress.toFixed(1)}%
               </span>
             </div>
             
             {/* Milestone Progress Badges */}
             <div className="mt-4 pt-4 border-t border-slate-200">
-              <p className="text-slate-500 text-xs font-medium mb-2">Milestones</p>
+              <p style={{ color: '#64748b' }} className="text-xs font-medium mb-2">Milestones</p>
               <MilestoneProgress 
                 progress={progress} 
                 reachedMilestones={goal.reachedMilestones || []} 
