@@ -183,7 +183,7 @@ const MyLiabilities = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-4 mt-2">
           <button
             onClick={() => navigate("/my-loans")}
             className="flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md active:scale-[0.98]"
@@ -220,18 +220,18 @@ const MyLiabilities = () => {
         {/* Credit Card Utilization Alert */}
         {creditUtilization > 30 && (
           <div 
-            className="flex items-start gap-3 p-4 rounded-xl"
+            className="flex items-start gap-3 p-4 rounded-xl mt-2"
             style={{ 
               backgroundColor: creditUtilization > 50 ? "var(--status-error-soft)" : "var(--status-warning-soft)",
               border: `1px solid ${creditUtilization > 50 ? "#FECACA" : "#FDE68A"}`
             }}
           >
-            <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: getUtilizationColor(creditUtilization) }} />
+            <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: getUtilizationColor(creditUtilization) }} />
             <div>
               <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
                 Credit Utilization: {creditUtilization.toFixed(1)}%
               </p>
-              <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+              <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
                 {creditUtilization > 50 
                   ? "High utilization can impact your credit score. Consider paying down balances."
                   : "Moderate utilization. Try to keep it below 30% for better credit health."}
@@ -242,15 +242,15 @@ const MyLiabilities = () => {
 
         {/* Loans Section */}
         {(activeTab === "all" || activeTab === "loans") && loans.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>
+          <div className="space-y-3 mt-4 pt-2">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="font-semibold text-base" style={{ color: "var(--text-primary)" }}>
                 {activeTab === "all" ? "Loans" : `All Loans (${loans.length})`}
               </h3>
               {activeTab === "all" && loans.length > 2 && (
                 <button 
                   onClick={() => navigate("/my-loans")}
-                  className="text-xs font-medium"
+                  className="text-xs font-medium px-2 py-1"
                   style={{ color: "var(--brand-primary)" }}
                 >
                   View all
