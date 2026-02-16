@@ -4,6 +4,7 @@ import { ChevronRight, Building2, LineChart, CreditCard, Shield, Wallet, Landmar
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import BackButton from "@/components/BackButton";
 
 const Portfolio = () => {
   const navigate = useNavigate();
@@ -138,10 +139,15 @@ const Portfolio = () => {
     <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="portfolio-page">
       {/* Header */}
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
-        <h1 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Manrope', sans-serif" }}>
-          Portfolio
-        </h1>
-        <p className="text-white/70 text-sm">Manage your financial assets</p>
+        <div className="flex items-center gap-4 mb-2">
+          <BackButton fallbackPath="/" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <div>
+            <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+              Portfolio
+            </h1>
+            <p className="text-white/70 text-sm">Manage your financial assets</p>
+          </div>
+        </div>
       </header>
 
       {/* Portfolio Sections */}
