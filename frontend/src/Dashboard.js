@@ -15,6 +15,10 @@ import {
   ChevronRight,
   LogOut,
   Users,
+  Sparkles,
+  AlertTriangle,
+  Lightbulb,
+  TrendingUp as TrendIcon,
 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
@@ -28,6 +32,8 @@ const Dashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [insights, setInsights] = useState([]);
+  const [insightsLoading, setInsightsLoading] = useState(false);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [goalsSummary, setGoalsSummary] = useState(null);
 
