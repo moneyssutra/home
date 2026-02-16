@@ -868,6 +868,142 @@ const GoalForm = () => {
         </div>
       )}
 
+      {/* Allocation Dialog */}
+      <Dialog open={allocationDialog.open} onOpenChange={(open) => !open && setAllocationDialog({ open: false, type: null, item: null })}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Allocate {allocationDialog.type === 'investment' ? 'Investment' : 'Account'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {allocationDialog.item && (
+            <div className="space-y-4">
+              {/* Item Details */}
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium text-[#334155]">
+                  {allocationDialog.type === 'investment' 
+                    ? allocationDialog.item.name 
+                    : allocationDialog.item.accountName}
+                </p>
+                <p className="text-sm text-[#334155]/60">
+                  Total Value: ₹{allocationDialog.totalValue?.toLocaleString('en-IN')}
+                </p>
+              </div>
+              
+              {/* Allocation Status */}
+              {allocationDialog.allocInfo?.allocations?.length > 0 && (
+                <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <p className="text-sm font-medium text-amber-800 mb-2">Current Allocations:</p>
+                  {allocationDialog.allocInfo.allocations
+                    .filter(a => a.goalId !== id)
+                    .map((alloc, idx) => (
+                      <p key={idx} className="text-xs text-amber-700">
+                        • {alloc.goalName}: ₹{alloc.allocatedAmount?.toLocaleString('en-IN')}
+                      </p>
+                    ))}
+                </div>
+              )}
+              
+              {/* Available Amount */}
+              <div className="flex justify-between text-sm">
+                <span className="text-[#334155]/60">Available to allocate:</span>
+                <span className="font-semibold text-emerald-600">
+                  ₹{allocationDialog.availableAmount?.toLocaleString('en-IN')}
+                </span>
+              </div>
+              
+              {/* Allocation Input */}
+              <div>
+                <label className="block text-sm font-medium text-[#334155] mb-2">
+                  Amount to allocate to this goal
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
+                  <input
+                    type="text"
+                    value={allocationAmount}
+                    onChange={(e) => setAllocationAmount(e.target.value.replace(/[^0-9.]/g, ""))}
+                    placeholder="0"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none"
+                    data-testid="allocation-amount-input"
+                  />
+                </div>
+                {allocationAmount && (
+                  <p className="text-xs text-[#334155]/60 mt-1">
+                    {numberToWords(parseFloat(allocationAmount) || 0)}
+                  </p>
+                )}
+                {parseFloat(allocationAmount) > allocationDialog.availableAmount && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Amount exceeds available balance
+                  </p>
+                )}
+              </div>
+              
+              {/* Quick Allocation Buttons */}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAllocationAmount(Math.round(allocationDialog.availableAmount * 0.25).toString())}
+                  className="flex-1 py-2 text-xs rounded-lg border border-gray-200 hover:bg-gray-50"
+                >
+                  25%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAllocationAmount(Math.round(allocationDialog.availableAmount * 0.5).toString())}
+                  className="flex-1 py-2 text-xs rounded-lg border border-gray-200 hover:bg-gray-50"
+                >
+                  50%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAllocationAmount(Math.round(allocationDialog.availableAmount * 0.75).toString())}
+                  className="flex-1 py-2 text-xs rounded-lg border border-gray-200 hover:bg-gray-50"
+                >
+                  75%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAllocationAmount(allocationDialog.availableAmount.toString())}
+                  className="flex-1 py-2 text-xs rounded-lg border border-gray-200 hover:bg-gray-50"
+                >
+                  100%
+                </button>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="flex gap-2 mt-4">
+            {allocationDialog.existingAllocation > 0 && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleRemoveAllocation}
+              >
+                Remove
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setAllocationDialog({ open: false, type: null, item: null })}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveAllocation}
+              disabled={parseFloat(allocationAmount) > allocationDialog.availableAmount}
+              className="bg-[#7C3AED] hover:bg-[#6D28D9]"
+            >
+              {allocationDialog.existingAllocation > 0 ? 'Update' : 'Allocate'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Bottom Navigation */}
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
