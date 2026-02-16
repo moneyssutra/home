@@ -4,54 +4,85 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Emergency Fund Goal Fix Complete** (Feb 16, 2026)
+**Global Validation System Complete** (Feb 16, 2026)
 
 ## What Was Implemented (Latest Session - Feb 16, 2026)
 
-### Emergency Fund Goal Fix (Feb 16, 2026 - Latest)
+### Global Validation System (Feb 16, 2026 - Latest)
 
-**User Confusion**: AI insight showed "Emergency goal shows 0% funded" but user had ₹10.95L in liquid assets
+**User Request**: Implement comprehensive, application-wide validation for all forms in one go.
 
-**Root Cause**: 
-1. Emergency Fund goal had no bank accounts linked - only FD was linked
-2. AI insights was reading raw `currentAmount` (0) instead of calculating from linked sources
-3. The goal's `currentAmount` in DB was 0 because assets weren't linked
+**Implementation**:
+1. **Validation Utilities** (`/frontend/src/lib/validations.js`):
+   - `validateDateRange` - ensures end date > start date
+   - `validateFutureDate` - for goal target dates
+   - `validatePastOrTodayDate` - for asset purchase dates
+   - `validatePositiveAmount` - amount > 0
+   - `validateNonNegativeAmount` - amount >= 0
+   - `validateLoanOutstanding` - outstanding <= principal
+   - `validateCreditCardOutstanding` - outstanding <= credit limit
+   - `validateTextField` - required, length, special char checks
+   - `scrollToFirstError` - auto-scroll to first error field
 
-**Fix Applied**:
-1. **Linked bank accounts to Emergency Fund goal** - Added both ICICI accounts
-2. **Updated target amount** to ₹13.6L (6 months of expenses)
-3. **Fixed AI insights calculation** - Now properly calculates funded amount from linked investments and accounts
-4. **Updated AI prompt** - Shows actual percentage funded (80.5%)
+2. **Forms Updated** (all now use centralized validation):
+   - LoanForm.js - 7 validation checks
+   - InvestmentForm.js - 5 validation checks
+   - ExpenseForm.js - 4+ validation checks
+   - GoalForm.js - 4 validation checks
+   - AccountForm.js - 3+ validation checks
+   - AssetForm.js - 3+ validation checks
+   - InsuranceForm.js - 6 validation checks
+   - CreditCardForm.js - 3+ validation checks
+   - OtherIncomeForm.js - 3 validation checks
+   - JobIncome.js - 3+ validation checks
+   - BusinessIncome.js - 3+ validation checks
+   - RentalIncome.js - 3+ validation checks
+   - InterestIncome.js - 5+ validation checks
+   - DividendIncome.js - 3+ validation checks
+   - CommissionIncome.js - 3+ validation checks
 
-**Result**: 
-- Emergency Fund goal now shows **81% funded** (₹10,95,000 of ₹13,60,000)
-- AI insight correctly says "Finish emergency fund - Add ₹265,000 to reach target"
-- User only needs to top up ₹2.65L more
+3. **Validation Types Implemented**:
+   - Date consistency (end date > start date)
+   - Amount > 0 for all money fields
+   - Required field checks
+   - Cross-field validation (e.g., outstanding <= limit)
+   - Character length limits
+   - Auto-scroll to first error
 
-### Previous Bug Fixes (Earlier Today)
+**Testing Result**: 100% pass rate across all forms
 
-1. **AI Insights Field Name Bug** - Changed `currentBalance` to `currentAmount` for Goal model
-2. **Frequency Options** - Added "Daily" and "Half-Yearly" to OtherIncomeForm.js
-3. **Amount in Words** - Fixed BusinessIncome.js to show amount in words
-4. **Mobile UI Fixes** - Fixed expense card overflow issues
+### Previous Work (Earlier This Session)
 
-## Key Changes This Session
+1. **Partial Allocation System** - Allow specific monetary amounts to be allocated from investments/accounts to goals
+2. **AI Insights Enhancement** - Insurance advice, goal progress calculation, Indian currency format
+3. **Critical Bug Fixes** - toLocaleString crash, invisible text on GoalDetail page
+4. **UX Improvements** - Calendar navigation, Insurance Allocation visualization
 
-### Backend (`server.py`)
-- Lines 4184-4218: Rewrote emergency fund goal calculation to fetch linked investments and accounts
-- Lines 4220-4243: Added `emergency_fund_goal_info` string showing actual progress percentage
-- Lines 3963-3980: Updated AI summary to include goal progress info
+## Key Files Modified
 
-### Database Updates
-- Emergency Fund goal now has:
-  - `linkedInvestmentIds`: SBI FD 2026
-  - `linkedAccountIds`: ICICI Current Account, ICICI Savings Account
-  - `targetAmount`: ₹13,60,000
+### Frontend
+- `/frontend/src/lib/validations.js` - Centralized validation utilities
+- `/frontend/src/components/ValidationMessage.js` - Error display component
+- All form files updated with validation logic
+
+### Backend
+- `/backend/server.py` - AI insights, partial allocation logic
+
+## Code Architecture
+```
+/app/
+├── backend/
+│   └── server.py
+├── frontend/
+│   └── src/
+│       ├── lib/
+│       │   └── validations.js    # Validation utilities
+│       ├── components/
+│       │   └── ValidationMessage.js
+│       └── [Form files with validation]
+```
 
 ## Upcoming Tasks
-
-### P0 - Immediate
-- None currently
 
 ### P1 - High Priority
 - Dark mode toggle
@@ -67,7 +98,7 @@ Build a comprehensive personal finance tracking application with multi-user work
 - 2FA
 
 ## Test Credentials
-- **Test User**: test / test (or test@moneyssutra.com)
+- **Test User**: test@moneyssutra.com / test
 
 ## 3rd Party Integrations
 - **OpenAI GPT-5.2**: AI Smart Insights
