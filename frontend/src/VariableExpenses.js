@@ -200,28 +200,28 @@ const VariableExpenses = () => {
                   }`}
                   data-testid={`expense-card-${expense.id}`}
                 >
-                  <div className={`w-12 h-12 rounded-xl ${getCategoryColor(expense.category)} flex items-center justify-center`}>
+                  <div className={`w-12 h-12 rounded-xl ${getCategoryColor(expense.category)} flex items-center justify-center flex-shrink-0`}>
                     <Icon className="h-6 w-6" />
                   </div>
-                  <div className="flex-1 text-left">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <h3 className="font-semibold text-[#334155]">{expense.expenseName}</h3>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusColor(status)}`}>
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <h3 className="font-semibold text-[#334155] truncate">{expense.expenseName}</h3>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border whitespace-nowrap flex-shrink-0 ${getStatusColor(status)}`}>
                         {getStatusLabel(status)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-[#334155]/50">
-                      <span>{expense.category}</span>
+                    <div className="flex items-center gap-2 text-xs text-[#334155]/50 flex-wrap">
+                      <span className="truncate max-w-[80px]">{expense.category}</span>
                       <span>•</span>
-                      <span>{expense.frequency || "One-time"}</span>
+                      <span className="whitespace-nowrap">{expense.frequency || "One-time"}</span>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0 ml-2">
                     <p className={`font-bold ${status === 'paid' ? 'text-emerald-600' : 'text-[#334155]'}`}>
                       ₹ {formatAmount(expense.expectedAmount)}
                     </p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-[#334155]/30" />
+                  <ChevronRight className="h-5 w-5 text-[#334155]/30 flex-shrink-0" />
                 </button>
               );
             })}
