@@ -196,51 +196,59 @@ const DividendIncome = () => {
   const validate = () => {
     const newErrors = {};
 
+    // Source Category validation
     if (!sourceCategory) {
-      newErrors.sourceCategory = "Please select a source category";
+      newErrors.sourceCategory = "Please select a source category.";
     }
 
-    if (!investmentName.trim()) {
-      newErrors.investmentName = "Investment name is required";
-    }
+    // Investment Name validation
+    const nameError = validateTextField(investmentName, "Investment name", 100);
+    if (nameError) newErrors.investmentName = nameError;
 
-    if (!expectedAmount || parseFloat(expectedAmount) <= 0) {
-      newErrors.expectedAmount = "Expected amount must be greater than 0";
-    }
+    // Expected Amount validation
+    const amountError = validatePositiveAmount(expectedAmount, "Expected amount");
+    if (amountError) newErrors.expectedAmount = amountError;
 
+    // Frequency validation
     if (!frequency) {
-      newErrors.frequency = "Please select a frequency";
+      newErrors.frequency = "Please select a frequency.";
     }
 
     // Date validation based on frequency
     if (frequency === "Weekly" && !selectedDay) {
-      newErrors.selectedDay = "Please select a day";
+      newErrors.selectedDay = "Please select a day.";
     }
 
     if (frequency === "Monthly" && !selectedDate) {
-      newErrors.selectedDate = "Please select a date";
+      newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Quarterly") {
-      if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter";
-      if (!selectedDate) newErrors.selectedDate = "Please select a date";
+      if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Half-Yearly") {
-      if (!selectedHalf) newErrors.selectedHalf = "Please select a half";
-      if (!selectedDate) newErrors.selectedDate = "Please select a date";
+      if (!selectedHalf) newErrors.selectedHalf = "Please select a half.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Yearly") {
-      if (!selectedMonth) newErrors.selectedMonth = "Please select a month";
-      if (!selectedDate) newErrors.selectedDate = "Please select a date";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Irregular" && !customDate) {
-      newErrors.customDate = "Please select a date";
+      newErrors.customDate = "Please select a date.";
     }
 
     setErrors(newErrors);
+    
+    // Scroll to first error
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
