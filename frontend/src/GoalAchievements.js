@@ -230,25 +230,25 @@ const GoalAchievements = () => {
           </div>
 
           {/* Trophy Summary Card */}
-          <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="achievements-summary">
+          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="achievements-summary">
             <div className="flex items-center gap-4 mb-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E293B]/20">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
                 <Trophy className="h-8 w-8 text-yellow-300" />
               </div>
               <div>
-                <p className="text-white/60 text-sm font-medium mb-1">Goals Completed</p>
+                <p className="text-white/80 text-sm font-medium mb-1">Goals Completed</p>
                 <h2 className="text-4xl font-bold text-white">{summary.totalCompleted || 0}</h2>
               </div>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/20">
               <div className="text-center">
-                <p className="text-white/60 text-xs mb-1">Total Achieved</p>
+                <p className="text-white/80 text-xs mb-1">Total Achieved</p>
                 <p className="text-xl font-bold text-white">₹ {formatAmount(summary.totalAmountAchieved || 0)}</p>
               </div>
               <div className="text-center">
-                <p className="text-white/60 text-xs mb-1">Avg. Duration</p>
+                <p className="text-white/80 text-xs mb-1">Avg. Duration</p>
                 <p className="text-xl font-bold text-white">
                   {summary.averageDurationDays || 0} days
                 </p>
