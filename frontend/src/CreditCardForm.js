@@ -78,12 +78,54 @@ const CreditCardForm = () => {
     }
   };
 
+  // Real-time validation for outstanding amount
+  const validateField = (field, value) => {
+    const newErrors = { ...errors };
+    
+    if (field === 'outstandingAmount' && creditLimit) {
+      const outstandingError = validateCreditCardOutstanding(value, creditLimit);
+      if (outstandingError) newErrors.outstandingAmount = outstandingError;
+      else delete newErrors.outstandingAmount;
+    }
+    
+    setErrors(newErrors);
+  };
+
   const validate = () => {
     const newErrors = {};
-    if (!cardName.trim()) newErrors.cardName = "Card name is required";
-    if (!bankName.trim()) newErrors.bankName = "Bank name is required";
-    if (!creditLimit || parseFloat(creditLimit) <= 0) newErrors.creditLimit = "Credit limit is required";
+    
+    // Card Name validation
+    const nameError = validateTextField(cardName, "Card name", 50);
+    if (nameError) newErrors.cardName = nameError;
+    
+    // Bank Name validation
+    const bankError = validateTextField(bankName, "Bank name", 50);
+    if (bankError) newErrors.bankName = bankError;
+    
+    // Credit Limit validation
+    const limitError = validatePositiveAmount(creditLimit, "Credit limit");
+    if (limitError) newErrors.creditLimit = limitError;
+    
+    // Outstanding Amount validation (can be 0 but not negative)
+    if (outstandingAmount && parseFloat(outstandingAmount) < 0) {
+      newErrors.outstandingAmount = "Outstanding amount cannot be negative.";
+    } else if (outstandingAmount && creditLimit) {
+      const outstandingError = validateCreditCardOutstanding(outstandingAmount, creditLimit);
+      if (outstandingError) newErrors.outstandingAmount = outstandingError;
+    }
+    
+    // Interest Rate validation (if provided)
+    if (interestRate && (isNaN(parseFloat(interestRate)) || parseFloat(interestRate) < 0)) {
+      newErrors.interestRate = "Interest rate cannot be negative.";
+    }
+    
     setErrors(newErrors);
+    
+    // Scroll to first error
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
