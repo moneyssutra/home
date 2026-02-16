@@ -3969,7 +3969,9 @@ async def generate_ai_insights_internal(financial_data: dict) -> list:
     - Total Assets: ₹{financial_data.get('total_assets', 0):,.0f}
     - Total Investments: ₹{financial_data.get('total_investments', 0):,.0f}
     - Total Liabilities: ₹{financial_data.get('total_liabilities', 0):,.0f}
-    - Liquid Balance: ₹{financial_data.get('liquid_balance', 0):,.0f}
+    - Liquid Balance (Bank Accounts): ₹{financial_data.get('liquid_balance', 0):,.0f}
+    - FD/RD Balance: ₹{financial_data.get('fd_rd_balance', 0):,.0f}
+    - Emergency Fund (Liquid + FD/RD): ₹{financial_data.get('emergency_fund', 0):,.0f}
     - Active Goals: {financial_data.get('active_goals', 0)}
     - Savings Rate: {financial_data.get('savings_rate', 0):.1f}%
     - Top Expense Categories: {financial_data.get('top_expenses', 'N/A')}
