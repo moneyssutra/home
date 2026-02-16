@@ -253,8 +253,8 @@ const InvestmentForm = () => {
   const isSWP = investmentCategory === "SWP";
   const isIncomeGenerating = investmentMode === "Income Generating";
   const isGrowthWithMaturity = investmentMode === "Growth with Maturity";
-  // Hide frequency field for SGB and SWP
-  const showFrequencyField = !isSGB && !isSWP && (investmentCategory === "Mutual Fund" || investmentCategory === "Recurring Deposit (RD)" || investmentCategory === "ETF" || investmentCategory === "Stocks" || investmentCategory === "US Stocks");
+  // Show frequency field for ALL categories except SGB and SWP
+  const showFrequencyField = investmentCategory && !isSGB && !isSWP;
 
   return (
     <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="investment-form-page">
