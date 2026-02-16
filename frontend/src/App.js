@@ -153,6 +153,9 @@ function AppRouter() {
       <Route path="/credit-card" element={<ProtectedRoute><CreditCardForm /></ProtectedRoute>} />
       <Route path="/credit-card/:id" element={<ProtectedRoute><CreditCardForm /></ProtectedRoute>} />
       
+      {/* Liabilities (Combined View) */}
+      <Route path="/my-liabilities" element={<ProtectedRoute><MyLiabilities /></ProtectedRoute>} />
+      
       {/* Goals */}
       <Route path="/my-goals" element={<ProtectedRoute><MyGoals /></ProtectedRoute>} />
       <Route path="/goal" element={<ProtectedRoute><GoalForm /></ProtectedRoute>} />
