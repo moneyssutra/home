@@ -262,15 +262,15 @@ const GoalAchievements = () => {
       <div className="px-6 mt-4">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-gray-500">Loading achievements...</div>
+            <div className="text-black/60">Loading achievements...</div>
           </div>
         ) : achievements.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6">
             <div className="flex h-24 w-24 items-center justify-center rounded-full bg-amber-100 mb-4">
               <Trophy className="h-12 w-12 text-amber-500" />
             </div>
-            <h2 className="text-lg font-semibold text-gray-800 mb-2">No Achievements Yet</h2>
-            <p className="text-gray-500 text-center text-sm mb-6">
+            <h2 className="text-lg font-semibold text-black mb-2">No Achievements Yet</h2>
+            <p className="text-black/60 text-center text-sm mb-6">
               Complete your first goal to see it celebrated here!
             </p>
             <button
@@ -289,7 +289,7 @@ const GoalAchievements = () => {
               <div className="flex-shrink-0">
                 <Sparkles className="h-6 w-6 text-amber-500" />
               </div>
-              <p className="text-sm text-amber-800">
+              <p className="text-sm text-black">
                 <span className="font-semibold">Congratulations!</span> You've achieved {summary.totalCompleted} {summary.totalCompleted === 1 ? 'goal' : 'goals'}. Keep up the great work!
               </p>
             </div>
