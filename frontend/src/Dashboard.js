@@ -202,6 +202,67 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="px-6 pb-8 space-y-6 mt-4">
+        {/* Monthly Cash Flow Card - MOVED TO TOP */}
+        <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="income-expense-card">
+          <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Monthly Cash Flow</h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div 
+              className="text-center cursor-pointer rounded-xl p-2 transition-all hover:bg-green-50 active:scale-[0.98]"
+              onClick={() => navigate("/my-income")}
+              data-testid="cashflow-income-link"
+            >
+              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--finance-gain)" }}>
+                <ArrowUpRight className="h-4 w-4" />
+                <span className="text-xs font-medium">Income</span>
+              </div>
+              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyIncome || 0)}</p>
+            </div>
+            <div 
+              className="text-center cursor-pointer rounded-xl p-2 transition-all hover:bg-red-50 active:scale-[0.98]"
+              onClick={() => navigate("/my-expenses")}
+              data-testid="cashflow-expense-link"
+            >
+              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--finance-loss)" }}>
+                <ArrowDownRight className="h-4 w-4" />
+                <span className="text-xs font-medium">Expense</span>
+              </div>
+              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyExpenses || 0)}</p>
+            </div>
+            <div className="text-center p-2">
+              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--status-warning)" }}>
+                <PiggyBank className="h-4 w-4" />
+                <span className="text-xs font-medium">Savings</span>
+              </div>
+              <p className="text-lg font-bold" style={{ color: (data?.monthlySavings || 0) >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
+                ₹ {formatAmount(Math.abs(data?.monthlySavings || 0))}
+              </p>
+            </div>
+          </div>
+          
+          {/* Savings Progress Bar */}
+          <div className="mt-4">
+            <div className="flex justify-between text-xs mb-1" style={{ color: "var(--text-muted)" }}>
+              <span>Savings Rate</span>
+              <span>
+                {data?.monthlyIncome > 0 
+                  ? `${Math.round((data.monthlySavings / data.monthlyIncome) * 100)}%` 
+                  : "0%"}
+              </span>
+            </div>
+            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+              <div 
+                className="h-full rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${Math.min(Math.abs(data?.monthlyIncome > 0 ? (data.monthlySavings / data.monthlyIncome) * 100 : 0), 100)}%`,
+                  background: (data?.monthlySavings || 0) >= 0 
+                    ? "linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-secondary) 100%)"
+                    : "linear-gradient(90deg, var(--status-error) 0%, #F87171 100%)"
+                }}
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Financial Summary Cards */}
         <div className="grid grid-cols-2 gap-3">
           {/* Assets */}
@@ -270,59 +331,6 @@ const Dashboard = () => {
             </div>
             <p className="text-xl font-bold" style={{ color: "var(--finance-loss)" }}>₹ {formatAmount(data?.totalLiabilities || 0)}</p>
             <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{data?.loanCount || 0} loans</p>
-          </div>
-        </div>
-
-        {/* Income vs Expense Card */}
-        <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="income-expense-card">
-          <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Monthly Cash Flow</h3>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--finance-gain)" }}>
-                <ArrowUpRight className="h-4 w-4" />
-                <span className="text-xs font-medium">Income</span>
-              </div>
-              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyIncome || 0)}</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--finance-loss)" }}>
-                <ArrowDownRight className="h-4 w-4" />
-                <span className="text-xs font-medium">Expense</span>
-              </div>
-              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyExpenses || 0)}</p>
-            </div>
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--status-warning)" }}>
-                <PiggyBank className="h-4 w-4" />
-                <span className="text-xs font-medium">Savings</span>
-              </div>
-              <p className="text-lg font-bold" style={{ color: (data?.monthlySavings || 0) >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
-                ₹ {formatAmount(Math.abs(data?.monthlySavings || 0))}
-              </p>
-            </div>
-          </div>
-          
-          {/* Savings Progress Bar */}
-          <div className="mt-4">
-            <div className="flex justify-between text-xs mb-1" style={{ color: "var(--text-muted)" }}>
-              <span>Savings Rate</span>
-              <span>
-                {data?.monthlyIncome > 0 
-                  ? `${Math.round((data.monthlySavings / data.monthlyIncome) * 100)}%` 
-                  : "0%"}
-              </span>
-            </div>
-            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
-              <div 
-                className="h-full rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${Math.min(Math.abs(data?.monthlyIncome > 0 ? (data.monthlySavings / data.monthlyIncome) * 100 : 0), 100)}%`,
-                  background: (data?.monthlySavings || 0) >= 0 
-                    ? "linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-secondary) 100%)"
-                    : "linear-gradient(90deg, var(--status-error) 0%, #F87171 100%)"
-                }}
-              />
-            </div>
           </div>
         </div>
 
