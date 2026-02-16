@@ -136,6 +136,123 @@ const GoalForm = () => {
     setter(value);
   };
 
+  // Get allocation info for an investment
+  const getInvestmentAllocationInfo = (invId) => {
+    const invStatus = allocationStatus.investments?.find(i => i.id === invId);
+    if (!invStatus) return { totalValue: 0, allocatedAmount: 0, remainingAmount: 0, allocations: [] };
+    return invStatus;
+  };
+
+  // Get allocation info for an account
+  const getAccountAllocationInfo = (accId) => {
+    const accStatus = allocationStatus.accounts?.find(a => a.id === accId);
+    if (!accStatus) return { totalBalance: 0, allocatedAmount: 0, remainingAmount: 0, allocations: [] };
+    return accStatus;
+  };
+
+  // Check if investment is already linked to this goal
+  const getLinkedInvestmentAllocation = (invId) => {
+    return linkedInvestments.find(li => li.id === invId);
+  };
+
+  // Check if account is already linked to this goal
+  const getLinkedAccountAllocation = (accId) => {
+    return linkedAccounts.find(la => la.id === accId);
+  };
+
+  // Open allocation dialog for investment
+  const handleInvestmentClick = (inv) => {
+    const existingAllocation = getLinkedInvestmentAllocation(inv.id);
+    const allocInfo = getInvestmentAllocationInfo(inv.id);
+    
+    // Calculate available amount (remaining + what's already allocated to this goal)
+    const currentAllocationToThisGoal = existingAllocation?.allocatedAmount || 0;
+    const availableAmount = allocInfo.remainingAmount + currentAllocationToThisGoal;
+    
+    setAllocationDialog({
+      open: true,
+      type: 'investment',
+      item: inv,
+      totalValue: inv.currentValue || inv.principal || 0,
+      availableAmount,
+      existingAllocation: currentAllocationToThisGoal,
+      allocInfo
+    });
+    setAllocationAmount(currentAllocationToThisGoal > 0 ? currentAllocationToThisGoal.toString() : "");
+  };
+
+  // Open allocation dialog for account
+  const handleAccountClick = (acc) => {
+    const existingAllocation = getLinkedAccountAllocation(acc.id);
+    const allocInfo = getAccountAllocationInfo(acc.id);
+    
+    const currentAllocationToThisGoal = existingAllocation?.allocatedAmount || 0;
+    const availableAmount = allocInfo.remainingAmount + currentAllocationToThisGoal;
+    
+    setAllocationDialog({
+      open: true,
+      type: 'account',
+      item: acc,
+      totalValue: acc.currentBalance || 0,
+      availableAmount,
+      existingAllocation: currentAllocationToThisGoal,
+      allocInfo
+    });
+    setAllocationAmount(currentAllocationToThisGoal > 0 ? currentAllocationToThisGoal.toString() : "");
+  };
+
+  // Save allocation from dialog
+  const handleSaveAllocation = () => {
+    const amount = parseFloat(allocationAmount) || 0;
+    
+    if (allocationDialog.type === 'investment') {
+      const inv = allocationDialog.item;
+      if (amount > 0) {
+        // Add or update allocation
+        setLinkedInvestments(prev => {
+          const existing = prev.find(li => li.id === inv.id);
+          if (existing) {
+            return prev.map(li => li.id === inv.id ? { ...li, allocatedAmount: amount } : li);
+          }
+          return [...prev, { id: inv.id, allocatedAmount: amount, name: inv.name }];
+        });
+        // Remove from legacy list if present
+        setLinkedInvestmentIds(prev => prev.filter(invId => invId !== inv.id));
+      } else {
+        // Remove allocation
+        setLinkedInvestments(prev => prev.filter(li => li.id !== inv.id));
+      }
+    } else if (allocationDialog.type === 'account') {
+      const acc = allocationDialog.item;
+      if (amount > 0) {
+        setLinkedAccounts(prev => {
+          const existing = prev.find(la => la.id === acc.id);
+          if (existing) {
+            return prev.map(la => la.id === acc.id ? { ...la, allocatedAmount: amount } : la);
+          }
+          return [...prev, { id: acc.id, allocatedAmount: amount, name: acc.accountName }];
+        });
+        setLinkedAccountIds(prev => prev.filter(accId => accId !== acc.id));
+      } else {
+        setLinkedAccounts(prev => prev.filter(la => la.id !== acc.id));
+      }
+    }
+    
+    setAllocationDialog({ open: false, type: null, item: null });
+    setAllocationAmount("");
+  };
+
+  // Remove allocation
+  const handleRemoveAllocation = () => {
+    if (allocationDialog.type === 'investment') {
+      setLinkedInvestments(prev => prev.filter(li => li.id !== allocationDialog.item.id));
+    } else if (allocationDialog.type === 'account') {
+      setLinkedAccounts(prev => prev.filter(la => la.id !== allocationDialog.item.id));
+    }
+    setAllocationDialog({ open: false, type: null, item: null });
+    setAllocationAmount("");
+  };
+
   const toggleInvestment = (invId) => {
     setLinkedInvestmentIds(prev => 
       prev.includes(invId) 
