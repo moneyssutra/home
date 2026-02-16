@@ -259,50 +259,62 @@ const RentalIncome = () => {
   const validate = () => {
     const newErrors = {};
 
-    if (!propertyName.trim()) {
-      newErrors.propertyName = "Property name is required";
+    // Property Name validation
+    const nameError = validateTextField(propertyName, "Property name", 100);
+    if (nameError) newErrors.propertyName = nameError;
+
+    // Rental Amount validation
+    const amountError = validatePositiveAmount(rentalAmount, "Rental amount");
+    if (amountError) newErrors.rentalAmount = amountError;
+
+    // Security Deposit validation (optional but must be non-negative if provided)
+    if (securityDeposit && parseFloat(securityDeposit) < 0) {
+      newErrors.securityDeposit = "Security deposit cannot be negative.";
     }
 
-    if (!rentalAmount || parseFloat(rentalAmount) <= 0) {
-      newErrors.rentalAmount = "Rental amount must be greater than 0";
-    }
-
+    // Frequency validation
     if (!frequency) {
-      newErrors.frequency = "Please select a frequency";
+      newErrors.frequency = "Please select a frequency.";
     }
 
     // Date validation based on frequency
     if (frequency === "Daily" && !selectedDay) {
-      newErrors.selectedDay = "Please select a day";
+      newErrors.selectedDay = "Please select a day.";
     }
 
     if (frequency === "Monthly" && !selectedDate) {
-      newErrors.selectedDate = "Please select a date";
+      newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Quarterly") {
-      if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter";
-      if (!selectedMonth) newErrors.selectedMonth = "Please select a month";
-      if (!selectedDate) newErrors.selectedDate = "Please select a date";
+      if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter.";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Half-Yearly") {
-      if (!selectedHalf) newErrors.selectedHalf = "Please select a half";
-      if (!selectedMonth) newErrors.selectedMonth = "Please select a month";
-      if (!selectedDate) newErrors.selectedDate = "Please select a date";
+      if (!selectedHalf) newErrors.selectedHalf = "Please select a half.";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Yearly") {
-      if (!selectedMonth) newErrors.selectedMonth = "Please select a month";
-      if (!selectedDate) newErrors.selectedDate = "Please select a date";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Others") {
-      if (!customFrequency.trim()) newErrors.customFrequency = "Please enter custom frequency";
-      if (!customDate) newErrors.customDate = "Please select a date";
+      if (!customFrequency.trim()) newErrors.customFrequency = "Please enter custom frequency.";
+      if (!customDate) newErrors.customDate = "Please select a date.";
     }
 
     setErrors(newErrors);
+    
+    // Scroll to first error
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
