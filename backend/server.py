@@ -2481,16 +2481,26 @@ async def get_networth_summary(request: Request):
         # New users only see their own data
         user_filter = {"userId": user_id}
     
-    # Get all assets
-    assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
-    total_assets = sum(asset.get('currentValue', 0) for asset in assets)
+    # Run all database queries in parallel for faster response
+    assets_task = db.assets.find(user_filter, {"_id": 0}).to_list(1000)
+    investments_task = db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+    accounts_task = db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
+    credit_cards_task = db.credit_cards.find(user_filter, {"_id": 0}).to_list(1000)
+    loans_task = db.loans.find(user_filter, {"_id": 0}).to_list(1000)
+    incomes_task = db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
+    other_incomes_task = db.other_income.find(user_filter, {"_id": 0}).to_list(1000)
+    expenses_task = db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
     
-    # Get all investments
-    investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+    # Await all queries together
+    assets, investments, accounts, credit_cards, loans, incomes, other_incomes, expenses = await asyncio.gather(
+        assets_task, investments_task, accounts_task, credit_cards_task,
+        loans_task, incomes_task, other_incomes_task, expenses_task
+    )
+    
+    # Process results
+    total_assets = sum(asset.get('currentValue', 0) for asset in assets)
     total_investments = sum(inv.get('currentValue', 0) for inv in investments)
     
-    # Get all accounts (liquid balance)
-    accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
     liquid_balance = sum(
         acc.get('currentBalance', 0) for acc in accounts 
         if acc.get('accountType') != 'Credit Card'
@@ -2500,18 +2510,13 @@ async def get_networth_summary(request: Request):
         if acc.get('accountType') == 'Credit Card'
     )
     
-    # Get all credit cards
-    credit_cards = await db.credit_cards.find(user_filter, {"_id": 0}).to_list(1000)
     credit_card_outstanding = sum(card.get('outstandingAmount', 0) for card in credit_cards)
     credit_card_limit = sum(card.get('creditLimit', 0) for card in credit_cards)
     
-    # Get all loans (liabilities)
-    loans = await db.loans.find(user_filter, {"_id": 0}).to_list(1000)
     total_liabilities = sum(loan.get('outstandingAmount', 0) for loan in loans)
     total_liabilities += credit_outstanding + credit_card_outstanding
     
-    # Get all income sources - Calculate actual monthly income for current month
-    incomes = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
+    # Calculate monthly income for current month
     monthly_income = 0
     current_month = datetime.now(timezone.utc).month
     current_year = datetime.now(timezone.utc).year
