@@ -119,24 +119,37 @@ const OtherIncomeForm = () => {
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setError("");
+    setErrors({});
   };
 
   const handleSubmit = async () => {
-    // Validation
-    if (!formData.incomeName.trim()) {
-      setError("Please enter income name");
-      return;
-    }
+    const newErrors = {};
+    
+    // Income Name validation
+    const nameError = validateTextField(formData.incomeName, "Income name", 100);
+    if (nameError) newErrors.incomeName = nameError;
+    
+    // Category validation
     if (!formData.category) {
-      setError("Please select a category");
-      return;
+      newErrors.category = "Please select a category.";
     }
-    if (formData.category === "Other" && !formData.customCategory.trim()) {
-      setError("Please enter custom category name");
-      return;
+    
+    // Custom Category validation (for "Other")
+    if (formData.category === "Other") {
+      const customError = validateTextField(formData.customCategory, "Custom category name", 50);
+      if (customError) newErrors.customCategory = customError;
     }
-    if (!formData.amount || parseFloat(formData.amount) <= 0) {
-      setError("Please enter a valid amount");
+    
+    // Amount validation
+    const amountError = validatePositiveAmount(formData.amount, "Amount");
+    if (amountError) newErrors.amount = amountError;
+    
+    // Set errors and show first one
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const firstError = Object.values(newErrors)[0];
+      setError(firstError);
+      scrollToFirstError(newErrors);
       return;
     }
 
