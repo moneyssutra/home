@@ -121,8 +121,22 @@ const GoalForm = () => {
       setLinkedLoanId(data.linkedLoanId || "");
       setLinkedCreditCardId(data.linkedCreditCardId || "");
       setLinkedAccountIds(data.linkedAccountIds || []);
-      setLinkedInvestments(data.linkedInvestments || []);
-      setLinkedAccounts(data.linkedAccounts || []);
+      
+      // Normalize linked investments - ensure allocatedAmount exists
+      const normalizedInvestments = (data.linkedInvestments || []).map(li => ({
+        id: li.id,
+        name: li.name || 'Unknown',
+        allocatedAmount: li.allocatedAmount || li.currentValue || li.principal || 0
+      }));
+      setLinkedInvestments(normalizedInvestments);
+      
+      // Normalize linked accounts - ensure allocatedAmount exists
+      const normalizedAccounts = (data.linkedAccounts || []).map(la => ({
+        id: la.id,
+        name: la.accountName || la.name || 'Unknown',
+        allocatedAmount: la.allocatedAmount || la.currentBalance || 0
+      }));
+      setLinkedAccounts(normalizedAccounts);
     } catch (error) {
       console.error("Error fetching goal data:", error);
       setErrors({ submit: "Failed to load goal data" });
