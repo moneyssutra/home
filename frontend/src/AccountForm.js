@@ -85,32 +85,63 @@ const AccountForm = () => {
   };
 
   const handleAmountChange = (setter) => (e) => {
-    const value = e.target.value.replace(/[^0-9]/g, "");
+    const value = formatAmountInput(e.target.value);
     setter(value);
+  };
+
+  // Real-time validation for credit card fields
+  const validateField = (field, value) => {
+    const newErrors = { ...errors };
+    
+    if (accountType === "Credit Card") {
+      if (field === 'outstandingAmount' && creditLimit) {
+        const outstandingError = validateCreditCardOutstanding(value, creditLimit);
+        if (outstandingError) newErrors.outstandingAmount = outstandingError;
+        else delete newErrors.outstandingAmount;
+      }
+    }
+    
+    setErrors(newErrors);
   };
 
   const validate = () => {
     const newErrors = {};
 
-    if (!accountName.trim()) {
-      newErrors.accountName = "Account name is required";
-    }
+    // Account Name validation
+    const nameError = validateTextField(accountName, "Account name", 50);
+    if (nameError) newErrors.accountName = nameError;
 
+    // Account Type validation
     if (!accountType) {
-      newErrors.accountType = "Please select account type";
+      newErrors.accountType = "Please select account type.";
     }
 
     if (accountType === "Credit Card") {
-      if (!creditLimit || parseFloat(creditLimit) <= 0) {
-        newErrors.creditLimit = "Credit limit is required";
+      // Credit Limit validation
+      const limitError = validatePositiveAmount(creditLimit, "Credit limit");
+      if (limitError) newErrors.creditLimit = limitError;
+
+      // Outstanding Amount validation (can be 0 but not negative)
+      if (outstandingAmount && parseFloat(outstandingAmount) < 0) {
+        newErrors.outstandingAmount = "Outstanding amount cannot be negative.";
+      } else if (outstandingAmount && creditLimit) {
+        const outstandingError = validateCreditCardOutstanding(outstandingAmount, creditLimit);
+        if (outstandingError) newErrors.outstandingAmount = outstandingError;
       }
     } else {
-      if (currentBalance === "" || parseFloat(currentBalance) < 0) {
-        newErrors.currentBalance = "Opening balance is required";
-      }
+      // Opening Balance validation (can be 0 but not negative for non-credit cards)
+      const balanceError = validateNonNegativeAmount(currentBalance, "Opening balance");
+      if (balanceError && currentBalance !== "") newErrors.currentBalance = balanceError;
+      else if (currentBalance === "") newErrors.currentBalance = "Opening balance is required.";
     }
 
     setErrors(newErrors);
+    
+    // Scroll to first error
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
     return Object.keys(newErrors).length === 0;
   };
 
