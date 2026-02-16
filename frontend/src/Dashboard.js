@@ -64,7 +64,7 @@ const Dashboard = () => {
   const fetchInsights = async () => {
     setInsightsLoading(true);
     try {
-      const response = await axios.get(`${backendUrl}/api/ai/insights`);
+      const response = await axios.get(`${backendUrl}/api/ai/insights`, { withCredentials: true });
       setInsights(response.data.insights || []);
     } catch (error) {
       console.error("Error fetching AI insights:", error);
