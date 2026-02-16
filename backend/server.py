@@ -4184,7 +4184,7 @@ async def get_ai_insights(request: Request):
         # Get Emergency Fund goals and their funded amounts
         goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
         emergency_fund_goals = sum(
-            g.get('currentBalance', 0)
+            g.get('currentAmount', 0)
             for g in goals
             if g.get('goalType') == 'Emergency Fund' and not g.get('isCompleted', False)
         )
