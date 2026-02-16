@@ -3380,16 +3380,6 @@ async def calculate_goal_progress(goal: dict) -> dict:
                         "projectedValue": round(projected_value, 2) if sip_amount else None,
                         "isLegacy": True
                     })
-                    })
-                
-                linked_details.append({
-                    "type": "Investment",
-                    "name": investment.get('name'),
-                    "category": investment.get('investmentCategory'),
-                    "contribution": current_value,
-                    "hasSIP": bool(sip_amount and frequency),
-                    "projectedValue": round(projected_value, 2) if sip_amount else None
-                })
     
     # For Other/Custom goals - use linked sources or manual amount
     else:
