@@ -113,10 +113,28 @@ body {
     color: var(--text-secondary) !important;
 }
 
-.honeycomb-bg h1,
-.honeycomb-bg h2,
-.honeycomb-bg h3 {
+/* Headers in honeycomb-bg pages should use primary text color, except in gradient headers */
+.honeycomb-bg > div h1,
+.honeycomb-bg > div h2,
+.honeycomb-bg > div h3,
+.honeycomb-bg > section h1,
+.honeycomb-bg > section h2,
+.honeycomb-bg > section h3 {
     color: var(--text-primary) !important;
+}
+
+/* Gradient headers should keep white text */
+.honeycomb-bg > header h1,
+.honeycomb-bg > header h2,
+.honeycomb-bg > header p,
+header[class*="bg-gradient"] h1,
+header[class*="bg-gradient"] h2,
+header[class*="bg-gradient"] p {
+    color: white !important;
+}
+
+header[class*="bg-gradient"] p[class*="text-white"] {
+    color: rgba(255, 255, 255, 0.7) !important;
 }
 
 /* Override dark theme backgrounds in honeycomb pages */
