@@ -4207,6 +4207,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+@app.on_event("startup")
+async def startup_db_client():
+    """Create database indexes for faster queries"""
+    try:
+        # Create indexes for user isolation queries
+        await db.assets.create_index("userId")
+        await db.investments.create_index("userId")
+        await db.loans.create_index("userId")
+        await db.accounts.create_index("userId")
+        await db.credit_cards.create_index("userId")
+        await db.income_sources.create_index("userId")
+        await db.other_income.create_index("userId")
+        await db.expenses.create_index("userId")
+        await db.goals.create_index("userId")
+        await db.insurances.create_index("userId")
+        await db.user_sessions.create_index("session_token")
+        await db.users.create_index("user_id")
+        await db.users.create_index("email")
+        logger.info("Database indexes created successfully")
+    except Exception as e:
+        logger.warning(f"Index creation warning: {e}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
