@@ -599,66 +599,112 @@ const GoalForm = () => {
               {/* Investment/Account Fields */}
               {showInvestmentFields && (
                 <div className="space-y-4">
-                  {/* Investments */}
+                  {/* Investments with Allocation */}
                   {investments.length > 0 && (
                     <div>
                       <label className="block text-sm font-medium text-[#334155] mb-2">
-                        Link Investments ({linkedInvestmentIds.length} selected)
+                        Link Investments ({linkedInvestments.length} allocated)
                       </label>
-                      <div className="max-h-40 overflow-y-auto space-y-2 p-2 bg-[#1E293B] rounded-lg border border-gray-200">
-                        {investments.map((inv) => (
-                          <label
-                            key={inv.id}
-                            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${
-                              linkedInvestmentIds.includes(inv.id) ? "bg-[#7C3AED]/10" : "hover:bg-[#1E293B]"
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={linkedInvestmentIds.includes(inv.id)}
-                              onChange={() => toggleInvestment(inv.id)}
-                              className="w-4 h-4 text-[#7C3AED] rounded focus:ring-[#7C3AED]"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-[#334155] truncate">{inv.name}</p>
-                              <p className="text-xs text-[#334155]/50">
-                                {inv.investmentCategory} • ₹{inv.currentValue?.toLocaleString('en-IN')}
-                              </p>
+                      <div className="max-h-48 overflow-y-auto space-y-2 p-2 bg-[#1E293B] rounded-lg border border-gray-200">
+                        {investments.map((inv) => {
+                          const allocInfo = getInvestmentAllocationInfo(inv.id);
+                          const linkedAlloc = getLinkedInvestmentAllocation(inv.id);
+                          const isLinked = !!linkedAlloc;
+                          const totalValue = inv.currentValue || inv.principal || 0;
+                          const allocatedElsewhere = allocInfo.allocatedAmount - (linkedAlloc?.allocatedAmount || 0);
+                          const hasOtherAllocations = allocInfo.allocations?.filter(a => a.goalId !== id).length > 0;
+                          
+                          return (
+                            <div
+                              key={inv.id}
+                              onClick={() => handleInvestmentClick(inv)}
+                              className={`p-3 rounded-lg cursor-pointer transition-all border ${
+                                isLinked 
+                                  ? "bg-[#7C3AED]/10 border-[#7C3AED]/30" 
+                                  : "hover:bg-[#1E293B] border-transparent"
+                              }`}
+                              data-testid={`investment-item-${inv.id}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-[#334155] truncate">{inv.name}</p>
+                                  <p className="text-xs text-[#334155]/50">
+                                    {inv.investmentCategory} • Total: ₹{totalValue.toLocaleString('en-IN')}
+                                  </p>
+                                </div>
+                                {isLinked && (
+                                  <div className="text-right">
+                                    <p className="text-sm font-semibold text-[#7C3AED]">
+                                      ₹{linkedAlloc.allocatedAmount.toLocaleString('en-IN')}
+                                    </p>
+                                    <p className="text-[10px] text-[#334155]/50">allocated</p>
+                                  </div>
+                                )}
+                              </div>
+                              {hasOtherAllocations && (
+                                <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-600">
+                                  <AlertCircle className="w-3 h-3" />
+                                  <span>₹{allocatedElsewhere.toLocaleString('en-IN')} allocated to other goals</span>
+                                </div>
+                              )}
                             </div>
-                          </label>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
 
-                  {/* Accounts */}
+                  {/* Accounts with Allocation */}
                   {accounts.length > 0 && (
                     <div>
                       <label className="block text-sm font-medium text-[#334155] mb-2">
-                        Link Accounts ({linkedAccountIds.length} selected)
+                        Link Accounts ({linkedAccounts.length} allocated)
                       </label>
-                      <div className="max-h-40 overflow-y-auto space-y-2 p-2 bg-[#1E293B] rounded-lg border border-gray-200">
-                        {accounts.map((acc) => (
-                          <label
-                            key={acc.id}
-                            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${
-                              linkedAccountIds.includes(acc.id) ? "bg-[#7C3AED]/10" : "hover:bg-[#1E293B]"
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={linkedAccountIds.includes(acc.id)}
-                              onChange={() => toggleAccount(acc.id)}
-                              className="w-4 h-4 text-[#7C3AED] rounded focus:ring-[#7C3AED]"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-[#334155] truncate">{acc.accountName}</p>
-                              <p className="text-xs text-[#334155]/50">
-                                {acc.accountType} • ₹{acc.currentBalance?.toLocaleString('en-IN')}
-                              </p>
+                      <div className="max-h-48 overflow-y-auto space-y-2 p-2 bg-[#1E293B] rounded-lg border border-gray-200">
+                        {accounts.map((acc) => {
+                          const allocInfo = getAccountAllocationInfo(acc.id);
+                          const linkedAlloc = getLinkedAccountAllocation(acc.id);
+                          const isLinked = !!linkedAlloc;
+                          const totalBalance = acc.currentBalance || 0;
+                          const allocatedElsewhere = allocInfo.allocatedAmount - (linkedAlloc?.allocatedAmount || 0);
+                          const hasOtherAllocations = allocInfo.allocations?.filter(a => a.goalId !== id).length > 0;
+                          
+                          return (
+                            <div
+                              key={acc.id}
+                              onClick={() => handleAccountClick(acc)}
+                              className={`p-3 rounded-lg cursor-pointer transition-all border ${
+                                isLinked 
+                                  ? "bg-[#7C3AED]/10 border-[#7C3AED]/30" 
+                                  : "hover:bg-[#1E293B] border-transparent"
+                              }`}
+                              data-testid={`account-item-${acc.id}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-[#334155] truncate">{acc.accountName}</p>
+                                  <p className="text-xs text-[#334155]/50">
+                                    {acc.accountType} • Total: ₹{totalBalance.toLocaleString('en-IN')}
+                                  </p>
+                                </div>
+                                {isLinked && (
+                                  <div className="text-right">
+                                    <p className="text-sm font-semibold text-[#7C3AED]">
+                                      ₹{linkedAlloc.allocatedAmount.toLocaleString('en-IN')}
+                                    </p>
+                                    <p className="text-[10px] text-[#334155]/50">allocated</p>
+                                  </div>
+                                )}
+                              </div>
+                              {hasOtherAllocations && (
+                                <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-600">
+                                  <AlertCircle className="w-3 h-3" />
+                                  <span>₹{allocatedElsewhere.toLocaleString('en-IN')} allocated to other goals</span>
+                                </div>
+                              )}
                             </div>
-                          </label>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
