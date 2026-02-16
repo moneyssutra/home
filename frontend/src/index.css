@@ -272,6 +272,38 @@ span.rounded-full[class*="bg-[#1E293B]"] {
     color: var(--text-secondary) !important;
 }
 
+/* Calendar dropdown year/month navigation */
+.rdp-caption_dropdowns {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.rdp-dropdown {
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.375rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.rdp-dropdown:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.1);
+}
+
+.rdp-dropdown option {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+/* Popover calendar light theme */
+[data-radix-popper-content-wrapper] .bg-\[\#1E293B\],
+.rdp {
+    background-color: var(--bg-card) !important;
+}
+
 code {
     font-family:
         source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
