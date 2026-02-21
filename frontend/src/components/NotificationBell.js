@@ -38,6 +38,9 @@ const NotificationBell = () => {
       setUnreadCount(countRes.data?.count || 0);
     } catch (error) {
       console.error("Error fetching notifications:", error);
+      // Set empty state on error to avoid infinite loading
+      setNotifications([]);
+      setUnreadCount(0);
     } finally {
       setLoading(false);
     }
