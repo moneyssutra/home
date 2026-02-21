@@ -17,7 +17,7 @@ const IncomeTypeToggle = ({ value = "fixed", onChange, disabled = false, testId 
       <label className="block text-sm font-medium text-[#334155] mb-2">
         Income Type
       </label>
-      <div className="flex rounded-xl overflow-hidden border border-[#334155] bg-[#1E293B]">
+      <div className="flex rounded-xl overflow-hidden border border-gray-200 bg-gray-100">
         <button
           type="button"
           disabled={disabled}
@@ -26,7 +26,7 @@ const IncomeTypeToggle = ({ value = "fixed", onChange, disabled = false, testId 
             "flex-1 py-3 px-4 text-sm font-medium transition-all duration-200",
             !isVariable
               ? "bg-[#00D09C] text-white"
-              : "bg-transparent text-[#334155] hover:bg-[#334155]/10"
+              : "bg-transparent text-gray-600 hover:bg-gray-200"
           )}
           data-testid={`${testId}-fixed`}
         >
@@ -40,14 +40,14 @@ const IncomeTypeToggle = ({ value = "fixed", onChange, disabled = false, testId 
             "flex-1 py-3 px-4 text-sm font-medium transition-all duration-200",
             isVariable
               ? "bg-[#00D09C] text-white"
-              : "bg-transparent text-[#334155] hover:bg-[#334155]/10"
+              : "bg-transparent text-gray-600 hover:bg-gray-200"
           )}
           data-testid={`${testId}-variable`}
         >
           Variable
         </button>
       </div>
-      <p className="mt-1.5 text-xs text-[#334155]/50">
+      <p className="mt-1.5 text-xs text-gray-500">
         {isVariable 
           ? "You'll receive reminders to log actual amounts"
           : "Amount remains consistent each period"
