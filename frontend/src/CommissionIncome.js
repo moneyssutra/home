@@ -79,6 +79,9 @@ const CommissionIncome = () => {
       setSelectedHalf(data.selectedHalf || "");
       setSelectedMonth(data.selectedMonth || "");
       setCustomDate(data.customDate || "");
+      // Variable income fields
+      setIncomeType(data.incomeType || "fixed");
+      setReminderTime(data.reminderTime || "19:00");
     } catch (error) {
       console.error("Error fetching commission data:", error);
       setErrors({ submit: "Failed to load commission data" });
