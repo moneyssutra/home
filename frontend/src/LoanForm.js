@@ -584,33 +584,20 @@ const LoanIncome = () => {
               <label className="block text-sm font-medium text-[#334155] mb-2">
                 Loan Start Date
               </label>
-              <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="date-picker-trigger"
-                    data-testid="start-date-input"
-                  >
-                    <span className={startDate ? "value" : "placeholder"}>
-                      {startDate ? format(new Date(startDate), "PPP") : "Select start date"}
-                    </span>
-                    <CalendarIcon className="h-5 w-5 icon" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate ? new Date(startDate) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setStartDate(format(date, "yyyy-MM-dd"));
-                      }
-                      setStartCalendarOpen(false);
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <RestrictedDatePicker
+                value={startDate}
+                onChange={(date) => {
+                  setStartDate(date);
+                  // Reset end date if it's before the new start date
+                  if (endDate && date > endDate) {
+                    setEndDate("");
+                  }
+                }}
+                maxDate={today}
+                placeholder="Select start date"
+                error={!!errors.startDate}
+                testId="start-date-input"
+              />
               {errors.startDate && <p className="text-sm text-red-500 mt-1">{errors.startDate}</p>}
             </div>
 
@@ -619,33 +606,15 @@ const LoanIncome = () => {
               <label className="block text-sm font-medium text-[#334155] mb-2">
                 Loan End Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
-              <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="date-picker-trigger"
-                    data-testid="end-date-input"
-                  >
-                    <span className={endDate ? "value" : "placeholder"}>
-                      {endDate ? format(new Date(endDate), "PPP") : "Select end date"}
-                    </span>
-                    <CalendarIcon className="h-5 w-5 icon" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate ? new Date(endDate) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setEndDate(format(date, "yyyy-MM-dd"));
-                      }
-                      setEndCalendarOpen(false);
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <RestrictedDatePicker
+                value={endDate}
+                onChange={(date) => setEndDate(date)}
+                minDate={startDate || undefined}
+                placeholder="Select end date"
+                error={!!errors.endDate}
+                testId="end-date-input"
+              />
+              {errors.endDate && <p className="text-sm text-red-500 mt-1">{errors.endDate}</p>}
               <p className="text-xs text-[#334155]/60 mt-1">Auto-calculated from start date + tenure</p>
             </div>
 
