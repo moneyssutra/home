@@ -150,6 +150,13 @@ const RestrictedDatePicker = React.forwardRef(({
           defaultMonth={defaultMonth}
           fromDate={fromDate}
           toDate={toDate}
+          // Disable dates outside the allowed range
+          disabled={(date) => {
+            const dateTime = startOfDay(date).getTime();
+            if (toDate && dateTime > toDate.getTime()) return true;
+            if (fromDate && dateTime < fromDate.getTime()) return true;
+            return false;
+          }}
           // Hide outside days when month is restricted
           showOutsideDays={!isMonthRestricted}
           // Disable navigation when month is restricted
