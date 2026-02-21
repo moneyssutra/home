@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Calendar, Trash2, Info } from "lucide-react";
+import { ChevronLeft, Trash2, Info } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -17,13 +17,11 @@ const DividendIncome = () => {
   const { id } = useParams();
   const [showAddSheet, setShowAddSheet] = useState(false);
   
-  // Refs for auto-scroll
+  // Refs for auto-scroll (keeping for frequency dropdowns)
   const dayFieldRef = useRef(null);
   const quarterFieldRef = useRef(null);
   const halfFieldRef = useRef(null);
   const monthFieldRef = useRef(null);
-  const dateFieldRef = useRef(null);
-  const irregularFieldRef = useRef(null);
   
   // Form fields
   const [sourceCategory, setSourceCategory] = useState("");
