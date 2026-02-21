@@ -329,6 +329,11 @@ const CreditCardForm = () => {
                   data-testid="minimum-due-input"
                 />
               </div>
+              {parseFloat(minimumDue) > 0 && (
+                <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="minimum-due-words">
+                  {numberToWords(parseFloat(minimumDue))}
+                </p>
+              )}
             </div>
 
             {/* Interest Rate */}
