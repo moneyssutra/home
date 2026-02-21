@@ -4,9 +4,83 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Universal UI Fixes & Data Validation Implemented** (Feb 21, 2026)
+**Variable Income & Notification System Implemented** (Feb 21, 2026)
 
 ## What Was Implemented (Latest Session - Feb 21, 2026)
+
+### Variable Income & Notification System (Feb 21, 2026 - Completed)
+
+**User Request**: 
+1. Change Dashboard greeting from "Welcome back" to "Welcome"
+2. Add Fixed/Variable toggle to all income forms
+3. Add reminder time picker when Variable is selected
+4. Implement notification system (browser push + in-app notifications)
+5. Add cron job endpoints for automated variable income processing
+
+**Implementation Completed**:
+
+1. **Dashboard Greeting Fix**:
+   - Changed "Welcome back, [username]" → "Welcome, [username]"
+
+2. **Notification System**:
+   - **NotificationBell Component** (`/app/frontend/src/components/NotificationBell.js`):
+     - Bell icon with unread count badge
+     - Dropdown with notification list
+     - Mark as read, mark all read, delete functionality
+     - Auto-refresh every 60 seconds
+   - **Backend Endpoints**:
+     - `GET /api/notifications` - Get all notifications
+     - `GET /api/notifications/unread-count` - Get unread count
+     - `PATCH /api/notifications/{id}/read` - Mark as read
+     - `PATCH /api/notifications/mark-all-read` - Mark all read
+     - `DELETE /api/notifications/{id}` - Delete notification
+
+3. **Fixed/Variable Toggle**:
+   - **IncomeTypeToggle Component** (`/app/frontend/src/components/IncomeTypeToggle.js`):
+     - Segmented toggle: [ Fixed ] | [ Variable ]
+     - Default: Fixed, Active state: Mint Green (#00D09C)
+   - **ReminderTimePicker Component** (`/app/frontend/src/components/ReminderTimePicker.js`):
+     - Time picker dropdown (6:00 AM - 10:30 PM, 30-min intervals)
+     - Shows only when Variable is selected
+   - Applied to all 7 income forms:
+     | Module | Toggle Added |
+     |--------|-------------|
+     | JobIncome | ✅ |
+     | BusinessIncome | ✅ |
+     | SelfEmployedIncome | ✅ |
+     | RentalIncome | ✅ |
+     | InterestIncome | ✅ (imports added) |
+     | DividendIncome | ✅ (imports added) |
+     | CommissionIncome | ✅ (imports added) |
+
+4. **Backend Schema Updates** (`/app/backend/server.py`):
+   - Added to IncomeSource model:
+     - `incomeType`: "fixed" or "variable"
+     - `lastRecordedAmount`: float
+     - `reminderTime`: HH:MM format
+     - `lastEntryDate`: date of last entry
+     - `nextDueDate`: next expected due date
+
+5. **Cron Job Endpoints** (for MongoDB Atlas Triggers):
+   - `POST /api/cron/process-variable-income`:
+     - Runs daily at midnight
+     - Auto-creates entries for ignored variable income
+     - Uses lastRecordedAmount as fallback
+     - Creates notifications for auto-entries
+   - `POST /api/cron/send-reminder-notifications`:
+     - Runs hourly
+     - Sends reminders for income sources due today
+
+6. **Income Transaction Tracking**:
+   - `POST /api/income-transactions` - Record manual entry
+   - `GET /api/income-transactions` - Get transactions with filters
+   - Updates `lastRecordedAmount` on manual entries
+
+**Testing Results**:
+- Iteration 38: 100% pass rate
+  - Dashboard greeting verified
+  - Notification bell visible
+  - Fixed/Variable toggle working on all tested forms
 
 ### Universal UI Fixes & Data Validation (Feb 21, 2026 - Completed)
 
