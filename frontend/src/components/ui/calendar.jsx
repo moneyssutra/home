@@ -12,6 +12,7 @@ function Calendar({
   selected,
   onSelect,
   defaultMonth,
+  restrictedMonths, // New prop: array of allowed month indices (0-11)
   ...props
 }) {
   // Track the currently displayed month for controlled navigation
@@ -29,12 +30,97 @@ function Calendar({
     }
   }, [selected]);
 
+  // When restrictedMonths changes, navigate to first allowed month if current is not allowed
+  React.useEffect(() => {
+    if (restrictedMonths && restrictedMonths.length > 0) {
+      const currentMonth = displayMonth.getMonth();
+      if (!restrictedMonths.includes(currentMonth)) {
+        // Navigate to first allowed month
+        const newDate = new Date(displayMonth);
+        newDate.setMonth(restrictedMonths[0]);
+        setDisplayMonth(newDate);
+      }
+    }
+  }, [restrictedMonths]);
+
   // Handle month change from navigation arrows or dropdown selection
   const handleMonthChange = React.useCallback((newMonth) => {
     if (newMonth instanceof Date) {
+      // If restrictedMonths is set, only allow navigation to allowed months
+      if (restrictedMonths && restrictedMonths.length > 0) {
+        const targetMonth = newMonth.getMonth();
+        if (!restrictedMonths.includes(targetMonth)) {
+          // Find nearest allowed month
+          const nearestAllowed = restrictedMonths.reduce((prev, curr) => {
+            return Math.abs(curr - targetMonth) < Math.abs(prev - targetMonth) ? curr : prev;
+          });
+          const restrictedDate = new Date(newMonth);
+          restrictedDate.setMonth(nearestAllowed);
+          setDisplayMonth(restrictedDate);
+          return;
+        }
+      }
       setDisplayMonth(newMonth);
     }
-  }, []);
+  }, [restrictedMonths]);
+
+  // Create disabled matcher for restricted months
+  const disabledMatcher = React.useMemo(() => {
+    if (!restrictedMonths || restrictedMonths.length === 0) {
+      return props.disabled;
+    }
+    
+    // Function to check if a date's month is not in allowed list
+    const monthRestriction = (date) => {
+      const month = date.getMonth();
+      return !restrictedMonths.includes(month);
+    };
+    
+    // Combine with existing disabled prop if present
+    if (props.disabled) {
+      if (typeof props.disabled === 'function') {
+        return (date) => monthRestriction(date) || props.disabled(date);
+      }
+      return [monthRestriction, props.disabled];
+    }
+    
+    return monthRestriction;
+  }, [restrictedMonths, props.disabled]);
+
+  // Custom dropdown component that filters months based on restrictedMonths
+  const customComponents = React.useMemo(() => ({
+    IconLeft: ({ className: iconClassName, ...iconProps }) => (
+      <ChevronLeft className={cn("h-4 w-4", iconClassName)} {...iconProps} />
+    ),
+    IconRight: ({ className: iconClassName, ...iconProps }) => (
+      <ChevronRight className={cn("h-4 w-4", iconClassName)} {...iconProps} />
+    ),
+    Dropdown: ({ value, onChange, children, ...dropdownProps }) => {
+      // Filter month options if this is a month dropdown and restrictedMonths is set
+      const isMonthDropdown = dropdownProps['aria-label']?.toLowerCase().includes('month');
+      
+      let filteredChildren = children;
+      if (isMonthDropdown && restrictedMonths && restrictedMonths.length > 0) {
+        filteredChildren = React.Children.toArray(children).filter((child) => {
+          if (React.isValidElement(child) && child.props.value !== undefined) {
+            return restrictedMonths.includes(parseInt(child.props.value));
+          }
+          return true;
+        });
+      }
+      
+      return (
+        <select
+          value={value}
+          onChange={onChange}
+          className="px-3 py-2 rounded-md bg-white border border-gray-300 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary appearance-none cursor-pointer min-h-[44px] min-w-[80px] touch-manipulation"
+          {...dropdownProps}
+        >
+          {filteredChildren}
+        </select>
+      );
+    },
+  }), [restrictedMonths]);
 
   return (
     <DayPicker
@@ -46,6 +132,7 @@ function Calendar({
       onMonthChange={handleMonthChange}
       selected={selected}
       onSelect={onSelect}
+      disabled={disabledMatcher}
       className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
@@ -92,14 +179,7 @@ function Calendar({
         day_hidden: "invisible",
         ...classNames,
       }}
-      components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
-        ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
-        ),
-      }}
+      components={customComponents}
       {...props} />
   );
 }
