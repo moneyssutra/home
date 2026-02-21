@@ -219,9 +219,11 @@ Build a comprehensive personal finance tracking application with multi-user work
 ## Key Files
 
 ### New/Modified Files This Session
-- `/frontend/src/SelfEmployedIncome.js` - New form with profession picker
+- `/frontend/src/components/ui/date-picker.jsx` - New RestrictedDatePicker component
+- `/frontend/src/SelfEmployedIncome.js` - New form with profession picker, uses RestrictedDatePicker
 - `/frontend/src/MySelfEmployed.js` - New list page for self-employed income
 - `/frontend/src/MyIncome.js` - Added Self-Employed to income grid
+- `/frontend/src/JobIncome.js` - Updated to use RestrictedDatePicker
 - `/frontend/src/components/AddActionSheet.js` - Added Credit Card option
 - `/frontend/src/App.js` - Added auth recovery + self-employed routes
 - `/frontend/src/pages/Login.js` - Real-time validation, forgot link
