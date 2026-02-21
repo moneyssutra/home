@@ -211,9 +211,9 @@ const LoanIncome = () => {
     setOutstandingAmount(balance.toFixed(2));
   }, [principalAmount, startDate, emiAmount, interestRate]);
 
-  // Auto-calculate End Date based on start date and tenure
+  // Auto-calculate End Date based on start date and tenure (only if not manually set)
   useEffect(() => {
-    if (startDate && tenureMonths) {
+    if (!endDateManuallySet && startDate && tenureMonths) {
       const start = new Date(startDate);
       const tenure = parseInt(tenureMonths) || 0;
       if (tenure > 0) {
@@ -221,11 +221,57 @@ const LoanIncome = () => {
         setEndDate(start.toISOString().split('T')[0]);
       }
     }
-  }, [startDate, tenureMonths]);
+    // Reset end date if tenure is cleared
+    if (!tenureMonths && !endDateManuallySet) {
+      setEndDate("");
+    }
+  }, [startDate, tenureMonths, endDateManuallySet]);
+
+  // Handle manual end date change
+  const handleEndDateChange = (date) => {
+    setEndDate(date);
+    setEndDateManuallySet(true);
+  };
+
+  // Reset manual override when tenure changes
+  const handleTenureChange = (e) => {
+    const value = formatAmountInput(e.target.value);
+    setTenureMonths(value);
+    setEndDateManuallySet(false); // Allow auto-calculation again
+  };
 
   const handleAmountChange = (setter) => (e) => {
     const value = formatAmountInput(e.target.value);
     setter(value);
+  };
+
+  // Navigate to add asset page while preserving loan form state
+  const handleAddAsset = () => {
+    const formData = {
+      loanType,
+      loanName,
+      lenderName,
+      principalAmount,
+      outstandingAmount,
+      interestRate,
+      emiAmount,
+      emiFrequency,
+      tenureMonths,
+      startDate,
+      endDate,
+      hasLinkedAsset: true,
+      linkedAccountId,
+      autoCreateExpense
+    };
+    
+    // Navigate to asset form with return state
+    navigate('/asset', {
+      state: {
+        returnTo: id ? `/loan/${id}` : '/loan',
+        loanFormData: formData,
+        fromLoanFlow: true
+      }
+    });
   };
 
   // Real-time validation for specific fields
