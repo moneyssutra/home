@@ -875,6 +875,218 @@ async def logout(request: Request, response: Response, session_token: Optional[s
     
     return {"message": "Logged out successfully"}
 
+# ============ AUTH RECOVERY ENDPOINTS ============
+
+from email_service import (
+    send_username_recovery_email,
+    send_password_reset_email,
+    send_password_changed_notification
+)
+import secrets
+
+class CheckAvailabilityRequest(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None
+
+class ForgotUsernameRequest(BaseModel):
+    email: str
+
+class ForgotPasswordRequest(BaseModel):
+    username: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+@api_router.post("/auth/check-availability")
+async def check_availability(request: CheckAvailabilityRequest):
+    """
+    Check if username or email is already taken.
+    Used for real-time validation during registration.
+    """
+    result = {
+        "username_available": True,
+        "email_available": True
+    }
+    
+    if request.username:
+        # Check if username (name field) is taken
+        existing_user = await db.users.find_one(
+            {"name": {"$regex": f"^{request.username}$", "$options": "i"}},
+            {"_id": 0, "name": 1}
+        )
+        result["username_available"] = existing_user is None
+    
+    if request.email:
+        # Check if email is taken
+        existing_user = await db.users.find_one(
+            {"email": {"$regex": f"^{request.email}$", "$options": "i"}},
+            {"_id": 0, "email": 1}
+        )
+        result["email_available"] = existing_user is None
+    
+    return result
+
+@api_router.post("/auth/forgot-username")
+async def forgot_username(request: ForgotUsernameRequest):
+    """
+    Send username recovery email.
+    Uses generic messaging to prevent email enumeration attacks.
+    """
+    # Find user by email
+    user = await db.users.find_one(
+        {"email": {"$regex": f"^{request.email}$", "$options": "i"}},
+        {"_id": 0, "name": 1, "email": 1, "auth_type": 1}
+    )
+    
+    # Always return success message to prevent email enumeration
+    success_message = "If an account exists with this email, you will receive your username shortly."
+    
+    if user:
+        # Only send for JWT auth users (Google users can just use Google login)
+        if user.get("auth_type") == "jwt" or user.get("auth_type") is None:
+            username = user.get("name", "User")
+            email_result = await send_username_recovery_email(user["email"], username)
+            
+            if not email_result.get("success"):
+                logger.error(f"Failed to send username recovery email: {email_result.get('error')}")
+    
+    return {"message": success_message}
+
+@api_router.post("/auth/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    """
+    Send password reset email with time-limited token.
+    """
+    # Find user by username (name field) or email
+    user = await db.users.find_one(
+        {
+            "$or": [
+                {"name": {"$regex": f"^{request.username}$", "$options": "i"}},
+                {"email": {"$regex": f"^{request.username}$", "$options": "i"}}
+            ]
+        },
+        {"_id": 0, "user_id": 1, "name": 1, "email": 1, "auth_type": 1}
+    )
+    
+    # Always return success message to prevent user enumeration
+    success_message = "If an account exists with this username, you will receive a password reset link shortly."
+    
+    if user:
+        # Only allow password reset for JWT auth users
+        if user.get("auth_type") == "jwt" or user.get("auth_type") is None:
+            # Generate secure reset token
+            reset_token = secrets.token_urlsafe(32)
+            expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
+            
+            # Store reset token in database
+            reset_record = {
+                "token_id": str(uuid.uuid4()),
+                "user_id": user["user_id"],
+                "reset_token": reset_token,
+                "expires_at": expires_at.isoformat(),
+                "used": False,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.password_reset_tokens.insert_one(reset_record)
+            
+            # Send reset email
+            username = user.get("name", "User")
+            email_result = await send_password_reset_email(user["email"], username, reset_token)
+            
+            if not email_result.get("success"):
+                logger.error(f"Failed to send password reset email: {email_result.get('error')}")
+    
+    return {"message": success_message}
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    """
+    Reset password using valid token.
+    """
+    # Find valid reset token
+    reset_record = await db.password_reset_tokens.find_one(
+        {"reset_token": request.token, "used": False},
+        {"_id": 0}
+    )
+    
+    if not reset_record:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset link")
+    
+    # Check if token is expired
+    expires_at = reset_record.get("expires_at")
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Reset link has expired. Please request a new one.")
+    
+    # Validate password
+    if len(request.new_password) < 4:
+        raise HTTPException(status_code=400, detail="Password must be at least 4 characters")
+    
+    # Get user
+    user = await db.users.find_one(
+        {"user_id": reset_record["user_id"]},
+        {"_id": 0, "user_id": 1, "name": 1, "email": 1}
+    )
+    
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+    
+    # Update password
+    new_password_hash = hash_password(request.new_password)
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"password_hash": new_password_hash}}
+    )
+    
+    # Mark token as used
+    await db.password_reset_tokens.update_one(
+        {"reset_token": request.token},
+        {"$set": {"used": True}}
+    )
+    
+    # Invalidate all existing sessions for security
+    await db.user_sessions.delete_many({"user_id": user["user_id"]})
+    
+    # Send security notification email
+    username = user.get("name", "User")
+    email_result = await send_password_changed_notification(user["email"], username)
+    
+    if not email_result.get("success"):
+        logger.error(f"Failed to send password changed notification: {email_result.get('error')}")
+    
+    return {"message": "Password reset successfully. Please log in with your new password."}
+
+@api_router.get("/auth/verify-reset-token")
+async def verify_reset_token(token: str):
+    """
+    Verify if a reset token is valid (not expired, not used).
+    Used by frontend to validate token before showing reset form.
+    """
+    reset_record = await db.password_reset_tokens.find_one(
+        {"reset_token": token, "used": False},
+        {"_id": 0}
+    )
+    
+    if not reset_record:
+        return {"valid": False, "message": "Invalid or expired reset link"}
+    
+    # Check if token is expired
+    expires_at = reset_record.get("expires_at")
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if expires_at < datetime.now(timezone.utc):
+        return {"valid": False, "message": "Reset link has expired. Please request a new one."}
+    
+    return {"valid": True}
+
 # ============ WORKSPACE ENDPOINTS ============
 
 @api_router.get("/workspaces")
