@@ -290,6 +290,7 @@ Build a comprehensive personal finance tracking application with multi-user work
 - Mobile biometric login
 - Two-Factor Authentication (2FA)
 - Mobile OTP/PIN authentication
+- Refactor server.py into smaller route files (auth, goals, income, etc.)
 
 ## Test Credentials
 - **Test User**: test@moneyssutra.com / test
@@ -303,3 +304,7 @@ Build a comprehensive personal finance tracking application with multi-user work
 ## Deployment Status
 - **Health Check**: PASSED (Feb 21, 2026)
 - Ready for production deployment
+
+## Recent Test Reports
+- `/app/test_reports/iteration_35.json` - RestrictedDatePicker verification (88.9% pass)
+- `/app/test_reports/iteration_36.json` - CommissionIncome fix verification (100% pass)
