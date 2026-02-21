@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { X, Briefcase, Receipt, LineChart, Building2, CreditCard, Shield, Wallet, Target } from "lucide-react";
+import { X, Briefcase, Receipt, LineChart, Building2, Landmark, CreditCard, Shield, Wallet, Target } from "lucide-react";
 
 const AddActionSheet = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -9,7 +9,8 @@ const AddActionSheet = ({ isOpen, onClose }) => {
     { label: "Add Expense", icon: Receipt, color: "from-rose-500 to-pink-600", path: "/expense" },
     { label: "Add Investment", icon: LineChart, color: "from-violet-500 to-purple-600", path: "/investment" },
     { label: "Add Asset", icon: Building2, color: "from-blue-500 to-indigo-600", path: "/asset" },
-    { label: "Add Loan", icon: CreditCard, color: "from-amber-500 to-orange-600", path: "/loan" },
+    { label: "Add Loan", icon: Landmark, color: "from-amber-500 to-orange-600", path: "/loan" },
+    { label: "Add Credit Card", icon: CreditCard, color: "from-red-500 to-rose-600", path: "/credit-card" },
     { label: "Add Insurance", icon: Shield, color: "from-cyan-500 to-blue-600", path: "/insurance" },
     { label: "Add Account", icon: Wallet, color: "from-slate-500 to-gray-600", path: "/account" },
     { label: "Add Goal", icon: Target, color: "from-fuchsia-500 to-pink-600", path: "/goal" },
