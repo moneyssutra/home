@@ -602,6 +602,7 @@ const ExpenseForm = () => {
                             }
                             setQuarterCalendarOpen(false);
                           }}
+                          restrictedMonths={getQuarterMonths(selectedQuarter)}
                           initialFocus
                         />
                       </PopoverContent>
