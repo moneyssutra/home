@@ -530,6 +530,22 @@ const RentalIncome = () => {
               />
             </div>
 
+            {/* Income Type Toggle (Fixed/Variable) */}
+            <IncomeTypeToggle 
+              value={incomeType} 
+              onChange={setIncomeType}
+              testId="income-type-toggle"
+            />
+
+            {/* Reminder Time - Only show when Variable is selected */}
+            {incomeType === "variable" && (
+              <ReminderTimePicker
+                value={reminderTime}
+                onChange={setReminderTime}
+                testId="reminder-time-picker"
+              />
+            )}
+
             {/* Rental Amount & Security Deposit Row */}
             <div className="grid grid-cols-2 gap-4">
               {/* Rental Amount */}
