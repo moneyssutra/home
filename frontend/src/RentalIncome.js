@@ -11,6 +11,7 @@ import {
   validateNonNegativeAmount,
   scrollToFirstError
 } from "@/lib/validations";
+import { RestrictedDatePicker } from "@/components/ui/date-picker";
 
 const RentalIncome = () => {
   const navigate = useNavigate();
