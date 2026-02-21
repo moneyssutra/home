@@ -88,6 +88,10 @@ const SelfEmployedIncome = () => {
   const [customFrequency, setCustomFrequency] = useState("");
   const [customDate, setCustomDate] = useState("");
   
+  // Variable income fields
+  const [incomeType, setIncomeType] = useState("fixed");
+  const [reminderTime, setReminderTime] = useState("19:00");
+  
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
