@@ -10,6 +10,7 @@ import {
   validateTextField,
   scrollToFirstError
 } from "@/lib/validations";
+import { numberToWords } from "@/lib/formatters";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
 
 const DividendIncome = () => {
