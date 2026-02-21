@@ -83,12 +83,43 @@ const LoanIncome = () => {
     }
   }, [id]);
 
+  // Restore form state if returning from asset creation
+  useEffect(() => {
+    if (location.state?.loanFormData) {
+      const data = location.state.loanFormData;
+      setLoanType(data.loanType || "");
+      setLoanName(data.loanName || "");
+      setLenderName(data.lenderName || "");
+      setPrincipalAmount(data.principalAmount || "");
+      setOutstandingAmount(data.outstandingAmount || "");
+      setInterestRate(data.interestRate || "");
+      setEmiAmount(data.emiAmount || "");
+      setEmiFrequency(data.emiFrequency || "Monthly");
+      setTenureMonths(data.tenureMonths || "");
+      setStartDate(data.startDate || "");
+      setEndDate(data.endDate || "");
+      setHasLinkedAsset(data.hasLinkedAsset || false);
+      setLinkedAccountId(data.linkedAccountId || "");
+      setAutoCreateExpense(data.autoCreateExpense !== false);
+      
+      // If a new asset was just created, set it as linked
+      if (location.state?.newAssetId) {
+        fetchAssets().then(() => {
+          setLinkedAssetId(location.state.newAssetId);
+          setHasLinkedAsset(true);
+        });
+      }
+    }
+  }, [location.state]);
+
   const fetchAssets = async () => {
     try {
       const response = await axios.get(`${backendUrl}/api/assets`);
       setAssets(response.data);
+      return response.data;
     } catch (error) {
       console.error("Error fetching assets:", error);
+      return [];
     }
   };
 
