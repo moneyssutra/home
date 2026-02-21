@@ -402,6 +402,11 @@ const BusinessIncome = () => {
                 required
                 testId="expected-amount-input"
               />
+              {parseFloat(expectedAmount) > 0 && (
+                <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="expected-amount-words">
+                  {numberToWords(parseFloat(expectedAmount))}
+                </p>
+              )}
               {errors.expectedAmount && (
                 <p className="text-sm text-red-500 mt-1">{errors.expectedAmount}</p>
               )}
