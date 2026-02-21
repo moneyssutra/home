@@ -4,11 +4,44 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Self-Employed Income Category Added** (Feb 21, 2026)
+**Self-Employed Income Module Refined** (Feb 21, 2026)
 
 ## What Was Implemented (Latest Session - Feb 21, 2026)
 
-### Self-Employed Income Category (Feb 21, 2026 - Latest)
+### Self-Employed Income Module Refinements (Feb 21, 2026 - Latest)
+
+**User Request**: Standardize field labels and frequency logic to match Job/Business modules.
+
+**Implementation**:
+
+1. **Field Label Update**:
+   - Changed "Entity/Client Name" → "Entity Name"
+   - New placeholder: "Example: Private Clinic, Freelance Portfolio, or Client Name"
+   - Removed helper text below field
+
+2. **Frequency Logic Standardization**:
+   - Changed from chip buttons to dropdown select (matching JobIncome.js)
+   - **Weekly**: Day dropdown (Monday-Sunday)
+   - **Monthly**: Date picker with calendar icon on right
+   - **Quarterly**: Quarter dropdown → Month dropdown (restricted to 3 months) → Date picker (restricted to selected month)
+   - **Half-Yearly**: Half dropdown → Month dropdown (restricted to 6 months) → Date picker (restricted to selected month)
+   - **Yearly**: Month dropdown → Date picker
+   - **Others**: Custom frequency text → Date picker
+
+3. **UI Enhancements**:
+   - Added smooth animations (`animate-in fade-in slide-in-from-top-2`)
+   - Calendar icon positioned on right side of date inputs
+   - Added "Next Recurring Dates" info box for Quarterly (shows 3 future dates)
+   - Added "Next Recurring Date" info box for Half-Yearly (shows next date)
+   - Date pickers have min/max restrictions based on selected month
+
+4. **Validation**:
+   - Save button validates: Profession (required) + Amount (required) + Frequency + all conditional fields
+   - Entity Name remains optional
+
+**Testing Result**: 100% pass rate (15/15 features verified)
+
+### Self-Employed Income Category (Feb 21, 2026)
 
 **User Request**: Add "Self-Employed" as a new primary income type with specialized profession picker.
 
