@@ -734,23 +734,38 @@ const LoanIncome = () => {
               </div>
               
               {/* Asset Dropdown - shown when toggle is ON */}
-              {hasLinkedAsset && assets.length > 0 && (
+              {hasLinkedAsset && (
                 <div className="mt-4 pt-4 border-t border-[#334155]">
                   <label htmlFor="linkedAsset" className="block text-sm font-medium text-[#334155] mb-2">
                     Select Linked Asset
                   </label>
-                  <select
-                    id="linkedAsset"
-                    value={linkedAssetId}
-                    onChange={(e) => setLinkedAssetId(e.target.value)}
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                    data-testid="linked-asset-select"
+                  {assets.length > 0 ? (
+                    <select
+                      id="linkedAsset"
+                      value={linkedAssetId}
+                      onChange={(e) => setLinkedAssetId(e.target.value)}
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      data-testid="linked-asset-select"
+                    >
+                      <option value="">Select Asset</option>
+                      {assets.map((asset) => (
+                        <option key={asset.id} value={asset.id}>{asset.assetName} - {asset.assetType}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-sm text-[#334155]/60 bg-[#0F172A] rounded-xl px-4 py-3 text-center">
+                      No assets found. Create one to link to this loan.
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleAddAsset}
+                    className="mt-3 flex items-center gap-2 text-sm text-[#14B8A6] font-medium hover:text-[#0D9488] transition-colors"
+                    data-testid="add-asset-link"
                   >
-                    <option value="">Select Asset</option>
-                    {assets.map((asset) => (
-                      <option key={asset.id} value={asset.id}>{asset.assetName} - {asset.assetType}</option>
-                    ))}
-                  </select>
+                    <Plus className="h-4 w-4" />
+                    Add New Asset
+                  </button>
                   <p className="text-xs text-[#334155]/60 mt-1">Link to Property, Vehicle, or other financed asset</p>
                 </div>
               )}
