@@ -45,6 +45,10 @@ const InterestIncome = () => {
   const [expectedAmount, setExpectedAmount] = useState("");
   const [manualOverride, setManualOverride] = useState(false);
   
+  // Variable income fields
+  const [incomeType, setIncomeType] = useState("fixed");
+  const [reminderTime, setReminderTime] = useState("19:00");
+  
   // UI state
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
