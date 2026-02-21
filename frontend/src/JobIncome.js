@@ -666,22 +666,17 @@ const JobIncome = () => {
                 {/* Date Selection */}
                 {selectedMonth && (
                   <div className="w-full">
-                    <label htmlFor="halfDate" className="block text-sm font-medium text-[#334155] mb-2">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
                       Select Date
                     </label>
-                    <label htmlFor="halfDate" className="relative block cursor-pointer">
-                      <input
-                        id="halfDate"
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        min={halfYearlyDateRange.min}
-                        max={halfYearlyDateRange.max}
-                        className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
-                        data-testid="date-select"
-                      />
-                      <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                    </label>
+                    <RestrictedDatePicker
+                      value={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
+                      restrictedMonth={getMonthIndex(selectedMonth)}
+                      placeholder="Select date in selected month"
+                      error={!!errors.selectedDate}
+                      testId="date-select"
+                    />
                     {errors.selectedDate && (
                       <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>
                     )}
