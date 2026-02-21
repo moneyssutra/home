@@ -113,7 +113,7 @@ const ResetPassword = () => {
               Request New Link
             </Link>
             <Link
-              to="/"
+              to="/login"
               className="mt-4 inline-flex items-center gap-2 text-sm transition-colors"
               style={{ color: "var(--text-secondary)" }}
             >
