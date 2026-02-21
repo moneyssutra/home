@@ -39,6 +39,87 @@ const Login = () => {
     }
   }, [location.state]);
 
+  // Debounced check for username availability
+  const checkUsernameAvailability = useCallback(async (username) => {
+    if (!username || username.length < 2) {
+      setNameAvailable(null);
+      return;
+    }
+    
+    setCheckingName(true);
+    try {
+      const response = await axios.post(`${backendUrl}/api/auth/check-availability`, {
+        username: username
+      });
+      setNameAvailable(response.data.username_available);
+    } catch (err) {
+      console.error("Error checking username:", err);
+      setNameAvailable(null);
+    } finally {
+      setCheckingName(false);
+    }
+  }, []);
+
+  // Debounced check for email availability
+  const checkEmailAvailability = useCallback(async (emailValue) => {
+    if (!emailValue || !emailValue.includes("@")) {
+      setEmailAvailable(null);
+      return;
+    }
+    
+    setCheckingEmail(true);
+    try {
+      const response = await axios.post(`${backendUrl}/api/auth/check-availability`, {
+        email: emailValue
+      });
+      setEmailAvailable(response.data.email_available);
+    } catch (err) {
+      console.error("Error checking email:", err);
+      setEmailAvailable(null);
+    } finally {
+      setCheckingEmail(false);
+    }
+  }, []);
+
+  // Debounce effect for username
+  useEffect(() => {
+    if (!isRegisterMode) return;
+    
+    const timer = setTimeout(() => {
+      if (name.trim()) {
+        checkUsernameAvailability(name.trim());
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [name, isRegisterMode, checkUsernameAvailability]);
+
+  // Debounce effect for email (only in register mode)
+  useEffect(() => {
+    if (!isRegisterMode) return;
+    
+    const timer = setTimeout(() => {
+      if (email.trim()) {
+        checkEmailAvailability(email.trim());
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [email, isRegisterMode, checkEmailAvailability]);
+
+  // Check if registration form is valid
+  const isRegistrationValid = () => {
+    if (!isRegisterMode) return true;
+    return (
+      name.trim().length >= 2 &&
+      email.trim().includes("@") &&
+      password.length >= 4 &&
+      password === confirmPassword &&
+      nameAvailable === true &&
+      emailAvailable === true
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
