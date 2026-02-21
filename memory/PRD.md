@@ -4,9 +4,46 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Strict Month-Based Date Selection Globally Implemented** (Feb 21, 2026)
+**Universal UI Fixes & Data Validation Implemented** (Feb 21, 2026)
 
 ## What Was Implemented (Latest Session - Feb 21, 2026)
+
+### Universal UI Fixes & Data Validation (Feb 21, 2026 - Completed)
+
+**User Request**: Implement "Amount in Words" logic, standardize Calendar Pickers, and enforce strict Date Validation across all core modules.
+
+**Implementation Completed**:
+
+1. **Amount in Words Logic (Indian Numbering System)**:
+   - Using existing `numberToWords()` function from `/app/frontend/src/lib/formatters.js`
+   - Displays amounts like "Rupees One Lakh Fifty Thousand Only"
+   - Applied to all income modules:
+     | Module | Fields with "Amount in Words" |
+     |--------|------------------------------|
+     | JobIncome | Expected Amount |
+     | RentalIncome | Rental Amount, Security Deposit |
+     | CommissionIncome | Expected Amount |
+     | InterestIncome | Principal Amount, Expected Interest Income |
+     | DividendIncome | Expected Dividend Amount |
+     | BusinessIncome | Expected Amount (via AmountInput component) |
+     | SelfEmployedIncome | Expected Amount |
+
+2. **Field Label Updates**:
+   - RentalIncome: Renamed "Security Deposit (Opt)" → "Security Deposit (optional)"
+
+3. **RestrictedDatePicker Component Enhanced** (`/app/frontend/src/components/ui/date-picker.jsx`):
+   - Added `maxDate` prop - maximum selectable date (for disabling future dates)
+   - Added `minDate` prop - minimum selectable date (for date range constraints)
+   - Props work alongside existing `restrictedMonth` functionality
+
+4. **Date Validation Updates**:
+   - **AssetForm (Purchase Date)**: `maxDate={today}` - No future dates allowed
+   - **LoanForm (Start Date)**: `maxDate={today}` - No future dates allowed
+   - **LoanForm (End Date)**: `minDate={startDate}` - Cannot select date before start date
+   - End Date resets if Start Date changes to a later date
+
+**Testing Results**:
+- Iteration 37: 100% - All Amount in Words features verified, label renamed correctly, date picker restrictions implemented
 
 ### Global Strict Month-Based Date Selection (Feb 21, 2026 - Completed)
 
