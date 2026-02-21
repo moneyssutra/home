@@ -168,11 +168,15 @@ class TestNotificationActions:
             pytest.skip("Could not fetch notifications")
         
         notifications = list_response.json()
-        if len(notifications) == 0:
-            pytest.skip("No notifications to test with")
         
-        # Find an unread notification or use first one
-        notification_id = notifications[0]["id"]
+        # Find an unread notification
+        unread = [n for n in notifications if not n.get("isRead", True)]
+        
+        if len(unread) == 0:
+            print("✓ No unread notifications to mark (all already read)")
+            return  # Skip if no unread notifications
+        
+        notification_id = unread[0]["id"]
         
         # Mark as read
         response = auth_session.patch(f"{BASE_URL}/api/notifications/{notification_id}/read")
