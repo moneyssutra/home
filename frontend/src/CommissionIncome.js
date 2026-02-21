@@ -570,7 +570,7 @@ const CommissionIncome = () => {
                     id="half"
                     ref={halfFieldRef}
                     value={selectedHalf}
-                    onChange={(e) => { setSelectedHalf(e.target.value); setSelectedDate(""); }}
+                    onChange={(e) => { setSelectedHalf(e.target.value); setSelectedMonth(""); setSelectedDate(""); }}
                     className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="half-select"
                   >
@@ -580,24 +580,40 @@ const CommissionIncome = () => {
                   {errors.selectedHalf && <p className="text-sm text-red-500 mt-1">{errors.selectedHalf}</p>}
                 </div>
 
-                {selectedHalf && (
+                {selectedHalf && halfMonths.length > 0 && (
                   <div className="w-full">
-                    <label htmlFor="halfDate" className="block text-sm font-medium text-[#334155] mb-2">
-                      Select Date (Day of Month)
+                    <label htmlFor="halfMonth" className="block text-sm font-medium text-[#334155] mb-2">
+                      Select Month
                     </label>
                     <select
-                      id="halfDate"
-                      ref={dateFieldRef}
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
+                      id="halfMonth"
+                      value={selectedMonth}
+                      onChange={(e) => { setSelectedMonth(e.target.value); setSelectedDate(""); }}
                       className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="date-select"
+                      data-testid="half-month-select"
                     >
-                      <option value="">Select a Date</option>
-                      {days.map((day) => (
-                        <option key={day} value={day}>{day}</option>
+                      <option value="">Select Month</option>
+                      {halfMonths.map((month) => (
+                        <option key={month} value={month}>{month}</option>
                       ))}
                     </select>
+                    {errors.selectedMonth && <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>}
+                  </div>
+                )}
+
+                {selectedMonth && (
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
+                      Select Date
+                    </label>
+                    <RestrictedDatePicker
+                      value={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
+                      restrictedMonth={getMonthIndex(selectedMonth)}
+                      placeholder="Select date in selected month"
+                      error={!!errors.selectedDate}
+                      testId="date-select"
+                    />
                     {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
                   </div>
                 )}
