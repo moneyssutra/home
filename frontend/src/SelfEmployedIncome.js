@@ -208,6 +208,62 @@ const SelfEmployedIncome = () => {
     return half ? half.months : [];
   }, [selectedHalf]);
 
+  // Get date range for selected month (for Quarterly/Half-Yearly)
+  const getDateRangeForMonth = (monthName) => {
+    if (!monthName) return { min: "", max: "" };
+    
+    const monthIndex = allMonths.indexOf(monthName);
+    const year = 2026; // Using 2026 as base year
+    const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+    
+    const min = `${year}-${String(monthIndex + 1).padStart(2, '0')}-01`;
+    const max = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${lastDay}`;
+    
+    return { min, max };
+  };
+
+  // Get date range for Quarterly
+  const quarterlyDateRange = useMemo(() => {
+    return getDateRangeForMonth(selectedMonth);
+  }, [selectedMonth]);
+
+  // Get date range for Half-Yearly
+  const halfYearlyDateRange = useMemo(() => {
+    return getDateRangeForMonth(selectedMonth);
+  }, [selectedMonth]);
+
+  // Calculate next recurring dates for Quarterly
+  const calculateQuarterlyDates = useMemo(() => {
+    if (!selectedMonth || !selectedDate) return [];
+    
+    const monthIndex = allMonths.indexOf(selectedMonth);
+    const day = new Date(selectedDate).getDate();
+    const dates = [];
+    
+    // Add 3 months for each quarter
+    for (let i = 1; i <= 3; i++) {
+      const nextMonthIndex = (monthIndex + (i * 3)) % 12;
+      const nextMonth = allMonths[nextMonthIndex];
+      dates.push(`${nextMonth} ${day}`);
+    }
+    
+    return dates;
+  }, [selectedMonth, selectedDate]);
+
+  // Calculate next recurring date for Half-Yearly
+  const calculateHalfYearlyDate = useMemo(() => {
+    if (!selectedMonth || !selectedDate) return null;
+    
+    const monthIndex = allMonths.indexOf(selectedMonth);
+    const day = new Date(selectedDate).getDate();
+    
+    // Add 6 months
+    const nextMonthIndex = (monthIndex + 6) % 12;
+    const nextMonth = allMonths[nextMonthIndex];
+    
+    return `${nextMonth} ${day}`;
+  }, [selectedMonth, selectedDate]);
+
   const handleAmountChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
     setExpectedAmount(value);
