@@ -4,6 +4,8 @@ import { ChevronLeft, Trash2 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import IncomeTypeToggle from "@/components/IncomeTypeToggle";
+import ReminderTimePicker from "@/components/ReminderTimePicker";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { 
   validatePositiveAmount, 
@@ -29,6 +31,10 @@ const JobIncome = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [customFrequency, setCustomFrequency] = useState("");
   const [customDate, setCustomDate] = useState("");
+  
+  // Variable income fields
+  const [incomeType, setIncomeType] = useState("fixed");
+  const [reminderTime, setReminderTime] = useState("19:00");
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
