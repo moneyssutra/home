@@ -827,21 +827,14 @@ const SelfEmployedIncome = () => {
                   <label className="block text-sm font-medium text-[#334155] mb-2">
                     Select Date <span className="text-rose-500">*</span>
                   </label>
-                  <label className="relative block cursor-pointer">
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full rounded-xl px-4 py-3 cursor-pointer"
-                      style={{ 
-                        backgroundColor: "#FFFFFF",
-                        border: errors.selectedDate ? "1px solid #EF4444" : "1px solid var(--border-light)",
-                        color: "var(--text-primary)"
-                      }}
-                      data-testid="date-select"
-                    />
-                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                  </label>
+                  <RestrictedDatePicker
+                    value={selectedDate}
+                    onChange={(date) => setSelectedDate(date)}
+                    restrictedMonth={getMonthIndex(selectedMonth)}
+                    placeholder="Select date in selected month"
+                    error={!!errors.selectedDate}
+                    testId="date-select"
+                  />
                   {errors.selectedDate && <p className="text-rose-500 text-xs mt-1">{errors.selectedDate}</p>}
                 </div>
               )}
