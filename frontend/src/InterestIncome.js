@@ -511,6 +511,11 @@ const InterestIncome = () => {
                   data-testid="principal-input"
                 />
               </div>
+              {parseFloat(principal) > 0 && (
+                <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="principal-words">
+                  {numberToWords(parseFloat(principal))}
+                </p>
+              )}
               {errors.principal && <p className="text-sm text-red-500 mt-1">{errors.principal}</p>}
             </div>
 
