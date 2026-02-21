@@ -11,6 +11,7 @@ import {
   validateDateRange,
   scrollToFirstError
 } from "@/lib/validations";
+import { RestrictedDatePicker } from "@/components/ui/date-picker";
 
 const InterestIncome = () => {
   const navigate = useNavigate();
