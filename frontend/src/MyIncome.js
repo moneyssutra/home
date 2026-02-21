@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Plus, Briefcase, Banknote, Home, Percent, TrendingUp, PieChart, MoreHorizontal, Gift } from "lucide-react";
+import { ChevronRight, Plus, Briefcase, Banknote, Home, Percent, TrendingUp, PieChart, MoreHorizontal, Gift, UserCheck } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
