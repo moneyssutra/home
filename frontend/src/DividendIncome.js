@@ -178,8 +178,33 @@ const DividendIncome = () => {
     "July", "August", "September", "October", "November", "December",
   ];
 
+  // Helper to get month index (0-11) from month name
+  const getMonthIndex = (monthName) => {
+    return allMonths.indexOf(monthName);
+  };
+
   // Generate days 1-31
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
+
+  // Get months for selected quarter
+  const quarterMonths = useMemo(() => {
+    const quarterMap = {
+      "Q1 (Jan–Mar)": ["January", "February", "March"],
+      "Q2 (Apr–Jun)": ["April", "May", "June"],
+      "Q3 (Jul–Sep)": ["July", "August", "September"],
+      "Q4 (Oct–Dec)": ["October", "November", "December"]
+    };
+    return quarterMap[selectedQuarter] || [];
+  }, [selectedQuarter]);
+
+  // Get months for selected half
+  const halfMonths = useMemo(() => {
+    const halfMap = {
+      "Jan–Jun": ["January", "February", "March", "April", "May", "June"],
+      "Jul–Dec": ["July", "August", "September", "October", "November", "December"]
+    };
+    return halfMap[selectedHalf] || [];
+  }, [selectedHalf]);
 
   const handleAmountChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
