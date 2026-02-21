@@ -51,10 +51,9 @@ const LoanIncome = () => {
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
-  
-  // Calendar popover states
-  const [startCalendarOpen, setStartCalendarOpen] = useState(false);
-  const [endCalendarOpen, setEndCalendarOpen] = useState(false);
+
+  // Today's date for maxDate constraint
+  const today = format(new Date(), "yyyy-MM-dd");
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
