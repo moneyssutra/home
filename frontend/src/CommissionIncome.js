@@ -643,22 +643,17 @@ const CommissionIncome = () => {
                 
                 {selectedMonth && (
                   <div className="w-full">
-                    <label htmlFor="yearlyDate" className="block text-sm font-medium text-[#334155] mb-2">
-                      Select Date (Day of Month)
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
+                      Select Date
                     </label>
-                    <select
-                      id="yearlyDate"
-                      ref={dateFieldRef}
+                    <RestrictedDatePicker
                       value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="date-select"
-                    >
-                      <option value="">Select a Date</option>
-                      {days.map((day) => (
-                        <option key={day} value={day}>{day}</option>
-                      ))}
-                    </select>
+                      onChange={(date) => setSelectedDate(date)}
+                      restrictedMonth={getMonthIndex(selectedMonth)}
+                      placeholder="Select date in selected month"
+                      error={!!errors.selectedDate}
+                      testId="date-select"
+                    />
                     {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
                   </div>
                 )}
