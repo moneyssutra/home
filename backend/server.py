@@ -4797,6 +4797,433 @@ async def get_ai_insights(request: Request):
         logger.error(f"Error generating insights: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# ============ NOTIFICATION ENDPOINTS ============
+@api_router.get("/notifications")
+async def get_notifications(user_id: str = None, request: Request = None):
+    """Get all notifications for a user"""
+    if not user_id:
+        session_token = request.cookies.get("session_token")
+        if session_token:
+            session = await db.user_sessions.find_one({"session_token": session_token})
+            if session:
+                user_id = session.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    notifications = await db.notifications.find(
+        {"userId": user_id},
+        {"_id": 0}
+    ).sort("createdAt", -1).to_list(50)
+    
+    return notifications
+
+@api_router.get("/notifications/unread-count")
+async def get_unread_notification_count(user_id: str = None, request: Request = None):
+    """Get count of unread notifications"""
+    if not user_id:
+        session_token = request.cookies.get("session_token")
+        if session_token:
+            session = await db.user_sessions.find_one({"session_token": session_token})
+            if session:
+                user_id = session.get("user_id")
+    
+    if not user_id:
+        return {"count": 0}
+    
+    count = await db.notifications.count_documents({"userId": user_id, "isRead": False})
+    return {"count": count}
+
+@api_router.patch("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, user_id: str = None, request: Request = None):
+    """Mark a notification as read"""
+    if not user_id:
+        session_token = request.cookies.get("session_token")
+        if session_token:
+            session = await db.user_sessions.find_one({"session_token": session_token})
+            if session:
+                user_id = session.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    result = await db.notifications.update_one(
+        {"id": notification_id, "userId": user_id},
+        {"$set": {"isRead": True}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    return {"success": True}
+
+@api_router.patch("/notifications/mark-all-read")
+async def mark_all_notifications_read(user_id: str = None, request: Request = None):
+    """Mark all notifications as read for a user"""
+    if not user_id:
+        session_token = request.cookies.get("session_token")
+        if session_token:
+            session = await db.user_sessions.find_one({"session_token": session_token})
+            if session:
+                user_id = session.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    await db.notifications.update_many(
+        {"userId": user_id, "isRead": False},
+        {"$set": {"isRead": True}}
+    )
+    
+    return {"success": True}
+
+@api_router.delete("/notifications/{notification_id}")
+async def delete_notification(notification_id: str, user_id: str = None, request: Request = None):
+    """Delete a notification"""
+    if not user_id:
+        session_token = request.cookies.get("session_token")
+        if session_token:
+            session = await db.user_sessions.find_one({"session_token": session_token})
+            if session:
+                user_id = session.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    result = await db.notifications.delete_one({"id": notification_id, "userId": user_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    
+    return {"success": True}
+
+# ============ PUSH NOTIFICATION SUBSCRIPTION ============
+@api_router.post("/push/subscribe")
+async def subscribe_push_notifications(subscription: dict, user_id: str = None, request: Request = None):
+    """Subscribe to push notifications"""
+    if not user_id:
+        session_token = request.cookies.get("session_token")
+        if session_token:
+            session = await db.user_sessions.find_one({"session_token": session_token})
+            if session:
+                user_id = session.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    # Upsert subscription
+    await db.push_subscriptions.update_one(
+        {"userId": user_id, "endpoint": subscription.get("endpoint")},
+        {"$set": {
+            "userId": user_id,
+            "endpoint": subscription.get("endpoint"),
+            "keys": subscription.get("keys", {}),
+            "createdAt": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {"success": True}
+
+@api_router.delete("/push/unsubscribe")
+async def unsubscribe_push_notifications(endpoint: str, user_id: str = None, request: Request = None):
+    """Unsubscribe from push notifications"""
+    if not user_id:
+        session_token = request.cookies.get("session_token")
+        if session_token:
+            session = await db.user_sessions.find_one({"session_token": session_token})
+            if session:
+                user_id = session.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    await db.push_subscriptions.delete_one({"userId": user_id, "endpoint": endpoint})
+    
+    return {"success": True}
+
+# ============ CRON JOB ENDPOINT FOR VARIABLE INCOME FALLBACK ============
+@api_router.post("/cron/process-variable-income")
+async def process_variable_income_fallback(api_key: str = None):
+    """
+    Daily cron job to process variable income entries.
+    Should be called once per day at midnight by MongoDB Atlas Triggers or external scheduler.
+    
+    Logic:
+    1. Find all variable income sources that were due yesterday but have no manual entry
+    2. Auto-create transaction entries using lastRecordedAmount (or expectedAmount as fallback)
+    3. Create notifications for users about auto-entries
+    4. Update nextDueDate for processed sources
+    """
+    # Simple API key validation for cron security
+    expected_key = os.environ.get("CRON_API_KEY", "moneyssutra_cron_secret_2026")
+    if api_key != expected_key:
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    
+    today = datetime.now(timezone.utc).date()
+    yesterday = today - timedelta(days=1)
+    yesterday_str = yesterday.isoformat()
+    
+    processed_count = 0
+    notifications_created = 0
+    
+    try:
+        # Find all variable income sources that were due yesterday
+        variable_sources = await db.income_sources.find({
+            "incomeType": "variable",
+            "nextDueDate": yesterday_str
+        }, {"_id": 0}).to_list(10000)
+        
+        for source in variable_sources:
+            user_id = source.get("userId")
+            source_id = source.get("id")
+            income_name = source.get("name", "Unknown Income")
+            
+            # Check if user already recorded an entry for this source on the due date
+            existing_entry = await db.income_transactions.find_one({
+                "userId": user_id,
+                "incomeSourceId": source_id,
+                "recordedDate": yesterday_str
+            })
+            
+            if not existing_entry:
+                # No manual entry - auto-create using fallback amount
+                fallback_amount = source.get("lastRecordedAmount") or source.get("expectedAmount", 0)
+                
+                # Create auto-entry transaction
+                auto_entry = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "incomeSourceId": source_id,
+                    "incomeName": income_name,
+                    "incomeType": source.get("type"),
+                    "amount": fallback_amount,
+                    "recordedDate": yesterday_str,
+                    "isAutoEntry": True,
+                    "notes": "Auto-recorded (24hr fallback)",
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                await db.income_transactions.insert_one(auto_entry)
+                processed_count += 1
+                
+                # Create notification for user
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "title": "Auto-recorded Income",
+                    "message": f"₹{fallback_amount:,.0f} was auto-recorded for {income_name} as you didn't log it within 24 hours.",
+                    "type": "auto_entry",
+                    "relatedIncomeId": source_id,
+                    "relatedIncomeName": income_name,
+                    "actionUrl": f"/income/{source.get('type').lower().replace(' ', '-')}/{source_id}",
+                    "isRead": False,
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                await db.notifications.insert_one(notification)
+                notifications_created += 1
+            
+            # Calculate next due date based on frequency
+            next_due = calculate_next_due_date(source, yesterday)
+            if next_due:
+                await db.income_sources.update_one(
+                    {"id": source_id},
+                    {"$set": {"nextDueDate": next_due.isoformat()}}
+                )
+        
+        return {
+            "success": True,
+            "processed_entries": processed_count,
+            "notifications_created": notifications_created,
+            "processed_date": yesterday_str
+        }
+    
+    except Exception as e:
+        logger.error(f"Error in cron job: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+def calculate_next_due_date(source: dict, current_due: datetime.date) -> Optional[datetime.date]:
+    """Calculate the next due date based on frequency"""
+    frequency = source.get("frequency", "Monthly")
+    
+    if frequency == "Daily":
+        return current_due + timedelta(days=1)
+    elif frequency == "Weekly":
+        return current_due + timedelta(weeks=1)
+    elif frequency == "Monthly":
+        # Add one month
+        next_month = current_due.month + 1
+        next_year = current_due.year
+        if next_month > 12:
+            next_month = 1
+            next_year += 1
+        day = min(current_due.day, 28)  # Safe day for all months
+        return datetime.date(next_year, next_month, day)
+    elif frequency == "Quarterly":
+        # Add 3 months
+        next_month = current_due.month + 3
+        next_year = current_due.year
+        while next_month > 12:
+            next_month -= 12
+            next_year += 1
+        day = min(current_due.day, 28)
+        return datetime.date(next_year, next_month, day)
+    elif frequency == "Half-Yearly":
+        # Add 6 months
+        next_month = current_due.month + 6
+        next_year = current_due.year
+        while next_month > 12:
+            next_month -= 12
+            next_year += 1
+        day = min(current_due.day, 28)
+        return datetime.date(next_year, next_month, day)
+    elif frequency == "Yearly":
+        return datetime.date(current_due.year + 1, current_due.month, current_due.day)
+    
+    return None
+
+@api_router.post("/cron/send-reminder-notifications")
+async def send_reminder_notifications(api_key: str = None):
+    """
+    Hourly cron job to send reminder notifications for variable income.
+    Checks for income sources whose reminder time matches the current hour.
+    """
+    expected_key = os.environ.get("CRON_API_KEY", "moneyssutra_cron_secret_2026")
+    if api_key != expected_key:
+        raise HTTPException(status_code=403, detail="Invalid API key")
+    
+    now = datetime.now(timezone.utc)
+    current_hour = now.strftime("%H:00")
+    today_str = now.date().isoformat()
+    
+    notifications_sent = 0
+    
+    try:
+        # Find variable income sources due today with matching reminder time
+        sources = await db.income_sources.find({
+            "incomeType": "variable",
+            "nextDueDate": today_str,
+            "reminderTime": {"$regex": f"^{current_hour[:2]}"}  # Match hour
+        }, {"_id": 0}).to_list(10000)
+        
+        for source in sources:
+            user_id = source.get("userId")
+            source_id = source.get("id")
+            income_name = source.get("name", "Unknown Income")
+            
+            # Get user name
+            user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "name": 1})
+            user_name = user.get("name", "there") if user else "there"
+            
+            # Create reminder notification
+            notification = {
+                "id": str(uuid.uuid4()),
+                "userId": user_id,
+                "title": f"Time to record {income_name}",
+                "message": f"Hi {user_name}, it's time to record your {income_name}. Tap to enter today's actual amount.",
+                "type": "income_reminder",
+                "relatedIncomeId": source_id,
+                "relatedIncomeName": income_name,
+                "actionUrl": f"/income/{source.get('type').lower().replace(' ', '-')}/{source_id}",
+                "isRead": False,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            await db.notifications.insert_one(notification)
+            notifications_sent += 1
+            
+            # TODO: Send actual push notification via web-push library
+            # For now, we just create in-app notifications
+        
+        return {
+            "success": True,
+            "notifications_sent": notifications_sent,
+            "checked_hour": current_hour
+        }
+    
+    except Exception as e:
+        logger.error(f"Error sending reminders: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============ INCOME TRANSACTION ENDPOINTS ============
+@api_router.post("/income-transactions")
+async def record_income_transaction(transaction: dict, user_id: str = None, request: Request = None):
+    """Record a manual income transaction for variable income"""
+    if not user_id:
+        session_token = request.cookies.get("session_token")
+        if session_token:
+            session = await db.user_sessions.find_one({"session_token": session_token})
+            if session:
+                user_id = session.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    income_source_id = transaction.get("incomeSourceId")
+    amount = transaction.get("amount", 0)
+    recorded_date = transaction.get("recordedDate", datetime.now(timezone.utc).date().isoformat())
+    
+    # Create transaction
+    entry = {
+        "id": str(uuid.uuid4()),
+        "userId": user_id,
+        "incomeSourceId": income_source_id,
+        "incomeName": transaction.get("incomeName", ""),
+        "incomeType": transaction.get("incomeType", ""),
+        "amount": amount,
+        "recordedDate": recorded_date,
+        "isAutoEntry": False,
+        "notes": transaction.get("notes", ""),
+        "createdAt": datetime.now(timezone.utc).isoformat()
+    }
+    await db.income_transactions.insert_one(entry)
+    
+    # Update lastRecordedAmount on the income source
+    await db.income_sources.update_one(
+        {"id": income_source_id, "userId": user_id},
+        {"$set": {
+            "lastRecordedAmount": amount,
+            "lastEntryDate": recorded_date
+        }}
+    )
+    
+    return {"success": True, "transaction": {k: v for k, v in entry.items() if k != "_id"}}
+
+@api_router.get("/income-transactions")
+async def get_income_transactions(
+    income_source_id: str = None,
+    start_date: str = None,
+    end_date: str = None,
+    user_id: str = None,
+    request: Request = None
+):
+    """Get income transactions with optional filters"""
+    if not user_id:
+        session_token = request.cookies.get("session_token")
+        if session_token:
+            session = await db.user_sessions.find_one({"session_token": session_token})
+            if session:
+                user_id = session.get("user_id")
+    
+    if not user_id:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    query = {"userId": user_id}
+    
+    if income_source_id:
+        query["incomeSourceId"] = income_source_id
+    
+    if start_date:
+        query["recordedDate"] = {"$gte": start_date}
+    
+    if end_date:
+        if "recordedDate" in query:
+            query["recordedDate"]["$lte"] = end_date
+        else:
+            query["recordedDate"] = {"$lte": end_date}
+    
+    transactions = await db.income_transactions.find(query, {"_id": 0}).sort("recordedDate", -1).to_list(1000)
+    
+    return transactions
+
 # Include the router in the main app
 app.include_router(api_router)
 
