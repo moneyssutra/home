@@ -609,11 +609,16 @@ const LoanIncome = () => {
                 id="tenureMonths"
                 type="text"
                 value={tenureMonths}
-                onChange={handleAmountChange(setTenureMonths)}
+                onChange={handleTenureChange}
                 placeholder="e.g., 240 for 20 years"
                 className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="tenure-input"
               />
+              {tenureMonths && parseInt(tenureMonths) > 0 && (
+                <p className="text-xs text-[#334155]/60 mt-1">
+                  {Math.floor(parseInt(tenureMonths) / 12)} years {parseInt(tenureMonths) % 12} months
+                </p>
+              )}
             </div>
 
             {/* EMI Amount */}
