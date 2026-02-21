@@ -97,9 +97,6 @@ const CommissionIncome = () => {
         if (frequency === "Weekly" && dayFieldRef.current) {
           dayFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
           dayFieldRef.current.focus();
-        } else if (frequency === "Monthly" && dateFieldRef.current) {
-          dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          dateFieldRef.current.focus();
         } else if (frequency === "Quarterly" && quarterFieldRef.current) {
           quarterFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
           quarterFieldRef.current.focus();
@@ -109,41 +106,10 @@ const CommissionIncome = () => {
         } else if (frequency === "Yearly" && monthFieldRef.current) {
           monthFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
           monthFieldRef.current.focus();
-        } else if (frequency === "Irregular" && irregularFieldRef.current) {
-          irregularFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          irregularFieldRef.current.focus();
         }
       }, 100);
     }
   }, [frequency]);
-
-  // Auto-scroll when quarter/half is selected
-  useEffect(() => {
-    if (selectedQuarter && dateFieldRef.current) {
-      setTimeout(() => {
-        dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        dateFieldRef.current.focus();
-      }, 100);
-    }
-  }, [selectedQuarter]);
-
-  useEffect(() => {
-    if (selectedHalf && dateFieldRef.current) {
-      setTimeout(() => {
-        dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        dateFieldRef.current.focus();
-      }, 100);
-    }
-  }, [selectedHalf]);
-
-  useEffect(() => {
-    if (selectedMonth && dateFieldRef.current) {
-      setTimeout(() => {
-        dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        dateFieldRef.current.focus();
-      }, 100);
-    }
-  }, [selectedMonth]);
 
   const frequencyOptions = ["Daily", "Weekly", "Monthly", "Quarterly", "Half-Yearly", "Yearly", "Irregular"];
 
