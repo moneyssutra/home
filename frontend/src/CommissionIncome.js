@@ -168,7 +168,32 @@ const CommissionIncome = () => {
     "July", "August", "September", "October", "November", "December",
   ];
 
-  // Generate days 1-31
+  // Helper to get month index (0-11) from month name
+  const getMonthIndex = (monthName) => {
+    return allMonths.indexOf(monthName);
+  };
+
+  // Get months for selected quarter
+  const quarterMonths = useMemo(() => {
+    const quarterMap = {
+      "Q1 (Jan–Mar)": ["January", "February", "March"],
+      "Q2 (Apr–Jun)": ["April", "May", "June"],
+      "Q3 (Jul–Sep)": ["July", "August", "September"],
+      "Q4 (Oct–Dec)": ["October", "November", "December"]
+    };
+    return quarterMap[selectedQuarter] || [];
+  }, [selectedQuarter]);
+
+  // Get months for selected half
+  const halfMonths = useMemo(() => {
+    const halfMap = {
+      "Jan–Jun": ["January", "February", "March", "April", "May", "June"],
+      "Jul–Dec": ["July", "August", "September", "October", "November", "December"]
+    };
+    return halfMap[selectedHalf] || [];
+  }, [selectedHalf]);
+
+  // Generate days 1-31 (kept for backward compatibility but not used in UI)
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   const handleAmountChange = (e) => {
