@@ -106,6 +106,9 @@ const RentalIncome = () => {
       setSelectedMonth(data.selectedMonth || "");
       setCustomFrequency(data.customFrequency || "");
       setCustomDate(data.customDate || "");
+      // Variable income fields
+      setIncomeType(data.incomeType || "fixed");
+      setReminderTime(data.reminderTime || "19:00");
     } catch (error) {
       console.error("Error fetching rental data:", error);
       setErrors({ submit: "Failed to load rental data" });
