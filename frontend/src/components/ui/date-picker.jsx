@@ -1,5 +1,5 @@
 import * as React from "react"
-import { format, parse, isValid, startOfMonth, endOfMonth, setMonth, setYear } from "date-fns"
+import { format, parse, isValid, startOfMonth, endOfMonth, startOfDay } from "date-fns"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,8 @@ import {
  * - onChange: (date: string) => void - returns YYYY-MM-DD format
  * - restrictedMonth: number (0-11) - if set, calendar is locked to this month
  * - restrictedYear: number (optional) - year to use with restrictedMonth, defaults to current year
+ * - maxDate: Date | string - maximum selectable date (for disabling future dates)
+ * - minDate: Date | string - minimum selectable date (for date range constraints)
  * - placeholder: string
  * - disabled: boolean
  * - error: boolean - shows error styling
@@ -29,6 +31,8 @@ const RestrictedDatePicker = React.forwardRef(({
   onChange,
   restrictedMonth,
   restrictedYear,
+  maxDate,
+  minDate,
   placeholder = "Select date",
   disabled = false,
   error = false,
@@ -46,24 +50,54 @@ const RestrictedDatePicker = React.forwardRef(({
     return isValid(parsed) ? parsed : undefined;
   }, [value]);
 
+  // Parse maxDate
+  const parsedMaxDate = React.useMemo(() => {
+    if (!maxDate) return undefined;
+    if (maxDate instanceof Date) return startOfDay(maxDate);
+    const parsed = parse(maxDate, "yyyy-MM-dd", new Date());
+    return isValid(parsed) ? startOfDay(parsed) : undefined;
+  }, [maxDate]);
+
+  // Parse minDate
+  const parsedMinDate = React.useMemo(() => {
+    if (!minDate) return undefined;
+    if (minDate instanceof Date) return startOfDay(minDate);
+    const parsed = parse(minDate, "yyyy-MM-dd", new Date());
+    return isValid(parsed) ? startOfDay(parsed) : undefined;
+  }, [minDate]);
+
   // Determine the year to use
   const year = restrictedYear || new Date().getFullYear();
   
   // Calculate date bounds when month is restricted
   const { fromDate, toDate, defaultMonth } = React.useMemo(() => {
-    if (restrictedMonth === undefined || restrictedMonth === null) {
-      return { fromDate: undefined, toDate: undefined, defaultMonth: selectedDate || new Date() };
+    let calculatedFromDate = parsedMinDate;
+    let calculatedToDate = parsedMaxDate;
+    let calculatedDefaultMonth = selectedDate || new Date();
+
+    if (restrictedMonth !== undefined && restrictedMonth !== null) {
+      // Create a date for the restricted month
+      let baseDate = new Date(year, restrictedMonth, 1);
+      calculatedFromDate = startOfMonth(baseDate);
+      calculatedToDate = endOfMonth(baseDate);
+      calculatedDefaultMonth = baseDate;
+      
+      // If maxDate is set and is before the month end, use maxDate
+      if (parsedMaxDate && parsedMaxDate < calculatedToDate) {
+        calculatedToDate = parsedMaxDate;
+      }
+      // If minDate is set and is after the month start, use minDate
+      if (parsedMinDate && parsedMinDate > calculatedFromDate) {
+        calculatedFromDate = parsedMinDate;
+      }
     }
     
-    // Create a date for the restricted month
-    let baseDate = new Date(year, restrictedMonth, 1);
-    
     return {
-      fromDate: startOfMonth(baseDate),
-      toDate: endOfMonth(baseDate),
-      defaultMonth: baseDate
+      fromDate: calculatedFromDate,
+      toDate: calculatedToDate,
+      defaultMonth: calculatedDefaultMonth
     };
-  }, [restrictedMonth, year, selectedDate]);
+  }, [restrictedMonth, year, selectedDate, parsedMaxDate, parsedMinDate]);
 
   // Handle date selection
   const handleSelect = React.useCallback((date) => {
