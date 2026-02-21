@@ -8,36 +8,56 @@ Build a comprehensive personal finance tracking application with multi-user work
 
 ## What Was Implemented (Latest Session - Feb 21, 2026)
 
-### 1. Variable Income Backend Logic (COMPLETED)
-- Cron job endpoints for daily auto-entry processing and hourly reminders
-- Browser push notifications with `pywebpush` and VAPID keys
-- Service worker for handling push events
-- `PushNotificationToggle` component on Dashboard
-- All backend tests passing (16/16)
+### 1. "Add Asset" Loop within Loan Module (COMPLETED)
+**Feature**: Enable users to create a new Asset from the Add Loan page without losing progress.
 
-### 2. Strict Date Validation Fix (COMPLETED)
-**Issue**: The `react-day-picker` library's `fromDate`/`toDate` props were not actually disabling date selection - they only affected navigation.
+**UI Changes**:
+- Added `+ Add New Asset` button below "Linked Asset" dropdown (visible when toggle is ON)
+- Shows helper text: "Link to Property, Vehicle, or other financed asset"
 
-**Fix Applied**: Added explicit `disabled` prop function in `RestrictedDatePicker` component:
+**Technical Logic**:
+- `handleAddAsset()` function saves current loan form state to route state
+- Navigates to `/asset` with `{ returnTo: '/loan', loanFormData: {...}, fromLoanFlow: true }`
+- AssetForm's `handleBack()` returns to Loan with preserved data
+- On asset save, auto-redirects back to Loan with `newAssetId` for auto-selection
+- useEffect restores form fields from `location.state.loanFormData`
+
+### 2. Automated Loan Tenure & End Date Logic (COMPLETED)
+**Feature**: Auto-calculate End Date based on Start Date + Tenure Months.
+
+**Implementation**:
+- `useEffect` calculates End Date: `startDate.setMonth(startDate.getMonth() + tenure)`
+- `endDateManuallySet` flag tracks if user manually overrode the calculation
+- `handleTenureChange()` resets manual flag to allow auto-calculation
+- `handleEndDateChange()` sets manual flag to true
+- Tenure helper shows breakdown: "20 years 0 months" for 240 months
+- End Date helper shows status: "Auto-calculated from start date + tenure" or "Manually set (override)"
+
+**Edge Cases**:
+- Minimum tenure validation (must be > 0)
+- Reset logic: Clearing tenure clears End Date
+- Manual override preserved until tenure is changed
+
+### 3. Strict Date Validation Fix (COMPLETED)
+**Bug Fixed**: `react-day-picker` `fromDate`/`toDate` props didn't prevent selection.
+
+**Fix Applied**: Added explicit `disabled` function in RestrictedDatePicker:
 ```jsx
 disabled={(date) => {
-  const dateTime = startOfDay(date).getTime();
-  if (toDate && dateTime > toDate.getTime()) return true;
-  if (fromDate && dateTime < fromDate.getTime()) return true;
+  if (toDate && date > toDate) return true;
+  if (fromDate && date < fromDate) return true;
   return false;
 }}
 ```
 
-**Results**:
-- **Asset Module - Purchase Date**: Future dates are now visually greyed out (50% opacity) and non-selectable
-- **Loan Module - Start Date**: Future dates are greyed out and non-selectable
-- **Loan Module - End Date**: Dates before the selected Start Date are dynamically greyed out and non-selectable
+### 4. Variable Income Backend Logic (COMPLETED)
+- Cron endpoints for auto-entry and reminders
+- Browser push notifications with pywebpush + VAPID
+- Service worker + PushNotificationToggle component
 
-### UI Consistency
-- All calendars use the same Moneyssutra Standardized Component
-- Same font, Mint Green (#00D09C) highlight for selected/today dates
-- Same month/year navigation dropdown style
-- Disabled dates shown with `text-muted-foreground opacity-50` styling
+### Test Results (Iteration 40)
+- **Frontend**: 100% (all Loan form + Asset loop features verified)
+- Tenure breakdown, End Date auto-calc, + Add New Asset, state preservation all working
 
 ## Key Files
 
