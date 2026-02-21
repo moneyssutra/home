@@ -228,11 +228,13 @@ const CommissionIncome = () => {
 
     if (frequency === "Quarterly") {
       if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter.";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
       if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
     if (frequency === "Half-Yearly") {
       if (!selectedHalf) newErrors.selectedHalf = "Please select a half.";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
       if (!selectedDate) newErrors.selectedDate = "Please select a date.";
     }
 
