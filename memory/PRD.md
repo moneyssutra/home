@@ -4,69 +4,65 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Global Validation System Complete** (Feb 16, 2026)
+**Dynamic Quarterly Date Picker Logic Complete** (Feb 21, 2026)
 
-## What Was Implemented (Latest Session - Feb 16, 2026)
+## What Was Implemented (Latest Session - Feb 21, 2026)
 
-### Global Validation System (Feb 16, 2026 - Latest)
+### Dynamic Quarterly Date Picker Logic (Feb 21, 2026 - Latest)
 
-**User Request**: Implement comprehensive, application-wide validation for all forms in one go.
+**User Request**: Standardize "Quarterly" frequency selection across all forms. When user selects a quarter, the calendar date picker should only allow selecting dates from that quarter's 3 months.
+
+**Implementation**:
+1. **Quarter Utilities** (`/frontend/src/lib/quarterUtils.js`):
+   - `getQuarterMonths(quarter)` - Returns month indices for Q1/Q2/Q3/Q4
+   - `getHalfYearMonths(half)` - Returns month indices for H1/H2
+   - `isDateInQuarter(date, quarter)` - Validation helper
+   - `validateQuarterDate(date, quarter)` - Returns error if date outside quarter
+   - `createQuarterDisabledMatcher()` - For react-day-picker disabled dates
+
+2. **Calendar Component Enhancement** (`/frontend/src/components/ui/calendar.jsx`):
+   - Added `restrictedMonths` prop (array of allowed month indices 0-11)
+   - Month dropdown filters to only show allowed months
+   - Navigation arrows respect month restrictions
+   - Dates outside allowed months are disabled/greyed out
+
+3. **Quarter-to-Month Mapping**:
+   | Quarter | Enabled Months |
+   |---------|----------------|
+   | Q1 | January, February, March |
+   | Q2 | April, May, June |
+   | Q3 | July, August, September |
+   | Q4 | October, November, December |
+
+4. **Forms Updated**:
+   - ExpenseForm.js - Uses restrictedMonths for quarterly/half-yearly calendars
+
+**Testing Result**: 100% pass rate - all Q1-Q4 and H1-H2 restrictions verified
+
+### UI Visibility Fixes (Feb 16, 2026)
+
+1. **Goal Achievements Page** - Fixed invisible text by changing from white/gray to black text colors
+2. **Smart Insights Dashboard** - Changed CSS variables to explicit black text for visibility
+
+### Global Validation System (Feb 16, 2026)
 
 **Implementation**:
 1. **Validation Utilities** (`/frontend/src/lib/validations.js`):
-   - `validateDateRange` - ensures end date > start date
-   - `validateFutureDate` - for goal target dates
-   - `validatePastOrTodayDate` - for asset purchase dates
-   - `validatePositiveAmount` - amount > 0
-   - `validateNonNegativeAmount` - amount >= 0
-   - `validateLoanOutstanding` - outstanding <= principal
-   - `validateCreditCardOutstanding` - outstanding <= credit limit
-   - `validateTextField` - required, length, special char checks
-   - `scrollToFirstError` - auto-scroll to first error field
-
-2. **Forms Updated** (all now use centralized validation):
-   - LoanForm.js - 7 validation checks
-   - InvestmentForm.js - 5 validation checks
-   - ExpenseForm.js - 4+ validation checks
-   - GoalForm.js - 4 validation checks
-   - AccountForm.js - 3+ validation checks
-   - AssetForm.js - 3+ validation checks
-   - InsuranceForm.js - 6 validation checks
-   - CreditCardForm.js - 3+ validation checks
-   - OtherIncomeForm.js - 3 validation checks
-   - JobIncome.js - 3+ validation checks
-   - BusinessIncome.js - 3+ validation checks
-   - RentalIncome.js - 3+ validation checks
-   - InterestIncome.js - 5+ validation checks
-   - DividendIncome.js - 3+ validation checks
-   - CommissionIncome.js - 3+ validation checks
-
-3. **Validation Types Implemented**:
-   - Date consistency (end date > start date)
-   - Amount > 0 for all money fields
-   - Required field checks
-   - Cross-field validation (e.g., outstanding <= limit)
-   - Character length limits
+   - Date consistency, Amount > 0, Required fields, Cross-field validation
    - Auto-scroll to first error
 
-**Testing Result**: 100% pass rate across all forms
+2. **All 15 Forms Updated** with centralized validation
 
-### Previous Work (Earlier This Session)
+## Key Files
 
-1. **Partial Allocation System** - Allow specific monetary amounts to be allocated from investments/accounts to goals
-2. **AI Insights Enhancement** - Insurance advice, goal progress calculation, Indian currency format
-3. **Critical Bug Fixes** - toLocaleString crash, invisible text on GoalDetail page
-4. **UX Improvements** - Calendar navigation, Insurance Allocation visualization
+### New Files
+- `/frontend/src/lib/quarterUtils.js` - Quarter/Half-year utility functions
 
-## Key Files Modified
-
-### Frontend
-- `/frontend/src/lib/validations.js` - Centralized validation utilities
-- `/frontend/src/components/ValidationMessage.js` - Error display component
-- All form files updated with validation logic
-
-### Backend
-- `/backend/server.py` - AI insights, partial allocation logic
+### Modified Files
+- `/frontend/src/components/ui/calendar.jsx` - Added restrictedMonths prop
+- `/frontend/src/ExpenseForm.js` - Uses quarter restrictions
+- `/frontend/src/GoalAchievements.js` - Fixed text visibility
+- `/frontend/src/Dashboard.js` - Fixed Smart Insights text visibility
 
 ## Code Architecture
 ```
@@ -76,10 +72,13 @@ Build a comprehensive personal finance tracking application with multi-user work
 ├── frontend/
 │   └── src/
 │       ├── lib/
-│       │   └── validations.js    # Validation utilities
+│       │   ├── validations.js     # Validation utilities
+│       │   └── quarterUtils.js    # Quarter date restriction utilities
 │       ├── components/
+│       │   ├── ui/
+│       │   │   └── calendar.jsx   # Enhanced with restrictedMonths
 │       │   └── ValidationMessage.js
-│       └── [Form files with validation]
+│       └── [Form files]
 ```
 
 ## Upcoming Tasks
@@ -103,3 +102,7 @@ Build a comprehensive personal finance tracking application with multi-user work
 ## 3rd Party Integrations
 - **OpenAI GPT-5.2**: AI Smart Insights
 - **Emergent Google Auth**: Social login
+
+## Deployment Status
+- **Health Check**: PASSED (Feb 21, 2026)
+- Ready for production deployment
