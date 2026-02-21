@@ -146,12 +146,14 @@ class TestCronSendReminderNotifications:
         data = response.json()
         assert "success" in data, "Response should contain 'success'"
         assert data["success"] == True, "Success should be True"
-        assert "notifications_sent" in data, "Response should contain 'notifications_sent'"
+        assert "in_app_notifications" in data, "Response should contain 'in_app_notifications'"
         assert "push_sent" in data, "Response should contain 'push_sent'"
+        assert "checked_hour" in data, "Response should contain 'checked_hour'"
         
         print(f"✓ Reminder cron job executed successfully:")
-        print(f"  - Notifications sent: {data['notifications_sent']}")
+        print(f"  - In-app notifications: {data['in_app_notifications']}")
         print(f"  - Push notifications sent: {data['push_sent']}")
+        print(f"  - Checked hour: {data['checked_hour']}")
 
 
 class TestNotificationActions:
