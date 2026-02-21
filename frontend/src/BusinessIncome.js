@@ -123,6 +123,11 @@ const BusinessIncome = () => {
     "July", "August", "September", "October", "November", "December",
   ];
 
+  // Helper to get month index (0-11) from month name
+  const getMonthIndex = (monthName) => {
+    return allMonths.indexOf(monthName);
+  };
+
   // Get months based on selected quarter
   const quarterMonths = useMemo(() => {
     const quarter = quarters.find(q => q.label === selectedQuarter);
