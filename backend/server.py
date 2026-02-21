@@ -633,17 +633,40 @@ def verify_password(password: str, hashed: str) -> bool:
 @api_router.post("/auth/register")
 async def register_user(request: RegisterRequest, response: Response):
     """Register a new user with email/password"""
-    # Check if email already exists
-    existing_user = await db.users.find_one({"email": request.email}, {"_id": 0})
-    if existing_user:
+    # Normalize inputs
+    email = request.email.strip().lower()
+    name = request.name.strip()
+    
+    # Check if email already exists (case-insensitive)
+    existing_email = await db.users.find_one(
+        {"email": {"$regex": f"^{email}$", "$options": "i"}}, 
+        {"_id": 0}
+    )
+    if existing_email:
         raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Check if username (name) already exists (case-insensitive)
+    existing_name = await db.users.find_one(
+        {"name": {"$regex": f"^{name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    if existing_name:
+        raise HTTPException(status_code=400, detail="Username already taken")
+    
+    # Check if username matches existing email prefix
+    existing_email_prefix = await db.users.find_one(
+        {"email": {"$regex": f"^{name}@", "$options": "i"}},
+        {"_id": 0}
+    )
+    if existing_email_prefix:
+        raise HTTPException(status_code=400, detail="Username already taken")
     
     # Create new user
     user_id = f"user_{uuid.uuid4().hex[:12]}"
     user = {
         "user_id": user_id,
-        "email": request.email,
-        "name": request.name,
+        "email": email,
+        "name": name,
         "picture": None,
         "auth_type": "jwt",
         "password_hash": hash_password(request.password),
