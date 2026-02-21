@@ -4,46 +4,52 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Strict Month-Based Date Selection Implemented** (Feb 21, 2026)
+**Strict Month-Based Date Selection Globally Implemented** (Feb 21, 2026)
 
 ## What Was Implemented (Latest Session - Feb 21, 2026)
 
-### Strict Month-Based Date Selection (Feb 21, 2026 - Latest)
+### Global Strict Month-Based Date Selection (Feb 21, 2026 - Completed)
 
-**User Request**: Fix the date picker to strictly enforce month-based selection when a specific month is pre-selected.
+**User Request**: Apply strict month-based date selection calendar globally across ALL income modules.
 
-**Problem Fixed**: 
-- Calendar was allowing navigation to other months via arrows
-- Trailing/leading dates from neighboring months were clickable
-- This caused data inconsistency in dashboards
+**Implementation Completed**:
 
-**Implementation**:
-
-1. **New RestrictedDatePicker Component** (`/app/frontend/src/components/ui/date-picker.jsx`):
-   - Uses Popover + Calendar components
+1. **RestrictedDatePicker Component** (`/app/frontend/src/components/ui/date-picker.jsx`):
+   - Uses Popover + Calendar components from shadcn/ui
    - Accepts `restrictedMonth` prop (0-11) to lock calendar to specific month
    - When restricted:
      - Hides navigation arrows (< and >)
-     - Hides trailing/leading dates from neighboring months
-     - Sets fromDate/toDate constraints to selected month bounds
+     - Hides trailing/leading dates from neighboring months (`showOutsideDays={false}`)
+     - Sets `fromDate`/`toDate` constraints to selected month bounds
+     - Uses `captionLayout="label"` to show only month label
    - Shows formatted date in button (e.g., "August 15th, 2026")
 
-2. **Updated Income Modules**:
-   - **JobIncome.js**: Uses RestrictedDatePicker for Quarterly, Half-Yearly, Yearly frequencies
-   - **SelfEmployedIncome.js**: Uses RestrictedDatePicker for Quarterly, Half-Yearly, Yearly frequencies
-   - **Monthly/Others frequencies**: No restriction - can navigate freely
+2. **All Income Modules Updated**:
+   | Module | Status | RestrictedDatePicker Applied |
+   |--------|--------|------------------------------|
+   | JobIncome.js | ✅ Complete | Monthly, Quarterly, Half-Yearly, Yearly, Others |
+   | SelfEmployedIncome.js | ✅ Complete | Monthly, Quarterly, Half-Yearly, Yearly, Others |
+   | BusinessIncome.js | ✅ Complete | Monthly, Quarterly, Half-Yearly, Yearly, Others |
+   | RentalIncome.js | ✅ Complete | Monthly, Quarterly, Half-Yearly, Yearly, Others |
+   | CommissionIncome.js | ✅ Complete | Monthly, Quarterly, Half-Yearly, Yearly, Irregular |
+   | InterestIncome.js | ✅ Complete | Monthly, Quarterly, Half-Yearly, Yearly, Irregular |
+   | DividendIncome.js | ✅ Complete | Monthly, Quarterly, Half-Yearly, Yearly, Irregular |
 
-3. **Behavior by Frequency**:
-   | Frequency | Month Restriction |
-   |-----------|------------------|
-   | Daily/Weekly | N/A (no date picker) |
-   | Monthly | No restriction |
-   | Quarterly | Locked to selected quarter month |
-   | Half-Yearly | Locked to selected half month |
-   | Yearly | Locked to selected month |
-   | Others | No restriction |
+3. **Standardized Flow for Quarterly/Half-Yearly**:
+   - **Quarterly**: Quarter dropdown → Month dropdown (3 months) → RestrictedDatePicker (locked to month)
+   - **Half-Yearly**: Half dropdown → Month dropdown (6 months) → RestrictedDatePicker (locked to month)
+   - **Yearly**: Month dropdown → RestrictedDatePicker (locked to month)
+   - **Monthly/Others/Irregular**: RestrictedDatePicker (unrestricted navigation)
 
-**Testing Result**: 100% pass rate (9/9 features verified)
+4. **Bug Fixes**:
+   - Fixed syntax error in RentalIncome.js (malformed Yearly section)
+   - Removed unused imports (Calendar icon from lucide-react)
+   - Removed unused refs (dateFieldRef, irregularFieldRef)
+
+**Testing Results**:
+- Iteration 35: 88.9% (8/9 tests passed) - CommissionIncome issue found
+- Iteration 36: 100% (3/3 tests passed) - CommissionIncome fix verified
+- **All income forms now consistently use RestrictedDatePicker**
 
 ### Self-Employed Income Module Refinements (Feb 21, 2026)
 
