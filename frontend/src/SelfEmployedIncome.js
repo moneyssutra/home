@@ -477,28 +477,22 @@ const SelfEmployedIncome = () => {
             <label className="block text-sm font-medium text-[#334155] mb-2">
               Frequency <span className="text-rose-500">*</span>
             </label>
-            <div className="flex flex-wrap gap-2">
+            <select
+              value={frequency}
+              onChange={(e) => setFrequency(e.target.value)}
+              className="w-full rounded-xl px-4 py-3"
+              style={{ 
+                backgroundColor: "#FFFFFF",
+                border: errors.frequency ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                color: frequency ? "var(--text-primary)" : "var(--text-muted)"
+              }}
+              data-testid="frequency-select"
+            >
+              <option value="">Select Frequency</option>
               {frequencyOptions.map((freq) => (
-                <button
-                  key={freq}
-                  type="button"
-                  onClick={() => setFrequency(freq)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    frequency === freq
-                      ? "text-white shadow-md"
-                      : "hover:bg-gray-100"
-                  }`}
-                  style={{
-                    backgroundColor: frequency === freq ? "var(--brand-primary)" : "#FFFFFF",
-                    border: frequency === freq ? "none" : "1px solid var(--border-light)",
-                    color: frequency === freq ? "white" : "var(--text-secondary)"
-                  }}
-                  data-testid={`frequency-${freq.toLowerCase()}`}
-                >
-                  {freq}
-                </button>
+                <option key={freq} value={freq}>{freq}</option>
               ))}
-            </div>
+            </select>
             {errors.frequency && <p className="text-rose-500 text-xs mt-1">{errors.frequency}</p>}
           </div>
 
