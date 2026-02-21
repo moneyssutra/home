@@ -693,14 +693,16 @@ const LoanIncome = () => {
               </label>
               <RestrictedDatePicker
                 value={endDate}
-                onChange={(date) => setEndDate(date)}
+                onChange={handleEndDateChange}
                 minDate={startDate || undefined}
                 placeholder="Select end date"
                 error={!!errors.endDate}
                 testId="end-date-input"
               />
               {errors.endDate && <p className="text-sm text-red-500 mt-1">{errors.endDate}</p>}
-              <p className="text-xs text-[#334155]/60 mt-1">Auto-calculated from start date + tenure</p>
+              <p className="text-xs text-[#334155]/60 mt-1">
+                {endDateManuallySet ? "Manually set (override)" : "Auto-calculated from start date + tenure"}
+              </p>
             </div>
 
             {/* Linked Asset Toggle */}
