@@ -4,6 +4,8 @@ import { ChevronLeft, Trash2, Calculator, Info } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import IncomeTypeToggle from "@/components/IncomeTypeToggle";
+import ReminderTimePicker from "@/components/ReminderTimePicker";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { 
   validatePositiveAmount, 
