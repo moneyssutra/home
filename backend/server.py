@@ -189,6 +189,12 @@ class IncomeSourceCreate(BaseModel):
     # Dividend-specific fields
     sourceCategory: Optional[str] = None
     units: Optional[float] = None
+    # Variable Income fields
+    incomeType: Optional[str] = "fixed"  # "fixed" or "variable"
+    lastRecordedAmount: Optional[float] = None
+    reminderTime: Optional[str] = None  # HH:MM format
+    lastEntryDate: Optional[str] = None
+    nextDueDate: Optional[str] = None
 
 # Account Model
 class Account(BaseModel):
