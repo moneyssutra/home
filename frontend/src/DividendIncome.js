@@ -511,21 +511,16 @@ const DividendIncome = () => {
             {/* Monthly - Date Selection */}
             {frequency === "Monthly" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
-                <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#334155] mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   Select Date
                 </label>
-                <label htmlFor="monthlyDate" className="relative block cursor-pointer">
-                  <input
-                    id="monthlyDate"
-                    ref={dateFieldRef}
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
-                    data-testid="date-select"
-                  />
-                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                </label>
+                <RestrictedDatePicker
+                  value={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
+                  placeholder="Select payment date"
+                  error={!!errors.selectedDate}
+                  testId="date-select"
+                />
                 {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
               </div>
             )}
@@ -551,23 +546,40 @@ const DividendIncome = () => {
                   {errors.selectedQuarter && <p className="text-sm text-red-500 mt-1">{errors.selectedQuarter}</p>}
                 </div>
 
-                {selectedQuarter && (
+                {selectedQuarter && quarterMonths.length > 0 && (
                   <div className="w-full">
-                    <label htmlFor="quarterDate" className="block text-sm font-medium text-[#334155] mb-2">
+                    <label htmlFor="quarterMonth" className="block text-sm font-medium text-[#334155] mb-2">
+                      Select Month
+                    </label>
+                    <select
+                      id="quarterMonth"
+                      value={selectedMonth}
+                      onChange={(e) => { setSelectedMonth(e.target.value); setSelectedDate(""); }}
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      data-testid="quarter-month-select"
+                    >
+                      <option value="">Select Month</option>
+                      {quarterMonths.map((month) => (
+                        <option key={month} value={month}>{month}</option>
+                      ))}
+                    </select>
+                    {errors.selectedMonth && <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>}
+                  </div>
+                )}
+
+                {selectedMonth && (
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
                       Select Date
                     </label>
-                    <label htmlFor="quarterDate" className="relative block cursor-pointer">
-                      <input
-                        id="quarterDate"
-                        ref={dateFieldRef}
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
-                        data-testid="date-select"
-                      />
-                      <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                    </label>
+                    <RestrictedDatePicker
+                      value={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
+                      restrictedMonth={getMonthIndex(selectedMonth)}
+                      placeholder="Select date in selected month"
+                      error={!!errors.selectedDate}
+                      testId="date-select"
+                    />
                     {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
                   </div>
                 )}
@@ -595,23 +607,40 @@ const DividendIncome = () => {
                   {errors.selectedHalf && <p className="text-sm text-red-500 mt-1">{errors.selectedHalf}</p>}
                 </div>
 
-                {selectedHalf && (
+                {selectedHalf && halfMonths.length > 0 && (
                   <div className="w-full">
-                    <label htmlFor="halfDate" className="block text-sm font-medium text-[#334155] mb-2">
+                    <label htmlFor="halfMonth" className="block text-sm font-medium text-[#334155] mb-2">
+                      Select Month
+                    </label>
+                    <select
+                      id="halfMonth"
+                      value={selectedMonth}
+                      onChange={(e) => { setSelectedMonth(e.target.value); setSelectedDate(""); }}
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      data-testid="half-month-select"
+                    >
+                      <option value="">Select Month</option>
+                      {halfMonths.map((month) => (
+                        <option key={month} value={month}>{month}</option>
+                      ))}
+                    </select>
+                    {errors.selectedMonth && <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>}
+                  </div>
+                )}
+
+                {selectedMonth && (
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
                       Select Date
                     </label>
-                    <label htmlFor="halfDate" className="relative block cursor-pointer">
-                      <input
-                        id="halfDate"
-                        ref={dateFieldRef}
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
-                        data-testid="date-select"
-                      />
-                      <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                    </label>
+                    <RestrictedDatePicker
+                      value={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
+                      restrictedMonth={getMonthIndex(selectedMonth)}
+                      placeholder="Select date in selected month"
+                      error={!!errors.selectedDate}
+                      testId="date-select"
+                    />
                     {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
                   </div>
                 )}
@@ -641,21 +670,17 @@ const DividendIncome = () => {
                 
                 {selectedMonth && (
                   <div className="w-full">
-                    <label htmlFor="yearlyDate" className="block text-sm font-medium text-[#334155] mb-2">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
                       Select Date
                     </label>
-                    <label htmlFor="yearlyDate" className="relative block cursor-pointer">
-                      <input
-                        id="yearlyDate"
-                        ref={dateFieldRef}
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
-                        data-testid="date-select"
-                      />
-                      <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                    </label>
+                    <RestrictedDatePicker
+                      value={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
+                      restrictedMonth={getMonthIndex(selectedMonth)}
+                      placeholder="Select date in selected month"
+                      error={!!errors.selectedDate}
+                      testId="date-select"
+                    />
                     {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
                   </div>
                 )}
@@ -665,22 +690,16 @@ const DividendIncome = () => {
             {/* Irregular - Full Date Picker */}
             {frequency === "Irregular" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="irregular-fields">
-                <label htmlFor="irregularDate" className="block text-sm font-medium text-[#334155] mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   Select Date
                 </label>
-                <label htmlFor="irregularDate" className="relative block cursor-pointer">
-                  <input
-                    id="irregularDate"
-                    ref={irregularFieldRef}
-                    type="date"
-                    value={customDate}
-                    onChange={(e) => setCustomDate(e.target.value)}
-                    min={today}
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
-                    data-testid="irregular-date-input"
-                  />
-                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                </label>
+                <RestrictedDatePicker
+                  value={customDate}
+                  onChange={(date) => setCustomDate(date)}
+                  placeholder="Select next expected date"
+                  error={!!errors.customDate}
+                  testId="irregular-date-input"
+                />
                 {errors.customDate && <p className="text-sm text-red-500 mt-1">{errors.customDate}</p>}
               </div>
             )}
