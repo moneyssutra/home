@@ -392,44 +392,6 @@ const CommissionIncome = () => {
               {errors.expectedAmount && <p className="text-sm text-red-500 mt-1">{errors.expectedAmount}</p>}
             </div>
 
-            {/* Fixed / Variable Toggle */}
-            <div className="w-full rounded-xl border border-[#334155] p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-[#334155]">
-                    Commission Type
-                  </label>
-                  <p className="text-xs text-[#334155]/60 mt-0.5">Is this a fixed or variable commission?</p>
-                </div>
-                <div className="flex rounded-lg overflow-hidden border border-[#334155]">
-                  <button
-                    type="button"
-                    onClick={() => setIsVariable(false)}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
-                      !isVariable 
-                        ? "bg-[#334155] text-white" 
-                        : "bg-[#1E293B] text-[#334155] hover:bg-[#0F172A]"
-                    }`}
-                    data-testid="fixed-button"
-                  >
-                    Fixed
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsVariable(true)}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
-                      isVariable 
-                        ? "bg-[#F59E0B] text-white" 
-                        : "bg-[#1E293B] text-[#334155] hover:bg-[#0F172A]"
-                    }`}
-                    data-testid="variable-button"
-                  >
-                    Variable
-                  </button>
-                </div>
-              </div>
-            </div>
-
             {/* Frequency */}
             <div className="w-full">
               <label htmlFor="frequency" className="block text-sm font-medium text-[#334155] mb-2">
