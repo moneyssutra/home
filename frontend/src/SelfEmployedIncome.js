@@ -425,16 +425,16 @@ const SelfEmployedIncome = () => {
             </div>
           )}
 
-          {/* Entity/Client Name (Optional) */}
+          {/* Entity Name (Optional) */}
           <div>
             <label className="block text-sm font-medium text-[#334155] mb-2">
-              Entity/Client Name <span className="text-[#94A3B8] font-normal">(Optional)</span>
+              Entity Name <span className="text-[#94A3B8] font-normal">(Optional)</span>
             </label>
             <input
               type="text"
               value={entityName}
               onChange={(e) => setEntityName(e.target.value)}
-              placeholder="e.g., Private Clinic, Freelance Clients"
+              placeholder="Example: Private Clinic, Freelance Portfolio, or Client Name"
               className="w-full rounded-xl px-4 py-3"
               style={{ 
                 backgroundColor: "#FFFFFF",
@@ -443,7 +443,6 @@ const SelfEmployedIncome = () => {
               }}
               data-testid="entity-name-input"
             />
-            <p className="text-xs text-[#94A3B8] mt-1">Name of your practice, clinic, or primary client</p>
           </div>
 
           {/* Expected Amount */}
