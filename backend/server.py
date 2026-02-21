@@ -5096,6 +5096,7 @@ async def send_reminder_notifications(api_key: str = None):
     """
     Hourly cron job to send reminder notifications for variable income.
     Checks for income sources whose reminder time matches the current hour.
+    Sends both in-app and browser push notifications.
     """
     expected_key = os.environ.get("CRON_API_KEY", "moneyssutra_cron_secret_2026")
     if api_key != expected_key:
@@ -5106,6 +5107,8 @@ async def send_reminder_notifications(api_key: str = None):
     today_str = now.date().isoformat()
     
     notifications_sent = 0
+    push_sent = 0
+    push_failed = 0
     
     try:
         # Find variable income sources due today with matching reminder time
@@ -5124,7 +5127,9 @@ async def send_reminder_notifications(api_key: str = None):
             user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "name": 1})
             user_name = user.get("name", "there") if user else "there"
             
-            # Create reminder notification
+            action_url = f"/income/{source.get('type', 'job').lower().replace(' ', '-')}/{source_id}"
+            
+            # Create in-app notification
             notification = {
                 "id": str(uuid.uuid4()),
                 "userId": user_id,
@@ -5133,19 +5138,38 @@ async def send_reminder_notifications(api_key: str = None):
                 "type": "income_reminder",
                 "relatedIncomeId": source_id,
                 "relatedIncomeName": income_name,
-                "actionUrl": f"/income/{source.get('type').lower().replace(' ', '-')}/{source_id}",
+                "actionUrl": action_url,
                 "isRead": False,
                 "createdAt": datetime.now(timezone.utc).isoformat()
             }
             await db.notifications.insert_one(notification)
             notifications_sent += 1
             
-            # TODO: Send actual push notification via web-push library
-            # For now, we just create in-app notifications
+            # Send browser push notifications to all user's subscriptions
+            subscriptions = await db.push_subscriptions.find(
+                {"userId": user_id}, {"_id": 0}
+            ).to_list(100)
+            
+            for sub in subscriptions:
+                subscription_info = {
+                    "endpoint": sub.get("endpoint"),
+                    "keys": sub.get("keys", {})
+                }
+                result = await send_income_reminder(subscription_info, income_name, source_id)
+                
+                if result.get("success"):
+                    push_sent += 1
+                else:
+                    push_failed += 1
+                    # Remove expired subscriptions
+                    if result.get("should_remove"):
+                        await db.push_subscriptions.delete_one({"endpoint": sub.get("endpoint")})
         
         return {
             "success": True,
-            "notifications_sent": notifications_sent,
+            "in_app_notifications": notifications_sent,
+            "push_sent": push_sent,
+            "push_failed": push_failed,
             "checked_hour": current_hour
         }
     
