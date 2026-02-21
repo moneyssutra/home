@@ -25,6 +25,8 @@ import BusinessIncome from "@/BusinessIncome";
 import MyBusiness from "@/MyBusiness";
 import JobIncome from "@/JobIncome";
 import MyJob from "@/MyJob";
+import SelfEmployedIncome from "@/SelfEmployedIncome";
+import MySelfEmployed from "@/MySelfEmployed";
 import InterestIncome from "@/InterestIncome";
 import MyInterest from "@/MyInterest";
 import RentalIncome from "@/RentalIncome";
