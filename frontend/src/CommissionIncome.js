@@ -439,25 +439,19 @@ const CommissionIncome = () => {
               </div>
             )}
 
-            {/* Monthly - Date Selection (1-31) */}
+            {/* Monthly - Date Selection */}
             {frequency === "Monthly" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
-                <label htmlFor="monthlyDate" className="block text-sm font-medium text-[#334155] mb-2">
-                  Select Date (Day of Month)
+                <label className="block text-sm font-medium text-[#334155] mb-2">
+                  Select Date
                 </label>
-                <select
-                  id="monthlyDate"
-                  ref={dateFieldRef}
+                <RestrictedDatePicker
                   value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                  data-testid="date-select"
-                >
-                  <option value="">Select a Date</option>
-                  {days.map((day) => (
-                    <option key={day} value={day}>{day}</option>
-                  ))}
-                </select>
+                  onChange={(date) => setSelectedDate(date)}
+                  placeholder="Select payment date"
+                  error={!!errors.selectedDate}
+                  testId="date-select"
+                />
                 {errors.selectedDate && <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>}
               </div>
             )}
