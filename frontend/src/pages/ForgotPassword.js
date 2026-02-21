@@ -94,7 +94,7 @@ const ForgotPassword = () => {
               Don't forget to check your spam folder!
             </p>
             <Link
-              to="/"
+              to="/login"
               className="inline-block w-full py-3 rounded-xl text-white font-semibold transition-all"
               style={{ backgroundColor: "var(--btn-primary-bg)" }}
             >
