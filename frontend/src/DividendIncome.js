@@ -41,6 +41,10 @@ const DividendIncome = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [customDate, setCustomDate] = useState("");
   
+  // Variable income fields
+  const [incomeType, setIncomeType] = useState("fixed");
+  const [reminderTime, setReminderTime] = useState("19:00");
+  
   // UI state
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
