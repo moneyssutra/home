@@ -345,6 +345,22 @@ const CommissionIncome = () => {
               {errors.sourceName && <p className="text-sm text-red-500 mt-1">{errors.sourceName}</p>}
             </div>
 
+            {/* Income Type Toggle (Fixed/Variable) */}
+            <IncomeTypeToggle 
+              value={incomeType} 
+              onChange={setIncomeType}
+              testId="income-type-toggle"
+            />
+
+            {/* Reminder Time - Only show when Variable is selected */}
+            {incomeType === "variable" && (
+              <ReminderTimePicker
+                value={reminderTime}
+                onChange={setReminderTime}
+                testId="reminder-time-picker"
+              />
+            )}
+
             {/* Expected Amount */}
             <div className="w-full">
               <label htmlFor="expectedAmount" className="block text-sm font-medium text-[#334155] mb-2">
