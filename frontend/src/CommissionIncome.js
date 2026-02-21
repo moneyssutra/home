@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Calendar, Trash2 } from "lucide-react";
+import { ChevronLeft, Trash2 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -17,13 +17,11 @@ const CommissionIncome = () => {
   const { id } = useParams();
   const [showAddSheet, setShowAddSheet] = useState(false);
   
-  // Refs for auto-scroll
+  // Refs for auto-scroll (kept for frequency dropdowns)
   const dayFieldRef = useRef(null);
-  const dateFieldRef = useRef(null);
   const quarterFieldRef = useRef(null);
   const halfFieldRef = useRef(null);
   const monthFieldRef = useRef(null);
-  const irregularFieldRef = useRef(null);
   
   // Form fields
   const [sourceName, setSourceName] = useState("");
