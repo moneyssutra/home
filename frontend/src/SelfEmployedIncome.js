@@ -815,20 +815,24 @@ const SelfEmployedIncome = () => {
           )}
 
           {frequency === "Yearly" && (
-            <>
+            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
               <div>
                 <label className="block text-sm font-medium text-[#334155] mb-2">
                   Select Month <span className="text-rose-500">*</span>
                 </label>
                 <select
                   value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedMonth(e.target.value);
+                    setSelectedDate("");
+                  }}
                   className="w-full px-4 py-3 rounded-xl"
                   style={{ 
                     backgroundColor: "#FFFFFF",
                     border: errors.selectedMonth ? "1px solid #EF4444" : "1px solid var(--border-light)",
                     color: selectedMonth ? "var(--text-primary)" : "var(--text-muted)"
                   }}
+                  data-testid="month-select"
                 >
                   <option value="">Select Month</option>
                   {allMonths.map((month) => (
@@ -841,26 +845,27 @@ const SelfEmployedIncome = () => {
               {selectedMonth && (
                 <div>
                   <label className="block text-sm font-medium text-[#334155] mb-2">
-                    Payment Date <span className="text-rose-500">*</span>
+                    Select Date <span className="text-rose-500">*</span>
                   </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+                  <label className="relative block cursor-pointer">
                     <input
                       type="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 rounded-xl"
+                      className="w-full rounded-xl px-4 py-3 cursor-pointer"
                       style={{ 
                         backgroundColor: "#FFFFFF",
                         border: errors.selectedDate ? "1px solid #EF4444" : "1px solid var(--border-light)",
                         color: "var(--text-primary)"
                       }}
+                      data-testid="date-select"
                     />
-                  </div>
+                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                  </label>
                   {errors.selectedDate && <p className="text-rose-500 text-xs mt-1">{errors.selectedDate}</p>}
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {frequency === "Others" && (
