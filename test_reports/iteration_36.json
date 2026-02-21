@@ -1,0 +1,51 @@
+{
+  "summary": "CommissionIncome RestrictedDatePicker feature testing complete - ALL 3 TESTS PASSED. The fix from iteration_35 has been verified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "commission_yearly_restricted": {
+      "test": "CommissionIncome Yearly: After selecting March, calendar shows ONLY March with no navigation",
+      "status": "PASSED",
+      "evidence": "Calendar shows 'March 2026', navButtonCount: 0, uses BUTTON element (RestrictedDatePicker), date selected: March 15th, 2026"
+    },
+    "commission_quarterly_restricted": {
+      "test": "CommissionIncome Quarterly: After selecting Q2 and May, calendar shows ONLY May with no navigation",
+      "status": "PASSED",
+      "evidence": "Calendar shows 'May 2026', navButtonCount: 0, uses BUTTON element (RestrictedDatePicker), date selected: May 20th, 2026"
+    },
+    "commission_half_yearly_restricted": {
+      "test": "CommissionIncome Half-Yearly: After selecting H2 and October, calendar shows ONLY October with no navigation",
+      "status": "PASSED",
+      "evidence": "Calendar shows 'October 2026', navButtonCount: 0, uses BUTTON element (RestrictedDatePicker), date selected: October 10th, 2026"
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CommissionIncome.js correctly updated to use RestrictedDatePicker for Yearly, Quarterly, and Half-Yearly frequencies",
+    "RestrictedDatePicker properly hides navigation arrows when restrictedMonth prop is set",
+    "The month selection flow works correctly: frequency → quarter/half (if applicable) → month → restricted calendar",
+    "All income forms (Dividend, Business, Rental, Interest, Commission) now use consistent RestrictedDatePicker implementation"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "100% - 3 of 3 tests passed"
+  },
+  "test_credentials": "test@moneyssutra.com / test",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "CommissionIncome.js RestrictedDatePicker implementation verified. All income forms now consistently use RestrictedDatePicker with month restriction for Yearly, Quarterly, and Half-Yearly frequencies. The calendar correctly shows only the selected month with no navigation arrows.",
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
