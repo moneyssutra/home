@@ -223,24 +223,50 @@ const Login = () => {
             {isRegisterMode && (
               <div>
                 <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
-                  Full Name
+                  Username (Display Name)
                 </label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
                   <input
                     type="text"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setNameAvailable(null); // Reset while typing
+                    }}
+                    placeholder="Enter your username"
+                    className="w-full pl-11 pr-12 py-3 rounded-xl outline-none transition-all"
                     style={{ 
                       backgroundColor: "var(--bg-subtle)", 
-                      border: "1px solid var(--border-light)",
+                      border: nameAvailable === false ? "1px solid var(--status-error)" : nameAvailable === true ? "1px solid var(--status-success)" : "1px solid var(--border-light)",
                       color: "var(--text-primary)"
                     }}
                     data-testid="name-input"
                   />
+                  {/* Validation indicator */}
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {checkingName && (
+                      <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+                    )}
+                    {!checkingName && nameAvailable === true && (
+                      <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
+                    )}
+                    {!checkingName && nameAvailable === false && (
+                      <X className="h-5 w-5" style={{ color: "var(--status-error)" }} />
+                    )}
+                  </div>
                 </div>
+                {/* Availability message */}
+                {nameAvailable === false && (
+                  <p className="mt-1 text-xs" style={{ color: "var(--status-error)" }}>
+                    This username is already taken
+                  </p>
+                )}
+                {nameAvailable === true && (
+                  <p className="mt-1 text-xs" style={{ color: "var(--status-success)" }}>
+                    Username is available
+                  </p>
+                )}
               </div>
             )}
 
@@ -253,18 +279,46 @@ const Login = () => {
                 <input
                   type={isRegisterMode ? "email" : "text"}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (isRegisterMode) setEmailAvailable(null); // Reset while typing
+                  }}
                   placeholder={isRegisterMode ? "Enter your email" : "Enter username or email"}
-                  className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
+                  className="w-full pl-11 pr-12 py-3 rounded-xl outline-none transition-all"
                   style={{ 
                     backgroundColor: "var(--bg-subtle)", 
-                    border: "1px solid var(--border-light)",
+                    border: isRegisterMode && emailAvailable === false ? "1px solid var(--status-error)" : isRegisterMode && emailAvailable === true ? "1px solid var(--status-success)" : "1px solid var(--border-light)",
                     color: "var(--text-primary)"
                   }}
                   data-testid="username-input"
                   required
                 />
+                {/* Validation indicator - only in register mode */}
+                {isRegisterMode && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {checkingEmail && (
+                      <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+                    )}
+                    {!checkingEmail && emailAvailable === true && (
+                      <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
+                    )}
+                    {!checkingEmail && emailAvailable === false && (
+                      <X className="h-5 w-5" style={{ color: "var(--status-error)" }} />
+                    )}
+                  </div>
+                )}
               </div>
+              {/* Email availability message - only in register mode */}
+              {isRegisterMode && emailAvailable === false && (
+                <p className="mt-1 text-xs" style={{ color: "var(--status-error)" }}>
+                  This email is already registered
+                </p>
+              )}
+              {isRegisterMode && emailAvailable === true && (
+                <p className="mt-1 text-xs" style={{ color: "var(--status-success)" }}>
+                  Email is available
+                </p>
+              )}
             </div>
 
             <div>
