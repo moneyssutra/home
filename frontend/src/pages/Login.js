@@ -169,6 +169,9 @@ const Login = () => {
     setEmail("");
     setPassword("");
     setConfirmPassword("");
+    // Reset validation states
+    setNameAvailable(null);
+    setEmailAvailable(null);
   };
 
   if (loading) {
