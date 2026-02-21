@@ -48,7 +48,6 @@ const DividendIncome = () => {
   const [existingDividend, setExistingDividend] = useState(null);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
-  const today = new Date().toISOString().split('T')[0];
 
   // Fetch data if editing
   useEffect(() => {
