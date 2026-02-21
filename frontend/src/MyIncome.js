@@ -143,6 +143,7 @@ const MyIncome = () => {
     const icons = {
       Business: Briefcase,
       Job: Banknote,
+      "Self-Employed": UserCheck,
       Rental: Home,
       Commission: Percent,
       Interest: TrendingUp,
@@ -156,6 +157,7 @@ const MyIncome = () => {
     const colors = {
       Business: { bg: "var(--brand-primary-soft)", text: "var(--brand-primary)" },
       Job: { bg: "var(--status-info-soft)", text: "var(--status-info)" },
+      "Self-Employed": { bg: "#FEF3C7", text: "#D97706" },
       Rental: { bg: "var(--status-warning-soft)", text: "var(--status-warning)" },
       Commission: { bg: "#F3E8FF", text: "var(--chart-accent2)" },
       Interest: { bg: "#CFFAFE", text: "#0891B2" },
@@ -169,6 +171,7 @@ const MyIncome = () => {
     const paths = {
       Business: "/my-business",
       Job: "/my-job",
+      "Self-Employed": "/my-self-employed",
       Rental: "/my-rental",
       Commission: "/my-commission",
       Interest: "/my-interest",
