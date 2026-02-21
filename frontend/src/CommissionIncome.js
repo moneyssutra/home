@@ -70,7 +70,6 @@ const CommissionIncome = () => {
       
       setSourceName(data.name || "");
       setExpectedAmount(data.expectedAmount?.toString() || "");
-      setIsVariable(data.isVariable !== false); // Default to true if not set
       setFrequency(data.frequency || "");
       setSelectedDay(data.selectedDay || "");
       setSelectedDate(data.selectedDate || "");
