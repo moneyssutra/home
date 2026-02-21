@@ -62,7 +62,7 @@ CORS_ORIGINS="*"
 
 ### Frontend (.env)
 ```
-REACT_APP_BACKEND_URL=https://secure-signup-test.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://calendar-standardize.preview.emergentagent.com
 WDS_SOCKET_PORT=443
 ENABLE_HEALTH_CHECK=false
 ```
@@ -148,7 +148,7 @@ curl http://localhost:8001/api/status
 ```
 
 ### Access Frontend
-Visit: https://secure-signup-test.preview.emergentagent.com
+Visit: https://calendar-standardize.preview.emergentagent.com
 
 ---
 
