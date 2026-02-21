@@ -4898,6 +4898,16 @@ async def delete_notification(notification_id: str, user_id: str = None, request
     return {"success": True}
 
 # ============ PUSH NOTIFICATION SUBSCRIPTION ============
+from push_service import get_vapid_public_key, send_push_notification, send_income_reminder, send_auto_entry_notification
+
+@api_router.get("/push/vapid-key")
+async def get_vapid_key():
+    """Get the VAPID public key for push subscription"""
+    public_key = get_vapid_public_key()
+    if not public_key:
+        raise HTTPException(status_code=500, detail="VAPID keys not configured")
+    return {"public_key": public_key}
+
 @api_router.post("/push/subscribe")
 async def subscribe_push_notifications(subscription: dict, user_id: str = None, request: Request = None):
     """Subscribe to push notifications"""
