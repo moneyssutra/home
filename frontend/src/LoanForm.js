@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Trash2, Building2, Home, ExternalLink } from "lucide-react";
+import { ChevronLeft, Trash2, Building2, Home, ExternalLink, Plus } from "lucide-react";
 import axios from "axios";
 import { format } from "date-fns";
 import { numberToWords } from "@/lib/formatters";
@@ -39,6 +39,9 @@ const LoanIncome = () => {
   const [linkedAssetId, setLinkedAssetId] = useState("");
   const [linkedAccountId, setLinkedAccountId] = useState("");
   const [autoCreateExpense, setAutoCreateExpense] = useState(true);
+  
+  // Track if end date was manually overridden
+  const [endDateManuallySet, setEndDateManuallySet] = useState(false);
   
   // Assets and Accounts for linking
   const [assets, setAssets] = useState([]);
