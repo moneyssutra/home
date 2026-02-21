@@ -867,21 +867,13 @@ const SelfEmployedIncome = () => {
                 <label className="block text-sm font-medium text-[#334155] mb-2">
                   Next Expected Date <span className="text-rose-500">*</span>
                 </label>
-                <label className="relative block cursor-pointer">
-                  <input
-                    type="date"
-                    value={customDate}
-                    onChange={(e) => setCustomDate(e.target.value)}
-                    className="w-full rounded-xl px-4 py-3 cursor-pointer"
-                    style={{ 
-                      backgroundColor: "#FFFFFF",
-                      border: errors.customDate ? "1px solid #EF4444" : "1px solid var(--border-light)",
-                      color: "var(--text-primary)"
-                    }}
-                    data-testid="custom-date-select"
-                  />
-                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                </label>
+                <RestrictedDatePicker
+                  value={customDate}
+                  onChange={(date) => setCustomDate(date)}
+                  placeholder="Select next expected date"
+                  error={!!errors.customDate}
+                  testId="custom-date-select"
+                />
                 {errors.customDate && <p className="text-rose-500 text-xs mt-1">{errors.customDate}</p>}
               </div>
             </div>
