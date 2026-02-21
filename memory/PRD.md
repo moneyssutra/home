@@ -4,11 +4,48 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Self-Employed Income Module Refined** (Feb 21, 2026)
+**Strict Month-Based Date Selection Implemented** (Feb 21, 2026)
 
 ## What Was Implemented (Latest Session - Feb 21, 2026)
 
-### Self-Employed Income Module Refinements (Feb 21, 2026 - Latest)
+### Strict Month-Based Date Selection (Feb 21, 2026 - Latest)
+
+**User Request**: Fix the date picker to strictly enforce month-based selection when a specific month is pre-selected.
+
+**Problem Fixed**: 
+- Calendar was allowing navigation to other months via arrows
+- Trailing/leading dates from neighboring months were clickable
+- This caused data inconsistency in dashboards
+
+**Implementation**:
+
+1. **New RestrictedDatePicker Component** (`/app/frontend/src/components/ui/date-picker.jsx`):
+   - Uses Popover + Calendar components
+   - Accepts `restrictedMonth` prop (0-11) to lock calendar to specific month
+   - When restricted:
+     - Hides navigation arrows (< and >)
+     - Hides trailing/leading dates from neighboring months
+     - Sets fromDate/toDate constraints to selected month bounds
+   - Shows formatted date in button (e.g., "August 15th, 2026")
+
+2. **Updated Income Modules**:
+   - **JobIncome.js**: Uses RestrictedDatePicker for Quarterly, Half-Yearly, Yearly frequencies
+   - **SelfEmployedIncome.js**: Uses RestrictedDatePicker for Quarterly, Half-Yearly, Yearly frequencies
+   - **Monthly/Others frequencies**: No restriction - can navigate freely
+
+3. **Behavior by Frequency**:
+   | Frequency | Month Restriction |
+   |-----------|------------------|
+   | Daily/Weekly | N/A (no date picker) |
+   | Monthly | No restriction |
+   | Quarterly | Locked to selected quarter month |
+   | Half-Yearly | Locked to selected half month |
+   | Yearly | Locked to selected month |
+   | Others | No restriction |
+
+**Testing Result**: 100% pass rate (9/9 features verified)
+
+### Self-Employed Income Module Refinements (Feb 21, 2026)
 
 **User Request**: Standardize field labels and frequency logic to match Job/Business modules.
 
