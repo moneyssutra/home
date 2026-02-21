@@ -309,7 +309,19 @@ const AssetForm = () => {
       if (id) {
         await axios.put(`${backendUrl}/api/assets/${id}`, payload);
       } else {
-        await axios.post(`${backendUrl}/api/assets`, payload);
+        const response = await axios.post(`${backendUrl}/api/assets`, payload);
+        const savedAssetId = response.data?.id;
+        
+        // If we came from loan form, return there with the new asset ID
+        if (location.state?.fromLoanFlow && location.state?.loanFormData) {
+          navigate(location.state.returnTo || '/loan', {
+            state: {
+              loanFormData: location.state.loanFormData,
+              newAssetId: savedAssetId
+            }
+          });
+          return;
+        }
       }
       
       navigate("/my-assets");
