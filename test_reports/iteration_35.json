@@ -1,0 +1,91 @@
+{
+  "summary": "RestrictedDatePicker feature testing complete - 8 of 9 tests PASSED. Commission Income form does NOT use RestrictedDatePicker for Yearly/Quarterly/Half-Yearly frequencies (uses native dropdown instead).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "CommissionIncome.js",
+        "issue": "Uses native <select> dropdown (1-31) for date selection instead of RestrictedDatePicker. This is inconsistent with other income forms (Dividend, Business, Rental, Interest) which all use RestrictedDatePicker.",
+        "selector": "[data-testid=\"date-select\"]",
+        "priority": "HIGH",
+        "affected_frequencies": ["Yearly", "Quarterly", "Half-Yearly"]
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "dividend_monthly_unrestricted": {
+      "test": "DividendIncome Monthly: Calendar should have unrestricted navigation",
+      "status": "PASSED",
+      "evidence": "Calendar shows navigation arrows and month/year dropdowns. Navigation buttons found: 3"
+    },
+    "dividend_quarterly_restricted": {
+      "test": "DividendIncome Quarterly: After selecting Q1 and January, calendar shows ONLY January",
+      "status": "PASSED",
+      "evidence": "Calendar shows 'January 2026', navButtonCount: 0, outsideDaysCount: 0"
+    },
+    "dividend_half_yearly_restricted": {
+      "test": "DividendIncome Half-Yearly: After selecting H1 and March, calendar shows ONLY March",
+      "status": "PASSED",
+      "evidence": "Calendar shows 'March 2026' with restricted navigation, date selected: March 20th, 2026"
+    },
+    "dividend_yearly_restricted": {
+      "test": "DividendIncome Yearly: After selecting August, calendar shows ONLY August dates",
+      "status": "PASSED",
+      "evidence": "Calendar shows 'August 2026', no navigation arrows visible, date selected: August 15th, 2026"
+    },
+    "dividend_irregular_unrestricted": {
+      "test": "DividendIncome Irregular: Calendar should have unrestricted navigation",
+      "status": "PASSED",
+      "evidence": "Calendar has dropdownCount: 2, hasNavigation: true"
+    },
+    "business_income_yearly_restricted": {
+      "test": "BusinessIncome Yearly: Calendar restricted to selected month",
+      "status": "PASSED",
+      "evidence": "Uses RestrictedDatePicker (BUTTON element), navButtonCount: 0, shows 'September 2026'"
+    },
+    "rental_income_yearly_restricted": {
+      "test": "RentalIncome Yearly: Calendar restricted to selected month (December)",
+      "status": "PASSED",
+      "evidence": "Calendar shows 'December 2026' with no navigation buttons, uses RestrictedDatePicker"
+    },
+    "commission_income_yearly_uses_dropdown": {
+      "test": "CommissionIncome Yearly: Should use RestrictedDatePicker",
+      "status": "FAILED",
+      "evidence": "Uses native SELECT dropdown (tagName: SELECT, type: select-one) instead of RestrictedDatePicker button. This is inconsistent with other income forms."
+    },
+    "interest_income_yearly_restricted": {
+      "test": "InterestIncome Yearly: Calendar restricted to selected month",
+      "status": "PASSED",
+      "evidence": "Uses RestrictedDatePicker (BUTTON element), navButtonCount: 0, shows 'October 2026'"
+    }
+  },
+  "test_report_links": [],
+  "action_items": [
+    "CommissionIncome.js: Replace native <select> dropdown with RestrictedDatePicker for Yearly, Quarterly, and Half-Yearly frequencies to maintain consistency with other income forms (Dividend, Business, Rental, Interest)"
+  ],
+  "critical_code_review_comments": [
+    "CommissionIncome.js uses native select dropdown (days 1-31) for date selection, while all other income forms use RestrictedDatePicker calendar component",
+    "All other income forms (DividendIncome, BusinessIncome, RentalIncome, InterestIncome) correctly implement RestrictedDatePicker with month restriction",
+    "RestrictedDatePicker component properly hides navigation arrows when restrictedMonth prop is set",
+    "getMonthIndex() helper function correctly converts month name to 0-based index"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "88.9% - 8 of 9 tests passed"
+  },
+  "test_credentials": "test@moneyssutra.com / test",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "CommissionIncome.js needs to be updated to use RestrictedDatePicker instead of native select dropdown for date selection. This affects Yearly, Quarterly, and Half-Yearly frequencies. All other income forms (Dividend, Business, Rental, Interest) correctly use RestrictedDatePicker with restrictedMonth prop for month-restricted calendar selection.",
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
