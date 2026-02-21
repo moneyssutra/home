@@ -1,0 +1,996 @@
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { ChevronLeft, Calendar, Trash2, Search, Check, ChevronDown } from "lucide-react";
+import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
+import { ValidationMessage } from "@/components/ValidationMessage";
+import { 
+  validatePositiveAmount, 
+  validateTextField,
+  scrollToFirstError
+} from "@/lib/validations";
+import { numberToWords } from "@/lib/formatters";
+
+// Profession categories with options
+const PROFESSION_CATEGORIES = {
+  "Medical": [
+    "Doctor",
+    "Surgeon", 
+    "Dentist",
+    "Physiotherapist",
+    "Ayurvedic Practitioner",
+    "Homeopath",
+    "Veterinarian",
+    "Nurse Practitioner",
+    "Pharmacist"
+  ],
+  "Legal & Finance": [
+    "CA (Chartered Accountant)",
+    "Lawyer",
+    "Tax Consultant",
+    "Financial Advisor",
+    "Company Secretary",
+    "Auditor",
+    "Advocate"
+  ],
+  "Tech & Creative": [
+    "Software Consultant",
+    "Graphic Designer",
+    "Content Creator",
+    "Web Developer",
+    "UI/UX Designer",
+    "Video Editor",
+    "Photographer",
+    "Architect",
+    "Interior Designer"
+  ],
+  "Skilled Services": [
+    "Plumber",
+    "Electrician",
+    "Carpenter",
+    "Mechanic",
+    "Mason",
+    "Painter",
+    "Welder",
+    "HVAC Technician"
+  ],
+  "Others": []
+};
+
+const SelfEmployedIncome = () => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditing = !!id;
+  
+  // Form fields
+  const [profession, setProfession] = useState("");
+  const [customProfession, setCustomProfession] = useState("");
+  const [entityName, setEntityName] = useState("");
+  const [expectedAmount, setExpectedAmount] = useState("");
+  const [showAddSheet, setShowAddSheet] = useState(false);
+  const [frequency, setFrequency] = useState("");
+  
+  // Profession picker state
+  const [showProfessionPicker, setShowProfessionPicker] = useState(false);
+  const [professionSearch, setProfessionSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  
+  // Conditional fields for frequency
+  const [selectedDay, setSelectedDay] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedQuarter, setSelectedQuarter] = useState("");
+  const [selectedHalf, setSelectedHalf] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [customFrequency, setCustomFrequency] = useState("");
+  const [customDate, setCustomDate] = useState("");
+  
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
+
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+
+  // Fetch data if editing
+  useEffect(() => {
+    if (id) {
+      fetchIncomeData();
+    }
+  }, [id]);
+
+  const fetchIncomeData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${backendUrl}/api/income/${id}`);
+      const data = response.data;
+      
+      // Check if it's a custom profession
+      const allProfessions = Object.values(PROFESSION_CATEGORIES).flat();
+      if (data.profession && !allProfessions.includes(data.profession)) {
+        setProfession("Other");
+        setCustomProfession(data.profession);
+      } else {
+        setProfession(data.profession || "");
+      }
+      
+      setEntityName(data.name || "");
+      setExpectedAmount(data.expectedAmount?.toString() || "");
+      setFrequency(data.frequency || "");
+      setSelectedDay(data.selectedDay || "");
+      setSelectedDate(data.selectedDate || "");
+      setSelectedQuarter(data.selectedQuarter || "");
+      setSelectedHalf(data.selectedHalf || "");
+      setSelectedMonth(data.selectedMonth || "");
+      setCustomFrequency(data.customFrequency || "");
+      setCustomDate(data.customDate || "");
+    } catch (error) {
+      console.error("Error fetching income data:", error);
+      setErrors({ submit: "Failed to load data" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Reset conditional fields when frequency changes
+  useEffect(() => {
+    setSelectedDay("");
+    setSelectedDate("");
+    setSelectedQuarter("");
+    setSelectedHalf("");
+    setSelectedMonth("");
+    setCustomFrequency("");
+    setCustomDate("");
+  }, [frequency]);
+
+  // Filter professions based on search
+  const filteredProfessions = useMemo(() => {
+    const results = {};
+    const searchLower = professionSearch.toLowerCase();
+    
+    Object.entries(PROFESSION_CATEGORIES).forEach(([category, professions]) => {
+      if (category === "Others") return;
+      
+      const filtered = professions.filter(p => 
+        p.toLowerCase().includes(searchLower)
+      );
+      
+      if (filtered.length > 0 || category.toLowerCase().includes(searchLower)) {
+        results[category] = filtered.length > 0 ? filtered : professions;
+      }
+    });
+    
+    // Always include Others option
+    results["Others"] = [];
+    
+    return results;
+  }, [professionSearch]);
+
+  const frequencyOptions = [
+    "Daily",
+    "Weekly",
+    "Monthly",
+    "Quarterly",
+    "Half-Yearly",
+    "Yearly",
+    "Others",
+  ];
+
+  const weekDays = [
+    "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday",
+  ];
+
+  const quarters = [
+    { id: "Q1", label: "Q1 (Jan–Mar)", months: ["January", "February", "March"] },
+    { id: "Q2", label: "Q2 (Apr–Jun)", months: ["April", "May", "June"] },
+    { id: "Q3", label: "Q3 (Jul–Sep)", months: ["July", "August", "September"] },
+    { id: "Q4", label: "Q4 (Oct–Dec)", months: ["October", "November", "December"] },
+  ];
+
+  const halves = [
+    { id: "H1", label: "Jan–Jun", months: ["January", "February", "March", "April", "May", "June"] },
+    { id: "H2", label: "Jul–Dec", months: ["July", "August", "September", "October", "November", "December"] },
+  ];
+
+  const allMonths = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+
+  const quarterMonths = useMemo(() => {
+    const quarter = quarters.find(q => q.label === selectedQuarter);
+    return quarter ? quarter.months : [];
+  }, [selectedQuarter]);
+
+  const halfMonths = useMemo(() => {
+    const half = halves.find(h => h.label === selectedHalf);
+    return half ? half.months : [];
+  }, [selectedHalf]);
+
+  const handleAmountChange = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, "");
+    setExpectedAmount(value);
+  };
+
+  const handleSelectProfession = (prof) => {
+    if (prof === "Other") {
+      setProfession("Other");
+      setShowProfessionPicker(false);
+    } else {
+      setProfession(prof);
+      setCustomProfession("");
+      setShowProfessionPicker(false);
+    }
+    setProfessionSearch("");
+  };
+
+  const validate = () => {
+    const newErrors = {};
+
+    // Profession validation
+    if (!profession) {
+      newErrors.profession = "Please select a profession.";
+    }
+    if (profession === "Other" && !customProfession.trim()) {
+      newErrors.customProfession = "Please enter your profession.";
+    }
+
+    // Amount validation
+    const amountError = validatePositiveAmount(expectedAmount, "Expected amount");
+    if (amountError) newErrors.expectedAmount = amountError;
+
+    // Frequency validation
+    if (!frequency) {
+      newErrors.frequency = "Please select a frequency.";
+    }
+
+    // Conditional field validation
+    if (frequency === "Weekly" && !selectedDay) {
+      newErrors.selectedDay = "Please select a day.";
+    }
+
+    if (frequency === "Monthly" && !selectedDate) {
+      newErrors.selectedDate = "Please select a date.";
+    }
+
+    if (frequency === "Quarterly") {
+      if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter.";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
+    }
+
+    if (frequency === "Half-Yearly") {
+      if (!selectedHalf) newErrors.selectedHalf = "Please select a half.";
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
+    }
+
+    if (frequency === "Yearly") {
+      if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+      if (!selectedDate) newErrors.selectedDate = "Please select a date.";
+    }
+
+    if (frequency === "Others") {
+      if (!customFrequency.trim()) newErrors.customFrequency = "Please enter custom frequency.";
+      if (!customDate) newErrors.customDate = "Please select a date.";
+    }
+
+    setErrors(newErrors);
+    
+    if (Object.keys(newErrors).length > 0) {
+      scrollToFirstError(newErrors);
+    }
+    
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = async () => {
+    if (!validate()) return;
+
+    if (id) {
+      setShowUpdateConfirm(true);
+      return;
+    }
+
+    await performSave();
+  };
+
+  const performSave = async () => {
+    setIsSubmitting(true);
+    setShowUpdateConfirm(false);
+    
+    try {
+      const finalProfession = profession === "Other" ? customProfession.trim() : profession;
+      
+      const payload = {
+        type: "Self-Employed",
+        name: entityName.trim() || finalProfession,
+        profession: finalProfession,
+        expectedAmount: parseFloat(expectedAmount),
+        frequency,
+        selectedDay: selectedDay || null,
+        selectedDate: selectedDate || null,
+        selectedQuarter: selectedQuarter || null,
+        selectedHalf: selectedHalf || null,
+        selectedMonth: selectedMonth || null,
+        customFrequency: customFrequency || null,
+        customDate: customDate || null,
+      };
+
+      if (id) {
+        await axios.put(`${backendUrl}/api/income/${id}`, payload);
+      } else {
+        await axios.post(`${backendUrl}/api/income`, payload);
+      }
+      
+      navigate("/my-self-employed");
+    } catch (error) {
+      console.error("Error saving self-employed income:", error);
+      setErrors({ submit: "Failed to save. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+    
+    setIsSubmitting(true);
+    setShowDeleteConfirm(false);
+    
+    try {
+      await axios.delete(`${backendUrl}/api/income/${id}`);
+      navigate("/my-self-employed");
+    } catch (error) {
+      console.error("Error deleting income:", error);
+      setErrors({ submit: "Failed to delete. Please try again." });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getDisplayProfession = () => {
+    if (profession === "Other" && customProfession) {
+      return customProfession;
+    }
+    return profession || "Select Profession";
+  };
+
+  return (
+    <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="self-employed-income-page">
+      {/* Header */}
+      <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
+        <button
+          type="button"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
+          onClick={() => navigate("/my-self-employed")}
+          aria-label="Back"
+          data-testid="back-button"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+          {isEditing ? "Edit Self-Employed" : "Self-Employed Income"}
+        </h1>
+        <div className="h-10 w-10" />
+      </header>
+
+      {/* Form */}
+      <div className="flex-1 overflow-y-auto pb-32">
+        <form className="mx-auto w-full max-w-[620px] px-6 space-y-6">
+          
+          {/* Profession Picker */}
+          <div>
+            <label className="block text-sm font-medium text-[#334155] mb-2">
+              Profession <span className="text-rose-500">*</span>
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowProfessionPicker(true)}
+              className="w-full px-4 py-3 rounded-xl text-left flex items-center justify-between"
+              style={{ 
+                backgroundColor: "#FFFFFF", 
+                border: errors.profession ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                color: profession ? "var(--text-primary)" : "var(--text-muted)"
+              }}
+              data-testid="profession-picker-trigger"
+            >
+              <span>{getDisplayProfession()}</span>
+              <ChevronDown className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
+            </button>
+            {errors.profession && <p className="text-rose-500 text-xs mt-1">{errors.profession}</p>}
+          </div>
+
+          {/* Custom Profession Input (shown when "Other" is selected) */}
+          {profession === "Other" && (
+            <div>
+              <label className="block text-sm font-medium text-[#334155] mb-2">
+                Your Profession <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={customProfession}
+                onChange={(e) => setCustomProfession(e.target.value)}
+                placeholder="Enter your profession"
+                className="w-full rounded-xl px-4 py-3"
+                style={{ 
+                  backgroundColor: "#FFFFFF",
+                  border: errors.customProfession ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                  color: "var(--text-primary)"
+                }}
+                data-testid="custom-profession-input"
+              />
+              {errors.customProfession && <p className="text-rose-500 text-xs mt-1">{errors.customProfession}</p>}
+            </div>
+          )}
+
+          {/* Entity/Client Name (Optional) */}
+          <div>
+            <label className="block text-sm font-medium text-[#334155] mb-2">
+              Entity/Client Name <span className="text-[#94A3B8] font-normal">(Optional)</span>
+            </label>
+            <input
+              type="text"
+              value={entityName}
+              onChange={(e) => setEntityName(e.target.value)}
+              placeholder="e.g., Private Clinic, Freelance Clients"
+              className="w-full rounded-xl px-4 py-3"
+              style={{ 
+                backgroundColor: "#FFFFFF",
+                border: "1px solid var(--border-light)",
+                color: "var(--text-primary)"
+              }}
+              data-testid="entity-name-input"
+            />
+            <p className="text-xs text-[#94A3B8] mt-1">Name of your practice, clinic, or primary client</p>
+          </div>
+
+          {/* Expected Amount */}
+          <div>
+            <label className="block text-sm font-medium text-[#334155] mb-2">
+              Expected Amount <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155]/60 font-medium">₹</span>
+              <input
+                type="text"
+                value={expectedAmount}
+                onChange={handleAmountChange}
+                placeholder="0"
+                className="w-full pl-10 pr-4 py-3 rounded-xl"
+                style={{ 
+                  backgroundColor: "#FFFFFF",
+                  border: errors.expectedAmount ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                  color: "var(--text-primary)"
+                }}
+                data-testid="expected-amount-input"
+              />
+            </div>
+            {parseFloat(expectedAmount) > 0 && (
+              <p className="mt-1.5 text-xs text-[#334155]/50 italic">{numberToWords(parseFloat(expectedAmount))}</p>
+            )}
+            {errors.expectedAmount && <p className="text-rose-500 text-xs mt-1">{errors.expectedAmount}</p>}
+          </div>
+
+          {/* Frequency */}
+          <div>
+            <label className="block text-sm font-medium text-[#334155] mb-2">
+              Frequency <span className="text-rose-500">*</span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {frequencyOptions.map((freq) => (
+                <button
+                  key={freq}
+                  type="button"
+                  onClick={() => setFrequency(freq)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    frequency === freq
+                      ? "text-white shadow-md"
+                      : "hover:bg-gray-100"
+                  }`}
+                  style={{
+                    backgroundColor: frequency === freq ? "var(--brand-primary)" : "#FFFFFF",
+                    border: frequency === freq ? "none" : "1px solid var(--border-light)",
+                    color: frequency === freq ? "white" : "var(--text-secondary)"
+                  }}
+                  data-testid={`frequency-${freq.toLowerCase()}`}
+                >
+                  {freq}
+                </button>
+              ))}
+            </div>
+            {errors.frequency && <p className="text-rose-500 text-xs mt-1">{errors.frequency}</p>}
+          </div>
+
+          {/* Conditional Fields based on Frequency */}
+          {frequency === "Weekly" && (
+            <div>
+              <label className="block text-sm font-medium text-[#334155] mb-2">
+                Select Day <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {weekDays.map((day) => (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => setSelectedDay(day)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      selectedDay === day ? "text-white" : ""
+                    }`}
+                    style={{
+                      backgroundColor: selectedDay === day ? "var(--brand-primary)" : "#FFFFFF",
+                      border: selectedDay === day ? "none" : "1px solid var(--border-light)",
+                      color: selectedDay === day ? "white" : "var(--text-secondary)"
+                    }}
+                  >
+                    {day.slice(0, 3)}
+                  </button>
+                ))}
+              </div>
+              {errors.selectedDay && <p className="text-rose-500 text-xs mt-1">{errors.selectedDay}</p>}
+            </div>
+          )}
+
+          {frequency === "Monthly" && (
+            <div>
+              <label className="block text-sm font-medium text-[#334155] mb-2">
+                Payment Date <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 rounded-xl"
+                  style={{ 
+                    backgroundColor: "#FFFFFF",
+                    border: errors.selectedDate ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                    color: "var(--text-primary)"
+                  }}
+                />
+              </div>
+              {errors.selectedDate && <p className="text-rose-500 text-xs mt-1">{errors.selectedDate}</p>}
+            </div>
+          )}
+
+          {frequency === "Quarterly" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-[#334155] mb-2">
+                  Select Quarter <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {quarters.map((q) => (
+                    <button
+                      key={q.id}
+                      type="button"
+                      onClick={() => setSelectedQuarter(q.label)}
+                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        selectedQuarter === q.label ? "text-white" : ""
+                      }`}
+                      style={{
+                        backgroundColor: selectedQuarter === q.label ? "var(--brand-primary)" : "#FFFFFF",
+                        border: selectedQuarter === q.label ? "none" : "1px solid var(--border-light)",
+                        color: selectedQuarter === q.label ? "white" : "var(--text-secondary)"
+                      }}
+                    >
+                      {q.label}
+                    </button>
+                  ))}
+                </div>
+                {errors.selectedQuarter && <p className="text-rose-500 text-xs mt-1">{errors.selectedQuarter}</p>}
+              </div>
+
+              {selectedQuarter && (
+                <div>
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
+                    Select Month <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {quarterMonths.map((month) => (
+                      <button
+                        key={month}
+                        type="button"
+                        onClick={() => setSelectedMonth(month)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          selectedMonth === month ? "text-white" : ""
+                        }`}
+                        style={{
+                          backgroundColor: selectedMonth === month ? "var(--brand-primary)" : "#FFFFFF",
+                          border: selectedMonth === month ? "none" : "1px solid var(--border-light)",
+                          color: selectedMonth === month ? "white" : "var(--text-secondary)"
+                        }}
+                      >
+                        {month}
+                      </button>
+                    ))}
+                  </div>
+                  {errors.selectedMonth && <p className="text-rose-500 text-xs mt-1">{errors.selectedMonth}</p>}
+                </div>
+              )}
+
+              {selectedMonth && (
+                <div>
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
+                    Payment Date <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 rounded-xl"
+                      style={{ 
+                        backgroundColor: "#FFFFFF",
+                        border: errors.selectedDate ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                        color: "var(--text-primary)"
+                      }}
+                    />
+                  </div>
+                  {errors.selectedDate && <p className="text-rose-500 text-xs mt-1">{errors.selectedDate}</p>}
+                </div>
+              )}
+            </>
+          )}
+
+          {frequency === "Half-Yearly" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-[#334155] mb-2">
+                  Select Half <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {halves.map((h) => (
+                    <button
+                      key={h.id}
+                      type="button"
+                      onClick={() => setSelectedHalf(h.label)}
+                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                        selectedHalf === h.label ? "text-white" : ""
+                      }`}
+                      style={{
+                        backgroundColor: selectedHalf === h.label ? "var(--brand-primary)" : "#FFFFFF",
+                        border: selectedHalf === h.label ? "none" : "1px solid var(--border-light)",
+                        color: selectedHalf === h.label ? "white" : "var(--text-secondary)"
+                      }}
+                    >
+                      {h.label}
+                    </button>
+                  ))}
+                </div>
+                {errors.selectedHalf && <p className="text-rose-500 text-xs mt-1">{errors.selectedHalf}</p>}
+              </div>
+
+              {selectedHalf && (
+                <div>
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
+                    Select Month <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {halfMonths.map((month) => (
+                      <button
+                        key={month}
+                        type="button"
+                        onClick={() => setSelectedMonth(month)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          selectedMonth === month ? "text-white" : ""
+                        }`}
+                        style={{
+                          backgroundColor: selectedMonth === month ? "var(--brand-primary)" : "#FFFFFF",
+                          border: selectedMonth === month ? "none" : "1px solid var(--border-light)",
+                          color: selectedMonth === month ? "white" : "var(--text-secondary)"
+                        }}
+                      >
+                        {month}
+                      </button>
+                    ))}
+                  </div>
+                  {errors.selectedMonth && <p className="text-rose-500 text-xs mt-1">{errors.selectedMonth}</p>}
+                </div>
+              )}
+
+              {selectedMonth && (
+                <div>
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
+                    Payment Date <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 rounded-xl"
+                      style={{ 
+                        backgroundColor: "#FFFFFF",
+                        border: errors.selectedDate ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                        color: "var(--text-primary)"
+                      }}
+                    />
+                  </div>
+                  {errors.selectedDate && <p className="text-rose-500 text-xs mt-1">{errors.selectedDate}</p>}
+                </div>
+              )}
+            </>
+          )}
+
+          {frequency === "Yearly" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-[#334155] mb-2">
+                  Select Month <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl"
+                  style={{ 
+                    backgroundColor: "#FFFFFF",
+                    border: errors.selectedMonth ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                    color: selectedMonth ? "var(--text-primary)" : "var(--text-muted)"
+                  }}
+                >
+                  <option value="">Select Month</option>
+                  {allMonths.map((month) => (
+                    <option key={month} value={month}>{month}</option>
+                  ))}
+                </select>
+                {errors.selectedMonth && <p className="text-rose-500 text-xs mt-1">{errors.selectedMonth}</p>}
+              </div>
+
+              {selectedMonth && (
+                <div>
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
+                    Payment Date <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 rounded-xl"
+                      style={{ 
+                        backgroundColor: "#FFFFFF",
+                        border: errors.selectedDate ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                        color: "var(--text-primary)"
+                      }}
+                    />
+                  </div>
+                  {errors.selectedDate && <p className="text-rose-500 text-xs mt-1">{errors.selectedDate}</p>}
+                </div>
+              )}
+            </>
+          )}
+
+          {frequency === "Others" && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-[#334155] mb-2">
+                  Custom Frequency <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={customFrequency}
+                  onChange={(e) => setCustomFrequency(e.target.value)}
+                  placeholder="e.g., Every 2 weeks, Per project"
+                  className="w-full px-4 py-3 rounded-xl"
+                  style={{ 
+                    backgroundColor: "#FFFFFF",
+                    border: errors.customFrequency ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                    color: "var(--text-primary)"
+                  }}
+                />
+                {errors.customFrequency && <p className="text-rose-500 text-xs mt-1">{errors.customFrequency}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#334155] mb-2">
+                  Next Expected Date <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+                  <input
+                    type="date"
+                    value={customDate}
+                    onChange={(e) => setCustomDate(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 rounded-xl"
+                    style={{ 
+                      backgroundColor: "#FFFFFF",
+                      border: errors.customDate ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                      color: "var(--text-primary)"
+                    }}
+                  />
+                </div>
+                {errors.customDate && <p className="text-rose-500 text-xs mt-1">{errors.customDate}</p>}
+              </div>
+            </>
+          )}
+
+          {/* Error Message */}
+          {errors.submit && (
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200">
+              <p className="text-rose-600 text-sm">{errors.submit}</p>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="space-y-3 pt-4">
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSubmitting}
+              className="w-full py-4 rounded-xl text-white font-semibold text-lg shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
+              style={{ backgroundColor: "var(--brand-primary)" }}
+              data-testid="save-button"
+            >
+              {isSubmitting ? "Saving..." : (isEditing ? "Update Income" : "Save Income")}
+            </button>
+
+            {isEditing && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="w-full py-4 rounded-xl font-semibold text-lg border transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                style={{ 
+                  borderColor: "var(--status-error)",
+                  color: "var(--status-error)",
+                  backgroundColor: "transparent"
+                }}
+                data-testid="delete-button"
+              >
+                <Trash2 className="h-5 w-5" />
+                Delete Income
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* Profession Picker Modal */}
+      {showProfessionPicker && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/40 z-50"
+            onClick={() => setShowProfessionPicker(false)}
+          />
+          <div 
+            className="fixed bottom-0 left-0 right-0 max-h-[80vh] rounded-t-3xl z-50 overflow-hidden flex flex-col"
+            style={{ backgroundColor: "var(--bg-card)" }}
+          >
+            <div className="p-4 border-b" style={{ borderColor: "var(--border-light)" }}>
+              <div className="w-12 h-1.5 rounded-full mx-auto mb-4" style={{ backgroundColor: "var(--border-medium)" }} />
+              <h3 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
+                Select Profession
+              </h3>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
+                <input
+                  type="text"
+                  value={professionSearch}
+                  onChange={(e) => setProfessionSearch(e.target.value)}
+                  placeholder="Search profession..."
+                  className="w-full pl-10 pr-4 py-3 rounded-xl"
+                  style={{ 
+                    backgroundColor: "var(--bg-subtle)",
+                    border: "1px solid var(--border-light)",
+                    color: "var(--text-primary)"
+                  }}
+                  autoFocus
+                />
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4">
+              {Object.entries(filteredProfessions).map(([category, professions]) => (
+                <div key={category} className="mb-4">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
+                    {category}
+                  </h4>
+                  {category === "Others" ? (
+                    <button
+                      type="button"
+                      onClick={() => handleSelectProfession("Other")}
+                      className="w-full p-3 rounded-xl text-left flex items-center justify-between"
+                      style={{ 
+                        backgroundColor: profession === "Other" ? "var(--brand-primary-soft)" : "var(--bg-subtle)",
+                        border: profession === "Other" ? "1px solid var(--brand-primary)" : "1px solid transparent"
+                      }}
+                    >
+                      <span style={{ color: "var(--text-primary)" }}>Other (Enter Custom)</span>
+                      {profession === "Other" && <Check className="h-5 w-5" style={{ color: "var(--brand-primary)" }} />}
+                    </button>
+                  ) : (
+                    <div className="space-y-1">
+                      {professions.map((prof) => (
+                        <button
+                          key={prof}
+                          type="button"
+                          onClick={() => handleSelectProfession(prof)}
+                          className="w-full p-3 rounded-xl text-left flex items-center justify-between"
+                          style={{ 
+                            backgroundColor: profession === prof ? "var(--brand-primary-soft)" : "var(--bg-subtle)",
+                            border: profession === prof ? "1px solid var(--brand-primary)" : "1px solid transparent"
+                          }}
+                        >
+                          <span style={{ color: "var(--text-primary)" }}>{prof}</span>
+                          {profession === prof && <Check className="h-5 w-5" style={{ color: "var(--brand-primary)" }} />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setShowDeleteConfirm(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm rounded-2xl p-6 z-50" style={{ backgroundColor: "var(--bg-card)" }}>
+            <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Delete Income?</h3>
+            <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
+              This action cannot be undone. Are you sure you want to delete this income source?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-3 rounded-xl font-medium"
+                style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-primary)" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 py-3 rounded-xl font-medium text-white"
+                style={{ backgroundColor: "var(--status-error)" }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Update Confirmation Dialog */}
+      {showUpdateConfirm && (
+        <>
+          <div className="fixed inset-0 bg-black/40 z-50" onClick={() => setShowUpdateConfirm(false)} />
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm rounded-2xl p-6 z-50" style={{ backgroundColor: "var(--bg-card)" }}>
+            <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Update Income?</h3>
+            <p className="text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
+              Are you sure you want to update this income source?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowUpdateConfirm(false)}
+                className="flex-1 py-3 rounded-xl font-medium"
+                style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-primary)" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={performSave}
+                className="flex-1 py-3 rounded-xl font-medium text-white"
+                style={{ backgroundColor: "var(--brand-primary)" }}
+              >
+                Update
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
+    </div>
+  );
+};
+
+export default SelfEmployedIncome;
