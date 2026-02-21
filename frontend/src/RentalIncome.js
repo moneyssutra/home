@@ -537,13 +537,18 @@ const RentalIncome = () => {
                     data-testid="rental-amount-input"
                   />
                 </div>
+                {parseFloat(rentalAmount) > 0 && (
+                  <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="rental-amount-words">
+                    {numberToWords(parseFloat(rentalAmount))}
+                  </p>
+                )}
                 {errors.rentalAmount && <p className="text-sm text-red-500 mt-1">{errors.rentalAmount}</p>}
               </div>
 
               {/* Security Deposit */}
               <div className="w-full">
                 <label htmlFor="securityDeposit" className="block text-sm font-medium text-[#334155] mb-2">
-                  Security Deposit <span className="text-[#94A3B8] font-normal">(Opt)</span>
+                  Security Deposit <span className="text-[#94A3B8] font-normal">(optional)</span>
                 </label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
@@ -557,6 +562,11 @@ const RentalIncome = () => {
                     data-testid="security-deposit-input"
                   />
                 </div>
+                {parseFloat(securityDeposit) > 0 && (
+                  <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="security-deposit-words">
+                    {numberToWords(parseFloat(securityDeposit))}
+                  </p>
+                )}
               </div>
             </div>
 
