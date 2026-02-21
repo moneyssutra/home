@@ -1,0 +1,83 @@
+{
+  "summary": "Self-Employed Income Category - All frontend tests PASSED. Implemented profession dropdown with 5 categories, searchable picker, custom profession input, entity name, amount with words, 7 frequency options with conditional fields, and dashboard integration.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "my_income_page": {
+      "self_employed_in_add_grid": "PASSED - Self-Employed button visible in Add Income grid (8 total income types)",
+      "self_employed_in_income_sources": "PASSED - Self-Employed shows in Income Sources breakdown with amount and percentage",
+      "navigation_to_my_self_employed": "PASSED - Clicking Self-Employed in Income Sources navigates to /my-self-employed"
+    },
+    "self_employed_form": {
+      "page_load": "PASSED - Form page loads with data-testid='self-employed-income-page'",
+      "profession_picker": {
+        "trigger_button": "PASSED - Shows 'Select Profession' dropdown trigger",
+        "modal_opens": "PASSED - Modal slides up from bottom with categories",
+        "categories_shown": "PASSED - Medical, Legal & Finance, Tech & Creative, Skilled Services, Others categories present",
+        "search_functionality": "PASSED - Search filters professions correctly (tested with 'Doctor')",
+        "select_profession": "PASSED - Selecting profession closes modal and updates trigger button",
+        "other_option": "PASSED - 'Other (Enter Custom)' shows custom profession input field"
+      },
+      "entity_name": "PASSED - Optional field accepts input (tested: 'City Hospital', 'Wellness Studio')",
+      "expected_amount": {
+        "input": "PASSED - Accepts numeric input with ₹ prefix",
+        "amount_in_words": "PASSED - Displays 'Rupees One Lakh Fifty Thousand Only' for 150000"
+      },
+      "frequency_selector": {
+        "daily": "PASSED - Button present",
+        "weekly": "PASSED - Shows day selector (Mon-Sun)",
+        "monthly": "PASSED - Shows Payment Date field",
+        "quarterly": "PASSED - Shows Q1, Q2, Q3, Q4 quarter buttons",
+        "half_yearly": "PASSED - Shows H1, H2 half buttons",
+        "yearly": "PASSED - Shows month selector",
+        "others": "PASSED - Shows Custom Frequency and Next Expected Date fields"
+      },
+      "validation": {
+        "profession_required": "PASSED - 'Please select a profession.' error",
+        "amount_required": "PASSED - 'Expected amount must be greater than zero.' error",
+        "custom_frequency_required": "PASSED - 'Please enter custom frequency.' error for Others",
+        "date_required": "PASSED - 'Please select a date.' error"
+      },
+      "save_button": "PASSED - Creates income and redirects to /my-self-employed",
+      "back_button": "PASSED - Navigates to /my-self-employed"
+    },
+    "my_self_employed_list": {
+      "page_load": "PASSED - Shows with data-testid='my-self-employed-page'",
+      "header_summary": "PASSED - Shows 'Monthly Income' with calculated total",
+      "income_cards": {
+        "format": "PASSED - Shows: Name - Self-Employed — Amount - Frequency",
+        "next_payment": "PASSED - Shows calculated next payment date"
+      },
+      "add_more_button": "PASSED - Shows 'Add Self-Employed Income' button"
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Income card format follows pattern: Name - Self-Employed — Profession - Amount - Frequency",
+    "Monthly income calculation correctly handles different frequencies (weekly*4, quarterly/3, etc.)",
+    "Profession picker modal has good UX with search and categories",
+    "Custom profession 'Other' option works well for edge cases"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "100% - All Self-Employed features working"
+  },
+  "test_credentials": "test / test",
+  "seed_data_creation": "Created 2 test Self-Employed incomes: City Hospital (Doctor, ₹1,50,000 Monthly) and Wellness Studio (Yoga Instructor, ₹50,000 Weekly)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Self-Employed income category fully tested and working. Profession picker has 5 categories with searchable dropdown. All 7 frequency options work with conditional fields. Dashboard integration shows Self-Employed in Income Sources breakdown. Backend saves income with type='Self-Employed' and profession field.",
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
