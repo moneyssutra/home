@@ -664,6 +664,7 @@ const ExpenseForm = () => {
                             }
                             setHalfCalendarOpen(false);
                           }}
+                          restrictedMonths={getHalfYearMonths(selectedHalf)}
                           initialFocus
                         />
                       </PopoverContent>
