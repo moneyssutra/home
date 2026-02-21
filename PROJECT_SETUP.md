@@ -62,7 +62,7 @@ CORS_ORIGINS="*"
 
 ### Frontend (.env)
 ```
-REACT_APP_BACKEND_URL=https://calendar-standardize.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://income-sync.preview.emergentagent.com
 WDS_SOCKET_PORT=443
 ENABLE_HEALTH_CHECK=false
 ```
@@ -148,7 +148,7 @@ curl http://localhost:8001/api/status
 ```
 
 ### Access Frontend
-Visit: https://calendar-standardize.preview.emergentagent.com
+Visit: https://income-sync.preview.emergentagent.com
 
 ---
 
