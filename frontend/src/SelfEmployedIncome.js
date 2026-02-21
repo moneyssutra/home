@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Calendar, Trash2, Search, Check, ChevronDown } from "lucide-react";
+import { ChevronLeft, Trash2, Search, Check, ChevronDown } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -11,6 +11,7 @@ import {
   scrollToFirstError
 } from "@/lib/validations";
 import { numberToWords } from "@/lib/formatters";
+import { RestrictedDatePicker } from "@/components/ui/date-picker";
 
 // Profession categories with options
 const PROFESSION_CATEGORIES = {
