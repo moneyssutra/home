@@ -152,6 +152,7 @@ const Dashboard = () => {
               </h1>
             </div>
             <div className="flex items-center gap-2">
+              <NotificationBell />
               <button
                 onClick={handleRefresh}
                 disabled={refreshing}
