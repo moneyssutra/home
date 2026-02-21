@@ -11,6 +11,7 @@ import {
   validateTextField,
   scrollToFirstError
 } from "@/lib/validations";
+import { RestrictedDatePicker } from "@/components/ui/date-picker";
 
 const BusinessIncome = () => {
   const navigate = useNavigate();
