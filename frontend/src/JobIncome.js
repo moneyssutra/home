@@ -404,6 +404,22 @@ const JobIncome = () => {
               )}
             </div>
 
+            {/* Income Type Toggle (Fixed/Variable) */}
+            <IncomeTypeToggle 
+              value={incomeType} 
+              onChange={setIncomeType}
+              testId="income-type-toggle"
+            />
+
+            {/* Reminder Time - Only show when Variable is selected */}
+            {incomeType === "variable" && (
+              <ReminderTimePicker
+                value={reminderTime}
+                onChange={setReminderTime}
+                testId="reminder-time-picker"
+              />
+            )}
+
             {/* Expected Amount */}
             <div className="w-full">
               <label
