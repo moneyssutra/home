@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Calendar, Trash2, Info } from "lucide-react";
 import axios from "axios";
@@ -10,6 +10,7 @@ import {
   validateTextField,
   scrollToFirstError
 } from "@/lib/validations";
+import { RestrictedDatePicker } from "@/components/ui/date-picker";
 
 const DividendIncome = () => {
   const navigate = useNavigate();
