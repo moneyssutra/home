@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Calendar, Trash2, Plus, TrendingUp } from "lucide-react";
+import { ChevronLeft, Trash2, Plus, TrendingUp } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -11,6 +11,7 @@ import {
   validateNonNegativeAmount,
   scrollToFirstError
 } from "@/lib/validations";
+import { numberToWords } from "@/lib/formatters";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
 
 const RentalIncome = () => {
