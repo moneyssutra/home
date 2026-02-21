@@ -379,7 +379,7 @@ const Login = () => {
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || (isRegisterMode && !isRegistrationValid())}
               className="w-full py-3 rounded-xl text-white font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               style={{ backgroundColor: "var(--btn-primary-bg)" }}
               data-testid="login-button"
@@ -394,6 +394,20 @@ const Login = () => {
               )}
             </button>
           </form>
+
+          {/* Forgot Password Link - only in login mode */}
+          {!isRegisterMode && (
+            <div className="mt-3 text-center">
+              <Link
+                to="/forgot-password"
+                className="text-sm transition-colors hover:underline"
+                style={{ color: "var(--brand-primary)" }}
+                data-testid="forgot-password-link"
+              >
+                Forgot Username / Password?
+              </Link>
+            </div>
+          )}
 
           {/* Toggle Login/Register */}
           <div className="mt-4 text-center">
