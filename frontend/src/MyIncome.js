@@ -343,6 +343,7 @@ const MyIncome = () => {
           {[
             { type: "Business", path: "/business-income" },
             { type: "Job", path: "/job-income" },
+            { type: "Self-Employed", path: "/self-employed-income" },
             { type: "Rental", path: "/rental-income" },
             { type: "Commission", path: "/commission-income" },
             { type: "Interest", path: "/interest-income" },
