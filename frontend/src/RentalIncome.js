@@ -745,7 +745,7 @@ const RentalIncome = () => {
                   <select
                     id="yearlyMonth"
                     value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    onChange={(e) => { setSelectedMonth(e.target.value); setSelectedDate(""); }}
                     className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                     data-testid="month-select"
                   >
@@ -754,9 +754,7 @@ const RentalIncome = () => {
                   </select>
                   {errors.selectedMonth && <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>}
                 </div>
-                <div className="w-full">
-                  <label htmlFor="yearlyDate" className="block text-sm font-medium text-[#334155] mb-2">
-                    Select Date
+
                 {selectedMonth && (
                   <div className="w-full">
                     <label className="block text-sm font-medium text-[#334155] mb-2">
