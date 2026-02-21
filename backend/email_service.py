@@ -1,0 +1,366 @@
+"""
+Email Service Module for Moneyssutra
+====================================
+Modular email service that can switch between providers:
+- Resend (via Emergent integration) - Default for trial
+- SendGrid - For commercial scale
+- Mailgun - Alternative option
+
+To switch providers, change EMAIL_PROVIDER in .env
+"""
+
+import os
+import asyncio
+import logging
+from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
+
+logger = logging.getLogger(__name__)
+
+# Email Provider Configuration
+EMAIL_PROVIDER = os.environ.get("EMAIL_PROVIDER", "resend")  # resend, sendgrid, mailgun
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@moneyssutra.app")
+SENDER_NAME = os.environ.get("SENDER_NAME", "Moneyssutra")
+APP_URL = os.environ.get("APP_URL", "https://goal-tracker-prod.emergent.host")
+
+# Moneyssutra Brand Colors
+BRAND_PRIMARY = "#00D09C"  # Mint Green
+BRAND_DARK = "#0B8F70"
+BRAND_BG = "#F8FAF9"
+TEXT_PRIMARY = "#1a1a1a"
+TEXT_SECONDARY = "#666666"
+
+
+def get_email_header():
+    """Returns branded email header HTML"""
+    return f"""
+    <div style="background: linear-gradient(135deg, {BRAND_PRIMARY} 0%, {BRAND_DARK} 100%); padding: 30px 20px; text-align: center;">
+        <h1 style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 28px; font-weight: bold; color: white; letter-spacing: 1px;">
+            Moneyssutra
+        </h1>
+        <p style="margin: 5px 0 0 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: rgba(255,255,255,0.8);">
+            Your Personal Finance Tracker
+        </p>
+    </div>
+    """
+
+
+def get_email_footer():
+    """Returns branded email footer HTML"""
+    return f"""
+    <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
+        <p style="margin: 0 0 10px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: {TEXT_PRIMARY};">
+            Stay Wealthy,<br>
+            <strong style="color: {BRAND_PRIMARY};">Team Moneyssutra</strong>
+        </p>
+        <p style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #999;">
+            This is an automated message, please do not reply.
+        </p>
+    </div>
+    """
+
+
+def get_username_recovery_email(username: str) -> dict:
+    """
+    Generate Username Recovery Email
+    """
+    subject = "Your Moneyssutra Username"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: {BRAND_BG}; font-family: 'Segoe UI', Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <tr>
+                <td>
+                    {get_email_header()}
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 40px 30px;">
+                    <h2 style="margin: 0 0 20px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 22px; color: {TEXT_PRIMARY};">
+                        Hello,
+                    </h2>
+                    <p style="margin: 0 0 25px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; color: {TEXT_SECONDARY}; line-height: 1.6;">
+                        We received a request to remind you of the username associated with your Moneyssutra account.
+                    </p>
+                    
+                    <div style="background-color: {BRAND_BG}; border-left: 4px solid {BRAND_PRIMARY}; padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0;">
+                        <p style="margin: 0 0 5px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: {TEXT_SECONDARY};">
+                            Your Username:
+                        </p>
+                        <p style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: bold; color: {BRAND_PRIMARY};">
+                            {username}
+                        </p>
+                    </div>
+                    
+                    <p style="margin: 25px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: {TEXT_SECONDARY}; line-height: 1.6;">
+                        If you did not request this information, you can safely ignore this email. Your account remains secure.
+                    </p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{APP_URL}" style="display: inline-block; background-color: {BRAND_PRIMARY}; color: white; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 600;">
+                            Log In Now
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {get_email_footer()}
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """
+    
+    return {"subject": subject, "html": html_content}
+
+
+def get_password_reset_email(username: str, reset_link: str) -> dict:
+    """
+    Generate Password Reset Email
+    """
+    subject = "Reset your Moneyssutra Password"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: {BRAND_BG}; font-family: 'Segoe UI', Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <tr>
+                <td>
+                    {get_email_header()}
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 40px 30px;">
+                    <h2 style="margin: 0 0 20px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 22px; color: {TEXT_PRIMARY};">
+                        Hello {username},
+                    </h2>
+                    <p style="margin: 0 0 25px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; color: {TEXT_SECONDARY}; line-height: 1.6;">
+                        You recently requested to reset your password for your Moneyssutra account. Click the button below to choose a new one:
+                    </p>
+                    
+                    <div style="text-align: center; margin: 35px 0;">
+                        <a href="{reset_link}" style="display: inline-block; background-color: {BRAND_PRIMARY}; color: white; text-decoration: none; padding: 16px 50px; border-radius: 8px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 18px; font-weight: 600; box-shadow: 0 4px 12px rgba(0, 208, 156, 0.3);">
+                            Reset Password
+                        </a>
+                    </div>
+                    
+                    <div style="background-color: #FFF9E6; border: 1px solid #FFE082; padding: 15px 20px; border-radius: 8px; margin: 25px 0;">
+                        <p style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #8B6914;">
+                            ⏱ For your security, this link will expire in <strong>30 minutes</strong>.
+                        </p>
+                    </div>
+                    
+                    <p style="margin: 20px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: {TEXT_SECONDARY}; line-height: 1.6;">
+                        If you did not request a password reset, please ignore this email or contact our support team if you have concerns about your account security.
+                    </p>
+                    
+                    <p style="margin: 20px 0 0 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #999; line-height: 1.6;">
+                        If the button doesn't work, copy and paste this link into your browser:<br>
+                        <a href="{reset_link}" style="color: {BRAND_PRIMARY}; word-break: break-all;">{reset_link}</a>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {get_email_footer()}
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """
+    
+    return {"subject": subject, "html": html_content}
+
+
+def get_password_changed_email(username: str) -> dict:
+    """
+    Generate Password Changed Security Notification Email
+    """
+    subject = "Your Moneyssutra Password Has Been Changed"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: {BRAND_BG}; font-family: 'Segoe UI', Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <tr>
+                <td>
+                    {get_email_header()}
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 40px 30px;">
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <div style="display: inline-block; background-color: #E8F5E9; border-radius: 50%; padding: 15px;">
+                            <span style="font-size: 32px;">🔐</span>
+                        </div>
+                    </div>
+                    
+                    <h2 style="margin: 0 0 20px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 22px; color: {TEXT_PRIMARY}; text-align: center;">
+                        Password Successfully Changed
+                    </h2>
+                    
+                    <p style="margin: 0 0 25px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; color: {TEXT_SECONDARY}; line-height: 1.6; text-align: center;">
+                        Hello {username}, your Moneyssutra account password has been successfully changed.
+                    </p>
+                    
+                    <div style="background-color: #FFEBEE; border: 1px solid #FFCDD2; padding: 20px; border-radius: 8px; margin: 25px 0;">
+                        <p style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #C62828; line-height: 1.6;">
+                            <strong>⚠️ If you didn't make this change</strong><br>
+                            Someone may have accessed your account. Please reset your password immediately and review your account activity.
+                        </p>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{APP_URL}" style="display: inline-block; background-color: {BRAND_PRIMARY}; color: white; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 600;">
+                            Go to Moneyssutra
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {get_email_footer()}
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """
+    
+    return {"subject": subject, "html": html_content}
+
+
+async def send_email_resend(to_email: str, subject: str, html_content: str) -> dict:
+    """Send email using Resend API (Emergent integration)"""
+    try:
+        import resend
+        
+        # Use Emergent LLM key for Resend
+        resend.api_key = os.environ.get("EMERGENT_LLM_KEY")
+        
+        params = {
+            "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
+            "to": [to_email],
+            "subject": subject,
+            "html": html_content
+        }
+        
+        # Run sync SDK in thread to keep FastAPI non-blocking
+        email = await asyncio.to_thread(resend.Emails.send, params)
+        
+        logger.info(f"Email sent successfully to {to_email} via Resend")
+        return {"success": True, "email_id": email.get("id")}
+        
+    except Exception as e:
+        logger.error(f"Failed to send email via Resend: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+async def send_email_sendgrid(to_email: str, subject: str, html_content: str) -> dict:
+    """Send email using SendGrid API (for commercial scale)"""
+    try:
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail
+        
+        message = Mail(
+            from_email=SENDER_EMAIL,
+            to_emails=to_email,
+            subject=subject,
+            html_content=html_content
+        )
+        
+        sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
+        response = await asyncio.to_thread(sg.send, message)
+        
+        logger.info(f"Email sent successfully to {to_email} via SendGrid")
+        return {"success": True, "status_code": response.status_code}
+        
+    except Exception as e:
+        logger.error(f"Failed to send email via SendGrid: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+async def send_email_mailgun(to_email: str, subject: str, html_content: str) -> dict:
+    """Send email using Mailgun API"""
+    try:
+        import httpx
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"https://api.mailgun.net/v3/{os.environ.get('MAILGUN_DOMAIN')}/messages",
+                auth=("api", os.environ.get("MAILGUN_API_KEY")),
+                data={
+                    "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
+                    "to": to_email,
+                    "subject": subject,
+                    "html": html_content
+                }
+            )
+            
+        if response.status_code == 200:
+            logger.info(f"Email sent successfully to {to_email} via Mailgun")
+            return {"success": True}
+        else:
+            return {"success": False, "error": response.text}
+            
+    except Exception as e:
+        logger.error(f"Failed to send email via Mailgun: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+async def send_email(to_email: str, subject: str, html_content: str) -> dict:
+    """
+    Main email sending function - routes to appropriate provider
+    """
+    provider = EMAIL_PROVIDER.lower()
+    
+    if provider == "resend":
+        return await send_email_resend(to_email, subject, html_content)
+    elif provider == "sendgrid":
+        return await send_email_sendgrid(to_email, subject, html_content)
+    elif provider == "mailgun":
+        return await send_email_mailgun(to_email, subject, html_content)
+    else:
+        logger.error(f"Unknown email provider: {provider}")
+        return {"success": False, "error": f"Unknown email provider: {provider}"}
+
+
+# Convenience functions for specific email types
+async def send_username_recovery_email(to_email: str, username: str) -> dict:
+    """Send username recovery email"""
+    email_data = get_username_recovery_email(username)
+    return await send_email(to_email, email_data["subject"], email_data["html"])
+
+
+async def send_password_reset_email(to_email: str, username: str, reset_token: str) -> dict:
+    """Send password reset email with reset link"""
+    reset_link = f"{APP_URL}/reset-password?token={reset_token}"
+    email_data = get_password_reset_email(username, reset_link)
+    return await send_email(to_email, email_data["subject"], email_data["html"])
+
+
+async def send_password_changed_notification(to_email: str, username: str) -> dict:
+    """Send password changed security notification"""
+    email_data = get_password_changed_email(username)
+    return await send_email(to_email, email_data["subject"], email_data["html"])
