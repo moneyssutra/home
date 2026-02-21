@@ -23,6 +23,7 @@ import {
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import NotificationBell from "@/components/NotificationBell";
 import { useAuth } from "@/context/AuthContext";
 
 const Dashboard = () => {
