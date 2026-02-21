@@ -951,27 +951,43 @@ async def check_availability(request: CheckAvailabilityRequest):
     """
     Check if username or email is already taken.
     Used for real-time validation during registration.
+    Case-insensitive matching for both username and email.
     """
     result = {
         "username_available": True,
-        "email_available": True
+        "email_available": True,
+        "message": ""
     }
     
     if request.username:
-        # Check if username (name field) is taken
-        existing_user = await db.users.find_one(
-            {"name": {"$regex": f"^{request.username}$", "$options": "i"}},
+        username = request.username.strip()
+        # Check if username (name field) is taken - case insensitive, exact match
+        existing_by_name = await db.users.find_one(
+            {"name": {"$regex": f"^{username}$", "$options": "i"}},
             {"_id": 0, "name": 1}
         )
-        result["username_available"] = existing_user is None
-    
-    if request.email:
-        # Check if email is taken
-        existing_user = await db.users.find_one(
-            {"email": {"$regex": f"^{request.email}$", "$options": "i"}},
+        
+        # Also check if username matches an email's local part (before @)
+        # This prevents user from registering with "john" if "john@example.com" exists
+        existing_by_email_prefix = await db.users.find_one(
+            {"email": {"$regex": f"^{username}@", "$options": "i"}},
             {"_id": 0, "email": 1}
         )
-        result["email_available"] = existing_user is None
+        
+        if existing_by_name or existing_by_email_prefix:
+            result["username_available"] = False
+            result["message"] = "This username is already taken. Please choose another."
+    
+    if request.email:
+        email = request.email.strip().lower()
+        # Check if email is taken - case insensitive, exact match
+        existing_user = await db.users.find_one(
+            {"email": {"$regex": f"^{email}$", "$options": "i"}},
+            {"_id": 0, "email": 1}
+        )
+        if existing_user:
+            result["email_available"] = False
+            result["message"] = "This email is already registered."
     
     return result
 
