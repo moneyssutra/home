@@ -552,6 +552,40 @@ class OtherIncomeCreate(BaseModel):
     notes: Optional[str] = None
     isReceived: bool = False
 
+# ============ NOTIFICATION MODEL ============
+class Notification(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: str
+    title: str
+    message: str
+    type: str = "income_reminder"  # income_reminder, auto_entry, system
+    relatedIncomeId: Optional[str] = None
+    relatedIncomeName: Optional[str] = None
+    isRead: bool = False
+    actionUrl: Optional[str] = None  # URL to navigate when clicked
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class NotificationCreate(BaseModel):
+    userId: str
+    title: str
+    message: str
+    type: str = "income_reminder"
+    relatedIncomeId: Optional[str] = None
+    relatedIncomeName: Optional[str] = None
+    actionUrl: Optional[str] = None
+
+# ============ PUSH SUBSCRIPTION MODEL ============
+class PushSubscription(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: str
+    endpoint: str
+    keys: dict  # {p256dh, auth}
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 # Add your routes to the router instead of directly to app
 @api_router.get("/")
 async def root():
