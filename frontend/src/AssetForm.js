@@ -455,33 +455,15 @@ const AssetForm = () => {
               <label className="block text-sm font-medium text-[#334155] mb-2">
                 Purchase Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
-              <Popover open={purchaseCalendarOpen} onOpenChange={setPurchaseCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="date-picker-trigger"
-                    data-testid="purchase-date-input"
-                  >
-                    <span className={purchaseDate ? "value" : "placeholder"}>
-                      {purchaseDate ? format(new Date(purchaseDate), "PPP") : "Select purchase date"}
-                    </span>
-                    <CalendarIcon className="h-5 w-5 icon" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={purchaseDate ? new Date(purchaseDate) : undefined}
-                    onSelect={(date) => {
-                      if (date) {
-                        setPurchaseDate(format(date, "yyyy-MM-dd"));
-                      }
-                      setPurchaseCalendarOpen(false);
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <RestrictedDatePicker
+                value={purchaseDate}
+                onChange={(date) => setPurchaseDate(date)}
+                maxDate={today}
+                placeholder="Select purchase date"
+                error={!!errors.purchaseDate}
+                testId="purchase-date-input"
+              />
+              {errors.purchaseDate && <p className="text-sm text-red-500 mt-1">{errors.purchaseDate}</p>}
             </div>
 
             {/* Depreciation Type */}
