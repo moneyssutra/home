@@ -537,40 +537,31 @@ const InterestIncome = () => {
             <div className="grid grid-cols-2 gap-4">
               {/* Start Date */}
               <div className="w-full">
-                <label htmlFor="startDate" className="block text-sm font-medium text-[#334155] mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   Start Date
                 </label>
-                <label htmlFor="startDate" className="relative block cursor-pointer">
-                  <input
-                    id="startDate"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
-                    data-testid="start-date-input"
-                  />
-                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                </label>
+                <RestrictedDatePicker
+                  value={startDate}
+                  onChange={(date) => setStartDate(date)}
+                  placeholder="Select start date"
+                  error={!!errors.startDate}
+                  testId="start-date-input"
+                />
                 {errors.startDate && <p className="text-sm text-red-500 mt-1">{errors.startDate}</p>}
               </div>
 
               {/* End Date */}
               <div className="w-full">
-                <label htmlFor="endDate" className="block text-sm font-medium text-[#334155] mb-2">
+                <label className="block text-sm font-medium text-[#334155] mb-2">
                   End Date (Maturity)
                 </label>
-                <label htmlFor="endDate" className="relative block cursor-pointer">
-                  <input
-                    id="endDate"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={startDate || undefined}
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 cursor-pointer"
-                    data-testid="end-date-input"
-                  />
-                  <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
-                </label>
+                <RestrictedDatePicker
+                  value={endDate}
+                  onChange={(date) => setEndDate(date)}
+                  placeholder="Select end date"
+                  error={!!errors.endDate}
+                  testId="end-date-input"
+                />
                 {errors.endDate && <p className="text-sm text-red-500 mt-1">{errors.endDate}</p>}
               </div>
             </div>
