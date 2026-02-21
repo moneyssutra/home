@@ -4,11 +4,51 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Quick Action Menu Updated with Credit Card** (Feb 21, 2026)
+**Self-Employed Income Category Added** (Feb 21, 2026)
 
 ## What Was Implemented (Latest Session - Feb 21, 2026)
 
-### Quick Action Menu - Add Credit Card (Feb 21, 2026 - Latest)
+### Self-Employed Income Category (Feb 21, 2026 - Latest)
+
+**User Request**: Add "Self-Employed" as a new primary income type with specialized profession picker.
+
+**Implementation**:
+
+1. **MyIncome.js Updated**:
+   - Added "Self-Employed" to income type selection grid (now 8 types)
+   - Added UserCheck icon with amber/orange color scheme
+   - Added routing to `/my-self-employed` and `/self-employed-income`
+
+2. **SelfEmployedIncome.js** (New Form Page):
+   - **Profession Picker**: Searchable modal with 5 categories:
+     - Medical: Doctor, Surgeon, Dentist, Physiotherapist, etc.
+     - Legal & Finance: CA, Lawyer, Tax Consultant, etc.
+     - Tech & Creative: Software Consultant, Graphic Designer, etc.
+     - Skilled Services: Plumber, Electrician, Carpenter, etc.
+     - Others: Custom profession input
+   - **Entity/Client Name**: Optional field (e.g., "Private Clinic", "Freelance Clients")
+   - **Expected Amount**: Required with amount-in-words display
+   - **Frequency Selector**: 7 options with conditional fields
+
+3. **MySelfEmployed.js** (New List Page):
+   - Header with amber/orange gradient
+   - Monthly income summary
+   - Income cards showing: Name — Self-Employed — Profession — Amount — Frequency
+   - Next payment date calculation
+   - Empty state with add button
+
+4. **App.js Routes Added**:
+   - `/my-self-employed` - List page
+   - `/self-employed-income` - Add form
+   - `/self-employed-income/:id` - Edit form
+
+5. **Dashboard Integration**:
+   - Self-Employed appears in Income Sources breakdown
+   - Shows percentage and amount in descending order
+
+**Testing Result**: 100% pass rate (all frontend features verified)
+
+### Quick Action Menu - Add Credit Card (Feb 21, 2026)
 
 **User Request**: Add "Credit Card" as a primary entry point in the global Quick Action menu.
 
