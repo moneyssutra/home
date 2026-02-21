@@ -264,7 +264,6 @@ const CommissionIncome = () => {
         type: "Commission",
         name: sourceName,
         expectedAmount: parseFloat(expectedAmount),
-        isVariable,
         frequency,
         selectedDay: selectedDay || null,
         selectedDate: selectedDate || null,
