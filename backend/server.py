@@ -5016,7 +5016,9 @@ async def process_variable_income_fallback(api_key: str = None):
                 await db.income_transactions.insert_one(auto_entry)
                 processed_count += 1
                 
-                # Create notification for user
+                action_url = f"/income/{source.get('type', 'job').lower().replace(' ', '-')}/{source_id}"
+                
+                # Create in-app notification for user
                 notification = {
                     "id": str(uuid.uuid4()),
                     "userId": user_id,
@@ -5025,12 +5027,28 @@ async def process_variable_income_fallback(api_key: str = None):
                     "type": "auto_entry",
                     "relatedIncomeId": source_id,
                     "relatedIncomeName": income_name,
-                    "actionUrl": f"/income/{source.get('type').lower().replace(' ', '-')}/{source_id}",
+                    "actionUrl": action_url,
                     "isRead": False,
                     "createdAt": datetime.now(timezone.utc).isoformat()
                 }
                 await db.notifications.insert_one(notification)
                 notifications_created += 1
+                
+                # Send browser push notifications
+                subscriptions = await db.push_subscriptions.find(
+                    {"userId": user_id}, {"_id": 0}
+                ).to_list(100)
+                
+                for sub in subscriptions:
+                    subscription_info = {
+                        "endpoint": sub.get("endpoint"),
+                        "keys": sub.get("keys", {})
+                    }
+                    result = await send_auto_entry_notification(
+                        subscription_info, income_name, fallback_amount, source_id
+                    )
+                    if result.get("should_remove"):
+                        await db.push_subscriptions.delete_one({"endpoint": sub.get("endpoint")})
             
             # Calculate next due date based on frequency
             next_due = calculate_next_due_date(source, yesterday)
