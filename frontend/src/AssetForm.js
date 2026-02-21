@@ -56,9 +56,9 @@ const AssetForm = () => {
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
-  
-  // Calendar popover state
-  const [purchaseCalendarOpen, setPurchaseCalendarOpen] = useState(false);
+
+  // Today's date for maxDate constraint
+  const today = format(new Date(), "yyyy-MM-dd");
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
