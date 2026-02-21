@@ -710,84 +710,108 @@ const SelfEmployedIncome = () => {
           )}
 
           {frequency === "Half-Yearly" && (
-            <>
+            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
+              {/* Half Selection */}
               <div>
                 <label className="block text-sm font-medium text-[#334155] mb-2">
                   Select Half <span className="text-rose-500">*</span>
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={selectedHalf}
+                  onChange={(e) => {
+                    setSelectedHalf(e.target.value);
+                    setSelectedMonth("");
+                    setSelectedDate("");
+                  }}
+                  className="w-full rounded-xl px-4 py-3"
+                  style={{ 
+                    backgroundColor: "#FFFFFF",
+                    border: errors.selectedHalf ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                    color: selectedHalf ? "var(--text-primary)" : "var(--text-muted)"
+                  }}
+                  data-testid="half-select"
+                >
+                  <option value="">Select Half</option>
                   {halves.map((h) => (
-                    <button
-                      key={h.id}
-                      type="button"
-                      onClick={() => setSelectedHalf(h.label)}
-                      className={`px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                        selectedHalf === h.label ? "text-white" : ""
-                      }`}
-                      style={{
-                        backgroundColor: selectedHalf === h.label ? "var(--brand-primary)" : "#FFFFFF",
-                        border: selectedHalf === h.label ? "none" : "1px solid var(--border-light)",
-                        color: selectedHalf === h.label ? "white" : "var(--text-secondary)"
-                      }}
-                    >
-                      {h.label}
-                    </button>
+                    <option key={h.id} value={h.label}>{h.label}</option>
                   ))}
-                </div>
+                </select>
                 {errors.selectedHalf && <p className="text-rose-500 text-xs mt-1">{errors.selectedHalf}</p>}
               </div>
 
+              {/* Month Selection (based on half) */}
               {selectedHalf && (
                 <div>
                   <label className="block text-sm font-medium text-[#334155] mb-2">
                     Select Month <span className="text-rose-500">*</span>
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => {
+                      setSelectedMonth(e.target.value);
+                      setSelectedDate("");
+                    }}
+                    className="w-full rounded-xl px-4 py-3"
+                    style={{ 
+                      backgroundColor: "#FFFFFF",
+                      border: errors.selectedMonth ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                      color: selectedMonth ? "var(--text-primary)" : "var(--text-muted)"
+                    }}
+                    data-testid="month-select"
+                  >
+                    <option value="">Select Month</option>
                     {halfMonths.map((month) => (
-                      <button
-                        key={month}
-                        type="button"
-                        onClick={() => setSelectedMonth(month)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                          selectedMonth === month ? "text-white" : ""
-                        }`}
-                        style={{
-                          backgroundColor: selectedMonth === month ? "var(--brand-primary)" : "#FFFFFF",
-                          border: selectedMonth === month ? "none" : "1px solid var(--border-light)",
-                          color: selectedMonth === month ? "white" : "var(--text-secondary)"
-                        }}
-                      >
-                        {month}
-                      </button>
+                      <option key={month} value={month}>{month}</option>
                     ))}
-                  </div>
+                  </select>
                   {errors.selectedMonth && <p className="text-rose-500 text-xs mt-1">{errors.selectedMonth}</p>}
                 </div>
               )}
 
+              {/* Date Selection */}
               {selectedMonth && (
                 <div>
                   <label className="block text-sm font-medium text-[#334155] mb-2">
-                    Payment Date <span className="text-rose-500">*</span>
+                    Select Date <span className="text-rose-500">*</span>
                   </label>
-                  <div className="relative">
-                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8]" />
+                  <label className="relative block cursor-pointer">
                     <input
                       type="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 rounded-xl"
+                      min={halfYearlyDateRange.min}
+                      max={halfYearlyDateRange.max}
+                      className="w-full rounded-xl px-4 py-3 cursor-pointer"
                       style={{ 
                         backgroundColor: "#FFFFFF",
                         border: errors.selectedDate ? "1px solid #EF4444" : "1px solid var(--border-light)",
                         color: "var(--text-primary)"
                       }}
+                      data-testid="date-select"
                     />
-                  </div>
+                    <Calendar className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#94A3B8] pointer-events-none" />
+                  </label>
                   {errors.selectedDate && <p className="text-rose-500 text-xs mt-1">{errors.selectedDate}</p>}
                 </div>
               )}
-            </>
+
+              {/* Show Next Recurring Date */}
+              {calculateHalfYearlyDate && (
+                <div className="w-full rounded-xl p-4" style={{ backgroundColor: "var(--brand-primary-soft)", border: "1px solid var(--brand-primary)" }}>
+                  <div className="flex items-start gap-2">
+                    <Calendar className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: "var(--brand-primary)" }} />
+                    <div>
+                      <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>
+                        Next Recurring Date:
+                      </p>
+                      <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                        • {calculateHalfYearlyDate}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {frequency === "Yearly" && (
