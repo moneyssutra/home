@@ -274,6 +274,9 @@ const CommissionIncome = () => {
         selectedHalf: selectedHalf || null,
         selectedMonth: selectedMonth || null,
         customDate: customDate || null,
+        // Variable income fields
+        incomeType: incomeType,
+        reminderTime: incomeType === "variable" ? reminderTime : null,
       };
 
       if (id) {
