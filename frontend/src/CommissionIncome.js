@@ -29,7 +29,6 @@ const CommissionIncome = () => {
   // Form fields
   const [sourceName, setSourceName] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
-  const [isVariable, setIsVariable] = useState(true); // Default: Variable
   const [frequency, setFrequency] = useState("");
   
   // Conditional date fields
