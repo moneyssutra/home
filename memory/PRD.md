@@ -4,82 +4,123 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Dynamic Quarterly Date Picker Logic Complete** (Feb 21, 2026)
+**Authentication Flow & Account Verification Complete** (Feb 21, 2026)
 
 ## What Was Implemented (Latest Session - Feb 21, 2026)
 
-### Dynamic Quarterly Date Picker Logic (Feb 21, 2026 - Latest)
+### Authentication Flow & Account Verification (Feb 21, 2026 - Latest)
 
-**User Request**: Standardize "Quarterly" frequency selection across all forms. When user selects a quarter, the calendar date picker should only allow selecting dates from that quarter's 3 months.
-
-**Implementation**:
-1. **Quarter Utilities** (`/frontend/src/lib/quarterUtils.js`):
-   - `getQuarterMonths(quarter)` - Returns month indices for Q1/Q2/Q3/Q4
-   - `getHalfYearMonths(half)` - Returns month indices for H1/H2
-   - `isDateInQuarter(date, quarter)` - Validation helper
-   - `validateQuarterDate(date, quarter)` - Returns error if date outside quarter
-   - `createQuarterDisabledMatcher()` - For react-day-picker disabled dates
-
-2. **Calendar Component Enhancement** (`/frontend/src/components/ui/calendar.jsx`):
-   - Added `restrictedMonths` prop (array of allowed month indices 0-11)
-   - Month dropdown filters to only show allowed months
-   - Navigation arrows respect month restrictions
-   - Dates outside allowed months are disabled/greyed out
-
-3. **Quarter-to-Month Mapping**:
-   | Quarter | Enabled Months |
-   |---------|----------------|
-   | Q1 | January, February, March |
-   | Q2 | April, May, June |
-   | Q3 | July, August, September |
-   | Q4 | October, November, December |
-
-4. **Forms Updated**:
-   - ExpenseForm.js - Uses restrictedMonths for quarterly/half-yearly calendars
-
-**Testing Result**: 100% pass rate - all Q1-Q4 and H1-H2 restrictions verified
-
-### UI Visibility Fixes (Feb 16, 2026)
-
-1. **Goal Achievements Page** - Fixed invisible text by changing from white/gray to black text colors
-2. **Smart Insights Dashboard** - Changed CSS variables to explicit black text for visibility
-
-### Global Validation System (Feb 16, 2026)
+**User Request**: Implement robust authentication recovery and real-time identity verification:
+1. Forgot Username / Password link on login page
+2. Username recovery via email
+3. Password reset with 30-minute token
+4. Real-time validation during registration
+5. Security notification email after password change
 
 **Implementation**:
-1. **Validation Utilities** (`/frontend/src/lib/validations.js`):
-   - Date consistency, Amount > 0, Required fields, Cross-field validation
-   - Auto-scroll to first error
 
-2. **All 15 Forms Updated** with centralized validation
+1. **Frontend Routes** (`/app/frontend/src/App.js`):
+   - Added `/forgot-password` route to `ForgotPassword.js`
+   - Added `/reset-password` route to `ResetPassword.js`
+
+2. **Login Page Updates** (`/app/frontend/src/pages/Login.js`):
+   - Added "Forgot Username / Password?" link below Sign In button
+   - Real-time username validation with debounced API calls (500ms)
+   - Real-time email validation with debounced API calls (500ms)
+   - Green checkmark + "Username/Email is available" for unique values
+   - Red X + "This username/email is already taken" for duplicates
+   - Create Account button disabled until validation passes
+
+3. **Forgot Password Flow** (`/app/frontend/src/pages/ForgotPassword.js`):
+   - Mode selection: "Forgot Username" or "Forgot Password"
+   - Username recovery: Enter email → Send username via email
+   - Password reset: Enter username → Send reset link via email
+   - Success screen: "Check Your Email" with security notice
+
+4. **Reset Password Page** (`/app/frontend/src/pages/ResetPassword.js`):
+   - Token verification on page load
+   - Invalid/expired token error with "Request New Link" button
+   - New password form with confirm password
+   - Success screen with login redirect
+
+5. **Backend Endpoints** (`/app/backend/server.py`):
+   - `POST /api/auth/check-availability` - Real-time username/email check
+   - `POST /api/auth/forgot-username` - Send username via email
+   - `POST /api/auth/forgot-password` - Generate 30-minute reset token
+   - `POST /api/auth/reset-password` - Validate token and update password
+   - `GET /api/auth/verify-reset-token` - Check token validity
+
+6. **Email Service** (`/app/backend/email_service.py`):
+   - Modular design supporting Resend, SendGrid, Mailgun
+   - Branded HTML templates with Moneyssutra styling
+   - Username recovery email template
+   - Password reset email template
+   - Security notification email (sent after password change)
+
+**Testing Result**: 100% pass rate (16/16 backend tests, all UI flows verified)
+
+**Note**: Email sending is **MOCKED** via Resend integration - emails are not actually sent but API endpoints return success responses.
+
+### Previous Session Work
+
+#### Dynamic Quarterly Date Picker Logic (Feb 21, 2026)
+- Quarter utilities for Q1-Q4 and H1-H2 month restrictions
+- Calendar component enhanced with `restrictedMonths` prop
+- Forms updated for quarterly/half-yearly calendars
+
+#### UI Visibility Fixes (Feb 16, 2026)
+- Goal Achievements page text color fixes
+- Smart Insights Dashboard text visibility fixes
+
+#### Global Validation System (Feb 16, 2026)
+- Centralized validation utilities
+- All 15 forms updated with consistent validation
 
 ## Key Files
 
-### New Files
-- `/frontend/src/lib/quarterUtils.js` - Quarter/Half-year utility functions
+### New/Modified Files This Session
+- `/frontend/src/App.js` - Added auth recovery routes
+- `/frontend/src/pages/Login.js` - Real-time validation, forgot link
+- `/frontend/src/pages/ForgotPassword.js` - Account recovery flow
+- `/frontend/src/pages/ResetPassword.js` - Password reset flow
+- `/backend/server.py` - Auth recovery endpoints
+- `/backend/email_service.py` - Email templates and service
 
-### Modified Files
-- `/frontend/src/components/ui/calendar.jsx` - Added restrictedMonths prop
-- `/frontend/src/ExpenseForm.js` - Uses quarter restrictions
-- `/frontend/src/GoalAchievements.js` - Fixed text visibility
-- `/frontend/src/Dashboard.js` - Fixed Smart Insights text visibility
+### Test Files Created
+- `/app/backend/tests/test_auth_recovery_api.py` - Backend API tests
+- `/app/test_reports/iteration_31.json` - Test results
 
 ## Code Architecture
 ```
 /app/
 ├── backend/
-│   └── server.py
+│   ├── server.py           # Auth recovery endpoints added
+│   └── email_service.py    # Email templates (Resend)
 ├── frontend/
 │   └── src/
+│       ├── App.js          # New routes: /forgot-password, /reset-password
+│       ├── pages/
+│       │   ├── Login.js    # Real-time validation, forgot link
+│       │   ├── ForgotPassword.js  # Username/password recovery
+│       │   └── ResetPassword.js   # Password reset with token
 │       ├── lib/
 │       │   ├── validations.js     # Validation utilities
-│       │   └── quarterUtils.js    # Quarter date restriction utilities
-│       ├── components/
-│       │   ├── ui/
-│       │   │   └── calendar.jsx   # Enhanced with restrictedMonths
-│       │   └── ValidationMessage.js
-│       └── [Form files]
+│       │   └── quarterUtils.js    # Quarter date restrictions
+│       └── components/
+│           └── ui/
+│               └── calendar.jsx   # Enhanced with restrictedMonths
 ```
+
+## API Endpoints
+
+### Auth Recovery (New)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/check-availability` | POST | Check username/email uniqueness |
+| `/api/auth/forgot-username` | POST | Send username recovery email |
+| `/api/auth/forgot-password` | POST | Send password reset email |
+| `/api/auth/reset-password` | POST | Reset password with token |
+| `/api/auth/verify-reset-token` | GET | Validate reset token |
 
 ## Upcoming Tasks
 
@@ -91,10 +132,12 @@ Build a comprehensive personal finance tracking application with multi-user work
 ### P2 - Medium Priority
 - Backend scheduler for expense deductions
 - Loan amortization schedule
+- Enable actual email sending (configure Resend API key)
 
 ### P3 - Future
 - Mobile biometric login
-- 2FA
+- Two-Factor Authentication (2FA)
+- Mobile OTP/PIN authentication
 
 ## Test Credentials
 - **Test User**: test@moneyssutra.com / test
@@ -102,6 +145,8 @@ Build a comprehensive personal finance tracking application with multi-user work
 ## 3rd Party Integrations
 - **OpenAI GPT-5.2**: AI Smart Insights
 - **Emergent Google Auth**: Social login
+- **Resend**: Email service (MOCKED - not configured with real API key)
+- **react-day-picker**: UI component for calendars
 
 ## Deployment Status
 - **Health Check**: PASSED (Feb 21, 2026)
