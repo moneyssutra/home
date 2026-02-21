@@ -498,29 +498,26 @@ const SelfEmployedIncome = () => {
 
           {/* Conditional Fields based on Frequency */}
           {frequency === "Weekly" && (
-            <div>
+            <div className="animate-in fade-in slide-in-from-top-2 duration-300">
               <label className="block text-sm font-medium text-[#334155] mb-2">
                 Select Day <span className="text-rose-500">*</span>
               </label>
-              <div className="flex flex-wrap gap-2">
+              <select
+                value={selectedDay}
+                onChange={(e) => setSelectedDay(e.target.value)}
+                className="w-full rounded-xl px-4 py-3"
+                style={{ 
+                  backgroundColor: "#FFFFFF",
+                  border: errors.selectedDay ? "1px solid #EF4444" : "1px solid var(--border-light)",
+                  color: selectedDay ? "var(--text-primary)" : "var(--text-muted)"
+                }}
+                data-testid="day-select"
+              >
+                <option value="">Select Day</option>
                 {weekDays.map((day) => (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => setSelectedDay(day)}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      selectedDay === day ? "text-white" : ""
-                    }`}
-                    style={{
-                      backgroundColor: selectedDay === day ? "var(--brand-primary)" : "#FFFFFF",
-                      border: selectedDay === day ? "none" : "1px solid var(--border-light)",
-                      color: selectedDay === day ? "white" : "var(--text-secondary)"
-                    }}
-                  >
-                    {day.slice(0, 3)}
-                  </button>
+                  <option key={day} value={day}>{day}</option>
                 ))}
-              </div>
+              </select>
               {errors.selectedDay && <p className="text-rose-500 text-xs mt-1">{errors.selectedDay}</p>}
             </div>
           )}
