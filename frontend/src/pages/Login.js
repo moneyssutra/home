@@ -126,11 +126,19 @@ const Login = () => {
 
     if (isRegisterMode) {
       if (!name.trim()) {
-        setError("Please enter your name");
+        setError("Please enter your username");
+        return;
+      }
+      if (nameAvailable === false) {
+        setError("This username is already taken");
         return;
       }
       if (!email.trim()) {
         setError("Please enter your email");
+        return;
+      }
+      if (emailAvailable === false) {
+        setError("This email is already registered");
         return;
       }
       if (password.length < 4) {
