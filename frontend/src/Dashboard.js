@@ -144,7 +144,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between mb-8">
             <div>
               <p className="text-white/70 text-sm font-medium">
-                Welcome back{getUserName() ? `, ${getUserName()}` : ""}
+                Welcome{getUserName() ? `, ${getUserName()}` : ""}
               </p>
               <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
                 Moneyssutra
