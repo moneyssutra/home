@@ -50,10 +50,31 @@ disabled={(date) => {
 }}
 ```
 
-### 4. Variable Income Backend Logic (COMPLETED)
-- Cron endpoints for auto-entry and reminders
-- Browser push notifications with pywebpush + VAPID
-- Service worker + PushNotificationToggle component
+### 5. Username/Email Availability Check Fix (COMPLETED)
+**Bug Reported**: User entered "test" which exists in the database, but system incorrectly showed "Available".
+
+**Root Cause**:
+- The check compared against the `name` field, but users login with their email prefix
+- Test user's `name` was "Test User", not "test"
+- Email was `test@moneyssutra.com`, so "test" needed to match the email prefix too
+
+**Fix Applied**:
+1. **Backend** (`/api/auth/check-availability`):
+   - Case-insensitive search for both username and email
+   - Username check now also searches for email prefix match (e.g., "test" matches "test@...")
+   - Returns clear boolean + message
+
+2. **Backend** (`/api/auth/register`):
+   - Added duplicate username check before creating user
+   - Also checks email prefix collision
+
+**Testing Protocol Verified**:
+- ✅ "test" (lowercase) → username_available: false
+- ✅ "TEST" (uppercase) → username_available: false
+- ✅ "test@moneyssutra.com" → email_available: false
+- ✅ "TEST@MONEYSSUTRA.COM" → email_available: false
+- ✅ New username/email → shows "available" with green checkmark
+- ✅ Create Account button disabled when validation fails
 
 ### Test Results (Iteration 40)
 - **Frontend**: 100% (all Loan form + Asset loop features verified)
