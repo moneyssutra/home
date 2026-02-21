@@ -109,6 +109,7 @@ Build a comprehensive personal finance tracking application with multi-user work
 ## Key Files
 
 ### New/Modified Files This Session
+- `/frontend/src/components/AddActionSheet.js` - Added Credit Card option
 - `/frontend/src/App.js` - Added auth recovery routes
 - `/frontend/src/pages/Login.js` - Real-time validation, forgot link
 - `/frontend/src/pages/ForgotPassword.js` - Account recovery flow
