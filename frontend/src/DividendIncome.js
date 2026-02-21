@@ -113,34 +113,6 @@ const DividendIncome = () => {
     }
   }, [frequency]);
 
-  // Auto-scroll when quarter/half/month is selected
-  useEffect(() => {
-    if (selectedQuarter && dateFieldRef.current) {
-      setTimeout(() => {
-        dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        dateFieldRef.current.focus();
-      }, 100);
-    }
-  }, [selectedQuarter]);
-
-  useEffect(() => {
-    if (selectedHalf && dateFieldRef.current) {
-      setTimeout(() => {
-        dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        dateFieldRef.current.focus();
-      }, 100);
-    }
-  }, [selectedHalf]);
-
-  useEffect(() => {
-    if (selectedMonth && dateFieldRef.current) {
-      setTimeout(() => {
-        dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        dateFieldRef.current.focus();
-      }, 100);
-    }
-  }, [selectedMonth]);
-
   const sourceCategoryOptions = [
     "Direct Stocks",
     "Mutual Funds (IDCW)",
