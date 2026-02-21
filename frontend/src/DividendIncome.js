@@ -99,9 +99,6 @@ const DividendIncome = () => {
         if (frequency === "Weekly" && dayFieldRef.current) {
           dayFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
           dayFieldRef.current.focus();
-        } else if (frequency === "Monthly" && dateFieldRef.current) {
-          dateFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          dateFieldRef.current.focus();
         } else if (frequency === "Quarterly" && quarterFieldRef.current) {
           quarterFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
           quarterFieldRef.current.focus();
@@ -111,9 +108,6 @@ const DividendIncome = () => {
         } else if (frequency === "Yearly" && monthFieldRef.current) {
           monthFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
           monthFieldRef.current.focus();
-        } else if (frequency === "Irregular" && irregularFieldRef.current) {
-          irregularFieldRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          irregularFieldRef.current.focus();
         }
       }, 100);
     }
