@@ -150,6 +150,12 @@ class IncomeSource(BaseModel):
     # Dividend-specific fields
     sourceCategory: Optional[str] = None
     units: Optional[float] = None
+    # Variable Income fields
+    incomeType: Optional[str] = "fixed"  # "fixed" or "variable"
+    lastRecordedAmount: Optional[float] = None
+    reminderTime: Optional[str] = None  # HH:MM format (e.g., "19:00")
+    lastEntryDate: Optional[str] = None  # Last date when entry was recorded
+    nextDueDate: Optional[str] = None  # Next expected due date for variable income
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class IncomeSourceCreate(BaseModel):
