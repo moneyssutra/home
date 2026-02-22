@@ -219,16 +219,47 @@ const CreditCardForm = () => {
               <label htmlFor="cardName" className="block text-sm font-medium text-[#334155] mb-2">
                 Card Name <span className="text-rose-500">*</span>
               </label>
-              <input
-                id="cardName"
-                type="text"
-                value={cardName}
-                onChange={(e) => setCardName(e.target.value)}
-                placeholder="e.g., HDFC Regalia, ICICI Amazon Pay"
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="card-name-input"
-              />
-              {errors.cardName && <p className="text-rose-500 text-xs mt-1">{errors.cardName}</p>}
+              <div className="relative">
+                <input
+                  id="cardName"
+                  type="text"
+                  value={cardName}
+                  onChange={(e) => {
+                    setCardName(e.target.value);
+                    if (errors.cardName) {
+                      setErrors(prev => ({ ...prev, cardName: null }));
+                    }
+                  }}
+                  onBlur={() => checkCardNameUnique(cardName)}
+                  placeholder="e.g., HDFC Regalia, ICICI Amazon Pay"
+                  className="w-full rounded-xl border px-4 py-3 pr-10 text-[#334155] placeholder-[#334155]/40 focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  style={{
+                    backgroundColor: "var(--bg-subtle)",
+                    borderColor: errors.cardName || cardNameUniqueError 
+                      ? "var(--status-error)" 
+                      : isCardNameUnique === true && cardName.trim() 
+                        ? "var(--status-success)" 
+                        : "var(--border-light)"
+                  }}
+                  data-testid="card-name-input"
+                />
+                {/* Status indicator */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isCheckingCardName && (
+                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+                  )}
+                  {!isCheckingCardName && isCardNameUnique === true && cardName.trim() && (
+                    <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
+                  )}
+                </div>
+              </div>
+              {errors.cardName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.cardName}</p>}
+              {!errors.cardName && cardNameUniqueError && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{cardNameUniqueError}</p>
+              )}
+              {!errors.cardName && !cardNameUniqueError && isCardNameUnique === true && cardName.trim() && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>
+              )}
             </div>
 
             {/* Bank Name */}
