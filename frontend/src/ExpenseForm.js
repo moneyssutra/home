@@ -242,6 +242,11 @@ const ExpenseForm = () => {
     // Expense Name validation
     const nameError = validateTextField(expenseName, "Expense name", 50);
     if (nameError) newErrors.expenseName = nameError;
+    
+    // Check uniqueness
+    if (isExpenseNameUnique === false) {
+      newErrors.expenseName = expenseNameUniqueError || "An entry with this name already exists.";
+    }
 
     // Category validation
     if (!category) {
