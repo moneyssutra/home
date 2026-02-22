@@ -1164,21 +1164,44 @@ async def forgot_username(request: ForgotUsernameRequest):
 @api_router.post("/auth/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):
     """
-    Send password reset email with time-limited token.
+    Send password reset email/OTP using registered Email ID or Mobile Number.
     """
-    # Find user by username (name field) or email
+    identifier = request.username.strip()
+    
+    # Determine if identifier is email or mobile
+    is_mobile = identifier.isdigit() and len(identifier) == 10
+    is_email = "@" in identifier
+    
+    # Build query conditions
+    query_conditions = []
+    if is_email:
+        query_conditions.append({"email": {"$regex": f"^{identifier}$", "$options": "i"}})
+    if is_mobile:
+        query_conditions.append({"mobile": identifier})
+    
+    # If neither, check both
+    if not is_email and not is_mobile:
+        query_conditions = [
+            {"email": {"$regex": f"^{identifier}$", "$options": "i"}},
+            {"mobile": identifier}
+        ]
+    
+    # Find user by email or mobile
     user = await db.users.find_one(
-        {
-            "$or": [
-                {"name": {"$regex": f"^{request.username}$", "$options": "i"}},
-                {"email": {"$regex": f"^{request.username}$", "$options": "i"}}
-            ]
-        },
-        {"_id": 0, "user_id": 1, "name": 1, "email": 1, "auth_type": 1}
+        {"$or": query_conditions},
+        {"_id": 0, "user_id": 1, "name": 1, "firstName": 1, "email": 1, "mobile": 1, "auth_type": 1}
     )
     
+    # Also check basic_profiles for mobile
+    if not user and is_mobile:
+        profile = await db.basic_profiles.find_one({"mobile": identifier}, {"_id": 0, "user_id": 1, "firstName": 1})
+        if profile:
+            user = await db.users.find_one({"user_id": profile["user_id"]}, {"_id": 0})
+            if user:
+                user["firstName"] = profile.get("firstName", user.get("name", "").split()[0] if user.get("name") else "User")
+    
     # Always return success message to prevent user enumeration
-    success_message = "If an account exists with this username, you will receive a password reset link shortly."
+    success_message = "If an account exists with this email or mobile number, you will receive a password reset link shortly."
     
     if user:
         # Only allow password reset for JWT auth users
@@ -1198,9 +1221,9 @@ async def forgot_password(request: ForgotPasswordRequest):
             }
             await db.password_reset_tokens.insert_one(reset_record)
             
-            # Send reset email
-            username = user.get("name", "User")
-            email_result = await send_password_reset_email(user["email"], username, reset_token)
+            # Send reset email (use firstName for greeting)
+            first_name = user.get("firstName", user.get("name", "User").split()[0] if user.get("name") else "User")
+            email_result = await send_password_reset_email(user["email"], first_name, reset_token)
             
             if not email_result.get("success"):
                 logger.error(f"Failed to send password reset email: {email_result.get('error')}")
