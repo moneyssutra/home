@@ -16,11 +16,13 @@ Build a comprehensive personal finance tracking application with multi-user work
 - Removed "Forgot Username" functionality entirely
 - Updated Forgot Password to accept email OR mobile number
 - Fixed duplicated JSX in Login.js (was broken from previous refactoring)
+- Added "Remember Me" checkbox that extends session from 7 days to 30 days
 
 **Files Modified**:
-- `frontend/src/pages/Login.js` - Complete rewrite with single identifier field
+- `frontend/src/pages/Login.js` - Complete rewrite with single identifier field + Remember Me
 - `frontend/src/pages/ForgotPassword.js` - Simplified to only handle password recovery
-- Backend already supported email/mobile login through `$or` queries
+- `frontend/src/context/AuthContext.js` - Added remember_me parameter to login function
+- `backend/server.py` - Updated JWTLoginRequest model and session duration logic
 
 **Testing Results** (iteration_42.json):
 - Backend: 100% (14/14 tests passed)
