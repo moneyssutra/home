@@ -1,0 +1,91 @@
+{
+  "summary": "Completed frontend testing of Asset Module refinement features: Optional Current Market Value with Purchase Value default, and mandatory insurance selection validation. All 10 features tested and verified working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "features_tested": [
+      {
+        "feature": "Current Market Value field shows '(Optional)' label",
+        "status": "PASS",
+        "evidence": "Label text: 'Current Market Value (Optional)' - verified via evaluate"
+      },
+      {
+        "feature": "Current Market Value placeholder shows Purchase Value when entered",
+        "status": "PASS",
+        "evidence": "Initial placeholder: '0', Updated placeholder after entering 500000: '500000'"
+      },
+      {
+        "feature": "Helper text says 'Leave blank to use Purchase Value for Net Worth'",
+        "status": "PASS",
+        "evidence": "Helper text found and visible below Current Market Value field"
+      },
+      {
+        "feature": "Asset can be saved without Current Market Value (defaults to Purchase Value)",
+        "status": "PASS",
+        "evidence": "Created 'Test Asset No CMV' with Purchase Value 750000, saved successfully, appeared in My Assets list showing ₹7,50,000"
+      },
+      {
+        "feature": "Insurance toggle ON requires policy selection",
+        "status": "PASS",
+        "evidence": "Validation triggered when Save clicked with toggle ON but no policy selected"
+      },
+      {
+        "feature": "Toast notification appears when saving with toggle ON but no policy selected",
+        "status": "PASS",
+        "evidence": "Toast visible: True - Message: 'Please select an insurance policy or turn off the insurance toggle to save.'"
+      },
+      {
+        "feature": "Red error message and warning icon shown below dropdown",
+        "status": "PASS",
+        "evidence": "Error message in red text with AlertTriangle icon visible below insurance dropdown"
+      },
+      {
+        "feature": "Select Linked Insurance shows required asterisk (*) when toggle is ON",
+        "status": "PASS",
+        "evidence": "Insurance dropdown label: 'Select Linked Insurance *'"
+      },
+      {
+        "feature": "Error clears when a policy is selected",
+        "status": "PASS",
+        "evidence": "After selecting 'HDFC' policy, error message cleared"
+      },
+      {
+        "feature": "Asset saves successfully with valid insurance selection",
+        "status": "PASS",
+        "evidence": "Created 'Test Asset With Insurance' with HDFC policy, saved successfully, redirected to my-assets page"
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Code structure is good - validation logic properly integrated at lines 259-278",
+    "performSave function correctly defaults currentValue to purchaseValue at line 313-315",
+    "Toast notifications using sonner library working correctly",
+    "Error states properly managed with setErrors and visual feedback"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only testing)",
+    "frontend": "100% (10/10 features passed)"
+  },
+  "test_credentials": {
+    "username": "test",
+    "password": "test"
+  },
+  "seed_data_creation": "Created 2 test assets during testing: 'Test Asset No CMV' and 'Test Asset With Insurance'",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Asset Module refinement features fully tested. Current Market Value is now optional with Purchase Value default. Insurance toggle requires policy selection with toast notification and inline error validation. All sonner toast notifications working correctly.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
