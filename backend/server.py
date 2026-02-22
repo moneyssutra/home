@@ -781,10 +781,13 @@ async def register_user(request: RegisterRequest, response: Response):
     
     return {
         "user_id": user_id,
-        "email": request.email,
-        "name": request.name,
+        "email": email,
+        "name": fullName,
+        "firstName": firstName,
+        "lastName": lastName,
         "picture": None,
-        "session_token": session_token
+        "session_token": session_token,
+        "isNewUser": True  # Flag for welcome/onboarding flow
     }
 
 async def get_current_user(request: Request):
