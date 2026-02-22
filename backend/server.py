@@ -5665,7 +5665,7 @@ async def check_and_send_reminders():
 
 @app.on_event("startup")
 async def startup_db_client():
-    """Create database indexes for faster queries"""
+    """Create database indexes and start background scheduler"""
     try:
         # Create indexes for user isolation queries
         await db.assets.create_index("userId")
@@ -5681,9 +5681,15 @@ async def startup_db_client():
         await db.user_sessions.create_index("session_token")
         await db.users.create_index("user_id")
         await db.users.create_index("email")
+        await db.notifications.create_index([("userId", 1), ("createdAt", -1)])
         logger.info("Database indexes created successfully")
+        
+        # Start background reminder scheduler
+        asyncio.create_task(check_and_send_reminders())
+        logger.info("Background reminder scheduler task created")
+        
     except Exception as e:
-        logger.warning(f"Index creation warning: {e}")
+        logger.warning(f"Startup warning: {e}")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
