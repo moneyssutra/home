@@ -738,6 +738,23 @@ async def register_user(request: RegisterRequest, response: Response):
     }
     await db.users.insert_one(user)
     
+    # Create BasicProfile entry
+    basic_profile = {
+        "user_id": user_id,
+        "firstName": firstName,
+        "middleName": middleName,
+        "lastName": lastName,
+        "fullName": fullName,
+        "email": email,
+        "mobile": request.mobile.strip() if request.mobile else None,
+        "sex": request.sex.lower(),
+        "dateOfBirth": request.dateOfBirth,
+        "profilePicture": None,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
+        "updatedAt": datetime.now(timezone.utc).isoformat()
+    }
+    await db.basic_profiles.insert_one(basic_profile)
+    
     # Create session
     session_token = str(uuid.uuid4())
     expires_at = datetime.now(timezone.utc) + timedelta(days=7)
