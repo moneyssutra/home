@@ -57,6 +57,20 @@ const DividendIncome = () => {
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
+  // Entity uniqueness check for investment name
+  const {
+    checkUniqueness: checkInvestmentNameUnique,
+    isChecking: isCheckingInvestmentName,
+    isUnique: isInvestmentNameUnique,
+    error: investmentNameUniqueError,
+    reset: resetInvestmentNameCheck
+  } = useEntityUniqueness({
+    collection: "income_sources",
+    field: "name",
+    excludeId: id || null,
+    typeFilter: "Dividend"
+  });
+
   // Fetch data if editing
   useEffect(() => {
     if (id) {
