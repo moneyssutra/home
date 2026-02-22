@@ -221,6 +221,7 @@ VAPID_CLAIMS_EMAIL=mailto:support@moneyssutra.com
 - **MongoDB Atlas Triggers**: Scheduled cron jobs (setup required)
 
 ## Recent Test Reports
+- `/app/test_reports/iteration_42.json` - Login & Password Recovery (100% pass)
 - `/app/test_reports/iteration_39.json` - Variable Income backend (100% pass)
 - `/app/test_reports/iteration_13.json` - Previous session tests
 
