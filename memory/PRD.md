@@ -8,7 +8,31 @@ Build a comprehensive personal finance tracking application with multi-user work
 
 ## What Was Implemented (Latest Session - Feb 22, 2026)
 
-### 1. Historical Transaction Logging & Immutable Records - BACKEND COMPLETE
+### 1. Mobile Time Picker Visibility Fix (COMPLETED)
+**Issue**: "Set Reminder Time" field was not showing options on mobile devices.
+
+**Fix Applied**:
+- Replaced `<select>` dropdown with native `<input type="time">` for better mobile support
+- Implemented `showPicker()` API to force native time wheel to open on tap
+- Applied CSS overrides: `WebkitAppearance: none`, `colorScheme: light`, white background
+- Set `fontSize: 16px` to prevent iOS auto-zoom on focus
+- Set `minHeight: 52px` for proper touch target size
+- Added transparent calendar picker indicator covering full input for easier tapping
+- Ensured high z-index (10+) so picker appears above other form elements
+
+**Files Modified**:
+- `/app/frontend/src/components/ReminderTimePicker.js` - Complete rewrite
+
+**Forms Using This Component**:
+- BusinessIncome.js, JobIncome.js, RentalIncome.js
+- CommissionIncome.js, DividendIncome.js, InterestIncome.js
+- SelfEmployedIncome.js
+
+**Testing**: Verified on mobile viewport (390x844) - native time picker wheel opens correctly.
+
+---
+
+### 2. Historical Transaction Logging - Backend Complete
 **Feature**: Implemented a transaction-based model for tracking income and expense entries while preserving historical data integrity.
 
 **Backend Implementation**:
