@@ -47,6 +47,20 @@ const JobIncome = () => {
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   
+  // Entity uniqueness check for company name
+  const {
+    checkUniqueness: checkCompanyNameUnique,
+    isChecking: isCheckingCompanyName,
+    isUnique: isCompanyNameUnique,
+    error: companyNameUniqueError,
+    reset: resetCompanyNameCheck
+  } = useEntityUniqueness({
+    collection: "income_sources",
+    field: "name",
+    excludeId: id || null,
+    typeFilter: "Job"
+  });
+  
   // Get today's date for minimum date restriction
   const today = new Date().toISOString().split('T')[0];
 
