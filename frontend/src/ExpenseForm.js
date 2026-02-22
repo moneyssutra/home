@@ -22,7 +22,8 @@ import RecordTransactionModal from "@/components/RecordTransactionModal";
 import { 
   recordExpenseTransaction, 
   getExpenseTransactionHistory,
-  deleteExpenseTransaction 
+  deleteExpenseTransaction,
+  dismissRelatedNotifications
 } from "@/utils/transactionApi";
 import { toast } from "sonner";
 
