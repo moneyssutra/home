@@ -18,6 +18,7 @@ const Login = () => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,7 +58,7 @@ const Login = () => {
     }
 
     setIsSubmitting(true);
-    const result = await login(identifier, password);
+    const result = await login(identifier, password, rememberMe);
     
     if (result.success) {
       const from = location.state?.from?.pathname || "/home";
@@ -352,8 +353,21 @@ const Login = () => {
                   </div>
                 </div>
 
-                {/* Forgot Password Link */}
-                <div className="text-right">
+                {/* Remember Me & Forgot Password */}
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-4 h-4 rounded border-2 cursor-pointer accent-[var(--brand-primary)]"
+                      style={{ borderColor: "var(--border-light)" }}
+                      data-testid="remember-me-checkbox"
+                    />
+                    <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                      Remember me
+                    </span>
+                  </label>
                   <button 
                     type="button"
                     onClick={() => { setIsForgotPasswordMode(true); setError(""); }}
