@@ -897,7 +897,7 @@ const BusinessIncome = () => {
             <button
               type="button"
               onClick={handleSave}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isCheckingBusinessName || isBusinessNameUnique === false}
               className="w-full rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
               data-testid="save-button"
             >
