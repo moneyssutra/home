@@ -6259,6 +6259,11 @@ async def startup_db_client():
         await db.users.create_index("user_id")
         await db.users.create_index("email")
         await db.notifications.create_index([("userId", 1), ("createdAt", -1)])
+        # Transaction collections indexes
+        await db.income_transactions.create_index([("userId", 1), ("transactionDate", -1)])
+        await db.income_transactions.create_index([("entityId", 1)])
+        await db.expense_transactions.create_index([("userId", 1), ("transactionDate", -1)])
+        await db.expense_transactions.create_index([("entityId", 1)])
         logger.info("Database indexes created successfully")
         
         # Start background reminder scheduler
