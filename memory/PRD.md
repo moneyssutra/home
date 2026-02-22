@@ -4,9 +4,53 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Mobile Notification Panel Redesigned** (Feb 22, 2026)
+**Transaction-Based Data Model - Backend Complete** (Feb 22, 2026)
 
 ## What Was Implemented (Latest Session - Feb 22, 2026)
+
+### 1. Historical Transaction Logging & Immutable Records - BACKEND COMPLETE
+**Feature**: Implemented a transaction-based model for tracking income and expense entries while preserving historical data integrity.
+
+**Backend Implementation**:
+- **Income Transaction Endpoints**:
+  - `POST /api/income-transactions` - Create new income transaction
+  - `GET /api/income-transactions` - Get all income transactions with filters
+  - `GET /api/income-transactions/history/{entity_id}` - Get complete history for an income source
+  - `GET /api/income-transactions/monthly-summary` - Monthly aggregation for cash flow
+  - `DELETE /api/income-transactions/{transaction_id}` - Delete (with 24-hour lock check)
+  - `POST /api/income-transactions/{transaction_id}/adjust` - Create adjustment entries for locked transactions
+
+- **Expense Transaction Endpoints** (NEW):
+  - `POST /api/expense-transactions` - Create new expense transaction
+  - `GET /api/expense-transactions` - Get all expense transactions with filters
+  - `GET /api/expense-transactions/history/{entity_id}` - Get complete history for an expense
+  - `GET /api/expense-transactions/monthly-summary` - Monthly aggregation by category
+  - `DELETE /api/expense-transactions/{transaction_id}` - Delete (with 24-hour lock check)
+
+**Data Model**:
+- **IncomeTransaction**: `id`, `userId`, `entityId`, `entityType`, `entityName`, `amount`, `transactionDate`, `notes`, `source`, `isLocked`, `createdAt`
+- **ExpenseTransaction**: `id`, `userId`, `entityId`, `entityName`, `category`, `amount`, `transactionDate`, `notes`, `source`, `isLocked`, `createdAt`
+
+**Key Features**:
+- **Immutable Records**: Transactions become locked after 24 hours
+- **Adjustment Entries**: Create correction entries for locked transactions instead of modifying
+- **Legacy Data Support**: Endpoints handle both new (userId present) and legacy (userId null) data
+- **Database Indexes**: Added indexes for optimized querying on userId + transactionDate
+
+**Architecture Decision**:
+- **Dashboard continues using "expected" amounts** from templates (income_sources, expenses)
+- **Transaction records store "actual" amounts** for historical accuracy
+- This hybrid approach preserves budget vs. actual comparison capability
+
+**Testing Results**:
+- All CRUD operations tested via curl ✓
+- Transaction creation, retrieval, deletion working ✓
+- Monthly summaries aggregating correctly ✓
+- Legacy data compatibility verified ✓
+
+---
+
+## What Was Implemented (Previous Session - Feb 22, 2026)
 
 ### 1. Mobile Notification Panel Redesign (COMPLETED)
 **Feature**: Redesigned notification dropdown into a mobile-optimized bottom sheet drawer.
