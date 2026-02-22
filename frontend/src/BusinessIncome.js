@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Trash2, Check, Loader2, Calendar } from "lucide-react";
+import { ChevronLeft, Trash2, Check, Loader2, Calendar, PlusCircle } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -15,6 +15,14 @@ import {
   scrollToFirstError
 } from "@/lib/validations";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
+import TransactionHistoryPanel from "@/components/TransactionHistoryPanel";
+import RecordTransactionModal from "@/components/RecordTransactionModal";
+import { 
+  recordIncomeTransaction, 
+  getIncomeTransactionHistory,
+  deleteIncomeTransaction 
+} from "@/utils/transactionApi";
+import { toast } from "sonner";
 
 const BusinessIncome = () => {
   const navigate = useNavigate();
@@ -44,6 +52,10 @@ const BusinessIncome = () => {
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [existingBusiness, setExistingBusiness] = useState(null);
+  
+  // Transaction recording
+  const [showRecordModal, setShowRecordModal] = useState(false);
+  const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   
