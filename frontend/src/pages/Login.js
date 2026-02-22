@@ -1,30 +1,22 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Wallet, Lock, User, Eye, EyeOff, AlertCircle, Mail, UserPlus, LogIn, Check, X, Loader2 } from "lucide-react";
-import axios from "axios";
+import { Wallet, Lock, User, Eye, EyeOff, AlertCircle, Mail, Loader2 } from "lucide-react";
+import RegisterForm from "@/components/RegisterForm";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, register, loginWithGoogle, isAuthenticated, loading } = useAuth();
+  const { login, loginWithGoogle, isAuthenticated, loading } = useAuth();
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Real-time validation states for registration
-  const [nameAvailable, setNameAvailable] = useState(null); // null = not checked, true = available, false = taken
-  const [emailAvailable, setEmailAvailable] = useState(null);
-  const [checkingName, setCheckingName] = useState(false);
-  const [checkingEmail, setCheckingEmail] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && !loading) {
