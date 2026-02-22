@@ -1107,6 +1107,7 @@ const SelfEmployedIncome = () => {
         type="income"
         onSubmit={async (data) => {
           await recordIncomeTransaction(data);
+          await dismissRelatedNotifications(id);
           setTransactionRefreshKey(k => k + 1);
         }}
       />
