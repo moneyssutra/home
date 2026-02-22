@@ -4,11 +4,38 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Login & Password Recovery Refined** (Feb 22, 2026)
+**Global Entity Uniqueness Validation Implemented** (Feb 22, 2026)
 
 ## What Was Implemented (Latest Session - Feb 22, 2026)
 
-### 1. Refined Login & Password Recovery (COMPLETED)
+### 1. Global Entity Uniqueness Validation (COMPLETED)
+**Feature**: Real-time validation to prevent duplicate entity names for a single user.
+
+**Implementation**:
+- Backend API `/api/check-entity-uniqueness` - Supports all collections with case-insensitive search
+- `useEntityUniqueness` hook - Reusable React hook with debouncing and abort controller
+- Visual feedback: Loading spinner, green checkmark (unique), red X (duplicate)
+- Disabled Save button when name is not unique
+
+**Forms Updated**:
+- BusinessIncome.js - Business Name validation
+- JobIncome.js - Company Name validation
+- AssetForm.js - Asset Name validation
+- LoanForm.js - Loan Name validation
+- CreditCardForm.js - Card Name validation
+- InsuranceForm.js - Policy Name validation
+- ExpenseForm.js - Expense Name validation
+- DividendIncome.js - Investment Name validation
+- InterestIncome.js - Source Name validation
+
+**Testing Results** (iteration_43.json):
+- Backend: 100% (14/14 tests passed)
+- Frontend: 100% (all forms validated)
+- Case-insensitive search works ✓
+- Edit mode (exclude_id) works ✓
+- Duplicate detection works ✓
+
+### 2. Refined Login & Password Recovery (COMPLETED)
 **Feature**: Simplified login to use single "Email ID or Mobile Number" field.
 
 **Changes Made**:
