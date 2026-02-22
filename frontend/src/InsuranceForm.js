@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Calendar as CalendarIcon, Trash2 } from "lucide-react";
+import { ChevronLeft, Calendar as CalendarIcon, Trash2, Check, Loader2 } from "lucide-react";
 import axios from "axios";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -9,6 +9,7 @@ import { numberToWords } from "@/lib/formatters";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
+import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
 import { 
   validatePositiveAmount, 
   validateDateRange,
