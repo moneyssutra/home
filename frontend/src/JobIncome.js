@@ -409,15 +409,30 @@ const JobIncome = () => {
               >
                 Company Name
               </label>
-              <input
-                id="companyName"
-                type="text"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                placeholder="Enter Company Name"
-                maxLength={50}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="company-name-input"
+              <div className="relative">
+                <input
+                  id="companyName"
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => {
+                    setCompanyName(e.target.value);
+                    if (errors.companyName) {
+                      setErrors(prev => ({ ...prev, companyName: null }));
+                    }
+                  }}
+                  onBlur={() => checkCompanyNameUnique(companyName)}
+                  placeholder="Enter Company Name"
+                  maxLength={50}
+                  className="w-full rounded-xl border px-4 py-3 pr-10 text-[#334155] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  style={{
+                    backgroundColor: "var(--bg-subtle)",
+                    borderColor: errors.companyName || companyNameUniqueError 
+                      ? "var(--status-error)" 
+                      : isCompanyNameUnique === true && companyName.trim() 
+                        ? "var(--status-success)" 
+                        : "var(--border-light)"
+                  }}
+                  data-testid="company-name-input"
               />
               {errors.companyName && (
                 <p className="text-sm text-red-500 mt-1">{errors.companyName}</p>
