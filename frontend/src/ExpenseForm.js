@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ChevronLeft, Calendar as CalendarIcon, Trash2, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, Calendar as CalendarIcon, Trash2, Check, Loader2, PlusCircle } from "lucide-react";
 import axios from "axios";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -17,6 +17,14 @@ import {
   scrollToFirstError
 } from "@/lib/validations";
 import { getQuarterMonths, getHalfYearMonths, validateQuarterDate, validateHalfYearDate } from "@/lib/quarterUtils";
+import TransactionHistoryPanel from "@/components/TransactionHistoryPanel";
+import RecordTransactionModal from "@/components/RecordTransactionModal";
+import { 
+  recordExpenseTransaction, 
+  getExpenseTransactionHistory,
+  deleteExpenseTransaction 
+} from "@/utils/transactionApi";
+import { toast } from "sonner";
 
 const ExpenseForm = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
@@ -65,6 +73,10 @@ const ExpenseForm = () => {
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
+  
+  // Transaction recording
+  const [showRecordModal, setShowRecordModal] = useState(false);
+  const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   const today = new Date().toISOString().split('T')[0];
