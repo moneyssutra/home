@@ -5266,7 +5266,7 @@ async def process_variable_income_fallback(api_key: str = None):
                 await db.income_transactions.insert_one(auto_entry)
                 processed_count += 1
                 
-                action_url = f"/income/{source.get('type', 'job').lower().replace(' ', '-')}/{source_id}"
+                action_url = f"/{source.get('type', 'job').lower().replace(' ', '-')}-income/{source_id}"
                 
                 # Create in-app notification for user
                 notification = {
