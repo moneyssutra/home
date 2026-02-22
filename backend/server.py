@@ -5608,8 +5608,14 @@ async def record_income_transaction(transaction: dict, user_id: str = None, requ
     amount = float(transaction.get("amount", 0))
     transaction_date = transaction.get("transactionDate") or transaction.get("recordedDate") or datetime.now(timezone.utc).date().isoformat()
     
-    # Get the income source template
+    # Get the income source template (including legacy data without userId)
     income_source = await db.income_sources.find_one({"id": entity_id, "userId": user_id}, {"_id": 0})
+    if not income_source:
+        # Also check for legacy data (userId is null/missing)
+        income_source = await db.income_sources.find_one({
+            "id": entity_id, 
+            "$or": [{"userId": None}, {"userId": {"$exists": False}}]
+        }, {"_id": 0})
     if not income_source:
         raise HTTPException(status_code=404, detail="Income source not found")
     
