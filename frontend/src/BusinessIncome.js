@@ -20,7 +20,8 @@ import RecordTransactionModal from "@/components/RecordTransactionModal";
 import { 
   recordIncomeTransaction, 
   getIncomeTransactionHistory,
-  deleteIncomeTransaction 
+  deleteIncomeTransaction,
+  dismissRelatedNotifications
 } from "@/utils/transactionApi";
 import { toast } from "sonner";
 
@@ -1065,6 +1066,7 @@ const BusinessIncome = () => {
         type="income"
         onSubmit={async (data) => {
           await recordIncomeTransaction(data);
+          await dismissRelatedNotifications(id);
           setTransactionRefreshKey(k => k + 1);
         }}
       />
