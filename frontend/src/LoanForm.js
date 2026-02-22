@@ -61,6 +61,19 @@ const LoanIncome = () => {
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
+  // Entity uniqueness check for loan name
+  const {
+    checkUniqueness: checkLoanNameUnique,
+    isChecking: isCheckingLoanName,
+    isUnique: isLoanNameUnique,
+    error: loanNameUniqueError,
+    reset: resetLoanNameCheck
+  } = useEntityUniqueness({
+    collection: "loans",
+    field: "loanName",
+    excludeId: id || null
+  });
+
   const loanTypeOptions = [
     "Home Loan",
     "Vehicle Loan",
