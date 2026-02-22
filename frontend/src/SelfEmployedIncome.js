@@ -1096,6 +1096,20 @@ const SelfEmployedIncome = () => {
         </>
       )}
 
+      {/* Record Transaction Modal */}
+      <RecordTransactionModal
+        isOpen={showRecordModal}
+        onClose={() => setShowRecordModal(false)}
+        entityId={id}
+        entityName={selectedProfession || "Self-Employment"}
+        expectedAmount={parseFloat(expectedAmount) || 0}
+        type="income"
+        onSubmit={async (data) => {
+          await recordIncomeTransaction(data);
+          setTransactionRefreshKey(k => k + 1);
+        }}
+      />
+
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
