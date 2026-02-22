@@ -334,6 +334,11 @@ const LoanIncome = () => {
     // Loan Name validation
     const nameError = validateTextField(loanName, "Loan name", 100);
     if (nameError) newErrors.loanName = nameError;
+    
+    // Check uniqueness
+    if (isLoanNameUnique === false) {
+      newErrors.loanName = loanNameUniqueError || "An entry with this name already exists.";
+    }
 
     // Principal Amount validation
     const principalError = validatePositiveAmount(principalAmount, "Principal amount");
