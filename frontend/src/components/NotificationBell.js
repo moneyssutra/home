@@ -258,7 +258,7 @@ const NotificationBell = () => {
           <div className="overflow-y-auto flex-1 overscroll-contain">
             {loading && notifications.length === 0 ? (
               <div className="p-12 text-center">
-                <div className="animate-spin h-8 w-8 border-3 border-[#00D09C] border-t-transparent rounded-full mx-auto mb-3"></div>
+                <div className="animate-spin h-8 w-8 border-4 border-[#00D09C] border-t-transparent rounded-full mx-auto mb-3"></div>
                 <p className="text-gray-400">Loading notifications...</p>
               </div>
             ) : notifications.length === 0 ? (
