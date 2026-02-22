@@ -249,6 +249,11 @@ const AssetForm = () => {
     // Asset Name validation
     const nameError = validateTextField(assetName, "Asset name", 100);
     if (nameError) newErrors.assetName = nameError;
+    
+    // Check uniqueness
+    if (isAssetNameUnique === false) {
+      newErrors.assetName = assetNameUniqueError || "An entry with this name already exists.";
+    }
 
     // Current Value validation (required, non-negative)
     const valueError = validateNonNegativeAmount(currentValue, "Current value");
