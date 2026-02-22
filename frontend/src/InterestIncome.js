@@ -299,6 +299,11 @@ const InterestIncome = () => {
     // Source Name validation
     const nameError = validateTextField(sourceName, "Interest source name", 50);
     if (nameError) newErrors.sourceName = nameError;
+    
+    // Check uniqueness
+    if (isSourceNameUnique === false) {
+      newErrors.sourceName = sourceNameUniqueError || "An entry with this name already exists.";
+    }
 
     // Principal Amount validation
     const principalError = validatePositiveAmount(principal, "Principal amount");
