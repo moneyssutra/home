@@ -56,7 +56,7 @@ const NotificationBell = () => {
   
   const handleBellClick = () => {
     setIsOpen(true);
-    fetchNotifications();
+    fetchNotifications(true);
   };
   
   const handleClose = () => {
