@@ -116,7 +116,16 @@ disabled={(date) => {
 
 ## Key Files
 
-### New Files This Session
+### New Files This Session (Feb 22)
+- `/app/backend/atlas_triggers/variable_income_fallback.js` - Atlas Trigger function for 24-hour fallback
+- `/app/backend/atlas_triggers/send_reminders.js` - Atlas Trigger function for hourly reminders
+- `/app/docs/ATLAS_TRIGGERS_SETUP.md` - 5-step setup guide for MongoDB Atlas
+
+### Modified Files (Feb 22)
+- `/app/frontend/src/pages/Login.js` - Refactored with single identifier field
+- `/app/frontend/src/pages/ForgotPassword.js` - Simplified password recovery
+
+### New Files Previous Session
 - `/app/backend/push_service.py` - Push notification service
 - `/app/frontend/public/sw.js` - Service worker
 - `/app/frontend/src/utils/pushNotifications.js` - Push utilities
