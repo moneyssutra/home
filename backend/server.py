@@ -6312,16 +6312,25 @@ async def check_and_send_reminders():
     """
     Background task that runs every minute to check for income reminders.
     Sends notifications for variable income entries that have reminder times matching current time.
+    Also checks for due insurance premiums once per day at midnight.
     """
     global scheduler_running
     scheduler_running = True
     logger.info("Background reminder scheduler started")
+    
+    last_premium_check_date = None
     
     while scheduler_running:
         try:
             now = datetime.now()
             current_time = now.strftime("%H:%M")
             today = now.strftime("%Y-%m-%d")
+            
+            # Check for due premiums once per day (at startup or when date changes)
+            if last_premium_check_date != today:
+                logger.info(f"Running daily premium check for {today}")
+                await check_and_process_due_premiums()
+                last_premium_check_date = today
             
             logger.debug(f"Checking reminders for time: {current_time}")
             
