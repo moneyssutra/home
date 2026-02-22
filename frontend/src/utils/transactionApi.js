@@ -148,6 +148,24 @@ export const deleteExpenseTransaction = async (transactionId) => {
   }
 };
 
+/**
+ * Dismiss notifications related to an entity (called after recording a transaction)
+ * @param {string} entityId - ID of the income/expense source
+ * @returns {Promise<Object>} - Deletion result
+ */
+export const dismissRelatedNotifications = async (entityId) => {
+  try {
+    const response = await axios.delete(`${backendUrl}/api/notifications/by-entity/${entityId}`, {
+      withCredentials: true
+    });
+    return response.data;
+  } catch (error) {
+    // Don't throw - this is a non-critical operation
+    console.log("Note: Could not dismiss related notifications:", error.message);
+    return { success: false };
+  }
+};
+
 export default {
   recordIncomeTransaction,
   recordExpenseTransaction,
@@ -156,5 +174,6 @@ export default {
   getMonthlyIncomeSummary,
   getMonthlyExpenseSummary,
   deleteIncomeTransaction,
-  deleteExpenseTransaction
+  deleteExpenseTransaction,
+  dismissRelatedNotifications
 };
