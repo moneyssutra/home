@@ -786,7 +786,7 @@ const CommissionIncome = () => {
         onClose={() => setShowRecordModal(false)}
         entityId={id}
         entityName={sourceName}
-        expectedAmount={parseFloat(commissionAmount) || 0}
+        expectedAmount={parseFloat(expectedAmount) || 0}
         type="income"
         onSubmit={async (data) => {
           await recordIncomeTransaction(data);

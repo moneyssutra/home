@@ -1101,7 +1101,7 @@ const SelfEmployedIncome = () => {
         isOpen={showRecordModal}
         onClose={() => setShowRecordModal(false)}
         entityId={id}
-        entityName={selectedProfession || "Self-Employment"}
+        entityName={profession === "Other" ? customProfession : profession || "Self-Employment"}
         expectedAmount={parseFloat(expectedAmount) || 0}
         type="income"
         onSubmit={async (data) => {

@@ -984,7 +984,7 @@ const ExpenseForm = () => {
         onClose={() => setShowRecordModal(false)}
         entityId={id}
         entityName={expenseName}
-        expectedAmount={parseFloat(expenseAmount) || 0}
+        expectedAmount={parseFloat(expectedAmount) || 0}
         type="expense"
         onSubmit={async (data) => {
           await recordExpenseTransaction(data);

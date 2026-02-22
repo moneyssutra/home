@@ -890,7 +890,7 @@ const DividendIncome = () => {
         onClose={() => setShowRecordModal(false)}
         entityId={id}
         entityName={investmentName}
-        expectedAmount={parseFloat(expectedDividend) || 0}
+        expectedAmount={parseFloat(expectedAmount) || 0}
         type="income"
         onSubmit={async (data) => {
           await recordIncomeTransaction(data);
