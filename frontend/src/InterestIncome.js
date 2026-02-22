@@ -62,6 +62,20 @@ const InterestIncome = () => {
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   const today = new Date().toISOString().split('T')[0];
 
+  // Entity uniqueness check for source name
+  const {
+    checkUniqueness: checkSourceNameUnique,
+    isChecking: isCheckingSourceName,
+    isUnique: isSourceNameUnique,
+    error: sourceNameUniqueError,
+    reset: resetSourceNameCheck
+  } = useEntityUniqueness({
+    collection: "income_sources",
+    field: "name",
+    excludeId: id || null,
+    typeFilter: "Interest"
+  });
+
   // Fetch data if editing
   useEffect(() => {
     if (id) {
