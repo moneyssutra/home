@@ -270,11 +270,6 @@ const AssetForm = () => {
     // Insurance validation - must select policy if toggle is ON
     if (isInsured && !linkedInsuranceId) {
       newErrors.linkedInsuranceId = "Please select an insurance policy or turn off the insurance toggle to save.";
-      // Show toast notification
-      toast.error("Please select an insurance policy or turn off the insurance toggle to save.", {
-        icon: <AlertTriangle className="h-5 w-5" />,
-        duration: 4000,
-      });
     }
 
     // Rental Amount validation (if generates income)
