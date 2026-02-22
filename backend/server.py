@@ -6198,6 +6198,116 @@ logger = logging.getLogger(__name__)
 # Background scheduler state
 scheduler_running = False
 
+async def check_and_process_due_premiums():
+    """
+    Check for insurance premiums due today and auto-record them as expense transactions.
+    This runs once per day as part of the scheduler.
+    """
+    try:
+        today = datetime.now().strftime("%Y-%m-%d")
+        logger.info(f"Checking for due insurance premiums for date: {today}")
+        
+        # Find all insurances with autoCreateExpense enabled
+        insurances = await db.insurances.find({
+            "autoCreateExpense": True,
+            "premiumPaymentDate": {"$exists": True, "$ne": None}
+        }, {"_id": 0}).to_list(500)
+        
+        for insurance in insurances:
+            user_id = insurance.get("userId")
+            insurance_id = insurance.get("id")
+            policy_name = insurance.get("policyName", "Insurance Premium")
+            premium_amount = insurance.get("premiumAmount", 0)
+            frequency = insurance.get("premiumFrequency", "Yearly")
+            payment_date_str = insurance.get("premiumPaymentDate")
+            end_date_str = insurance.get("endDate")
+            premium_end_date_str = insurance.get("premiumEndDate")
+            
+            if not payment_date_str or not premium_amount:
+                continue
+            
+            # Check if premium end date has passed
+            if premium_end_date_str:
+                premium_end = datetime.strptime(premium_end_date_str, "%Y-%m-%d")
+                if datetime.now() > premium_end:
+                    continue
+            
+            # Check if policy end date has passed
+            if end_date_str:
+                end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+                if datetime.now() > end_date:
+                    continue
+            
+            # Calculate if today is a premium due date based on frequency
+            base_date = datetime.strptime(payment_date_str, "%Y-%m-%d")
+            current_date = datetime.now()
+            is_due_today = False
+            
+            if frequency == "One-Time":
+                is_due_today = payment_date_str == today
+            elif frequency == "Monthly":
+                # Check if today's day matches payment day
+                is_due_today = base_date.day == current_date.day
+            elif frequency == "Quarterly":
+                # Check if this is a quarterly payment month and day matches
+                months_diff = (current_date.year - base_date.year) * 12 + (current_date.month - base_date.month)
+                is_due_today = (months_diff % 3 == 0) and (base_date.day == current_date.day)
+            elif frequency == "Half-Yearly":
+                months_diff = (current_date.year - base_date.year) * 12 + (current_date.month - base_date.month)
+                is_due_today = (months_diff % 6 == 0) and (base_date.day == current_date.day)
+            elif frequency == "Yearly":
+                is_due_today = (base_date.month == current_date.month) and (base_date.day == current_date.day)
+            
+            if not is_due_today:
+                continue
+            
+            # Check if we already recorded this premium today
+            existing_transaction = await db.expense_transactions.find_one({
+                "entityId": insurance_id,
+                "transactionDate": today,
+                "source": "auto_premium"
+            })
+            
+            if existing_transaction:
+                logger.debug(f"Premium already recorded today for {policy_name}")
+                continue
+            
+            # Create expense transaction for the premium
+            transaction = {
+                "id": str(uuid.uuid4()),
+                "userId": user_id,
+                "entityId": insurance_id,
+                "entityName": policy_name,
+                "category": "Insurance",
+                "amount": premium_amount,
+                "transactionDate": today,
+                "notes": f"Auto-recorded {frequency} premium for {policy_name}",
+                "source": "auto_premium",
+                "isLocked": False,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.expense_transactions.insert_one(transaction)
+            logger.info(f"Auto-recorded premium transaction for {policy_name}: ₹{premium_amount}")
+            
+            # Create notification for the user
+            if user_id:
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "title": f"Premium Recorded: {policy_name}",
+                    "message": f"Your {frequency} premium of ₹{premium_amount:,.0f} for {policy_name} has been auto-recorded as an expense.",
+                    "type": "premium_recorded",
+                    "relatedInsuranceId": insurance_id,
+                    "actionUrl": f"/insurance/{insurance_id}",
+                    "isRead": False,
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                await create_notification_and_cleanup(notification)
+                
+    except Exception as e:
+        logger.error(f"Error processing due premiums: {str(e)}")
+
 async def check_and_send_reminders():
     """
     Background task that runs every minute to check for income reminders.
