@@ -261,6 +261,8 @@ const MyInsurance = () => {
             <div className="space-y-3">
               {insurances.map((insurance) => {
                 const typeStyle = getInsuranceTypeStyle(insurance.insuranceType);
+                const nextPremiumDate = getNextPremiumDate(insurance);
+                
                 return (
                   <div
                     key={insurance.id}
@@ -297,6 +299,16 @@ const MyInsurance = () => {
                               ₹ {formatAmount(insurance.premiumAmount)} – {insurance.premiumFrequency}
                             </span>
                           </div>
+                          {/* Next Premium Date */}
+                          {nextPremiumDate && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm" style={{ color: "var(--text-muted)" }}>Next Premium:</span>
+                              <span className="text-sm font-medium flex items-center gap-1" style={{ color: "#64748B" }}>
+                                <Calendar className="h-3.5 w-3.5" />
+                                {nextPremiumDate}
+                              </span>
+                            </div>
+                          )}
                           {insurance.endDate && (
                             <div className="flex items-center gap-2">
                               <span className="text-sm" style={{ color: "var(--text-muted)" }}>Expires:</span>
