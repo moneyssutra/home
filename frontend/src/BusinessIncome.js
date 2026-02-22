@@ -47,6 +47,20 @@ const BusinessIncome = () => {
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   
+  // Entity uniqueness check
+  const {
+    checkUniqueness: checkBusinessNameUnique,
+    isChecking: isCheckingBusinessName,
+    isUnique: isBusinessNameUnique,
+    error: businessNameUniqueError,
+    reset: resetBusinessNameCheck
+  } = useEntityUniqueness({
+    collection: "income_sources",
+    field: "name",
+    excludeId: id || null,
+    typeFilter: "Business"
+  });
+  
   // Get today's date for minimum date restriction
   const today = new Date().toISOString().split('T')[0];
 
