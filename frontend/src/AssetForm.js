@@ -511,7 +511,7 @@ const AssetForm = () => {
             {/* Current Market Value */}
             <div className="w-full">
               <label htmlFor="currentValue" className="block text-sm font-medium text-[#334155] mb-2">
-                Current Market Value
+                Current Market Value <span className="text-[#94A3B8] font-normal">(Optional)</span>
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
@@ -520,7 +520,7 @@ const AssetForm = () => {
                   type="text"
                   value={currentValue}
                   onChange={handleAmountChange(setCurrentValue)}
-                  placeholder="0"
+                  placeholder={purchaseValue ? purchaseValue : "0"}
                   className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                   data-testid="current-value-input"
                 />
@@ -531,7 +531,9 @@ const AssetForm = () => {
                 </p>
               )}
               {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue}</p>}
-              <p className="text-xs text-[#334155]/60 mt-1">This feeds into your Net Worth calculation</p>
+              <p className="text-xs text-[#334155]/60 mt-1">
+                {currentValue ? "This feeds into your Net Worth calculation" : "Leave blank to use Purchase Value for Net Worth"}
+              </p>
             </div>
 
             {/* Purchase Date */}
