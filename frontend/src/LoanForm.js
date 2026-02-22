@@ -518,17 +518,48 @@ const LoanIncome = () => {
               <label htmlFor="loanName" className="block text-sm font-medium text-[#334155] mb-2">
                 Loan Name
               </label>
-              <input
-                id="loanName"
-                type="text"
-                value={loanName}
-                onChange={(e) => setLoanName(e.target.value)}
-                placeholder="e.g., HDFC Home Loan, SBI Car Loan"
-                maxLength={50}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="loan-name-input"
-              />
-              {errors.loanName && <p className="text-sm text-red-500 mt-1">{errors.loanName}</p>}
+              <div className="relative">
+                <input
+                  id="loanName"
+                  type="text"
+                  value={loanName}
+                  onChange={(e) => {
+                    setLoanName(e.target.value);
+                    if (errors.loanName) {
+                      setErrors(prev => ({ ...prev, loanName: null }));
+                    }
+                  }}
+                  onBlur={() => checkLoanNameUnique(loanName)}
+                  placeholder="e.g., HDFC Home Loan, SBI Car Loan"
+                  maxLength={50}
+                  className="w-full rounded-xl border px-4 py-3 pr-10 text-[#334155] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  style={{
+                    backgroundColor: "var(--bg-subtle)",
+                    borderColor: errors.loanName || loanNameUniqueError 
+                      ? "var(--status-error)" 
+                      : isLoanNameUnique === true && loanName.trim() 
+                        ? "var(--status-success)" 
+                        : "var(--border-light)"
+                  }}
+                  data-testid="loan-name-input"
+                />
+                {/* Status indicator */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isCheckingLoanName && (
+                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+                  )}
+                  {!isCheckingLoanName && isLoanNameUnique === true && loanName.trim() && (
+                    <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
+                  )}
+                </div>
+              </div>
+              {errors.loanName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.loanName}</p>}
+              {!errors.loanName && loanNameUniqueError && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{loanNameUniqueError}</p>
+              )}
+              {!errors.loanName && !loanNameUniqueError && isLoanNameUnique === true && loanName.trim() && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>
+              )}
             </div>
 
             {/* Lender Name */}
