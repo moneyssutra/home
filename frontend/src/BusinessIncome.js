@@ -231,6 +231,11 @@ const BusinessIncome = () => {
     // Business Name validation
     const nameError = validateTextField(businessName, "Business name", 50);
     if (nameError) newErrors.businessName = nameError;
+    
+    // Check uniqueness (only block if explicitly not unique)
+    if (isBusinessNameUnique === false) {
+      newErrors.businessName = businessNameUniqueError || "An entry with this name already exists.";
+    }
 
     // Amount validation
     const amountError = validatePositiveAmount(expectedAmount, "Expected amount");
