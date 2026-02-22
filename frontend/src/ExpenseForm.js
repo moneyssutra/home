@@ -989,6 +989,7 @@ const ExpenseForm = () => {
         type="expense"
         onSubmit={async (data) => {
           await recordExpenseTransaction(data);
+          await dismissRelatedNotifications(id);
           setTransactionRefreshKey(k => k + 1);
         }}
       />
