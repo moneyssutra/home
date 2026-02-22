@@ -577,6 +577,57 @@ class NotificationCreate(BaseModel):
     relatedIncomeName: Optional[str] = None
     actionUrl: Optional[str] = None
 
+
+# ============ INCOME TRANSACTION MODEL ============
+class IncomeTransaction(BaseModel):
+    """
+    Immutable record of an income entry. Each time income is recorded,
+    a new transaction is created rather than updating the income source.
+    """
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: str
+    entityId: str  # Reference to income_source.id (the template)
+    entityType: str  # Business, Job, Rental, Interest, Dividend, etc.
+    entityName: str  # Name of the income source for quick reference
+    amount: float
+    transactionDate: str  # YYYY-MM-DD - the date the income occurred
+    notes: Optional[str] = None
+    source: str = "manual"  # "manual", "auto_fallback", "scheduled"
+    isLocked: bool = False  # Becomes True after 24 hours, cannot be deleted
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class IncomeTransactionCreate(BaseModel):
+    entityId: str  # Reference to income source
+    amount: float
+    transactionDate: str  # YYYY-MM-DD
+    notes: Optional[str] = None
+
+class ExpenseTransaction(BaseModel):
+    """
+    Immutable record of an expense entry.
+    """
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: str
+    entityId: str  # Reference to expense.id (the template)
+    entityName: str  # Name of the expense for quick reference
+    category: str
+    amount: float
+    transactionDate: str  # YYYY-MM-DD
+    notes: Optional[str] = None
+    source: str = "manual"  # "manual", "auto_scheduled"
+    isLocked: bool = False
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ExpenseTransactionCreate(BaseModel):
+    entityId: str
+    amount: float
+    transactionDate: str
+    notes: Optional[str] = None
+
 # ============ PUSH SUBSCRIPTION MODEL ============
 class PushSubscription(BaseModel):
     model_config = ConfigDict(extra="ignore")
