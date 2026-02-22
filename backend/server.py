@@ -1321,6 +1321,70 @@ async def verify_reset_token(token: str):
     
     return {"valid": True}
 
+
+# ============ ENTITY UNIQUENESS CHECK ENDPOINT ============
+
+class EntityUniquenessRequest(BaseModel):
+    collection: str  # Collection name: income_sources, expenses, assets, loans, credit_cards, insurances
+    field: str       # Field name to check: name, expenseName, assetName, loanName, cardName, policyName
+    value: str       # Value to check
+    exclude_id: Optional[str] = None  # ID to exclude (for edit mode)
+    type_filter: Optional[str] = None  # Optional type filter for income sources (e.g., "Business")
+
+@api_router.post("/check-entity-uniqueness")
+async def check_entity_uniqueness(request_data: EntityUniquenessRequest, request: Request):
+    """
+    Check if an entity name is unique for the current user.
+    Returns whether the name is available or already exists.
+    """
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    collection_name = request_data.collection
+    field_name = request_data.field
+    value = request_data.value.strip()
+    
+    # Validate collection name
+    allowed_collections = [
+        "income_sources", "expenses", "assets", "loans", 
+        "credit_cards", "insurances", "accounts", "investments", "goals"
+    ]
+    if collection_name not in allowed_collections:
+        raise HTTPException(status_code=400, detail="Invalid collection name")
+    
+    # Build the query - case-insensitive search
+    query = {
+        "userId": user_id,
+        field_name: {"$regex": f"^{value}$", "$options": "i"}
+    }
+    
+    # Add type filter if provided (for income sources)
+    if request_data.type_filter:
+        query["type"] = request_data.type_filter
+    
+    # Exclude current entity if editing
+    if request_data.exclude_id:
+        query["id"] = {"$ne": request_data.exclude_id}
+    
+    # Check in the collection
+    collection = db[collection_name]
+    existing = await collection.find_one(query, {"_id": 0, "id": 1, field_name: 1})
+    
+    if existing:
+        return {
+            "available": False,
+            "message": "An entry with this name already exists. Please use a unique name.",
+            "existing_id": existing.get("id")
+        }
+    
+    return {
+        "available": True,
+        "message": "Name is available"
+    }
+
+
 # ============ WORKSPACE ENDPOINTS ============
 
 @api_router.get("/workspaces")
