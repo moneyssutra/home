@@ -857,6 +857,37 @@ const ExpenseForm = () => {
               </div>
             )}
 
+            {/* Record Transaction Section - Only shown in Edit Mode */}
+            {id && (
+              <div className="mt-6 p-4 rounded-xl bg-[#FF4D4D]/5 border border-[#FF4D4D]/20">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-medium text-[#334155]">Record Actual Expense</h3>
+                    <p className="text-xs text-[#64748B] mt-0.5">Log when you pay this expense</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowRecordModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#FF4D4D] text-white text-sm font-medium hover:bg-red-600 transition-colors"
+                    data-testid="record-transaction-btn"
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    Record
+                  </button>
+                </div>
+                
+                {/* Transaction History Panel */}
+                <TransactionHistoryPanel
+                  key={transactionRefreshKey}
+                  entityId={id}
+                  entityType="expense"
+                  fetchHistory={getExpenseTransactionHistory}
+                  deleteTransaction={deleteExpenseTransaction}
+                  onTransactionDeleted={() => setTransactionRefreshKey(k => k + 1)}
+                />
+              </div>
+            )}
+
             {errors.submit && (
               <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">{errors.submit}</div>
             )}
@@ -946,6 +977,20 @@ const ExpenseForm = () => {
           </div>
         </div>
       )}
+
+      {/* Record Transaction Modal */}
+      <RecordTransactionModal
+        isOpen={showRecordModal}
+        onClose={() => setShowRecordModal(false)}
+        entityId={id}
+        entityName={expenseName}
+        expectedAmount={parseFloat(expenseAmount) || 0}
+        type="expense"
+        onSubmit={async (data) => {
+          await recordExpenseTransaction(data);
+          setTransactionRefreshKey(k => k + 1);
+        }}
+      />
 
       {/* Bottom Navigation */}
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
