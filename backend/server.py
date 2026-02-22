@@ -5395,7 +5395,7 @@ async def send_reminder_notifications(api_key: str = None):
             user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "name": 1})
             user_name = user.get("name", "there") if user else "there"
             
-            action_url = f"/income/{source.get('type', 'job').lower().replace(' ', '-')}/{source_id}"
+            action_url = f"/{source.get('type', 'job').lower().replace(' ', '-')}-income/{source_id}"
             
             # Create in-app notification
             notification = {
