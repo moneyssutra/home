@@ -65,6 +65,20 @@ const NotificationBell = () => {
     setSwipeX(0);
   };
   
+  // Map legacy notification URLs to correct routes
+  const mapActionUrl = (url) => {
+    if (!url) return null;
+    
+    // Handle legacy format: /income/{type}/{id} -> /{type}-income/{id}
+    const legacyMatch = url.match(/^\/income\/([^/]+)\/(.+)$/);
+    if (legacyMatch) {
+      const [, type, id] = legacyMatch;
+      return `/${type}-income/${id}`;
+    }
+    
+    return url;
+  };
+  
   const handleNotificationClick = async (notification) => {
     // Mark as read
     if (!notification.isRead) {
