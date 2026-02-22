@@ -146,6 +146,9 @@ disabled={(date) => {
 ## Key Files
 
 ### New Files This Session (Feb 22)
+- `/app/frontend/src/hooks/useEntityUniqueness.js` - Reusable hook for uniqueness validation
+- `/app/frontend/src/components/UniqueNameInput.js` - Input component with uniqueness feedback
+- `/app/backend/tests/test_entity_uniqueness.py` - Backend test file for uniqueness endpoint
 - `/app/backend/atlas_triggers/variable_income_fallback.js` - Atlas Trigger function for 24-hour fallback
 - `/app/backend/atlas_triggers/send_reminders.js` - Atlas Trigger function for hourly reminders
 - `/app/docs/ATLAS_TRIGGERS_SETUP.md` - 5-step setup guide for MongoDB Atlas
@@ -153,6 +156,8 @@ disabled={(date) => {
 ### Modified Files (Feb 22)
 - `/app/frontend/src/pages/Login.js` - Refactored with single identifier field
 - `/app/frontend/src/pages/ForgotPassword.js` - Simplified password recovery
+- `/app/backend/server.py` - Added entity uniqueness endpoint and remember_me logic
+- All form files (BusinessIncome, JobIncome, AssetForm, LoanForm, etc.) - Added uniqueness validation
 
 ### New Files Previous Session
 - `/app/backend/push_service.py` - Push notification service
