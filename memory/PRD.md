@@ -313,6 +313,21 @@ disabled={(date) => {
 | `/api/notifications/mark-all-read` | PATCH | Mark all as read | Session |
 | `/api/notifications/{id}` | DELETE | Delete notification | Session |
 
+### Transaction Endpoints (NEW)
+| Endpoint | Method | Description | Auth |
+|----------|--------|-------------|------|
+| `/api/income-transactions` | POST | Create income transaction | Session |
+| `/api/income-transactions` | GET | Get income transactions | Session |
+| `/api/income-transactions/history/{entity_id}` | GET | Get history for income source | Session |
+| `/api/income-transactions/monthly-summary` | GET | Monthly income summary | Session |
+| `/api/income-transactions/{id}` | DELETE | Delete transaction | Session |
+| `/api/income-transactions/{id}/adjust` | POST | Create adjustment | Session |
+| `/api/expense-transactions` | POST | Create expense transaction | Session |
+| `/api/expense-transactions` | GET | Get expense transactions | Session |
+| `/api/expense-transactions/history/{entity_id}` | GET | Get history for expense | Session |
+| `/api/expense-transactions/monthly-summary` | GET | Monthly expense summary | Session |
+| `/api/expense-transactions/{id}` | DELETE | Delete transaction | Session |
+
 ## Environment Variables
 
 ### Backend (.env)
