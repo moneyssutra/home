@@ -56,16 +56,16 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password) => {
+  const register = async (userData) => {
     try {
       const response = await axios.post(
         `${backendUrl}/api/auth/register`,
-        { name, email, password },
+        userData,
         { withCredentials: true }
       );
       setUser(response.data);
       setIsAuthenticated(true);
-      return { success: true, user: response.data };
+      return { success: true, user: response.data, isNewUser: response.data.isNewUser };
     } catch (error) {
       return { 
         success: false, 
