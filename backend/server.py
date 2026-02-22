@@ -827,9 +827,15 @@ async def get_current_user(request: Request):
 
 @api_router.post("/auth/login")
 async def jwt_login(request: JWTLoginRequest, response: Response):
-    """JWT-based username/password login"""
+    """JWT-based login using Email ID or Mobile Number"""
+    identifier = request.username.strip()
+    
+    # Determine if identifier is email or mobile
+    is_mobile = identifier.isdigit() and len(identifier) == 10
+    is_email = "@" in identifier
+    
     # For demo: accept test/test credentials
-    if request.username == "test" and request.password == "test":
+    if identifier == "test" and request.password == "test":
         # Check if test user exists
         user = await db.users.find_one({"email": "test@moneyssutra.com"}, {"_id": 0})
         
@@ -840,6 +846,8 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
                 "user_id": user_id,
                 "email": "test@moneyssutra.com",
                 "name": "Test User",
+                "firstName": "Test",
+                "lastName": "User",
                 "picture": None,
                 "auth_type": "jwt",
                 "password_hash": hash_password("test"),
@@ -877,14 +885,39 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
             "user_id": user_id,
             "email": user.get("email"),
             "name": user.get("name"),
+            "firstName": user.get("firstName", user.get("name", "").split()[0] if user.get("name") else ""),
             "picture": user.get("picture"),
             "session_token": session_token
         }
     
-    # Check actual user credentials
-    user = await db.users.find_one({"email": request.username, "auth_type": "jwt"}, {"_id": 0})
+    # Build query with $or for email OR mobile
+    query_conditions = []
+    if is_email:
+        query_conditions.append({"email": {"$regex": f"^{identifier}$", "$options": "i"}})
+    if is_mobile:
+        query_conditions.append({"mobile": identifier})
+    
+    # If neither email nor mobile format, try both
+    if not is_email and not is_mobile:
+        query_conditions = [
+            {"email": {"$regex": f"^{identifier}$", "$options": "i"}},
+            {"mobile": identifier}
+        ]
+    
+    # Check actual user credentials using $or
+    user = await db.users.find_one(
+        {"$or": query_conditions, "auth_type": "jwt"},
+        {"_id": 0}
+    )
+    
+    # Also check basic_profiles for mobile if user not found
+    if not user and is_mobile:
+        profile = await db.basic_profiles.find_one({"mobile": identifier}, {"_id": 0, "user_id": 1})
+        if profile:
+            user = await db.users.find_one({"user_id": profile["user_id"], "auth_type": "jwt"}, {"_id": 0})
+    
     if not user or not verify_password(request.password, user.get("password_hash", "")):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+        raise HTTPException(status_code=401, detail="Invalid email/mobile or password")
     
     # Create session
     session_token = str(uuid.uuid4())
@@ -914,6 +947,7 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
         "user_id": user["user_id"],
         "email": user.get("email"),
         "name": user.get("name"),
+        "firstName": user.get("firstName", user.get("name", "").split()[0] if user.get("name") else ""),
         "picture": user.get("picture"),
         "session_token": session_token
     }
