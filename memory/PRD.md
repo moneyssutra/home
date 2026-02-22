@@ -4,11 +4,34 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Global Entity Uniqueness Validation Implemented** (Feb 22, 2026)
+**Asset Module Refinement Complete** (Feb 22, 2026)
 
 ## What Was Implemented (Latest Session - Feb 22, 2026)
 
-### 1. Global Entity Uniqueness Validation (COMPLETED)
+### 1. Asset Module Refinement & Validation (COMPLETED)
+**Feature**: Made "Current Market Value" optional and enforced mandatory insurance selection.
+
+**Current Market Value Changes**:
+- Removed required validation - now shows "(Optional)" label
+- Placeholder dynamically shows Purchase Value when entered
+- Helper text: "Leave blank to use Purchase Value for Net Worth"
+- `performSave` defaults to Purchase Value if left blank
+
+**Insurance Validation Changes**:
+- When toggle is ON, policy selection is mandatory (shows red asterisk *)
+- Save blocked if no policy selected
+- Toast notification using sonner: "Please select an insurance policy or turn off the insurance toggle to save."
+- Red error message with AlertTriangle icon below dropdown
+- Error clears when policy is selected
+- "+ Add Insurance" button for quick policy creation
+
+**Testing Results** (iteration_44.json):
+- Frontend: 100% (10/10 tests passed)
+- All validation scenarios verified ✓
+- Toast notifications working ✓
+- Default value logic verified ✓
+
+### 2. Global Entity Uniqueness Validation (COMPLETED)
 **Feature**: Real-time validation to prevent duplicate entity names for a single user.
 
 **Implementation**:
