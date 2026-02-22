@@ -14,29 +14,40 @@ import { Clock } from "lucide-react";
 const ReminderTimePicker = ({ value = "19:00", onChange, disabled = false, testId = "reminder-time-picker" }) => {
   const inputRef = useRef(null);
 
-  // Format time for display (12-hour format)
-  const formatTimeDisplay = (time24) => {
-    if (!time24) return "7:00 PM";
-    const [hours, minutes] = time24.split(":").map(Number);
-    const hour12 = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
-    const ampm = hours >= 12 ? "PM" : "AM";
-    return `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
-  };
-
   // Handle click to trigger native time picker
-  const handleClick = () => {
+  const handleContainerClick = (e) => {
     if (disabled) return;
+    
+    // Prevent double-triggering if clicking directly on input
+    if (e.target === inputRef.current) return;
     
     // Use the modern showPicker API if available
     if (inputRef.current && typeof inputRef.current.showPicker === "function") {
       try {
         inputRef.current.showPicker();
-      } catch (e) {
+      } catch (err) {
         // Fallback: just focus the input
         inputRef.current.focus();
+        inputRef.current.click();
       }
     } else if (inputRef.current) {
       inputRef.current.focus();
+      inputRef.current.click();
+    }
+  };
+
+  // Handle direct input click
+  const handleInputClick = (e) => {
+    if (disabled) return;
+    
+    // Use showPicker API for better mobile experience
+    if (inputRef.current && typeof inputRef.current.showPicker === "function") {
+      try {
+        inputRef.current.showPicker();
+      } catch (err) {
+        // showPicker might fail in some contexts, that's ok
+        console.log("showPicker not available");
+      }
     }
   };
 
@@ -46,55 +57,55 @@ const ReminderTimePicker = ({ value = "19:00", onChange, disabled = false, testI
         Set Reminder Time
       </label>
       
-      {/* Clickable display container */}
+      {/* Clickable container */}
       <div 
         className="relative cursor-pointer"
-        onClick={handleClick}
+        onClick={handleContainerClick}
       >
         {/* Clock icon */}
-        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] pointer-events-none z-10" />
+        <Clock 
+          className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#64748B] pointer-events-none" 
+          style={{ zIndex: 1 }}
+        />
         
-        {/* Native time input - positioned for accessibility but styled for visibility */}
+        {/* Native time input - fully visible and interactive */}
         <input
           ref={inputRef}
           type="time"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onClick={handleInputClick}
           disabled={disabled}
-          readOnly={false}
-          className="w-full rounded-xl border border-[#CBD5E1] bg-white pl-12 pr-4 py-3.5 text-[#1E293B] font-medium
+          className="w-full rounded-xl border border-[#CBD5E1] bg-white pl-12 pr-12 py-3.5 
+            text-[#1E293B] font-medium text-base
             focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 
             disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed
             cursor-pointer transition-colors"
           style={{
-            /* Force native picker visibility on mobile */
+            /* Reset native appearance but keep time picker functional */
             WebkitAppearance: "none",
-            MozAppearance: "none",
-            appearance: "none",
-            /* Ensure input is fully visible */
+            MozAppearance: "textfield",
+            /* Ensure good visibility */
+            backgroundColor: "#ffffff",
+            color: "#1E293B",
+            /* Light color scheme for picker */
             colorScheme: "light",
-            /* High z-index for picker */
+            /* Prevent iOS zoom on focus */
+            fontSize: "16px",
+            /* Ensure touch target size */
+            minHeight: "52px",
+            /* High z-index for the picker popup */
             position: "relative",
-            zIndex: 20,
-            /* Explicit sizing */
-            minHeight: "48px",
-            fontSize: "16px", /* Prevents iOS zoom */
+            zIndex: 10,
           }}
           data-testid={`${testId}-input`}
         />
         
-        {/* Custom display overlay showing formatted time */}
-        <div 
-          className="absolute inset-0 flex items-center pl-12 pr-10 pointer-events-none rounded-xl"
-          style={{ zIndex: 5 }}
-        >
-          <span className="text-[#1E293B] font-medium" style={{ fontSize: "16px" }}>
-            {formatTimeDisplay(value)}
-          </span>
-        </div>
-        
         {/* Dropdown arrow icon */}
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+        <div 
+          className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none"
+          style={{ zIndex: 1 }}
+        >
           <svg className="h-5 w-5 text-[#64748B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
           </svg>
@@ -104,6 +115,28 @@ const ReminderTimePicker = ({ value = "19:00", onChange, disabled = false, testI
       <p className="mt-1.5 text-xs text-[#64748B]">
         You'll receive a reminder at this time on due dates
       </p>
+      
+      {/* Additional CSS for webkit time input styling */}
+      <style>{`
+        input[type="time"]::-webkit-calendar-picker-indicator {
+          background: transparent;
+          cursor: pointer;
+          position: absolute;
+          right: 0;
+          top: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 20;
+        }
+        
+        input[type="time"]::-webkit-datetime-edit {
+          padding-left: 0;
+        }
+        
+        input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+          padding: 0;
+        }
+      `}</style>
     </div>
   );
 };
