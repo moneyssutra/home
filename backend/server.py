@@ -5147,6 +5147,22 @@ async def delete_notification(notification_id: str, user_id: str = None, request
     
     return {"success": True}
 
+@api_router.delete("/notifications")
+async def clear_all_notifications(request: Request):
+    """Clear all notifications for the current user"""
+    session_token = request.cookies.get("session_token")
+    if not session_token:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    session = await db.user_sessions.find_one({"session_token": session_token})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    
+    user_id = session.get("user_id")
+    result = await db.notifications.delete_many({"userId": user_id})
+    
+    return {"success": True, "deleted_count": result.deleted_count}
+
 # ============ PUSH NOTIFICATION SUBSCRIPTION ============
 from push_service import get_vapid_public_key, send_push_notification, send_income_reminder, send_auto_entry_notification
 
