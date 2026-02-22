@@ -5693,4 +5693,7 @@ async def startup_db_client():
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    global scheduler_running
+    scheduler_running = False
     client.close()
+    logger.info("Background scheduler stopped and database connection closed")
