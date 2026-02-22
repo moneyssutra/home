@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Wallet, Lock, User, Eye, EyeOff, AlertCircle, Mail, Loader2 } from "lucide-react";
+import { Wallet, Lock, User, Eye, EyeOff, AlertCircle, Mail, Loader2, Phone, ArrowLeft, Check } from "lucide-react";
 import RegisterForm from "@/components/RegisterForm";
+import axios from "axios";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -12,10 +13,13 @@ const Login = () => {
   const { login, loginWithGoogle, isAuthenticated, loading } = useAuth();
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [email, setEmail] = useState("");
+  const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
+  const [forgotPasswordStep, setForgotPasswordStep] = useState(1); // 1: enter email/mobile, 2: success
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -31,12 +35,20 @@ const Login = () => {
     }
   }, [location.state]);
 
+  // Validate identifier (email or 10-digit mobile)
+  const isValidIdentifier = (value) => {
+    if (!value) return false;
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const isMobile = /^\d{10}$/.test(value);
+    return isEmail || isMobile;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    if (!email.trim()) {
-      setError("Please enter your email or username");
+    if (!identifier.trim()) {
+      setError("Please enter your email ID or mobile number");
       return;
     }
     if (!password) {
@@ -45,7 +57,7 @@ const Login = () => {
     }
 
     setIsSubmitting(true);
-    const result = await login(email, password);
+    const result = await login(identifier, password);
     
     if (result.success) {
       const from = location.state?.from?.pathname || "/home";
