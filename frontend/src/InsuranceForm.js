@@ -691,88 +691,280 @@ const InsuranceForm = () => {
               )}
             </div>
 
-            {/* Premium Payment Date - Only shown when frequency is selected and not One-Time */}
-            {premiumFrequency && premiumFrequency !== "One-Time" && (
+            {/* Conditional Premium Date Fields - Monthly */}
+            {premiumFrequency === "Monthly" && (
               <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" ref={fieldRefs.premiumPaymentDate}>
                 <label className="block text-sm font-medium text-[#334155] mb-2">
-                  Premium Payment Date <span className="text-[#94A3B8] font-normal">(First/Next Due)</span>
+                  Select Payment Date
                 </label>
-                <Popover open={premiumPaymentCalendarOpen} onOpenChange={setPremiumPaymentCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className={`w-full flex items-center justify-between rounded-xl border bg-white px-4 py-3 text-left focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20 ${errors.premiumPaymentDate ? 'border-[#FF4D4D] bg-red-50/30' : 'border-[#CBD5E1]'}`}
-                      data-testid="premium-payment-date-input"
-                    >
-                      <span className={premiumPaymentDate ? "text-[#334155]" : "text-[#94A3B8]"}>
-                        {premiumPaymentDate ? format(new Date(premiumPaymentDate), "PPP") : "Select payment date"}
-                      </span>
-                      <CalendarIcon className="h-5 w-5 text-[#64748B]" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-white border border-gray-200 shadow-lg z-50" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={premiumPaymentDate ? new Date(premiumPaymentDate) : undefined}
-                      onSelect={(date) => {
-                        if (date) {
-                          const selectedDate = new Date(date);
-                          const startDateObj = startDate ? new Date(startDate) : null;
-                          const endDateObj = endDate ? new Date(endDate) : null;
-                          
-                          if (startDateObj && selectedDate < startDateObj) {
-                            toast.error("Premium Payment Date must be on or after Policy Start Date");
-                            return;
-                          }
-                          
-                          if (endDateObj && selectedDate > endDateObj) {
-                            toast.error("Premium Payment Date must be on or before Policy End Date");
-                            return;
-                          }
-                          
-                          setPremiumPaymentDate(format(date, "yyyy-MM-dd"));
-                          if (errors.premiumPaymentDate) {
-                            setErrors(prev => ({ ...prev, premiumPaymentDate: null }));
-                          }
-                        }
-                        setPremiumPaymentCalendarOpen(false);
-                      }}
-                      disabled={(date) => {
-                        const startDateObj = startDate ? new Date(startDate) : null;
-                        const endDateObj = endDate ? new Date(endDate) : null;
-                        
-                        if (startDateObj && date < startDateObj) return true;
-                        if (endDateObj && date > endDateObj) return true;
-                        return false;
-                      }}
-                      initialFocus
-                      className="rounded-xl"
-                      classNames={{
-                        day_selected: "bg-[#00D09C] text-white hover:bg-[#00B88A]",
-                        day_today: "bg-[#00D09C]/10 text-[#00D09C]",
-                        day_disabled: "text-gray-300 cursor-not-allowed",
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
-                <p className="text-xs text-[#64748B] mt-1">
-                  {startDate && endDate 
-                    ? `Must be between ${format(new Date(startDate), "MMM d, yyyy")} and ${format(new Date(endDate), "MMM d, yyyy")}`
-                    : startDate 
-                      ? `Must be on or after ${format(new Date(startDate), "MMM d, yyyy")}`
-                      : "Date when premium is due"
-                  }
-                </p>
+                <RestrictedDatePicker
+                  value={premiumPaymentDate}
+                  onChange={(date) => setPremiumPaymentDate(date)}
+                  placeholder="Select premium payment date"
+                  error={!!errors.premiumPaymentDate}
+                  testId="premium-date-select"
+                />
                 {errors.premiumPaymentDate && (
-                  <p className="text-sm text-[#FF4D4D] mt-1 flex items-center gap-1">
-                    <AlertCircle className="h-3.5 w-3.5" />
-                    {errors.premiumPaymentDate}
-                  </p>
+                  <p className="text-sm text-[#FF4D4D] mt-1">{errors.premiumPaymentDate}</p>
                 )}
-                
                 {/* Next Premium Dates Preview */}
                 {calculateNextPremiumDates.length > 0 && (
                   <div className="mt-3 p-3 rounded-xl bg-[#00D09C]/5 border border-[#00D09C]/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CalendarIcon className="h-4 w-4 text-[#00D09C]" />
+                      <span className="text-sm font-medium text-[#334155]">Upcoming Premium Dates:</span>
+                    </div>
+                    <ul className="space-y-1">
+                      {calculateNextPremiumDates.map((date, idx) => (
+                        <li key={idx} className="text-sm text-[#64748B] flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#00D09C]" />
+                          {date}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Conditional Premium Date Fields - Quarterly */}
+            {premiumFrequency === "Quarterly" && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300" ref={fieldRefs.premiumPaymentDate}>
+                {/* Quarter Selection */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
+                    Select Quarter
+                  </label>
+                  <select
+                    value={selectedQuarter}
+                    onChange={(e) => {
+                      setSelectedQuarter(e.target.value);
+                      setSelectedMonth("");
+                      setPremiumPaymentDate("");
+                    }}
+                    className="w-full rounded-xl border border-[#CBD5E1] bg-white px-4 py-3 text-[#334155] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="premium-quarter-select"
+                  >
+                    <option value="">Select Quarter</option>
+                    {quarters.map((q) => (
+                      <option key={q.id} value={q.label}>{q.label}</option>
+                    ))}
+                  </select>
+                  {errors.selectedQuarter && (
+                    <p className="text-sm text-[#FF4D4D] mt-1">{errors.selectedQuarter}</p>
+                  )}
+                </div>
+
+                {/* Month Selection (based on quarter) */}
+                {selectedQuarter && (
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
+                      Select Month
+                    </label>
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => {
+                        setSelectedMonth(e.target.value);
+                        setPremiumPaymentDate("");
+                      }}
+                      className="w-full rounded-xl border border-[#CBD5E1] bg-white px-4 py-3 text-[#334155] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="premium-month-select"
+                    >
+                      <option value="">Select Month</option>
+                      {quarterMonths.map((month) => (
+                        <option key={month} value={month}>{month}</option>
+                      ))}
+                    </select>
+                    {errors.selectedMonth && (
+                      <p className="text-sm text-[#FF4D4D] mt-1">{errors.selectedMonth}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Date Selection */}
+                {selectedMonth && (
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
+                      Select Date
+                    </label>
+                    <RestrictedDatePicker
+                      value={premiumPaymentDate}
+                      onChange={(date) => setPremiumPaymentDate(date)}
+                      restrictedMonth={getMonthIndex(selectedMonth)}
+                      placeholder="Select date in selected month"
+                      error={!!errors.premiumPaymentDate}
+                      testId="premium-date-select"
+                    />
+                    {errors.premiumPaymentDate && (
+                      <p className="text-sm text-[#FF4D4D] mt-1">{errors.premiumPaymentDate}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Next Premium Dates Preview */}
+                {calculateNextPremiumDates.length > 0 && (
+                  <div className="p-3 rounded-xl bg-[#00D09C]/5 border border-[#00D09C]/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CalendarIcon className="h-4 w-4 text-[#00D09C]" />
+                      <span className="text-sm font-medium text-[#334155]">Upcoming Premium Dates:</span>
+                    </div>
+                    <ul className="space-y-1">
+                      {calculateNextPremiumDates.map((date, idx) => (
+                        <li key={idx} className="text-sm text-[#64748B] flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#00D09C]" />
+                          {date}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Conditional Premium Date Fields - Half-Yearly */}
+            {premiumFrequency === "Half-Yearly" && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300" ref={fieldRefs.premiumPaymentDate}>
+                {/* Half Selection */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
+                    Select Half
+                  </label>
+                  <select
+                    value={selectedHalf}
+                    onChange={(e) => {
+                      setSelectedHalf(e.target.value);
+                      setSelectedMonth("");
+                      setPremiumPaymentDate("");
+                    }}
+                    className="w-full rounded-xl border border-[#CBD5E1] bg-white px-4 py-3 text-[#334155] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="premium-half-select"
+                  >
+                    <option value="">Select Half</option>
+                    {halves.map((h) => (
+                      <option key={h.id} value={h.label}>{h.label}</option>
+                    ))}
+                  </select>
+                  {errors.selectedHalf && (
+                    <p className="text-sm text-[#FF4D4D] mt-1">{errors.selectedHalf}</p>
+                  )}
+                </div>
+
+                {/* Month Selection (based on half) */}
+                {selectedHalf && (
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
+                      Select Month
+                    </label>
+                    <select
+                      value={selectedMonth}
+                      onChange={(e) => {
+                        setSelectedMonth(e.target.value);
+                        setPremiumPaymentDate("");
+                      }}
+                      className="w-full rounded-xl border border-[#CBD5E1] bg-white px-4 py-3 text-[#334155] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                      data-testid="premium-month-select"
+                    >
+                      <option value="">Select Month</option>
+                      {halfMonths.map((month) => (
+                        <option key={month} value={month}>{month}</option>
+                      ))}
+                    </select>
+                    {errors.selectedMonth && (
+                      <p className="text-sm text-[#FF4D4D] mt-1">{errors.selectedMonth}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Date Selection */}
+                {selectedMonth && (
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
+                      Select Date
+                    </label>
+                    <RestrictedDatePicker
+                      value={premiumPaymentDate}
+                      onChange={(date) => setPremiumPaymentDate(date)}
+                      restrictedMonth={getMonthIndex(selectedMonth)}
+                      placeholder="Select date in selected month"
+                      error={!!errors.premiumPaymentDate}
+                      testId="premium-date-select"
+                    />
+                    {errors.premiumPaymentDate && (
+                      <p className="text-sm text-[#FF4D4D] mt-1">{errors.premiumPaymentDate}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Next Premium Date Preview */}
+                {calculateNextPremiumDates.length > 0 && (
+                  <div className="p-3 rounded-xl bg-[#00D09C]/5 border border-[#00D09C]/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CalendarIcon className="h-4 w-4 text-[#00D09C]" />
+                      <span className="text-sm font-medium text-[#334155]">Upcoming Premium Dates:</span>
+                    </div>
+                    <ul className="space-y-1">
+                      {calculateNextPremiumDates.map((date, idx) => (
+                        <li key={idx} className="text-sm text-[#64748B] flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#00D09C]" />
+                          {date}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Conditional Premium Date Fields - Yearly */}
+            {premiumFrequency === "Yearly" && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300" ref={fieldRefs.premiumPaymentDate}>
+                {/* Month Selection */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">
+                    Select Month
+                  </label>
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => {
+                      setSelectedMonth(e.target.value);
+                      setPremiumPaymentDate("");
+                    }}
+                    className="w-full rounded-xl border border-[#CBD5E1] bg-white px-4 py-3 text-[#334155] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                    data-testid="premium-month-select"
+                  >
+                    <option value="">Select Month</option>
+                    {allMonths.map((month) => (
+                      <option key={month} value={month}>{month}</option>
+                    ))}
+                  </select>
+                  {errors.selectedMonth && (
+                    <p className="text-sm text-[#FF4D4D] mt-1">{errors.selectedMonth}</p>
+                  )}
+                </div>
+
+                {/* Date Selection */}
+                {selectedMonth && (
+                  <div className="w-full">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">
+                      Select Date
+                    </label>
+                    <RestrictedDatePicker
+                      value={premiumPaymentDate}
+                      onChange={(date) => setPremiumPaymentDate(date)}
+                      restrictedMonth={getMonthIndex(selectedMonth)}
+                      placeholder="Select date in selected month"
+                      error={!!errors.premiumPaymentDate}
+                      testId="premium-date-select"
+                    />
+                    {errors.premiumPaymentDate && (
+                      <p className="text-sm text-[#FF4D4D] mt-1">{errors.premiumPaymentDate}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Next Premium Date Preview */}
+                {calculateNextPremiumDates.length > 0 && (
+                  <div className="p-3 rounded-xl bg-[#00D09C]/5 border border-[#00D09C]/20">
                     <div className="flex items-center gap-2 mb-2">
                       <CalendarIcon className="h-4 w-4 text-[#00D09C]" />
                       <span className="text-sm font-medium text-[#334155]">Upcoming Premium Dates:</span>
