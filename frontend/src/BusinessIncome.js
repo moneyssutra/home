@@ -866,27 +866,29 @@ const BusinessIncome = () => {
         </div>
       </div>
 
-      {/* Sticky Action Buttons */}
-      <div className="fixed bottom-16 left-0 right-0 border-t border-[#334155] bg-[#1E293B]/95 backdrop-blur-sm px-6 py-4 z-40">
+      {/* Sticky Action Buttons - Mobile Optimized */}
+      <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-40">
         <div className="mx-auto max-w-[620px]">
           {id ? (
-            /* Edit Mode - Show Update and Delete */
-            <div className="flex gap-3">
+            /* Edit Mode - Show Update and Delete side-by-side */
+            <div className="flex flex-row gap-3">
+              {/* Delete Button - Ghost Style (flex: 1 = 30%) */}
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isSubmitting}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 border-red-500 bg-[#1E293B] px-6 py-4 text-red-500 font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-[#FF4D4D] bg-transparent text-[#FF4D4D] text-sm font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 data-testid="delete-button"
               >
-                <Trash2 className="h-5 w-5" />
+                <Trash2 className="h-4 w-4" />
                 Delete
               </button>
+              {/* Update Button - Primary Style (flex: 2 = 70%) */}
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={isSubmitting}
-                className="flex-1 rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+                className="flex-[2] h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                 data-testid="update-button"
               >
                 {isSubmitting ? "Updating..." : "Update Business Income"}
@@ -898,7 +900,7 @@ const BusinessIncome = () => {
               type="button"
               onClick={handleSave}
               disabled={isSubmitting || isCheckingBusinessName || isBusinessNameUnique === false}
-              className="w-full rounded-xl bg-[#14B8A6] py-4 text-center text-lg font-semibold text-white transition-all hover:bg-[#0D9488] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
+              className="w-full h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
               data-testid="save-button"
             >
               {isSubmitting ? "Saving..." : "Save Business Income"}
