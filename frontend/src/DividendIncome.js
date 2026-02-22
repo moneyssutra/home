@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Trash2, Info } from "lucide-react";
+import { ChevronLeft, Trash2, Info, Check, Loader2 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
 import ReminderTimePicker from "@/components/ReminderTimePicker";
 import { ValidationMessage } from "@/components/ValidationMessage";
+import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
 import { 
   validatePositiveAmount, 
   validateTextField,
