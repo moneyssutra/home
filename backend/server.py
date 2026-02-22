@@ -5592,6 +5592,77 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Background scheduler state
+scheduler_running = False
+
+async def check_and_send_reminders():
+    """
+    Background task that runs every minute to check for income reminders.
+    Sends notifications for variable income entries that have reminder times matching current time.
+    """
+    global scheduler_running
+    scheduler_running = True
+    logger.info("Background reminder scheduler started")
+    
+    while scheduler_running:
+        try:
+            now = datetime.now()
+            current_time = now.strftime("%H:%M")
+            today = now.strftime("%Y-%m-%d")
+            
+            logger.debug(f"Checking reminders for time: {current_time}")
+            
+            # Find variable income sources with reminders set for current time
+            # that haven't been recorded today
+            variable_incomes = await db.income_sources.find({
+                "incomeType": "variable",
+                "reminderTime": current_time,
+                "lastEntryDate": {"$ne": today}
+            }, {"_id": 0}).to_list(100)
+            
+            for source in variable_incomes:
+                user_id = source.get("userId")
+                source_id = source.get("id")
+                source_name = source.get("name", "Income")
+                source_type = source.get("type", "job").lower().replace(' ', '-')
+                expected_amount = source.get("expectedAmount", 0)
+                
+                # Check if we already sent a reminder notification today for this source
+                existing_notification = await db.notifications.find_one({
+                    "userId": user_id,
+                    "relatedIncomeId": source_id,
+                    "type": "income_reminder",
+                    "createdAt": {"$regex": f"^{today}"}
+                })
+                
+                if existing_notification:
+                    logger.debug(f"Reminder already sent today for {source_name}")
+                    continue
+                
+                # Create notification
+                action_url = f"/{source_type}-income/{source_id}"
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "title": f"Time to record {source_name}",
+                    "message": f"Hi! It's time to record your {source_name} income. Expected: ₹{expected_amount:,.0f}" if expected_amount else f"Hi! It's time to record your {source_name} income.",
+                    "type": "income_reminder",
+                    "relatedIncomeId": source_id,
+                    "relatedIncomeName": source_name,
+                    "actionUrl": action_url,
+                    "isRead": False,
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                
+                await create_notification_and_cleanup(notification)
+                logger.info(f"Sent reminder notification for {source_name} to user {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error in reminder scheduler: {str(e)}")
+        
+        # Wait 60 seconds before next check
+        await asyncio.sleep(60)
+
 @app.on_event("startup")
 async def startup_db_client():
     """Create database indexes for faster queries"""
