@@ -391,17 +391,48 @@ const ExpenseForm = () => {
               <label htmlFor="expenseName" className="block text-sm font-medium text-[#334155] mb-2">
                 Expense Name
               </label>
-              <input
-                id="expenseName"
-                type="text"
-                value={expenseName}
-                onChange={(e) => setExpenseName(e.target.value)}
-                placeholder="e.g., House Rent, Netflix, Groceries"
-                maxLength={50}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="expense-name-input"
-              />
-              {errors.expenseName && <p className="text-sm text-red-500 mt-1">{errors.expenseName}</p>}
+              <div className="relative">
+                <input
+                  id="expenseName"
+                  type="text"
+                  value={expenseName}
+                  onChange={(e) => {
+                    setExpenseName(e.target.value);
+                    if (errors.expenseName) {
+                      setErrors(prev => ({ ...prev, expenseName: null }));
+                    }
+                  }}
+                  onBlur={() => checkExpenseNameUnique(expenseName)}
+                  placeholder="e.g., House Rent, Netflix, Groceries"
+                  maxLength={50}
+                  className="w-full rounded-xl border px-4 py-3 pr-10 text-[#334155] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  style={{
+                    backgroundColor: "var(--bg-subtle)",
+                    borderColor: errors.expenseName || expenseNameUniqueError 
+                      ? "var(--status-error)" 
+                      : isExpenseNameUnique === true && expenseName.trim() 
+                        ? "var(--status-success)" 
+                        : "var(--border-light)"
+                  }}
+                  data-testid="expense-name-input"
+                />
+                {/* Status indicator */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isCheckingExpenseName && (
+                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+                  )}
+                  {!isCheckingExpenseName && isExpenseNameUnique === true && expenseName.trim() && (
+                    <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
+                  )}
+                </div>
+              </div>
+              {errors.expenseName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.expenseName}</p>}
+              {!errors.expenseName && expenseNameUniqueError && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{expenseNameUniqueError}</p>
+              )}
+              {!errors.expenseName && !expenseNameUniqueError && isExpenseNameUnique === true && expenseName.trim() && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>
+              )}
             </div>
 
             {/* Expense Type - Fixed/Variable Toggle */}
