@@ -38,11 +38,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (username, password) => {
+  const login = async (username, password, rememberMe = false) => {
     try {
       const response = await axios.post(
         `${backendUrl}/api/auth/login`,
-        { username, password },
+        { username, password, remember_me: rememberMe },
         { withCredentials: true }
       );
       setUser(response.data);
