@@ -408,17 +408,48 @@ const DividendIncome = () => {
               <label htmlFor="investmentName" className="block text-sm font-medium text-[#334155] mb-2">
                 Investment Name
               </label>
-              <input
-                id="investmentName"
-                type="text"
-                value={investmentName}
-                onChange={(e) => setInvestmentName(e.target.value)}
-                placeholder="e.g., TCS, Embassy REIT, HDFC Dividend Fund"
-                maxLength={50}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="investment-name-input"
-              />
-              {errors.investmentName && <p className="text-sm text-red-500 mt-1">{errors.investmentName}</p>}
+              <div className="relative">
+                <input
+                  id="investmentName"
+                  type="text"
+                  value={investmentName}
+                  onChange={(e) => {
+                    setInvestmentName(e.target.value);
+                    if (errors.investmentName) {
+                      setErrors(prev => ({ ...prev, investmentName: null }));
+                    }
+                  }}
+                  onBlur={() => checkInvestmentNameUnique(investmentName)}
+                  placeholder="e.g., TCS, Embassy REIT, HDFC Dividend Fund"
+                  maxLength={50}
+                  className="w-full rounded-xl border px-4 py-3 pr-10 text-[#334155] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  style={{
+                    backgroundColor: "var(--bg-subtle)",
+                    borderColor: errors.investmentName || investmentNameUniqueError 
+                      ? "var(--status-error)" 
+                      : isInvestmentNameUnique === true && investmentName.trim() 
+                        ? "var(--status-success)" 
+                        : "var(--border-light)"
+                  }}
+                  data-testid="investment-name-input"
+                />
+                {/* Status indicator */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isCheckingInvestmentName && (
+                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+                  )}
+                  {!isCheckingInvestmentName && isInvestmentNameUnique === true && investmentName.trim() && (
+                    <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
+                  )}
+                </div>
+              </div>
+              {errors.investmentName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.investmentName}</p>}
+              {!errors.investmentName && investmentNameUniqueError && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{investmentNameUniqueError}</p>
+              )}
+              {!errors.investmentName && !investmentNameUniqueError && isInvestmentNameUnique === true && investmentName.trim() && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>
+              )}
             </div>
 
             {/* Units / Holdings (Optional) */}
