@@ -430,17 +430,48 @@ const AssetForm = () => {
               <label htmlFor="assetName" className="block text-sm font-medium text-[#334155] mb-2">
                 Asset Name
               </label>
-              <input
-                id="assetName"
-                type="text"
-                value={assetName}
-                onChange={(e) => setAssetName(e.target.value)}
-                placeholder="e.g., Green Villa – Flat 302, Honda City 2020"
-                maxLength={100}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="asset-name-input"
-              />
-              {errors.assetName && <p className="text-sm text-red-500 mt-1">{errors.assetName}</p>}
+              <div className="relative">
+                <input
+                  id="assetName"
+                  type="text"
+                  value={assetName}
+                  onChange={(e) => {
+                    setAssetName(e.target.value);
+                    if (errors.assetName) {
+                      setErrors(prev => ({ ...prev, assetName: null }));
+                    }
+                  }}
+                  onBlur={() => checkAssetNameUnique(assetName)}
+                  placeholder="e.g., Green Villa – Flat 302, Honda City 2020"
+                  maxLength={100}
+                  className="w-full rounded-xl border px-4 py-3 pr-10 text-[#334155] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  style={{
+                    backgroundColor: "var(--bg-subtle)",
+                    borderColor: errors.assetName || assetNameUniqueError 
+                      ? "var(--status-error)" 
+                      : isAssetNameUnique === true && assetName.trim() 
+                        ? "var(--status-success)" 
+                        : "var(--border-light)"
+                  }}
+                  data-testid="asset-name-input"
+                />
+                {/* Status indicator */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isCheckingAssetName && (
+                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+                  )}
+                  {!isCheckingAssetName && isAssetNameUnique === true && assetName.trim() && (
+                    <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
+                  )}
+                </div>
+              </div>
+              {errors.assetName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.assetName}</p>}
+              {!errors.assetName && assetNameUniqueError && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{assetNameUniqueError}</p>
+              )}
+              {!errors.assetName && !assetNameUniqueError && isAssetNameUnique === true && assetName.trim() && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>
+              )}
             </div>
 
             {/* Purchase Value */}
