@@ -852,40 +852,41 @@ const ExpenseForm = () => {
         </div>
       </div>
 
-      {/* Sticky Action Buttons - positioned above BottomNav */}
-      <div className="fixed bottom-16 left-0 right-0 px-6 py-4 z-40 shadow-modal" style={{ backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border-light)" }}>
+      {/* Sticky Action Buttons - Mobile Optimized */}
+      <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-40">
         <div className="mx-auto max-w-[620px]">
           {id ? (
-            <div className="flex gap-3">
+            /* Edit Mode - Show Update and Delete side-by-side */
+            <div className="flex flex-row gap-3">
+              {/* Delete Button - Ghost Style (flex: 1 = 30%) */}
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 disabled={isSubmitting}
-                className="flex items-center justify-center gap-2 rounded-xl border-2 px-6 py-4 font-semibold transition-all active:scale-[0.98] disabled:opacity-50"
-                style={{ borderColor: "var(--status-error)", backgroundColor: "var(--bg-card)", color: "var(--status-error)" }}
+                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-[#FF4D4D] bg-transparent text-[#FF4D4D] text-sm font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
                 data-testid="delete-button"
               >
-                <Trash2 className="h-5 w-5" />
+                <Trash2 className="h-4 w-4" />
                 Delete
               </button>
+              {/* Update Button - Primary Style (flex: 2 = 70%) */}
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={isSubmitting}
-                className="flex-1 rounded-xl py-4 text-center text-lg font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-50"
-                style={{ backgroundColor: "var(--btn-primary-bg)", boxShadow: "0 4px 12px rgba(5, 150, 105, 0.3)" }}
+                className="flex-[2] h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 shadow-sm"
                 data-testid="update-button"
               >
                 {isSubmitting ? "Updating..." : "Update Expense"}
               </button>
             </div>
           ) : (
+            /* Create Mode - Show Save Only */
             <button
               type="button"
               onClick={handleSave}
               disabled={isSubmitting}
-              className="w-full rounded-xl py-4 text-center text-lg font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-50"
-              style={{ backgroundColor: "var(--btn-primary-bg)", boxShadow: "0 4px 12px rgba(5, 150, 105, 0.3)" }}
+              className="w-full h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 shadow-sm"
               data-testid="save-button"
             >
               {isSubmitting ? "Saving..." : "Save Expense"}
