@@ -215,6 +215,11 @@ const DividendIncome = () => {
     // Investment Name validation
     const nameError = validateTextField(investmentName, "Investment name", 100);
     if (nameError) newErrors.investmentName = nameError;
+    
+    // Check uniqueness
+    if (isInvestmentNameUnique === false) {
+      newErrors.investmentName = investmentNameUniqueError || "An entry with this name already exists.";
+    }
 
     // Expected Amount validation
     const amountError = validatePositiveAmount(expectedAmount, "Expected amount");
