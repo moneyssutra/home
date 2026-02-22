@@ -9,7 +9,6 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
-import { toast } from "sonner";
 import { 
   validatePositiveAmount, 
   validateNonNegativeAmount,
