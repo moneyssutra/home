@@ -57,6 +57,19 @@ const InsuranceForm = () => {
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
+  // Entity uniqueness check for policy name
+  const {
+    checkUniqueness: checkPolicyNameUnique,
+    isChecking: isCheckingPolicyName,
+    isUnique: isPolicyNameUnique,
+    error: policyNameUniqueError,
+    reset: resetPolicyNameCheck
+  } = useEntityUniqueness({
+    collection: "insurances",
+    field: "policyName",
+    excludeId: id || null
+  });
+
   const insuranceTypeOptions = [
     "Life Insurance",
     "Term Insurance",
