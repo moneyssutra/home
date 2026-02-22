@@ -100,7 +100,8 @@ const NotificationBell = () => {
     // Navigate and close panel
     if (notification.actionUrl) {
       handleClose();
-      navigate(notification.actionUrl);
+      const mappedUrl = mapActionUrl(notification.actionUrl);
+      navigate(mappedUrl);
     }
   };
   
