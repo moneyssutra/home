@@ -6027,8 +6027,14 @@ async def get_expense_history(entity_id: str, request: Request):
     
     user_id = session.get("user_id")
     
-    # Get expense template info
+    # Get expense template info (including legacy data without userId)
     expense_template = await db.expenses.find_one({"id": entity_id, "userId": user_id}, {"_id": 0})
+    if not expense_template:
+        # Also check for legacy data (userId is null/missing)
+        expense_template = await db.expenses.find_one({
+            "id": entity_id, 
+            "$or": [{"userId": None}, {"userId": {"$exists": False}}]
+        }, {"_id": 0})
     if not expense_template:
         raise HTTPException(status_code=404, detail="Expense not found")
     
