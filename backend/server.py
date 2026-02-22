@@ -5932,8 +5932,14 @@ async def record_expense_transaction(transaction: dict, request: Request):
     amount = float(transaction.get("amount", 0))
     transaction_date = transaction.get("transactionDate") or datetime.now(timezone.utc).date().isoformat()
     
-    # Get the expense template
+    # Get the expense template (including legacy data without userId)
     expense_template = await db.expenses.find_one({"id": entity_id, "userId": user_id}, {"_id": 0})
+    if not expense_template:
+        # Also check for legacy data (userId is null/missing)
+        expense_template = await db.expenses.find_one({
+            "id": entity_id, 
+            "$or": [{"userId": None}, {"userId": {"$exists": False}}]
+        }, {"_id": 0})
     if not expense_template:
         raise HTTPException(status_code=404, detail="Expense not found")
     
