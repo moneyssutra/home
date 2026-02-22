@@ -4,11 +4,67 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
 
 ## Current Status
-**Transaction Model & Auto-Premium Recording Complete** (Feb 22, 2026)
+**Transaction Recording UI Rolled Out** (Feb 22, 2026)
 
 ## What Was Implemented (Latest Session - Feb 22, 2026)
 
-### 1. Mobile Time Picker Visibility Fix (COMPLETED)
+### 1. Transaction Recording UI Rollout (COMPLETED)
+**Feature**: Added "Record Transaction" UI to all income and expense forms for historical transaction logging.
+
+**Implementation**:
+- Added "Record Actual Income/Expense" section to edit forms
+- Section includes:
+  - Title and description
+  - Green/Red "Record" button (income/expense)
+  - Expandable "Transaction History" panel
+- Record button opens RecordTransactionModal for entering:
+  - Amount (pre-filled with expected amount)
+  - Transaction date (defaults to today)
+  - Notes field
+- Transaction History panel shows:
+  - Total recorded amount
+  - Average per transaction
+  - List of all transactions with dates and notes
+
+**Forms Updated** (8 income forms + 1 expense form):
+- BusinessIncome.js ✓
+- JobIncome.js ✓
+- RentalIncome.js ✓
+- SelfEmployedIncome.js ✓
+- CommissionIncome.js ✓
+- DividendIncome.js ✓
+- InterestIncome.js ✓
+- OtherIncomeForm.js ✓
+- ExpenseForm.js ✓
+
+**Key Components**:
+- `RecordTransactionModal.js` - Modal for recording transactions
+- `TransactionHistoryPanel.js` - Expandable history view
+- `transactionApi.js` - API utilities for CRUD operations
+
+**Testing Results** (iteration_46.json):
+- Frontend: 100% (13/13 features verified)
+- All forms show transaction recording UI in edit mode ✓
+- Modal opens and records transactions correctly ✓
+- History panel displays recorded transactions ✓
+- 4 bugs fixed (variable references in modal props)
+
+---
+
+### 2. Insurance Form Frequency Logic (COMPLETED)
+**Feature**: Premium payment date selection mirrors BusinessIncome frequency logic.
+
+**Implementation**:
+- **Monthly**: Simple date picker
+- **Quarterly**: Quarter → Month → Date cascade
+- **Half-Yearly**: Half → Month → Date cascade
+- **Yearly**: Month → Date picker
+
+**Testing**: Verified all frequency modes work correctly in InsuranceForm.
+
+---
+
+### 3. Mobile Time Picker Visibility Fix (COMPLETED)
 **Issue**: "Set Reminder Time" field was not showing options on mobile devices.
 
 **Fix Applied**:
