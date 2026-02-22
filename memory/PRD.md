@@ -342,12 +342,16 @@ VAPID_CLAIMS_EMAIL=mailto:support@moneyssutra.com
 
 ## Upcoming Tasks
 
-### P0 - Ready to Configure (User Action Required)
+### P0 - Transaction Model Frontend Integration
+- **Frontend Refactoring**: Update income/expense forms to create transactions when recording actual amounts
+  - Add "Record Income/Expense" flow that calls transaction endpoints
+  - Create History page component to show transaction history per source
+  - Option to view "Actual vs Expected" comparison on dashboard
+
+### P1 - High Priority
 - **MongoDB Atlas Triggers**: User needs to configure daily triggers using the provided guide at `/app/docs/ATLAS_TRIGGERS_SETUP.md`
   - Trigger 1: Daily fallback processing at 00:30 UTC
   - Trigger 2: Hourly reminders at :00
-
-### P1 - High Priority
 - Dark mode toggle
 - PWA features (offline support, install prompt)
 - Data export functionality
