@@ -890,35 +890,28 @@ const SelfEmployedIncome = () => {
             </div>
           )}
 
-          {/* Action Buttons */}
-          <div className="space-y-3 pt-4">
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSubmitting}
-              className="w-full py-4 rounded-xl text-white font-semibold text-lg shadow-lg transition-all active:scale-[0.98] disabled:opacity-50"
-              style={{ backgroundColor: "var(--brand-primary)" }}
-              data-testid="save-button"
-            >
-              {isSubmitting ? "Saving..." : (isEditing ? "Update Income" : "Save Income")}
-            </button>
-
+          {/* Action Buttons - Mobile Optimized */}
+          <div className="flex flex-row gap-3 pt-4">
             {isEditing && (
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="w-full py-4 rounded-xl font-semibold text-lg border transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                style={{ 
-                  borderColor: "var(--status-error)",
-                  color: "var(--status-error)",
-                  backgroundColor: "transparent"
-                }}
+                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-[#FF4D4D] bg-transparent text-[#FF4D4D] text-sm font-semibold transition-all hover:bg-red-50 active:scale-[0.98]"
                 data-testid="delete-button"
               >
-                <Trash2 className="h-5 w-5" />
-                Delete Income
+                <Trash2 className="h-4 w-4" />
+                Delete
               </button>
             )}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSubmitting}
+              className={`${isEditing ? 'flex-[2]' : 'w-full'} h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 shadow-sm`}
+              data-testid="save-button"
+            >
+              {isSubmitting ? "Saving..." : (isEditing ? "Update Income" : "Save Income")}
+            </button>
           </div>
         </form>
       </div>
