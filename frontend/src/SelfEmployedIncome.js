@@ -895,6 +895,37 @@ const SelfEmployedIncome = () => {
             </div>
           )}
 
+          {/* Record Transaction Section - Only shown in Edit Mode */}
+          {isEditing && (
+            <div className="mt-6 p-4 rounded-xl bg-[#00D09C]/5 border border-[#00D09C]/20">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="font-medium text-[#334155]">Record Actual Income</h3>
+                  <p className="text-xs text-[#64748B] mt-0.5">Log when you receive income from this source</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRecordModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00D09C] text-white text-sm font-medium hover:bg-[#00B88A] transition-colors"
+                  data-testid="record-transaction-btn"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Record
+                </button>
+              </div>
+              
+              {/* Transaction History Panel */}
+              <TransactionHistoryPanel
+                key={transactionRefreshKey}
+                entityId={id}
+                entityType="income"
+                fetchHistory={getIncomeTransactionHistory}
+                deleteTransaction={deleteIncomeTransaction}
+                onTransactionDeleted={() => setTransactionRefreshKey(k => k + 1)}
+              />
+            </div>
+          )}
+
           {/* Error Message */}
           {errors.submit && (
             <div className="p-4 rounded-xl bg-rose-50 border border-rose-200">
