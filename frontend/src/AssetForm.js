@@ -63,6 +63,19 @@ const AssetForm = () => {
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
+  // Entity uniqueness check for asset name
+  const {
+    checkUniqueness: checkAssetNameUnique,
+    isChecking: isCheckingAssetName,
+    isUnique: isAssetNameUnique,
+    error: assetNameUniqueError,
+    reset: resetAssetNameCheck
+  } = useEntityUniqueness({
+    collection: "assets",
+    field: "assetName",
+    excludeId: id || null
+  });
+
   const assetTypes = [
     "Residential Property",
     "Commercial Property",
