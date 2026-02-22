@@ -74,7 +74,7 @@ exports = async function() {
       
       if (subscriptions.length > 0) {
         // Call your backend API to send push notification
-        const backendUrl = context.environment.values.BACKEND_URL || "https://your-app.preview.emergentagent.com";
+        const backendUrl = context.environment.values.BACKEND_URL || "https://transaction-hub-77.preview.emergentagent.com";
         
         try {
           const response = await context.http.post({
