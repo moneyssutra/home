@@ -42,6 +42,19 @@ const CreditCardForm = () => {
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
+  // Entity uniqueness check for card name
+  const {
+    checkUniqueness: checkCardNameUnique,
+    isChecking: isCheckingCardName,
+    isUnique: isCardNameUnique,
+    error: cardNameUniqueError,
+    reset: resetCardNameCheck
+  } = useEntityUniqueness({
+    collection: "credit_cards",
+    field: "cardName",
+    excludeId: id || null
+  });
+
   useEffect(() => {
     fetchAccounts();
     if (id) {
