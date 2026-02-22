@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Save, Trash2, AlertCircle, CalendarDays, ChevronDown, Gift, Award, TrendingUp, Wallet, RefreshCw, Banknote, Sparkles, ArrowLeftRight, ReceiptText, CheckCircle } from "lucide-react";
+import { Save, Trash2, AlertCircle, CalendarDays, ChevronDown, Gift, Award, TrendingUp, Wallet, RefreshCw, Banknote, Sparkles, ArrowLeftRight, ReceiptText, CheckCircle, PlusCircle } from "lucide-react";
 import axios from "axios";
 import BackButton from "@/components/BackButton";
 import AmountInput from "@/components/AmountInput";
@@ -17,6 +17,14 @@ import {
   validateTextField,
   scrollToFirstError
 } from "@/lib/validations";
+import TransactionHistoryPanel from "@/components/TransactionHistoryPanel";
+import RecordTransactionModal from "@/components/RecordTransactionModal";
+import { 
+  recordIncomeTransaction, 
+  getIncomeTransactionHistory,
+  deleteIncomeTransaction 
+} from "@/utils/transactionApi";
+import { toast } from "sonner";
 
 const OtherIncomeForm = () => {
   const navigate = useNavigate();
@@ -46,6 +54,10 @@ const OtherIncomeForm = () => {
   const [error, setError] = useState("");
   const [errors, setErrors] = useState({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Transaction recording
+  const [showRecordModal, setShowRecordModal] = useState(false);
+  const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
