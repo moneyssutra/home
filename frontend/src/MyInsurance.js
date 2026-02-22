@@ -55,6 +55,46 @@ const MyInsurance = () => {
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   };
 
+  // Calculate next premium date based on premium payment date and frequency
+  const getNextPremiumDate = (insurance) => {
+    if (!insurance.premiumPaymentDate || insurance.premiumFrequency === "One-Time") {
+      return null;
+    }
+    
+    const baseDate = new Date(insurance.premiumPaymentDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let nextDate = new Date(baseDate);
+    
+    // Find the next future premium date
+    while (isBefore(nextDate, today) || nextDate <= today) {
+      switch (insurance.premiumFrequency) {
+        case "Monthly":
+          nextDate = addMonths(nextDate, 1);
+          break;
+        case "Quarterly":
+          nextDate = addQuarters(nextDate, 1);
+          break;
+        case "Half-Yearly":
+          nextDate = addMonths(nextDate, 6);
+          break;
+        case "Yearly":
+          nextDate = addYears(nextDate, 1);
+          break;
+        default:
+          return null;
+      }
+      
+      // Stop if we've gone past the end date
+      if (insurance.endDate && isAfter(nextDate, new Date(insurance.endDate))) {
+        return null;
+      }
+    }
+    
+    return format(nextDate, "d MMM yyyy");
+  };
+
   const getTotalCoverage = () => {
     return insurances.reduce((sum, ins) => sum + (ins.coverageAmount || 0), 0);
   };
