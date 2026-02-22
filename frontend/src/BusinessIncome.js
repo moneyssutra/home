@@ -874,7 +874,7 @@ const BusinessIncome = () => {
               <div className="mt-6 p-4 rounded-xl bg-[#00D09C]/5 border border-[#00D09C]/20">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h3 className="font-medium text-[#334155]">Record Actual Income</h3>
+                    <h3 className="font-medium text-[#334155]">Record Income</h3>
                     <p className="text-xs text-[#64748B] mt-0.5">Log when you receive income from this source</p>
                   </div>
                   <button
