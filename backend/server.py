@@ -5329,7 +5329,7 @@ async def process_variable_income_fallback(api_key: str = None):
                     "isRead": False,
                     "createdAt": datetime.now(timezone.utc).isoformat()
                 }
-                await db.notifications.insert_one(notification)
+                await create_notification_and_cleanup(notification)
                 notifications_created += 1
                 
                 # Send browser push notifications
