@@ -786,7 +786,7 @@ const AssetForm = () => {
                 <div className="mt-4 pt-4 border-t border-[#334155]">
                   <div className="flex items-center justify-between mb-2">
                     <label htmlFor="linkedInsurance" className="block text-sm font-medium text-[#334155]">
-                      Select Linked Insurance
+                      Select Linked Insurance <span className="text-rose-500">*</span>
                     </label>
                     <button
                       type="button"
@@ -799,23 +799,50 @@ const AssetForm = () => {
                     </button>
                   </div>
                   {availableInsurances.length > 0 ? (
-                    <select
-                      id="linkedInsurance"
-                      value={linkedInsuranceId}
-                      onChange={(e) => setLinkedInsuranceId(e.target.value)}
-                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="linked-insurance-select"
-                    >
-                      <option value="">Select an Insurance</option>
-                      {availableInsurances.map((ins) => (
-                        <option key={ins.id} value={ins.id}>
-                          {ins.policyName}
-                        </option>
-                      ))}
-                    </select>
+                    <>
+                      <select
+                        id="linkedInsurance"
+                        value={linkedInsuranceId}
+                        onChange={(e) => {
+                          setLinkedInsuranceId(e.target.value);
+                          if (errors.linkedInsuranceId) {
+                            setErrors(prev => ({ ...prev, linkedInsuranceId: null }));
+                          }
+                        }}
+                        className={`w-full rounded-xl border px-4 py-3 text-[#334155] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 ${
+                          errors.linkedInsuranceId 
+                            ? "border-red-500 bg-red-500/5" 
+                            : "border-[#334155] bg-[#1E293B]"
+                        }`}
+                        data-testid="linked-insurance-select"
+                      >
+                        <option value="">Select an Insurance Policy</option>
+                        {availableInsurances.map((ins) => (
+                          <option key={ins.id} value={ins.id}>
+                            {ins.policyName}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.linkedInsuranceId && (
+                        <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
+                          <AlertTriangle className="h-4 w-4" />
+                          {errors.linkedInsuranceId}
+                        </p>
+                      )}
+                    </>
                   ) : (
-                    <div className="text-sm text-[#334155]/60 bg-[#0F172A] rounded-xl px-4 py-3 text-center">
-                      No insurance policies found. Click "Add Insurance" to create one.
+                    <div className="space-y-2">
+                      <div className={`text-sm bg-[#0F172A] rounded-xl px-4 py-3 text-center ${
+                        errors.linkedInsuranceId ? "text-red-400 border border-red-500" : "text-[#334155]/60"
+                      }`}>
+                        No insurance policies found. Click "Add Insurance" to create one.
+                      </div>
+                      {errors.linkedInsuranceId && (
+                        <p className="text-sm text-red-500 flex items-center gap-1">
+                          <AlertTriangle className="h-4 w-4" />
+                          {errors.linkedInsuranceId}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
