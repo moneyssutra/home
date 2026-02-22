@@ -618,8 +618,13 @@ async def get_status_checks():
 # ============ AUTH ENDPOINTS ============
 
 class RegisterRequest(BaseModel):
-    name: str
+    firstName: str
+    middleName: Optional[str] = None
+    lastName: str
     email: str
+    mobile: Optional[str] = None
+    sex: str  # "male" or "female"
+    dateOfBirth: str  # YYYY-MM-DD format
     password: str
 
 def hash_password(password: str) -> str:
@@ -630,12 +635,76 @@ def verify_password(password: str, hashed: str) -> bool:
     """Verify password against hash"""
     return hash_password(password) == hashed
 
+def validate_password_strength(password: str) -> tuple[bool, str]:
+    """
+    Validate password strength:
+    - Min 8 chars
+    - At least 1 uppercase
+    - At least 1 number
+    - At least 1 special character
+    Returns (is_valid, error_message)
+    """
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters"
+    if not any(c.isupper() for c in password):
+        return False, "Password must contain at least 1 uppercase letter"
+    if not any(c.isdigit() for c in password):
+        return False, "Password must contain at least 1 number"
+    if not any(c in "!@#$%^&*()_+-=[]{}|;':\",./<>?" for c in password):
+        return False, "Password must contain at least 1 special character"
+    return True, ""
+
 @api_router.post("/auth/register")
 async def register_user(request: RegisterRequest, response: Response):
-    """Register a new user with email/password"""
+    """Register a new user with comprehensive profile data"""
+    import re
+    
     # Normalize inputs
     email = request.email.strip().lower()
-    name = request.name.strip()
+    firstName = request.firstName.strip()
+    middleName = request.middleName.strip() if request.middleName else ""
+    lastName = request.lastName.strip()
+    fullName = f"{firstName} {middleName} {lastName}".replace("  ", " ").strip()
+    
+    # Validate required fields
+    if not firstName:
+        raise HTTPException(status_code=400, detail="First name is required")
+    if not lastName:
+        raise HTTPException(status_code=400, detail="Last name is required")
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    if not request.sex or request.sex.lower() not in ["male", "female"]:
+        raise HTTPException(status_code=400, detail="Please select your sex (Male/Female)")
+    if not request.dateOfBirth:
+        raise HTTPException(status_code=400, detail="Date of birth is required")
+    
+    # Validate name format (no numbers or special characters)
+    name_pattern = re.compile(r'^[A-Za-z\s]+$')
+    if not name_pattern.match(firstName):
+        raise HTTPException(status_code=400, detail="First name should contain only letters")
+    if not name_pattern.match(lastName):
+        raise HTTPException(status_code=400, detail="Last name should contain only letters")
+    if middleName and not name_pattern.match(middleName):
+        raise HTTPException(status_code=400, detail="Middle name should contain only letters")
+    
+    # Validate mobile (if provided) - must be exactly 10 digits
+    if request.mobile:
+        mobile = request.mobile.strip()
+        if not re.match(r'^\d{10}$', mobile):
+            raise HTTPException(status_code=400, detail="Mobile number must be exactly 10 digits")
+    
+    # Validate date of birth (no future dates)
+    try:
+        dob = datetime.fromisoformat(request.dateOfBirth)
+        if dob > datetime.now(timezone.utc):
+            raise HTTPException(status_code=400, detail="Date of birth cannot be in the future")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+    
+    # Validate password strength
+    is_valid, error_msg = validate_password_strength(request.password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_msg)
     
     # Check if email already exists (case-insensitive)
     existing_email = await db.users.find_one(
@@ -645,28 +714,23 @@ async def register_user(request: RegisterRequest, response: Response):
     if existing_email:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Check if username (name) already exists (case-insensitive)
+    # Check if full name already exists (case-insensitive)
     existing_name = await db.users.find_one(
-        {"name": {"$regex": f"^{name}$", "$options": "i"}},
+        {"name": {"$regex": f"^{fullName}$", "$options": "i"}},
         {"_id": 0}
     )
     if existing_name:
-        raise HTTPException(status_code=400, detail="Username already taken")
-    
-    # Check if username matches existing email prefix
-    existing_email_prefix = await db.users.find_one(
-        {"email": {"$regex": f"^{name}@", "$options": "i"}},
-        {"_id": 0}
-    )
-    if existing_email_prefix:
-        raise HTTPException(status_code=400, detail="Username already taken")
+        raise HTTPException(status_code=400, detail="This name is already registered")
     
     # Create new user
     user_id = f"user_{uuid.uuid4().hex[:12]}"
     user = {
         "user_id": user_id,
         "email": email,
-        "name": name,
+        "name": fullName,
+        "firstName": firstName,
+        "middleName": middleName,
+        "lastName": lastName,
         "picture": None,
         "auth_type": "jwt",
         "password_hash": hash_password(request.password),
