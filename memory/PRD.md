@@ -187,6 +187,11 @@ VAPID_CLAIMS_EMAIL=mailto:support@moneyssutra.com
 
 ## Upcoming Tasks
 
+### P0 - Ready to Configure (User Action Required)
+- **MongoDB Atlas Triggers**: User needs to configure daily triggers using the provided guide at `/app/docs/ATLAS_TRIGGERS_SETUP.md`
+  - Trigger 1: Daily fallback processing at 00:30 UTC
+  - Trigger 2: Hourly reminders at :00
+
 ### P1 - High Priority
 - Dark mode toggle
 - PWA features (offline support, install prompt)
