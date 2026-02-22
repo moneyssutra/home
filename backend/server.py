@@ -5458,7 +5458,7 @@ async def send_reminder_notifications(api_key: str = None):
                 "isRead": False,
                 "createdAt": datetime.now(timezone.utc).isoformat()
             }
-            await db.notifications.insert_one(notification)
+            await create_notification_and_cleanup(notification)
             notifications_sent += 1
             
             # Send browser push notifications to all user's subscriptions
