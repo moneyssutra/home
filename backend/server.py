@@ -5078,6 +5078,48 @@ async def create_notification_and_cleanup(notification: dict):
             ids_to_delete = [n["_id"] for n in oldest_notifications]
             await db.notifications.delete_many({"_id": {"$in": ids_to_delete}})
 
+
+@api_router.post("/notifications/test-reminder/{income_id}")
+async def send_test_reminder(income_id: str, request: Request):
+    """Manually send a test reminder notification for an income source (for testing purposes)"""
+    session_token = request.cookies.get("session_token")
+    if not session_token:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    session = await db.user_sessions.find_one({"session_token": session_token})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    
+    user_id = session.get("user_id")
+    
+    # Find the income source
+    source = await db.income_sources.find_one({"id": income_id, "userId": user_id}, {"_id": 0})
+    if not source:
+        raise HTTPException(status_code=404, detail="Income source not found")
+    
+    source_name = source.get("name", "Income")
+    source_type = source.get("type", "job").lower().replace(' ', '-')
+    expected_amount = source.get("expectedAmount", 0)
+    
+    # Create notification
+    action_url = f"/{source_type}-income/{income_id}"
+    notification = {
+        "id": str(uuid.uuid4()),
+        "userId": user_id,
+        "title": f"Time to record {source_name}",
+        "message": f"Hi! It's time to record your {source_name} income. Expected: ₹{expected_amount:,.0f}" if expected_amount else f"Hi! It's time to record your {source_name} income.",
+        "type": "income_reminder",
+        "relatedIncomeId": income_id,
+        "relatedIncomeName": source_name,
+        "actionUrl": action_url,
+        "isRead": False,
+        "createdAt": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await create_notification_and_cleanup(notification)
+    
+    return {"success": True, "message": f"Test reminder sent for {source_name}"}
+
 # ============ NOTIFICATION ENDPOINTS ============
 @api_router.get("/notifications")
 async def get_notifications(user_id: str = None, request: Request = None):
