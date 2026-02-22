@@ -72,8 +72,45 @@ const Login = () => {
   const toggleMode = () => {
     setIsRegisterMode(!isRegisterMode);
     setError("");
-    setEmail("");
+    setIdentifier("");
     setPassword("");
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccessMessage("");
+
+    if (!identifier.trim()) {
+      setError("Please enter your registered email ID or mobile number");
+      return;
+    }
+
+    if (!isValidIdentifier(identifier.trim())) {
+      setError("Please enter a valid email address or 10-digit mobile number");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await axios.post(`${backendUrl}/api/auth/forgot-password`, {
+        username: identifier.trim()
+      });
+      setSuccessMessage(response.data.message);
+      setForgotPasswordStep(2);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Failed to process request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetForgotPassword = () => {
+    setIsForgotPasswordMode(false);
+    setForgotPasswordStep(1);
+    setIdentifier("");
+    setError("");
+    setSuccessMessage("");
   };
 
   if (loading) {
