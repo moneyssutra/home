@@ -309,11 +309,16 @@ const AssetForm = () => {
     setShowUpdateConfirm(false);
     
     try {
+      // Default current value to purchase value if not provided
+      const finalCurrentValue = currentValue 
+        ? parseFloat(currentValue) 
+        : (purchaseValue ? parseFloat(purchaseValue) : 0);
+      
       const payload = {
         assetType,
         assetName,
         purchaseValue: purchaseValue ? parseFloat(purchaseValue) : null,
-        currentValue: parseFloat(currentValue),
+        currentValue: finalCurrentValue,
         purchaseDate: purchaseDate || null,
         depreciationType: depreciationType || null,
         isFinanced,
