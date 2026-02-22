@@ -433,9 +433,25 @@ const JobIncome = () => {
                         : "var(--border-light)"
                   }}
                   data-testid="company-name-input"
-              />
+                />
+                {/* Status indicator */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isCheckingCompanyName && (
+                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+                  )}
+                  {!isCheckingCompanyName && isCompanyNameUnique === true && companyName.trim() && (
+                    <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
+                  )}
+                </div>
+              </div>
               {errors.companyName && (
-                <p className="text-sm text-red-500 mt-1">{errors.companyName}</p>
+                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.companyName}</p>
+              )}
+              {!errors.companyName && companyNameUniqueError && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{companyNameUniqueError}</p>
+              )}
+              {!errors.companyName && !companyNameUniqueError && isCompanyNameUnique === true && companyName.trim() && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>
               )}
             </div>
 
