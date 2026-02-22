@@ -409,18 +409,49 @@ const BusinessIncome = () => {
               >
                 Business Name
               </label>
-              <input
-                id="businessName"
-                type="text"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="Enter Business Name"
-                maxLength={50}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="business-name-input"
-              />
+              <div className="relative">
+                <input
+                  id="businessName"
+                  type="text"
+                  value={businessName}
+                  onChange={(e) => {
+                    setBusinessName(e.target.value);
+                    if (errors.businessName) {
+                      setErrors(prev => ({ ...prev, businessName: null }));
+                    }
+                  }}
+                  onBlur={() => checkBusinessNameUnique(businessName)}
+                  placeholder="Enter Business Name"
+                  maxLength={50}
+                  className="w-full rounded-xl border px-4 py-3 pr-10 text-[#334155] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  style={{
+                    backgroundColor: "var(--bg-subtle)",
+                    borderColor: errors.businessName || businessNameUniqueError 
+                      ? "var(--status-error)" 
+                      : isBusinessNameUnique === true && businessName.trim() 
+                        ? "var(--status-success)" 
+                        : "var(--border-light)"
+                  }}
+                  data-testid="business-name-input"
+                />
+                {/* Status indicator */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isCheckingBusinessName && (
+                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+                  )}
+                  {!isCheckingBusinessName && isBusinessNameUnique === true && businessName.trim() && (
+                    <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
+                  )}
+                </div>
+              </div>
               {errors.businessName && (
-                <p className="text-sm text-red-500 mt-1">{errors.businessName}</p>
+                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.businessName}</p>
+              )}
+              {!errors.businessName && businessNameUniqueError && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{businessNameUniqueError}</p>
+              )}
+              {!errors.businessName && !businessNameUniqueError && isBusinessNameUnique === true && businessName.trim() && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>
               )}
             </div>
 
