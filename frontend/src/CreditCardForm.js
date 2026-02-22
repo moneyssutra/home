@@ -113,6 +113,11 @@ const CreditCardForm = () => {
     const nameError = validateTextField(cardName, "Card name", 50);
     if (nameError) newErrors.cardName = nameError;
     
+    // Check uniqueness
+    if (isCardNameUnique === false) {
+      newErrors.cardName = cardNameUniqueError || "An entry with this name already exists.";
+    }
+    
     // Bank Name validation
     const bankError = validateTextField(bankName, "Bank name", 50);
     if (bankError) newErrors.bankName = bankError;
