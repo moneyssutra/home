@@ -10,6 +10,7 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
+import { RestrictedDatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import { 
   validatePositiveAmount, 
@@ -54,6 +55,12 @@ const InsuranceForm = () => {
   const [premiumEndDate, setPremiumEndDate] = useState("");
   const [notes, setNotes] = useState("");
   
+  // Premium frequency conditional fields (like Business Income)
+  const [selectedDay, setSelectedDay] = useState("");
+  const [selectedQuarter, setSelectedQuarter] = useState("");
+  const [selectedHalf, setSelectedHalf] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("");
+  
   // Available assets for linking
   const [assets, setAssets] = useState([]);
   
@@ -67,7 +74,6 @@ const InsuranceForm = () => {
   // Calendar popover states
   const [startCalendarOpen, setStartCalendarOpen] = useState(false);
   const [endCalendarOpen, setEndCalendarOpen] = useState(false);
-  const [premiumPaymentCalendarOpen, setPremiumPaymentCalendarOpen] = useState(false);
   const [premiumEndCalendarOpen, setPremiumEndCalendarOpen] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
