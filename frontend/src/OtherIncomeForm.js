@@ -637,6 +637,37 @@ const OtherIncomeForm = () => {
             />
           </div>
 
+          {/* Record Transaction Section - Only shown in Edit Mode */}
+          {isEdit && (
+            <div className="mt-6 p-4 rounded-xl bg-[#00D09C]/5 border border-[#00D09C]/20">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="font-medium text-[#334155]">Record Actual Income</h3>
+                  <p className="text-xs text-[#64748B] mt-0.5">Log when you receive income from this source</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRecordModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00D09C] text-white text-sm font-medium hover:bg-[#00B88A] transition-colors"
+                  data-testid="record-transaction-btn"
+                >
+                  <PlusCircle className="h-4 w-4" />
+                  Record
+                </button>
+              </div>
+              
+              {/* Transaction History Panel */}
+              <TransactionHistoryPanel
+                key={transactionRefreshKey}
+                entityId={id}
+                entityType="income"
+                fetchHistory={getIncomeTransactionHistory}
+                deleteTransaction={deleteIncomeTransaction}
+                onTransactionDeleted={() => setTransactionRefreshKey(k => k + 1)}
+              />
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             {isEdit && (
@@ -697,6 +728,20 @@ const OtherIncomeForm = () => {
           </div>
         </div>
       )}
+
+      {/* Record Transaction Modal */}
+      <RecordTransactionModal
+        isOpen={showRecordModal}
+        onClose={() => setShowRecordModal(false)}
+        entityId={id}
+        entityName={formData.incomeName}
+        expectedAmount={parseFloat(formData.amount) || 0}
+        type="income"
+        onSubmit={async (data) => {
+          await recordIncomeTransaction(data);
+          setTransactionRefreshKey(k => k + 1);
+        }}
+      />
 
       {/* Bottom Navigation */}
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
