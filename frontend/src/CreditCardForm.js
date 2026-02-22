@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { Check, Loader2 } from "lucide-react";
 import BackButton from "@/components/BackButton";
 import AmountInput from "@/components/AmountInput";
 import { numberToWords } from "@/lib/formatters";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
+import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
 import { 
   validatePositiveAmount, 
   validateNonNegativeAmount,
