@@ -113,6 +113,50 @@ const InsuranceForm = () => {
     { value: "Market Linked", label: "Market Linked (ULIP)" }
   ];
 
+  // Premium frequency helper data (like Business Income)
+  const quarters = [
+    { id: "Q1", label: "Q1 (Jan–Mar)", months: ["January", "February", "March"] },
+    { id: "Q2", label: "Q2 (Apr–Jun)", months: ["April", "May", "June"] },
+    { id: "Q3", label: "Q3 (Jul–Sep)", months: ["July", "August", "September"] },
+    { id: "Q4", label: "Q4 (Oct–Dec)", months: ["October", "November", "December"] },
+  ];
+
+  const halves = [
+    { id: "H1", label: "Jan–Jun", months: ["January", "February", "March", "April", "May", "June"] },
+    { id: "H2", label: "Jul–Dec", months: ["July", "August", "September", "October", "November", "December"] },
+  ];
+
+  const allMonths = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+
+  // Helper to get month index (0-11) from month name
+  const getMonthIndex = (monthName) => {
+    return allMonths.indexOf(monthName);
+  };
+
+  // Get months based on selected quarter
+  const quarterMonths = useMemo(() => {
+    const quarter = quarters.find(q => q.label === selectedQuarter);
+    return quarter ? quarter.months : [];
+  }, [selectedQuarter]);
+
+  // Get months based on selected half
+  const halfMonths = useMemo(() => {
+    const half = halves.find(h => h.label === selectedHalf);
+    return half ? half.months : [];
+  }, [selectedHalf]);
+
+  // Reset premium date fields when frequency changes
+  useEffect(() => {
+    setSelectedDay("");
+    setSelectedQuarter("");
+    setSelectedHalf("");
+    setSelectedMonth("");
+    setPremiumPaymentDate("");
+  }, [premiumFrequency]);
+
   // Today's date for calendar constraints
   const today = new Date();
   today.setHours(0, 0, 0, 0);
