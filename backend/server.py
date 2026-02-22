@@ -860,7 +860,8 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
         
         # Create session
         session_token = str(uuid.uuid4())
-        expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+        session_days = 30 if request.remember_me else 7
+        expires_at = datetime.now(timezone.utc) + timedelta(days=session_days)
         
         session = {
             "session_id": str(uuid.uuid4()),
@@ -879,7 +880,7 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
             secure=True,
             samesite="none",
             path="/",
-            max_age=7 * 24 * 60 * 60
+            max_age=session_days * 24 * 60 * 60
         )
         
         return {
