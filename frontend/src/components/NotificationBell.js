@@ -28,9 +28,9 @@ const NotificationBell = () => {
   }, [isOpen]);
   
   // Fetch notifications and unread count
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const [notifRes, countRes] = await Promise.all([
         axios.get(`${backendUrl}/api/notifications`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/notifications/unread-count`, { withCredentials: true })
@@ -47,10 +47,10 @@ const NotificationBell = () => {
     }
   }, [backendUrl]);
   
-  // Fetch on mount and periodically
+  // Fetch on mount and periodically (without loading indicator)
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000);
+    fetchNotifications(false);
+    const interval = setInterval(() => fetchNotifications(false), 60000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
   
