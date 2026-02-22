@@ -5700,8 +5700,14 @@ async def get_income_history(entity_id: str, request: Request):
     
     user_id = session.get("user_id")
     
-    # Get income source info
+    # Get income source info (including legacy data without userId)
     income_source = await db.income_sources.find_one({"id": entity_id, "userId": user_id}, {"_id": 0})
+    if not income_source:
+        # Also check for legacy data (userId is null/missing)
+        income_source = await db.income_sources.find_one({
+            "id": entity_id, 
+            "$or": [{"userId": None}, {"userId": {"$exists": False}}]
+        }, {"_id": 0})
     if not income_source:
         raise HTTPException(status_code=404, detail="Income source not found")
     
