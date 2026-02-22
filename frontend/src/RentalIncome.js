@@ -999,6 +999,20 @@ const RentalIncome = () => {
         </div>
       )}
 
+      {/* Record Transaction Modal */}
+      <RecordTransactionModal
+        isOpen={showRecordModal}
+        onClose={() => setShowRecordModal(false)}
+        entityId={id}
+        entityName={propertyName}
+        expectedAmount={parseFloat(rentalAmount) || 0}
+        type="income"
+        onSubmit={async (data) => {
+          await recordIncomeTransaction(data);
+          setTransactionRefreshKey(k => k + 1);
+        }}
+      />
+
       {/* Bottom Navigation */}
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
