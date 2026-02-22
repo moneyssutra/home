@@ -255,6 +255,11 @@ const AssetForm = () => {
       newErrors.assetName = assetNameUniqueError || "An entry with this name already exists.";
     }
 
+    // Purchase Value validation (required)
+    if (!purchaseValue || parseFloat(purchaseValue) <= 0) {
+      newErrors.purchaseValue = "Purchase value is required and must be greater than 0.";
+    }
+
     // Current Value validation (optional, but must be non-negative if provided)
     if (currentValue && parseFloat(currentValue) < 0) {
       newErrors.currentValue = "Current market value cannot be negative.";
