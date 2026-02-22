@@ -67,6 +67,7 @@ class UserSession(BaseModel):
 class JWTLoginRequest(BaseModel):
     username: str
     password: str
+    remember_me: bool = False
 
 class GoogleSessionRequest(BaseModel):
     session_id: str
