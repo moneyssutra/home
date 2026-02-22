@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { ChevronLeft, Trash2, Building2, Home, ExternalLink, Plus } from "lucide-react";
+import { ChevronLeft, Trash2, Building2, Home, ExternalLink, Plus, Check, Loader2 } from "lucide-react";
 import axios from "axios";
 import { format } from "date-fns";
 import { numberToWords } from "@/lib/formatters";
@@ -8,6 +8,7 @@ import { RestrictedDatePicker } from "@/components/ui/date-picker";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
+import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
 import { 
   validatePositiveAmount, 
   validateLoanOutstanding, 
