@@ -5047,6 +5047,37 @@ async def get_ai_insights(request: Request):
         logger.error(f"Error generating insights: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ============ NOTIFICATION HELPER ============
+MAX_NOTIFICATIONS_PER_USER = 10
+
+async def create_notification_and_cleanup(notification: dict):
+    """
+    Create a new notification and remove old ones if user has more than MAX_NOTIFICATIONS_PER_USER.
+    This ensures only the last 10 notifications are kept per user.
+    """
+    user_id = notification.get("userId")
+    
+    # Insert the new notification
+    await db.notifications.insert_one(notification)
+    
+    # Count total notifications for this user
+    total_count = await db.notifications.count_documents({"userId": user_id})
+    
+    # If more than limit, delete the oldest ones
+    if total_count > MAX_NOTIFICATIONS_PER_USER:
+        # Find the oldest notifications to delete
+        excess_count = total_count - MAX_NOTIFICATIONS_PER_USER
+        oldest_notifications = await db.notifications.find(
+            {"userId": user_id},
+            {"_id": 1}
+        ).sort("createdAt", 1).limit(excess_count).to_list(excess_count)
+        
+        # Delete the oldest notifications
+        if oldest_notifications:
+            ids_to_delete = [n["_id"] for n in oldest_notifications]
+            await db.notifications.delete_many({"_id": {"$in": ids_to_delete}})
+
 # ============ NOTIFICATION ENDPOINTS ============
 @api_router.get("/notifications")
 async def get_notifications(user_id: str = None, request: Request = None):
