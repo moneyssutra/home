@@ -231,6 +231,11 @@ const JobIncome = () => {
     // Company Name validation
     const nameError = validateTextField(companyName, "Company name", 50);
     if (nameError) newErrors.companyName = nameError;
+    
+    // Check uniqueness
+    if (isCompanyNameUnique === false) {
+      newErrors.companyName = companyNameUniqueError || "An entry with this name already exists.";
+    }
 
     // Amount validation
     const amountError = validatePositiveAmount(expectedAmount, "Expected amount");
