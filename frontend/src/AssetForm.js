@@ -481,7 +481,7 @@ const AssetForm = () => {
             {/* Purchase Value */}
             <div className="w-full">
               <label htmlFor="purchaseValue" className="block text-sm font-medium text-[#334155] mb-2">
-                Purchase Value <span className="text-[#94A3B8] font-normal">(Optional)</span>
+                Purchase Value <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
@@ -500,6 +500,7 @@ const AssetForm = () => {
                   {numberToWords(parseFloat(purchaseValue))}
                 </p>
               )}
+              {errors.purchaseValue && <p className="text-sm text-red-500 mt-1">{errors.purchaseValue}</p>}
             </div>
 
             {/* Current Market Value */}
