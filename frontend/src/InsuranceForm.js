@@ -153,6 +153,11 @@ const InsuranceForm = () => {
     // Policy Name validation
     const nameError = validateTextField(policyName, "Policy name", 100);
     if (nameError) newErrors.policyName = nameError;
+    
+    // Check uniqueness
+    if (isPolicyNameUnique === false) {
+      newErrors.policyName = policyNameUniqueError || "An entry with this name already exists.";
+    }
 
     // Coverage Amount validation
     const coverageError = validatePositiveAmount(coverageAmount, "Coverage amount");
