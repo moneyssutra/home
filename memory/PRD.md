@@ -422,11 +422,12 @@ VAPID_CLAIMS_EMAIL=mailto:support@moneyssutra.com
 
 ## Upcoming Tasks
 
-### P0 - Transaction Model Frontend Integration
-- **Frontend Refactoring**: Update income/expense forms to create transactions when recording actual amounts
-  - Add "Record Income/Expense" flow that calls transaction endpoints
-  - Create History page component to show transaction history per source
-  - Option to view "Actual vs Expected" comparison on dashboard
+### P0 - Transaction Model Frontend Integration (COMPLETED)
+- ✅ **Frontend Refactoring**: All income/expense forms updated with transaction recording UI
+  - ✅ "Record Income/Expense" section added to all edit forms
+  - ✅ RecordTransactionModal for entering actual amounts
+  - ✅ TransactionHistoryPanel for viewing recorded transactions
+  - Pending: "Actual vs Expected" comparison on dashboard
 
 ### P1 - High Priority
 - **MongoDB Atlas Triggers**: User needs to configure daily triggers using the provided guide at `/app/docs/ATLAS_TRIGGERS_SETUP.md`
