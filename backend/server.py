@@ -5050,7 +5050,7 @@ async def get_ai_insights(request: Request):
 # ============ NOTIFICATION ENDPOINTS ============
 @api_router.get("/notifications")
 async def get_notifications(user_id: str = None, request: Request = None):
-    """Get all notifications for a user"""
+    """Get the last 10 notifications for a user (sorted by newest first)"""
     if not user_id:
         session_token = request.cookies.get("session_token")
         if session_token:
@@ -5061,10 +5061,11 @@ async def get_notifications(user_id: str = None, request: Request = None):
     if not user_id:
         raise HTTPException(status_code=401, detail="User not authenticated")
     
+    # Get only the last 10 notifications, sorted by newest first
     notifications = await db.notifications.find(
         {"userId": user_id},
         {"_id": 0}
-    ).sort("createdAt", -1).to_list(50)
+    ).sort("createdAt", -1).limit(10).to_list(10)
     
     return notifications
 
