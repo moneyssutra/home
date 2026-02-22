@@ -69,6 +69,19 @@ const ExpenseForm = () => {
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   const today = new Date().toISOString().split('T')[0];
 
+  // Entity uniqueness check for expense name
+  const {
+    checkUniqueness: checkExpenseNameUnique,
+    isChecking: isCheckingExpenseName,
+    isUnique: isExpenseNameUnique,
+    error: expenseNameUniqueError,
+    reset: resetExpenseNameCheck
+  } = useEntityUniqueness({
+    collection: "expenses",
+    field: "expenseName",
+    excludeId: id || null
+  });
+
   const categoryOptions = [
     "Housing",
     "Utilities",
