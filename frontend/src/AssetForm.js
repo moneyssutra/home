@@ -256,10 +256,10 @@ const AssetForm = () => {
       newErrors.assetName = assetNameUniqueError || "An entry with this name already exists.";
     }
 
-    // Current Value validation (required, non-negative)
-    const valueError = validateNonNegativeAmount(currentValue, "Current value");
-    if (valueError) newErrors.currentValue = valueError;
-    else if (!currentValue) newErrors.currentValue = "Current value is required.";
+    // Current Value validation (optional, but must be non-negative if provided)
+    if (currentValue && parseFloat(currentValue) < 0) {
+      newErrors.currentValue = "Current market value cannot be negative.";
+    }
 
     // Purchase Date validation (if provided, cannot be in the future)
     if (purchaseDate) {
