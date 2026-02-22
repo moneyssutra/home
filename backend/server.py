@@ -285,6 +285,7 @@ class Insurance(BaseModel):
     premiumFrequency: str
     startDate: str
     endDate: Optional[str] = None
+    premiumPaymentDate: Optional[str] = None  # Next/first premium due date
     linkedAssetId: Optional[str] = None
     coveredPerson: Optional[str] = None
     linkedExpenseId: Optional[str] = None
@@ -303,6 +304,7 @@ class InsuranceCreate(BaseModel):
     premiumFrequency: str
     startDate: str
     endDate: Optional[str] = None
+    premiumPaymentDate: Optional[str] = None  # Next/first premium due date
     linkedAssetId: Optional[str] = None
     coveredPerson: Optional[str] = None
     maturityType: Optional[str] = None
