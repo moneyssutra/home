@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Trash2 } from "lucide-react";
+import { ChevronLeft, Trash2, PlusCircle } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -14,6 +14,14 @@ import {
 } from "@/lib/validations";
 import { numberToWords } from "@/lib/formatters";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
+import TransactionHistoryPanel from "@/components/TransactionHistoryPanel";
+import RecordTransactionModal from "@/components/RecordTransactionModal";
+import { 
+  recordIncomeTransaction, 
+  getIncomeTransactionHistory,
+  deleteIncomeTransaction 
+} from "@/utils/transactionApi";
+import { toast } from "sonner";
 
 const CommissionIncome = () => {
   const navigate = useNavigate();
@@ -51,6 +59,10 @@ const CommissionIncome = () => {
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [existingCommission, setExistingCommission] = useState(null);
+  
+  // Transaction recording
+  const [showRecordModal, setShowRecordModal] = useState(false);
+  const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   const today = new Date().toISOString().split('T')[0];
