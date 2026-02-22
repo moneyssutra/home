@@ -696,6 +696,9 @@ async def register_user(request: RegisterRequest, response: Response):
     # Validate date of birth (no future dates)
     try:
         dob = datetime.fromisoformat(request.dateOfBirth)
+        # Make dob timezone-aware for comparison
+        if dob.tzinfo is None:
+            dob = dob.replace(tzinfo=timezone.utc)
         if dob > datetime.now(timezone.utc):
             raise HTTPException(status_code=400, detail="Date of birth cannot be in the future")
     except ValueError:
