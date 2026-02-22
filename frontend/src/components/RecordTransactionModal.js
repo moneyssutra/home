@@ -27,13 +27,22 @@ const RecordTransactionModal = ({
   type = "income",
   onSubmit
 }) => {
-  const [amount, setAmount] = useState(expectedAmount?.toString() || "");
+  const [amount, setAmount] = useState("");
   const [transactionDate, setTransactionDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const today = new Date();
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setAmount(expectedAmount?.toString() || "");
+      setTransactionDate(format(new Date(), "yyyy-MM-dd"));
+      setNotes("");
+    }
+  }, [isOpen, expectedAmount]);
 
   const handleAmountChange = (e) => {
     const value = e.target.value.replace(/[^0-9.]/g, "");
