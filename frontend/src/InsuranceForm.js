@@ -356,17 +356,48 @@ const InsuranceForm = () => {
               <label htmlFor="policyName" className="block text-sm font-medium text-[#334155] mb-2">
                 Policy Name
               </label>
-              <input
-                id="policyName"
-                type="text"
-                value={policyName}
-                onChange={(e) => setPolicyName(e.target.value)}
-                placeholder="e.g., HDFC Life Term Plan, ICICI Car Insurance"
-                maxLength={100}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="policy-name-input"
-              />
-              {errors.policyName && <p className="text-sm text-red-500 mt-1">{errors.policyName}</p>}
+              <div className="relative">
+                <input
+                  id="policyName"
+                  type="text"
+                  value={policyName}
+                  onChange={(e) => {
+                    setPolicyName(e.target.value);
+                    if (errors.policyName) {
+                      setErrors(prev => ({ ...prev, policyName: null }));
+                    }
+                  }}
+                  onBlur={() => checkPolicyNameUnique(policyName)}
+                  placeholder="e.g., HDFC Life Term Plan, ICICI Car Insurance"
+                  maxLength={100}
+                  className="w-full rounded-xl border px-4 py-3 pr-10 text-[#334155] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  style={{
+                    backgroundColor: "var(--bg-subtle)",
+                    borderColor: errors.policyName || policyNameUniqueError 
+                      ? "var(--status-error)" 
+                      : isPolicyNameUnique === true && policyName.trim() 
+                        ? "var(--status-success)" 
+                        : "var(--border-light)"
+                  }}
+                  data-testid="policy-name-input"
+                />
+                {/* Status indicator */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {isCheckingPolicyName && (
+                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
+                  )}
+                  {!isCheckingPolicyName && isPolicyNameUnique === true && policyName.trim() && (
+                    <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
+                  )}
+                </div>
+              </div>
+              {errors.policyName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.policyName}</p>}
+              {!errors.policyName && policyNameUniqueError && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{policyNameUniqueError}</p>
+              )}
+              {!errors.policyName && !policyNameUniqueError && isPolicyNameUnique === true && policyName.trim() && (
+                <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>
+              )}
             </div>
 
             {/* Coverage Amount */}
