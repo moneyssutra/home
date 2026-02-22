@@ -5587,9 +5587,13 @@ async def send_reminder_notifications(api_key: str = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============ INCOME TRANSACTION ENDPOINTS ============
+
 @api_router.post("/income-transactions")
 async def record_income_transaction(transaction: dict, user_id: str = None, request: Request = None):
-    """Record a manual income transaction for variable income"""
+    """
+    Record a new income transaction (append, don't overwrite).
+    Creates an immutable record linked to the income source template.
+    """
     if not user_id:
         session_token = request.cookies.get("session_token")
         if session_token:
@@ -5600,31 +5604,37 @@ async def record_income_transaction(transaction: dict, user_id: str = None, requ
     if not user_id:
         raise HTTPException(status_code=401, detail="User not authenticated")
     
-    income_source_id = transaction.get("incomeSourceId")
-    amount = transaction.get("amount", 0)
-    recorded_date = transaction.get("recordedDate", datetime.now(timezone.utc).date().isoformat())
+    entity_id = transaction.get("entityId") or transaction.get("incomeSourceId")
+    amount = float(transaction.get("amount", 0))
+    transaction_date = transaction.get("transactionDate") or transaction.get("recordedDate") or datetime.now(timezone.utc).date().isoformat()
     
-    # Create transaction
+    # Get the income source template
+    income_source = await db.income_sources.find_one({"id": entity_id, "userId": user_id}, {"_id": 0})
+    if not income_source:
+        raise HTTPException(status_code=404, detail="Income source not found")
+    
+    # Create immutable transaction record
     entry = {
         "id": str(uuid.uuid4()),
         "userId": user_id,
-        "incomeSourceId": income_source_id,
-        "incomeName": transaction.get("incomeName", ""),
-        "incomeType": transaction.get("incomeType", ""),
+        "entityId": entity_id,
+        "entityType": income_source.get("type", "Unknown"),
+        "entityName": income_source.get("name", "Unknown"),
         "amount": amount,
-        "recordedDate": recorded_date,
-        "isAutoEntry": False,
+        "transactionDate": transaction_date,
         "notes": transaction.get("notes", ""),
+        "source": transaction.get("source", "manual"),
+        "isLocked": False,
         "createdAt": datetime.now(timezone.utc).isoformat()
     }
     await db.income_transactions.insert_one(entry)
     
-    # Update lastRecordedAmount on the income source
+    # Update the income source template with last recorded info (for reference only)
     await db.income_sources.update_one(
-        {"id": income_source_id, "userId": user_id},
+        {"id": entity_id, "userId": user_id},
         {"$set": {
             "lastRecordedAmount": amount,
-            "lastEntryDate": recorded_date
+            "lastEntryDate": transaction_date
         }}
     )
     
@@ -5632,13 +5642,14 @@ async def record_income_transaction(transaction: dict, user_id: str = None, requ
 
 @api_router.get("/income-transactions")
 async def get_income_transactions(
-    income_source_id: str = None,
+    entity_id: str = None,
+    income_source_id: str = None,  # Alias for backwards compatibility
     start_date: str = None,
     end_date: str = None,
     user_id: str = None,
     request: Request = None
 ):
-    """Get income transactions with optional filters"""
+    """Get income transactions with optional filters, sorted by date descending"""
     if not user_id:
         session_token = request.cookies.get("session_token")
         if session_token:
@@ -5651,21 +5662,246 @@ async def get_income_transactions(
     
     query = {"userId": user_id}
     
-    if income_source_id:
-        query["incomeSourceId"] = income_source_id
+    # Support both entityId and incomeSourceId for backwards compatibility
+    source_id = entity_id or income_source_id
+    if source_id:
+        query["$or"] = [{"entityId": source_id}, {"incomeSourceId": source_id}]
     
-    if start_date:
-        query["recordedDate"] = {"$gte": start_date}
+    if start_date and end_date:
+        query["transactionDate"] = {"$gte": start_date, "$lte": end_date}
+    elif start_date:
+        query["transactionDate"] = {"$gte": start_date}
+    elif end_date:
+        query["transactionDate"] = {"$lte": end_date}
     
-    if end_date:
-        if "recordedDate" in query:
-            query["recordedDate"]["$lte"] = end_date
-        else:
-            query["recordedDate"] = {"$lte": end_date}
-    
-    transactions = await db.income_transactions.find(query, {"_id": 0}).sort("recordedDate", -1).to_list(1000)
+    transactions = await db.income_transactions.find(query, {"_id": 0}).sort("transactionDate", -1).to_list(1000)
     
     return transactions
+
+@api_router.get("/income-transactions/history/{entity_id}")
+async def get_income_history(entity_id: str, request: Request):
+    """
+    Get complete transaction history for an income source, grouped by date.
+    Used for the History Page view.
+    """
+    session_token = request.cookies.get("session_token")
+    if not session_token:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    session = await db.user_sessions.find_one({"session_token": session_token})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    
+    user_id = session.get("user_id")
+    
+    # Get income source info
+    income_source = await db.income_sources.find_one({"id": entity_id, "userId": user_id}, {"_id": 0})
+    if not income_source:
+        raise HTTPException(status_code=404, detail="Income source not found")
+    
+    # Get all transactions for this source
+    transactions = await db.income_transactions.find(
+        {"$or": [{"entityId": entity_id}, {"incomeSourceId": entity_id}], "userId": user_id},
+        {"_id": 0}
+    ).sort("transactionDate", -1).to_list(1000)
+    
+    # Calculate totals
+    total_amount = sum(t.get("amount", 0) for t in transactions)
+    transaction_count = len(transactions)
+    
+    return {
+        "incomeSource": income_source,
+        "transactions": transactions,
+        "summary": {
+            "totalAmount": total_amount,
+            "transactionCount": transaction_count,
+            "averageAmount": total_amount / transaction_count if transaction_count > 0 else 0
+        }
+    }
+
+@api_router.get("/income-transactions/monthly-summary")
+async def get_monthly_income_summary(month: str = None, request: Request = None):
+    """
+    Get aggregated income totals for a month.
+    Used for Monthly Cash Flow calculation on Home Page.
+    Returns sum of all transactions for the specified month.
+    """
+    session_token = request.cookies.get("session_token")
+    if not session_token:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    session = await db.user_sessions.find_one({"session_token": session_token})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    
+    user_id = session.get("user_id")
+    
+    # Default to current month if not specified
+    if not month:
+        month = datetime.now().strftime("%Y-%m")
+    
+    # Get start and end dates for the month
+    year, mon = month.split("-")
+    start_date = f"{month}-01"
+    # Get last day of month
+    if int(mon) == 12:
+        end_date = f"{int(year)+1}-01-01"
+    else:
+        end_date = f"{year}-{int(mon)+1:02d}-01"
+    
+    # Aggregate transactions for the month
+    pipeline = [
+        {
+            "$match": {
+                "userId": user_id,
+                "transactionDate": {"$gte": start_date, "$lt": end_date}
+            }
+        },
+        {
+            "$group": {
+                "_id": "$entityType",
+                "totalAmount": {"$sum": "$amount"},
+                "count": {"$sum": 1}
+            }
+        }
+    ]
+    
+    results = await db.income_transactions.aggregate(pipeline).to_list(100)
+    
+    # Calculate grand total
+    grand_total = sum(r.get("totalAmount", 0) for r in results)
+    
+    # Also get fixed income that might not have transactions
+    fixed_income = await db.income_sources.find(
+        {"userId": user_id, "incomeType": {"$ne": "variable"}},
+        {"_id": 0, "type": 1, "expectedAmount": 1, "frequency": 1}
+    ).to_list(100)
+    
+    # Calculate expected fixed income for the month
+    fixed_total = 0
+    for income in fixed_income:
+        freq = income.get("frequency", "Monthly")
+        amount = income.get("expectedAmount", 0)
+        if freq == "Daily":
+            fixed_total += amount * 30
+        elif freq == "Weekly":
+            fixed_total += amount * 4
+        elif freq == "Bi-Weekly":
+            fixed_total += amount * 2
+        elif freq == "Monthly":
+            fixed_total += amount
+        elif freq == "Quarterly":
+            fixed_total += amount / 3
+        elif freq == "Half-Yearly":
+            fixed_total += amount / 6
+        elif freq == "Yearly":
+            fixed_total += amount / 12
+    
+    return {
+        "month": month,
+        "variableIncomeTotal": grand_total,
+        "fixedIncomeTotal": fixed_total,
+        "grandTotal": grand_total + fixed_total,
+        "byType": results
+    }
+
+@api_router.delete("/income-transactions/{transaction_id}")
+async def delete_income_transaction(transaction_id: str, request: Request):
+    """
+    Delete an income transaction (only if not locked).
+    Transactions become locked 24 hours after creation.
+    """
+    session_token = request.cookies.get("session_token")
+    if not session_token:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    session = await db.user_sessions.find_one({"session_token": session_token})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    
+    user_id = session.get("user_id")
+    
+    # Find the transaction
+    transaction = await db.income_transactions.find_one(
+        {"id": transaction_id, "userId": user_id},
+        {"_id": 0}
+    )
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    # Check if locked
+    if transaction.get("isLocked"):
+        raise HTTPException(
+            status_code=403, 
+            detail="This transaction is locked and cannot be deleted. Create an adjustment entry instead."
+        )
+    
+    # Check if older than 24 hours
+    created_at = transaction.get("createdAt")
+    if created_at:
+        created_time = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+        if datetime.now(timezone.utc) - created_time > timedelta(hours=24):
+            # Lock the transaction
+            await db.income_transactions.update_one(
+                {"id": transaction_id},
+                {"$set": {"isLocked": True}}
+            )
+            raise HTTPException(
+                status_code=403,
+                detail="This transaction is now locked (older than 24 hours). Create an adjustment entry instead."
+            )
+    
+    # Delete the transaction
+    await db.income_transactions.delete_one({"id": transaction_id, "userId": user_id})
+    
+    return {"success": True, "message": "Transaction deleted"}
+
+@api_router.post("/income-transactions/{transaction_id}/adjust")
+async def adjust_income_transaction(transaction_id: str, adjustment: dict, request: Request):
+    """
+    Create an adjustment entry for a locked transaction.
+    This preserves the original record while allowing corrections.
+    """
+    session_token = request.cookies.get("session_token")
+    if not session_token:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    session = await db.user_sessions.find_one({"session_token": session_token})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    
+    user_id = session.get("user_id")
+    
+    # Find the original transaction
+    original = await db.income_transactions.find_one(
+        {"id": transaction_id, "userId": user_id},
+        {"_id": 0}
+    )
+    
+    if not original:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    # Create adjustment entry
+    adjustment_amount = float(adjustment.get("amount", 0))
+    adjustment_entry = {
+        "id": str(uuid.uuid4()),
+        "userId": user_id,
+        "entityId": original.get("entityId"),
+        "entityType": original.get("entityType"),
+        "entityName": original.get("entityName"),
+        "amount": adjustment_amount,
+        "transactionDate": original.get("transactionDate"),
+        "notes": f"Adjustment for transaction {transaction_id}: {adjustment.get('reason', 'Correction')}",
+        "source": "adjustment",
+        "originalTransactionId": transaction_id,
+        "isLocked": False,
+        "createdAt": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.income_transactions.insert_one(adjustment_entry)
+    
+    return {"success": True, "adjustment": {k: v for k, v in adjustment_entry.items() if k != "_id"}}
 
 # Include the router in the main app
 app.include_router(api_router)
