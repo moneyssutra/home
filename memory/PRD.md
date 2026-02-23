@@ -69,6 +69,53 @@ Build a comprehensive personal finance tracking application with multi-user work
 - **Fixed vs Variable Cards**: Side-by-side cards showing top 3 entries
 - **List Section**: Cards with status badges (Upcoming/Due Today/Received), frequency icons
 - **Add New Button**: Dashed border CTA at bottom
+
+### 3. Quick Filters on Income List Pages (COMPLETED ✅ - Feb 23, 2026)
+**Feature**: Added All/Fixed/Variable filter buttons to all 7 income list pages.
+
+**Implementation**:
+- Filter buttons show in list section header with count (e.g., "All (12)", "Fixed (4)", "Variable (8)")
+- Active filter has white background with brand color text
+- Variable filter has warning yellow color
+- Clicking filter instantly filters the list
+- "No {filter} items found" message with "Show all" button when empty
+
+**Pages with Filters**:
+- MyBusiness, MyJob, MyRental, MyInterest, MyCommission, MyDividend (6 pages)
+
+### 4. Notification → Modal Flow (COMPLETED ✅ - Feb 23, 2026)
+**Feature**: Clicking income reminder notification opens IncomeAmountModal directly.
+
+**Flow**:
+1. User clicks notification bell → Panel opens
+2. Shows income_reminder notification with "Expected: ₹X,XXX"
+3. Click notification → IncomeAmountModal opens
+4. Modal pre-filled with entity name and expected amount
+5. User enters actual amount → Save Income
+6. Transaction created, notification dismissed
+
+**Testing**: 100% pass rate (14/14 features verified)
+
+### 5. Auto-Record Fixed Income Scheduler (COMPLETED ✅ - Feb 23, 2026)
+**Feature**: Backend scheduler auto-generates transactions for Fixed income on due dates.
+
+**Implementation** (`server.py auto_record_fixed_income()`):
+- Runs daily as part of background scheduler
+- Checks all Fixed income sources
+- Calculates if today is due date based on frequency (Daily, Weekly, Monthly, Quarterly, Half-Yearly, Yearly, Others)
+- Creates income_transaction record with `source: "auto_fixed"`
+- Creates notification: "Income Recorded: {name}"
+- Prevents duplicates by checking existing transactions for today
+
+### 6. Check Due Premiums Implementation (COMPLETED ✅ - Feb 23, 2026)
+**Feature**: Auto-record insurance premium expense transactions on due dates.
+
+**Implementation** (`server.py check_and_process_due_premiums()`):
+- Runs daily via scheduler
+- Supports One-Time, Monthly, Quarterly, Half-Yearly, Yearly frequencies
+- Checks premium end date and policy end date
+- Creates expense_transaction with `source: "auto_premium"`
+- Creates notification for user
 - **Business List Cards**: New card design with:
   - Frequency icons with color coding
   - Status badges (Upcoming/Due Today/Received)
