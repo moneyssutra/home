@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { ChevronLeft, Calendar as CalendarIcon, Trash2, Info, Calendar } from "lucide-react";
 import axios from "axios";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -21,6 +21,7 @@ import {
 const InvestmentForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   const [showAddSheet, setShowAddSheet] = useState(false);
   
   // Form fields
@@ -419,7 +420,17 @@ const InvestmentForm = () => {
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
-          onClick={() => navigate("/my-investments")}
+          onClick={() => {
+            if (location.state?.fromExpenses) {
+              // If came from expenses page, go back to that page
+              navigate(location.state.fromExpenses);
+            } else if (window.history.length > 2) {
+              // Use browser history to go back if available
+              navigate(-1);
+            } else {
+              navigate("/my-investments");
+            }
+          }}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
