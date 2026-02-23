@@ -105,6 +105,9 @@ const BusinessIncome = () => {
       // Variable income fields
       setIncomeType(data.incomeType || "fixed");
       setReminderTime(data.reminderTime || "19:00");
+      
+      // Mark initial load as complete after a brief delay to allow state to settle
+      setTimeout(() => setIsInitialLoad(false), 100);
     } catch (error) {
       console.error("Error fetching business data:", error);
       setErrors({ submit: "Failed to load business data" });
@@ -114,7 +117,7 @@ const BusinessIncome = () => {
   };
 
   // Reset conditional fields when frequency changes (only when creating new, not editing)
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(!!id);
   
   useEffect(() => {
     // Skip resetting on initial load (when editing)
