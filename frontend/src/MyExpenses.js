@@ -1,40 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal } from "lucide-react";
-import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
+import { useExpenseList } from "@/hooks/useApi";
 
 const MyExpenses = () => {
   const navigate = useNavigate();
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
-
-  useEffect(() => {
-    fetchExpenses();
-  }, []);
-
-  const fetchExpenses = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/expenses/with-next-date`);
-      setExpenses(response.data);
-    } catch (error) {
-      console.error("Error fetching expenses:", error);
-      try {
-        const fallbackResponse = await axios.get(`${backendUrl}/api/expenses`);
-        setExpenses(fallbackResponse.data);
-      } catch (fallbackError) {
-        console.error("Error fetching expenses (fallback):", fallbackError);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use SWR for data fetching with caching
+  const { data: expenses = [], isLoading: loading, error } = useExpenseList();
 
   const formatAmount = (amount) => {
     if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
@@ -43,11 +20,19 @@ const MyExpenses = () => {
     return new Intl.NumberFormat("en-IN").format(amount);
   };
 
-  const totalExpenses = expenses.reduce((sum, exp) => sum + (exp.expectedAmount || 0), 0);
-  const fixedExpenses = expenses.filter(e => e.expenseType === "Fixed");
-  const variableExpenses = expenses.filter(e => e.expenseType === "Variable");
-  const fixedTotal = fixedExpenses.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
-  const variableTotal = variableExpenses.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
+  // Memoize calculations to avoid unnecessary re-computation
+  const { totalExpenses, fixedExpenses, variableExpenses, fixedTotal, variableTotal } = useMemo(() => {
+    const total = expenses.reduce((sum, exp) => sum + (exp.expectedAmount || 0), 0);
+    const fixed = expenses.filter(e => e.expenseType === "Fixed");
+    const variable = expenses.filter(e => e.expenseType === "Variable");
+    return {
+      totalExpenses: total,
+      fixedExpenses: fixed,
+      variableExpenses: variable,
+      fixedTotal: fixed.reduce((sum, e) => sum + (e.expectedAmount || 0), 0),
+      variableTotal: variable.reduce((sum, e) => sum + (e.expectedAmount || 0), 0)
+    };
+  }, [expenses]);
 
   const getPaymentStatus = (expense) => {
     const today = new Date();
