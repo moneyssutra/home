@@ -1122,8 +1122,38 @@ async def get_me(request: Request):
         "user_id": user.get("user_id"),
         "email": user.get("email"),
         "name": user.get("name"),
-        "picture": user.get("picture")
+        "picture": user.get("picture"),
+        "auth_type": user.get("auth_type"),
+        "has_password": user.get("has_password", user.get("auth_type") == "jwt" or user.get("password_hash") is not None)
     }
+
+
+class SetPasswordRequest(BaseModel):
+    password: str
+
+
+@api_router.post("/auth/set-password")
+async def set_password(request: SetPasswordRequest, req: Request):
+    """Allow Google users to set a password for email/password login"""
+    user = await get_current_user(req)
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    if len(request.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    # Update user with password hash
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {
+            "password_hash": hash_password(request.password),
+            "has_password": True
+        }}
+    )
+    
+    return {"message": "Password set successfully. You can now login with email and password."}
+
 
 @api_router.post("/auth/logout")
 async def logout(request: Request, response: Response, session_token: Optional[str] = Cookie(None)):
