@@ -139,11 +139,15 @@ function AppRouter() {
       
       {/* Loans */}
       <Route path="/my-loans" element={<ProtectedRoute><MyLoans /></ProtectedRoute>} />
+      <Route path="/loan-breakdown" element={<ProtectedRoute><LoanBreakdown /></ProtectedRoute>} />
+      <Route path="/loans/:category" element={<ProtectedRoute><CategoryLoan /></ProtectedRoute>} />
       <Route path="/loan" element={<ProtectedRoute><LoanForm /></ProtectedRoute>} />
       <Route path="/loan/:id" element={<ProtectedRoute><LoanForm /></ProtectedRoute>} />
       
       {/* Assets */}
       <Route path="/my-assets" element={<ProtectedRoute><MyAssets /></ProtectedRoute>} />
+      <Route path="/asset-breakdown" element={<ProtectedRoute><AssetBreakdown /></ProtectedRoute>} />
+      <Route path="/assets/:category" element={<ProtectedRoute><CategoryAsset /></ProtectedRoute>} />
       <Route path="/asset" element={<ProtectedRoute><AssetForm /></ProtectedRoute>} />
       <Route path="/asset/:id" element={<ProtectedRoute><AssetForm /></ProtectedRoute>} />
       
@@ -170,6 +174,8 @@ function AppRouter() {
       
       {/* Investments */}
       <Route path="/my-investments" element={<ProtectedRoute><MyInvestments /></ProtectedRoute>} />
+      <Route path="/investment-breakdown" element={<ProtectedRoute><InvestmentBreakdown /></ProtectedRoute>} />
+      <Route path="/investments/:category" element={<ProtectedRoute><CategoryInvestment /></ProtectedRoute>} />
       <Route path="/investment" element={<ProtectedRoute><InvestmentForm /></ProtectedRoute>} />
       <Route path="/investment/:id" element={<ProtectedRoute><InvestmentForm /></ProtectedRoute>} />
       
