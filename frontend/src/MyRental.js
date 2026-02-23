@@ -40,6 +40,12 @@ const MyRental = () => {
     };
   }, [rentals]);
 
+  const filteredRentals = useMemo(() => {
+    if (activeFilter === "fixed") return fixedRentals;
+    if (activeFilter === "variable") return variableRentals;
+    return rentals;
+  }, [rentals, fixedRentals, variableRentals, activeFilter]);
+
   const getRentalYield = (rental) => {
     if (!rental.assetId) return null;
     const asset = assets.find(a => a.id === rental.assetId);
