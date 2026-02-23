@@ -406,6 +406,19 @@ const MyBusiness = () => {
               Add Business
             </button>
           </div>
+        ) : filteredBusinesses.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 px-6">
+            <p className="text-center text-sm" style={{ color: "var(--text-muted)" }}>
+              No {activeFilter} businesses found
+            </p>
+            <button
+              onClick={() => setActiveFilter("all")}
+              className="mt-2 text-sm font-medium"
+              style={{ color: "var(--brand-primary)" }}
+            >
+              Show all businesses
+            </button>
+          </div>
         ) : (
           <div className="space-y-3">
             {sortedBusinesses.map((business) => {
