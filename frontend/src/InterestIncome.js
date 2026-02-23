@@ -97,6 +97,9 @@ const InterestIncome = () => {
     }
   }, [id]);
 
+  // Track initial load for editing
+  const [isInitialLoad, setIsInitialLoad] = useState(!!id);
+
   const fetchInterestData = async () => {
     try {
       setLoading(true);
@@ -119,6 +122,12 @@ const InterestIncome = () => {
       setCustomDate(data.customDate || "");
       setExpectedAmount(data.expectedAmount?.toString() || "");
       setManualOverride(data.manualOverride || false);
+      // Variable income fields
+      setIncomeType(data.incomeType || "fixed");
+      setReminderTime(data.reminderTime || "19:00");
+      
+      // Mark initial load complete after data is loaded
+      setTimeout(() => setIsInitialLoad(false), 100);
     } catch (error) {
       console.error("Error fetching interest data:", error);
       setErrors({ submit: "Failed to load interest data" });
@@ -127,16 +136,17 @@ const InterestIncome = () => {
     }
   };
 
-  // Reset payment schedule fields when frequency changes
+  // Reset payment schedule fields when frequency changes (only when creating new, not editing)
   useEffect(() => {
-    if (!id) {
-      setSelectedDate("");
-      setSelectedQuarter("");
-      setSelectedHalf("");
-      setSelectedMonth("");
-      setCustomFrequency("");
-      setCustomDate("");
-    }
+    // Skip resetting on initial load (when editing)
+    if (isInitialLoad) return;
+    
+    setSelectedDate("");
+    setSelectedQuarter("");
+    setSelectedHalf("");
+    setSelectedMonth("");
+    setCustomFrequency("");
+    setCustomDate("");
   }, [frequency]);
 
   // Reset compounding frequency when interest type changes
