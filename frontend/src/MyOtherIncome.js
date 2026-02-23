@@ -1,156 +1,169 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Gift, Award, TrendingUp, RefreshCw, Wallet, ReceiptText, Banknote, Sparkles, ArrowLeftRight, CheckCircle, Clock } from "lucide-react";
-import axios from "axios";
-import BackButton from "@/components/BackButton";
+import { ChevronRight, Plus, Wallet, Gift, Award, TrendingUp, RefreshCw, Sparkles, Clock, CalendarClock } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
-import { formatAmount, formatDate } from "@/lib/formatters";
+import BackButton from "@/components/BackButton";
+import { useIncomeList } from "@/hooks/useApi";
 
 const MyOtherIncome = () => {
   const navigate = useNavigate();
-  const [incomes, setIncomes] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  
+  const { data: otherIncomes = [], isLoading: loading, error } = useIncomeList("Other");
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const formatAmount = (amount) => {
+    if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
+    if (amount >= 100000) return `${(amount / 100000).toFixed(2)} L`;
+    if (amount >= 1000) return `${(amount / 1000).toFixed(1)} K`;
+    return new Intl.NumberFormat("en-IN").format(amount);
+  };
 
-  useEffect(() => {
-    fetchIncomes();
-  }, []);
+  const totalIncome = useMemo(() => {
+    return otherIncomes.reduce((sum, o) => sum + (o.expectedAmount || 0), 0);
+  }, [otherIncomes]);
 
-  const fetchIncomes = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/other-income`);
-      setIncomes(response.data);
-    } catch (error) {
-      console.error("Error fetching other incomes:", error);
-    } finally {
-      setLoading(false);
+  const getPaymentStatus = (income) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (income.isReceived) return 'received';
+    const nextDate = getNextPaymentDateObj(income);
+    if (!nextDate) return 'upcoming';
+    nextDate.setHours(0, 0, 0, 0);
+    if (nextDate < today) return 'received';
+    if (nextDate.getTime() === today.getTime()) return 'due-today';
+    return 'upcoming';
+  };
+
+  const getNextPaymentDateObj = (income) => {
+    const { frequency, dateReceived, selectedDate, selectedMonth, customDate } = income;
+    const today = new Date();
+    if (frequency === "One-Time") return dateReceived ? new Date(dateReceived) : null;
+    switch (frequency) {
+      case "Monthly":
+        if (!selectedDate) return null;
+        const day = parseInt(selectedDate);
+        const nextMonthlyDate = new Date(today.getFullYear(), today.getMonth(), day);
+        if (nextMonthlyDate <= today) nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);
+        return nextMonthlyDate;
+      case "Yearly":
+        if (!selectedMonth || !selectedDate) return null;
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const monthIndex = months.indexOf(selectedMonth);
+        const yearlyDay = parseInt(selectedDate);
+        const nextYearlyDate = new Date(today.getFullYear(), monthIndex, yearlyDay);
+        if (nextYearlyDate <= today) nextYearlyDate.setFullYear(nextYearlyDate.getFullYear() + 1);
+        return nextYearlyDate;
+      default:
+        return null;
     }
   };
 
-  // Calculate totals
-  const totalAmount = incomes.reduce((sum, inc) => sum + (inc.amount || 0), 0);
-  const receivedAmount = incomes.filter(inc => inc.isReceived).reduce((sum, inc) => sum + (inc.amount || 0), 0);
-  const pendingAmount = incomes.filter(inc => !inc.isReceived).reduce((sum, inc) => sum + (inc.amount || 0), 0);
+  const formatDate = (date) => {
+    if (!date) return "Not set";
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  };
 
-  // Group by category
-  const byCategory = incomes.reduce((acc, inc) => {
-    const cat = inc.category || "Other";
+  const sortedOtherIncomes = [...otherIncomes].sort((a, b) => {
+    const statusOrder = { 'upcoming': 0, 'due-today': 1, 'received': 2 };
+    return statusOrder[getPaymentStatus(a)] - statusOrder[getPaymentStatus(b)];
+  });
+
+  const incomeByCategory = otherIncomes.reduce((acc, o) => {
+    const cat = o.category || "Miscellaneous";
     if (!acc[cat]) acc[cat] = { total: 0, count: 0 };
-    acc[cat].total += inc.amount || 0;
+    acc[cat].total += o.expectedAmount || 0;
     acc[cat].count += 1;
     return acc;
   }, {});
 
-  const sortedCategories = Object.entries(byCategory).sort(([, a], [, b]) => b.total - a.total);
+  const sortedCategories = Object.entries(incomeByCategory).sort(([, a], [, b]) => b.total - a.total);
 
   const getCategoryIcon = (category) => {
-    const icons = {
-      "Gift": Gift,
-      "Bonus": Award,
-      "Incentive": Sparkles,
-      "Capital Gain": TrendingUp,
-      "Asset Sale": Banknote,
-      "Tax Refund": RefreshCw,
-      "Cashback / Reward": Wallet,
-      "Reimbursement": ArrowLeftRight,
-      "Freelance / Side Work": ReceiptText,
-      "Windfall": Sparkles,
-      "Refund": RefreshCw,
-      "Miscellaneous": Wallet,
-      "Other": Wallet,
-    };
+    const icons = { "Gift": Gift, "Bonus": Award, "Incentive": Sparkles, "Capital Gain": TrendingUp, "Tax Refund": RefreshCw, "Cashback / Reward": Wallet, "Refund": RefreshCw, "Windfall": Sparkles };
     return icons[category] || Wallet;
   };
 
   const getCategoryColor = (category) => {
     const colors = {
-      "Gift": "bg-pink-500/20 text-pink-500",
-      "Bonus": "bg-amber-500/20 text-amber-500",
-      "Incentive": "bg-purple-500/20 text-purple-500",
-      "Capital Gain": "bg-emerald-500/20 text-emerald-500",
-      "Asset Sale": "bg-blue-500/20 text-blue-500",
-      "Tax Refund": "bg-cyan-500/20 text-cyan-500",
-      "Cashback / Reward": "bg-orange-500/20 text-orange-500",
-      "Reimbursement": "bg-indigo-500/20 text-indigo-500",
-      "Freelance / Side Work": "bg-teal-500/20 text-teal-500",
-      "Windfall": "bg-yellow-500/20 text-yellow-500",
-      "Refund": "bg-green-500/20 text-green-500",
-      "Miscellaneous": "bg-slate-500/20 text-slate-500",
-      "Other": "bg-[#1E293B]0/20 text-slate-400",
+      "Gift": { bg: "#FCE7F3", text: "#DB2777" },
+      "Bonus": { bg: "var(--status-warning-soft)", text: "var(--status-warning)" },
+      "Incentive": { bg: "#F3E8FF", text: "var(--chart-accent2)" },
+      "Capital Gain": { bg: "var(--status-success-soft)", text: "var(--status-success)" },
+      "Tax Refund": { bg: "var(--status-info-soft)", text: "var(--status-info)" },
+      "Cashback / Reward": { bg: "var(--brand-primary-soft)", text: "var(--brand-primary)" },
+      "Refund": { bg: "#CFFAFE", text: "#0891B2" },
+      "Windfall": { bg: "#FEF3C7", text: "#D97706" },
     };
-    return colors[category] || "bg-[#1E293B]0/20 text-slate-400";
+    return colors[category] || { bg: "var(--bg-subtle)", text: "var(--text-secondary)" };
   };
 
-  const chartColors = ["#EC4899", "#F59E0B", "#8B5CF6", "#10B981", "#3B82F6", "#06B6D4", "#F97316", "#6366F1", "#14B8A6", "#EAB308", "#22C55E", "#64748B", "#6B7280"];
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'received': return { bg: "var(--status-success-soft)", text: "var(--status-success)", border: "var(--status-success)" };
+      case 'due-today': return { bg: "var(--status-warning-soft)", text: "var(--status-warning)", border: "var(--status-warning)" };
+      case 'upcoming': return { bg: "var(--status-info-soft)", text: "var(--status-info)", border: "var(--status-info)" };
+      default: return { bg: "var(--bg-subtle)", text: "var(--text-secondary)", border: "var(--border-light)" };
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) { case 'received': return 'Received'; case 'due-today': return 'Due Today'; case 'upcoming': return 'Upcoming'; default: return ''; }
+  };
+
+  const chartColors = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B", "#EC4899", "#06B6D4"];
+
+  const receivedTotal = otherIncomes.filter(o => getPaymentStatus(o) === 'received').reduce((sum, o) => sum + (o.expectedAmount || 0), 0);
+  const pendingTotal = otherIncomes.filter(o => getPaymentStatus(o) !== 'received').reduce((sum, o) => sum + (o.expectedAmount || 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#0F172A] pb-24" data-testid="my-other-income-page">
-      {/* Header */}
-      <header className="bg-gradient-to-br from-[#7C3AED] via-[#8B5CF6] to-[#6D28D9] px-6 pt-8 pb-8">
-        <div className="flex items-center gap-3 mb-6">
-          <BackButton className="text-white" />
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
-            Other Income
-          </h1>
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-other-income-page">
+      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #EC4899 100%)" }}>
+        <div className="flex items-center gap-4 mb-6">
+          <BackButton fallbackPath="/my-income" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>Other Income</h1>
         </div>
 
-        {/* Total Card */}
-        <div className="bg-[#1E293B]/10 backdrop-blur-sm rounded-2xl p-5 border border-white/10" data-testid="total-other-income-card">
-          <p className="text-white/60 text-sm font-medium mb-1">Total Other Income</p>
-          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalAmount)}</h2>
-          <p className="text-white/40 text-xs mt-1">{incomes.length} entries</p>
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="total-income-card">
+          <p className="text-white/70 text-sm font-medium mb-1">Total Other Income</p>
+          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalIncome)}</h2>
+          <p className="text-white/50 text-xs mt-1">{otherIncomes.length} income sources</p>
           
-          {/* Received vs Pending */}
-          <div className="mt-4 pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4 text-emerald-300" />
-              <div>
-                <p className="text-white/60 text-xs">Received</p>
-                <p className="text-emerald-300 font-semibold">₹ {formatAmount(receivedAmount)}</p>
-              </div>
+          <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-white/70 mb-1">Received</p>
+              <p className="text-white font-semibold" style={{ color: "#A7F3D0" }}>₹{formatAmount(receivedTotal)}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-amber-300" />
-              <div>
-                <p className="text-white/60 text-xs">Pending</p>
-                <p className="text-amber-300 font-semibold">₹ {formatAmount(pendingAmount)}</p>
-              </div>
+            <div>
+              <p className="text-white/70 mb-1">Pending</p>
+              <p className="text-white font-semibold" style={{ color: "#FDE68A" }}>₹{formatAmount(pendingTotal)}</p>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Category Breakdown */}
       {sortedCategories.length > 0 && (
         <div className="px-6 -mt-4">
-          <div className="bg-[#1E293B] rounded-2xl p-5 shadow-sm border border-gray-100" data-testid="category-breakdown">
-            <h3 className="text-sm font-semibold text-[#334155] mb-4">Income by Category</h3>
+          <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Income by Category</h3>
             <div className="space-y-3">
-              {sortedCategories.map(([category, data], idx) => {
-                const percentage = totalAmount > 0 ? (data.total / totalAmount) * 100 : 0;
+              {sortedCategories.slice(0, 5).map(([category, data], idx) => {
+                const percentage = totalIncome > 0 ? (data.total / totalIncome) * 100 : 0;
                 const Icon = getCategoryIcon(category);
+                const catColor = getCategoryColor(category);
                 return (
-                  <div key={category} className="flex items-center gap-3 p-2">
-                    <div className={`w-10 h-10 rounded-xl ${getCategoryColor(category)} flex items-center justify-center`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
+                  <div key={category} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: catColor.bg }}><Icon className="h-5 w-5" style={{ color: catColor.text }} /></div>
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium text-[#334155]">{category}</span>
-                        <span className="text-sm font-semibold text-[#334155]">₹ {formatAmount(data.total)}</span>
+                        <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{category}</span>
+                        <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data.total)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-[#1E293B] rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }}
-                          />
+                        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }} />
                         </div>
-                        <span className="text-xs text-[#334155]/50 w-12 text-right">{percentage.toFixed(0)}%</span>
+                        <span className="text-xs w-12 text-right" style={{ color: "var(--text-muted)" }}>{percentage.toFixed(0)}%</span>
                       </div>
                     </div>
                   </div>
@@ -161,84 +174,51 @@ const MyOtherIncome = () => {
         </div>
       )}
 
-      {/* Income List */}
       <div className="px-6 mt-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-[#334155]">All Entries</h3>
-          <button
-            onClick={() => navigate("/other-income")}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#7C3AED] text-white text-xs font-medium hover:bg-[#6D28D9] transition-colors"
-            data-testid="add-other-income-btn"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add New
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-3 border-[#7C3AED]/30 border-t-[#7C3AED] rounded-full animate-spin" />
-          </div>
-        ) : incomes.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-purple-100 flex items-center justify-center">
-              <Gift className="h-10 w-10 text-purple-500" />
-            </div>
-            <h3 className="text-lg font-semibold text-[#334155] mb-2">No Other Income Yet</h3>
-            <p className="text-[#334155]/60 text-sm mb-4">Track gifts, bonuses, refunds, and more</p>
-            <button
-              onClick={() => navigate("/other-income")}
-              className="px-6 py-2.5 rounded-xl bg-[#7C3AED] text-white font-medium text-sm hover:bg-[#6D28D9] transition-colors"
-            >
-              Add First Entry
-            </button>
+        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>All Other Income</h3>
+        {loading ? (<div className="flex items-center justify-center py-12"><div style={{ color: "var(--text-muted)" }}>Loading...</div></div>
+        ) : otherIncomes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full mb-4" style={{ backgroundColor: "var(--status-warning-soft)" }}><Wallet className="h-10 w-10" style={{ color: "var(--status-warning)" }} /></div>
+            <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>No Other Income Added Yet</h2>
+            <p className="text-center text-sm mb-6" style={{ color: "var(--text-secondary)" }}>Track gifts, bonuses, refunds and other income sources</p>
+            <button onClick={() => navigate("/other-income")} className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium" style={{ backgroundColor: "var(--brand-primary)" }}><Plus className="h-5 w-5" />Add Other Income</button>
           </div>
         ) : (
           <div className="space-y-3">
-            {incomes
-              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-              .map((income) => {
-                const Icon = getCategoryIcon(income.category);
-                return (
-                  <div
-                    key={income.id}
-                    onClick={() => navigate(`/other-income/${income.id}`)}
-                    className="bg-[#1E293B] rounded-2xl p-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-all active:scale-[0.98]"
-                    data-testid={`other-income-card-${income.id}`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className={`w-12 h-12 rounded-xl ${getCategoryColor(income.category)} flex items-center justify-center shrink-0`}>
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <h4 className="font-semibold text-[#334155] truncate">{income.incomeName}</h4>
-                            <p className="text-xs text-[#334155]/50 mt-0.5">
-                              {income.category === "Other" && income.customCategory ? income.customCategory : income.category}
-                            </p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="font-bold text-[#334155]">₹ {formatAmount(income.amount)}</p>
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${income.isReceived ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
-                              {income.isReceived ? 'Received' : 'Pending'}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-[#334155]/50">
-                          <span className="px-2 py-0.5 rounded-full bg-[#1E293B]">{income.frequency}</span>
-                          {income.dateReceived && (
-                            <span>{formatDate(income.dateReceived)}</span>
-                          )}
-                        </div>
-                      </div>
+            {sortedOtherIncomes.map((income) => {
+              const status = getPaymentStatus(income);
+              const Icon = getCategoryIcon(income.category);
+              const catColor = getCategoryColor(income.category);
+              const statusColor = getStatusColor(status);
+              const nextDate = getNextPaymentDateObj(income);
+              const formattedNextDate = formatDate(nextDate);
+              return (
+                <button key={income.id} onClick={() => navigate(`/other-income/${income.id}`)} className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", opacity: status === 'received' ? 0.7 : 1 }} data-testid={`other-income-card-${income.id}`}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: catColor.bg }}><Icon className="h-6 w-6" style={{ color: catColor.text }} /></div>
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <h3 className="font-semibold truncate" style={{ color: "var(--text-primary)" }}>{income.incomeName || income.name}</h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap" style={{ backgroundColor: statusColor.bg, color: statusColor.text, border: `1px solid ${statusColor.border}` }}>{getStatusLabel(status)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs flex-wrap" style={{ color: "var(--text-muted)" }}>
+                      <span>{income.category || "Other"}</span><span>•</span><span>{income.frequency}</span>
+                      {formattedNextDate && status !== 'received' && (<><span>•</span><span className="font-medium" style={{ color: "var(--status-warning)" }}>Expected: {formattedNextDate}</span></>)}
                     </div>
                   </div>
-                );
-              })}
+                  <div className="text-right flex-shrink-0 ml-2">
+                    <p className="font-bold" style={{ color: status === 'received' ? "var(--status-success)" : "var(--text-primary)" }}>₹ {formatAmount(income.expectedAmount || income.amount)}</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{income.frequency}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
+
+      {otherIncomes.length > 0 && (<div className="px-6 mt-6"><button onClick={() => navigate("/other-income")} className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 font-medium" style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}><Plus className="h-5 w-5" />Add Other Income</button></div>)}
 
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
