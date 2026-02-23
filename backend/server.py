@@ -6503,7 +6503,7 @@ async def auto_record_fixed_income():
                             is_due_today = base_date.day == current_date.day
                         else:
                             is_due_today = int(selected_date) == current_date.day
-                    except:
+                    except (ValueError, TypeError):
                         pass
             elif frequency == "Quarterly":
                 if selected_date and selected_month:
@@ -6515,7 +6515,7 @@ async def auto_record_fixed_income():
                         
                         months_diff = (current_date.month - 1 - base_month) % 12
                         is_due_today = (months_diff % 3 == 0) and (base_day == current_date.day)
-                    except:
+                    except (ValueError, TypeError, IndexError):
                         pass
             elif frequency == "Half-Yearly":
                 if selected_date and selected_month:
@@ -6527,7 +6527,7 @@ async def auto_record_fixed_income():
                         
                         months_diff = (current_date.month - 1 - base_month) % 12
                         is_due_today = (months_diff % 6 == 0) and (base_day == current_date.day)
-                    except:
+                    except (ValueError, TypeError, IndexError):
                         pass
             elif frequency == "Yearly":
                 if selected_date and selected_month:
@@ -6538,7 +6538,7 @@ async def auto_record_fixed_income():
                         base_day = base_date.day if base_date else int(selected_date)
                         
                         is_due_today = (base_month == current_date.month - 1) and (base_day == current_date.day)
-                    except:
+                    except (ValueError, TypeError, IndexError):
                         pass
             elif frequency == "Others":
                 if custom_date:
