@@ -191,7 +191,11 @@ const OtherIncomeForm = () => {
       } else {
         await axios.post(`${backendUrl}/api/other-income`, payload);
       }
-      navigate("/my-income");
+      
+      // Invalidate SWR cache
+      await mutate((key) => typeof key === 'string' && key.includes('/api/other-income'), undefined, { revalidate: true });
+      
+      navigate("/my-other-income");
     } catch (error) {
       console.error("Error saving income:", error);
       setError("Failed to save income. Please try again.");
@@ -204,7 +208,11 @@ const OtherIncomeForm = () => {
     try {
       setSaving(true);
       await axios.delete(`${backendUrl}/api/other-income/${id}`);
-      navigate("/my-income");
+      
+      // Invalidate SWR cache
+      await mutate((key) => typeof key === 'string' && key.includes('/api/other-income'), undefined, { revalidate: true });
+      
+      navigate("/my-other-income");
     } catch (error) {
       console.error("Error deleting income:", error);
       setError("Failed to delete. Please try again.");
