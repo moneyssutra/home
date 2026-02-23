@@ -450,18 +450,18 @@ const ExpenseForm = () => {
 
             {/* Expense Type - Fixed/Variable Toggle */}
             <div className="w-full rounded-xl border border-[#334155] p-4">
-              <div className="flex items-center justify-between">
-                <div>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex-1 min-w-0">
                   <label className="text-sm font-medium text-[#334155]">
                     Expense Type
                   </label>
                   <p className="text-xs text-[#334155]/60 mt-0.5">Fixed expenses stay the same, Variable may change</p>
                 </div>
-                <div className="flex rounded-lg overflow-hidden border border-[#334155]">
+                <div className="flex rounded-lg overflow-hidden border border-[#334155] flex-shrink-0">
                   <button
                     type="button"
                     onClick={() => setExpenseType("Fixed")}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    className={`px-5 py-2.5 text-sm font-medium transition-colors min-w-[80px] ${
                       expenseType === "Fixed" 
                         ? "bg-[#334155] text-white" 
                         : "bg-[#1E293B] text-[#334155] hover:bg-[#0F172A]"
@@ -473,7 +473,7 @@ const ExpenseForm = () => {
                   <button
                     type="button"
                     onClick={() => setExpenseType("Variable")}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    className={`px-5 py-2.5 text-sm font-medium transition-colors min-w-[90px] ${
                       expenseType === "Variable" 
                         ? "bg-[#F59E0B] text-white" 
                         : "bg-[#1E293B] text-[#334155] hover:bg-[#0F172A]"
