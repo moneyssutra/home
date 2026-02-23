@@ -877,13 +877,13 @@ const BusinessIncome = () => {
                   <div>
                     <h3 className="font-medium text-[#334155]">Income Ledger</h3>
                     <p className="text-xs text-[#64748B] mt-0.5">
-                      {incomeType === "Variable" 
+                      {incomeType === "variable" 
                         ? "Track your variable earnings" 
                         : "Auto-recorded based on frequency"}
                     </p>
                   </div>
                   {/* Add Today's Income - Only for Variable income */}
-                  {incomeType === "Variable" && (
+                  {incomeType === "variable" && (
                     <button
                       type="button"
                       onClick={() => setShowIncomeModal(true)}
