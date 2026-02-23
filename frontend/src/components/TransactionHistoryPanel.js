@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { History, ChevronDown, ChevronUp, Trash2, Lock, AlertCircle } from "lucide-react";
+import { History, ChevronDown, ChevronUp, Trash2, Lock, AlertCircle, Edit3 } from "lucide-react";
 import { toast } from "sonner";
 
 /**
@@ -12,13 +12,15 @@ import { toast } from "sonner";
  * - fetchHistory: function - API function to fetch transaction history
  * - deleteTransaction: function - API function to delete a transaction
  * - onTransactionDeleted: function - Callback when a transaction is deleted
+ * - onEditTransaction: function - Callback when edit is clicked (receives transaction)
  */
 const TransactionHistoryPanel = ({ 
   entityId, 
   entityType = "income",
   fetchHistory,
   deleteTransaction,
-  onTransactionDeleted
+  onTransactionDeleted,
+  onEditTransaction
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [transactions, setTransactions] = useState([]);
