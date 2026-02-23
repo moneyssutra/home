@@ -191,8 +191,8 @@ const MyLoans = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Loan Allocation */}
-            {loans.length > 0 && (
+            {/* Loan Allocation - only show when viewing active loans */}
+            {activeFilter !== "closed" && activeLoans.length > 0 && (
               <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
                 <p className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Loan Allocation</p>
                 <div className="space-y-3">
@@ -216,24 +216,55 @@ const MyLoans = () => {
               </div>
             )}
 
+            {/* Empty state for filtered results */}
+            {filteredLoans.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-8 px-6">
+                <p className="text-center text-sm mb-2" style={{ color: "var(--text-muted)" }}>
+                  No {activeFilter} loans found
+                </p>
+                {activeFilter !== "all" && (
+                  <button
+                    onClick={() => setActiveFilter("all")}
+                    className="text-sm font-medium"
+                    style={{ color: "var(--brand-primary)" }}
+                  >
+                    Show all loans
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Loan List */}
             <div className="space-y-3">
-              {loans.map((loan) => {
+              {filteredLoans.map((loan) => {
                 const linkedAsset = loan.linkedAssetId ? getLinkedAsset(loan.linkedAssetId) : null;
+                const isClosed = isLoanClosed(loan);
                 
                 return (
                   <div
                     key={loan.id}
                     className="rounded-2xl p-5 shadow-card transition-all hover:shadow-md cursor-pointer"
-                    style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+                    style={{ 
+                      backgroundColor: "var(--bg-card)", 
+                      border: `1px solid ${isClosed ? "var(--status-success)" : "var(--border-light)"}`,
+                      opacity: isClosed ? 0.8 : 1
+                    }}
                     onClick={() => navigate(`/loan/${loan.id}`)}
                     data-testid={`loan-card-${loan.id}`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
-                          {loan.loanName}
-                        </h3>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                            {loan.loanName}
+                          </h3>
+                          {isClosed && (
+                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: "var(--status-success-soft)", color: "var(--status-success)" }}>
+                              <CheckCircle className="h-3 w-3" />
+                              Closed
+                            </span>
+                          )}
+                        </div>
 
                         {loan.lenderName && (
                           <p className="text-sm mb-2" style={{ color: "var(--text-secondary)" }}>
@@ -262,12 +293,21 @@ const MyLoans = () => {
                           </div>
                         )}
 
-                        <div className="flex items-baseline gap-2 mb-3">
-                          <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Outstanding:</span>
-                          <span className="text-xl font-bold" style={{ color: "var(--status-warning)" }}>
-                            ₹ {formatAmount(loan.outstandingAmount)}
-                          </span>
-                        </div>
+                        {isClosed ? (
+                          <div className="flex items-baseline gap-2 mb-3">
+                            <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Total Paid:</span>
+                            <span className="text-xl font-bold" style={{ color: "var(--status-success)" }}>
+                              ₹ {formatAmount(loan.principalAmount)}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-baseline gap-2 mb-3">
+                            <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Outstanding:</span>
+                            <span className="text-xl font-bold" style={{ color: "var(--status-warning)" }}>
+                              ₹ {formatAmount(loan.outstandingAmount)}
+                            </span>
+                          </div>
+                        )}
 
                         <div className="mb-3">
                           <div className="flex justify-between text-xs mb-1" style={{ color: "var(--text-muted)" }}>
@@ -277,7 +317,7 @@ const MyLoans = () => {
                           <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
                             <div 
                               className="h-full rounded-full transition-all"
-                              style={{ width: `${calculateProgress(loan)}%`, backgroundColor: "var(--brand-primary)" }}
+                              style={{ width: `${calculateProgress(loan)}%`, backgroundColor: isClosed ? "var(--status-success)" : "var(--brand-primary)" }}
                             />
                           </div>
                         </div>
