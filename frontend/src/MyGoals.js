@@ -220,11 +220,21 @@ const MyGoals = () => {
     return "bg-red-500";
   };
 
-  const filteredGoals = goals.filter((goal) => {
-    if (filter === "active") return !goal.isCompleted;
-    if (filter === "completed") return goal.isCompleted;
-    return true;
-  });
+  // Filter and sort goals: active goals first, then completed
+  const filteredGoals = goals
+    .filter((goal) => {
+      if (filter === "active") return !goal.isCompleted;
+      if (filter === "completed") return goal.isCompleted;
+      return true;
+    })
+    .sort((a, b) => {
+      // Active goals come first (isCompleted: false before true)
+      if (a.isCompleted !== b.isCompleted) {
+        return a.isCompleted ? 1 : -1;
+      }
+      // Within same completion status, sort by priority
+      return (a.priority || 999) - (b.priority || 999);
+    });
 
   const activeGoals = goals.filter(g => !g.isCompleted);
   const completedGoals = goals.filter(g => g.isCompleted);
