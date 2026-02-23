@@ -224,6 +224,9 @@ const InvestmentForm = () => {
       setSipAmount(data.sipAmount?.toString() || "");
       setSipSelectedDay(data.sipSelectedDay || "");
       setSipSelectedDate(data.sipSelectedDate || "");
+      setSipSelectedQuarter(data.sipSelectedQuarter || "");
+      setSipSelectedHalf(data.sipSelectedHalf || "");
+      setSipSelectedMonth(data.sipSelectedMonth || "");
       setAutoCreateExpense(data.autoCreateExpense || false);
       setIsLiquidAsset(data.isLiquidAsset || false);
     } catch (error) {
