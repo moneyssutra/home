@@ -28,6 +28,9 @@ const TransactionHistoryPanel = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Dynamic title based on entity type
+  const historyTitle = entityType === "income" ? "Income History" : "Transaction History";
+
   useEffect(() => {
     if (isExpanded && entityId) {
       loadTransactions();
@@ -97,7 +100,7 @@ const TransactionHistoryPanel = ({
       >
         <div className="flex items-center gap-2">
           <History className="h-5 w-5 text-[#00D09C]" />
-          <span className="font-medium text-[#334155]">Transaction History</span>
+          <span className="font-medium text-[#334155]">{historyTitle}</span>
           {summary && (
             <span className="text-sm text-[#64748B]">
               ({summary.transactionCount} records)
