@@ -654,8 +654,6 @@ VAPID_CLAIMS_EMAIL=mailto:support@moneyssutra.com
 - `/app/test_reports/iteration_51.json` - Expense Module UX Fixes (100% pass)
 - `/app/test_reports/iteration_49.json` - Income Module UI/UX Fixes (100% pass)
 - `/app/test_reports/iteration_48.json` - Investment SIP Auto-Expense (100% pass)
-- `/app/test_reports/iteration_46.json` - Transaction Recording UI Rollout (100% pass)
-- `/app/test_reports/iteration_45.json` - Mobile Notification Panel (100% pass)
 
 ## Deployment Status
 - **Health Check**: PASSED (Feb 21, 2026)
