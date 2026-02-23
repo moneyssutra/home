@@ -6455,6 +6455,148 @@ async def check_and_process_due_premiums():
     except Exception as e:
         logger.error(f"Error processing due premiums: {str(e)}")
 
+
+async def auto_record_fixed_income():
+    """
+    Auto-record income transactions for Fixed income sources based on their frequency.
+    This runs once per day as part of the scheduler.
+    """
+    try:
+        today = datetime.now().strftime("%Y-%m-%d")
+        logger.info(f"Checking for fixed income due today: {today}")
+        
+        # Find all fixed income sources
+        fixed_incomes = await db.income_sources.find({
+            "incomeType": "fixed"
+        }, {"_id": 0}).to_list(500)
+        
+        for income in fixed_incomes:
+            user_id = income.get("userId")
+            income_id = income.get("id")
+            income_name = income.get("name", "Income")
+            expected_amount = income.get("expectedAmount", 0)
+            frequency = income.get("frequency", "Monthly")
+            selected_date = income.get("selectedDate")
+            selected_day = income.get("selectedDay")
+            selected_month = income.get("selectedMonth")
+            custom_date = income.get("customDate")
+            
+            if not expected_amount:
+                continue
+            
+            # Calculate if today is a payment due date based on frequency
+            current_date = datetime.now()
+            is_due_today = False
+            
+            if frequency == "Daily":
+                is_due_today = True
+            elif frequency == "Weekly":
+                if selected_day:
+                    days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                    is_due_today = days_of_week[current_date.weekday()] == selected_day or current_date.strftime("%A") == selected_day
+            elif frequency == "Monthly":
+                if selected_date:
+                    try:
+                        base_date = datetime.strptime(selected_date, "%Y-%m-%d") if "-" in selected_date else None
+                        if base_date:
+                            is_due_today = base_date.day == current_date.day
+                        else:
+                            is_due_today = int(selected_date) == current_date.day
+                    except:
+                        pass
+            elif frequency == "Quarterly":
+                if selected_date and selected_month:
+                    try:
+                        months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+                        base_month = months.index(selected_month) if selected_month in months else 0
+                        base_date = datetime.strptime(selected_date, "%Y-%m-%d") if "-" in selected_date else None
+                        base_day = base_date.day if base_date else int(selected_date)
+                        
+                        months_diff = (current_date.month - 1 - base_month) % 12
+                        is_due_today = (months_diff % 3 == 0) and (base_day == current_date.day)
+                    except:
+                        pass
+            elif frequency == "Half-Yearly":
+                if selected_date and selected_month:
+                    try:
+                        months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+                        base_month = months.index(selected_month) if selected_month in months else 0
+                        base_date = datetime.strptime(selected_date, "%Y-%m-%d") if "-" in selected_date else None
+                        base_day = base_date.day if base_date else int(selected_date)
+                        
+                        months_diff = (current_date.month - 1 - base_month) % 12
+                        is_due_today = (months_diff % 6 == 0) and (base_day == current_date.day)
+                    except:
+                        pass
+            elif frequency == "Yearly":
+                if selected_date and selected_month:
+                    try:
+                        months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+                        base_month = months.index(selected_month) if selected_month in months else 0
+                        base_date = datetime.strptime(selected_date, "%Y-%m-%d") if "-" in selected_date else None
+                        base_day = base_date.day if base_date else int(selected_date)
+                        
+                        is_due_today = (base_month == current_date.month - 1) and (base_day == current_date.day)
+                    except:
+                        pass
+            elif frequency == "Others":
+                if custom_date:
+                    is_due_today = custom_date == today
+            
+            if not is_due_today:
+                continue
+            
+            # Check if we already recorded this income today
+            existing_transaction = await db.income_transactions.find_one({
+                "entityId": income_id,
+                "transactionDate": today
+            })
+            
+            if existing_transaction:
+                logger.debug(f"Fixed income already recorded today for {income_name}")
+                continue
+            
+            # Create income transaction
+            transaction = {
+                "id": str(uuid.uuid4()),
+                "userId": user_id,
+                "entityId": income_id,
+                "entityName": income_name,
+                "incomeAmount": expected_amount,
+                "transactionDate": today,
+                "type": "Fixed",
+                "source": "auto_fixed",
+                "notes": f"Auto-recorded {frequency} income",
+                "isLocked": False,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.income_transactions.insert_one(transaction)
+            logger.info(f"Auto-recorded fixed income for {income_name}: ₹{expected_amount}")
+            
+            # Create notification for the user
+            if user_id:
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "title": f"Income Recorded: {income_name}",
+                    "message": f"Your {frequency} income of ₹{expected_amount:,.0f} for {income_name} has been auto-recorded.",
+                    "type": "auto_entry",
+                    "relatedIncomeId": income_id,
+                    "relatedIncomeName": income_name,
+                    "expectedAmount": expected_amount,
+                    "actionUrl": f"/income/{income.get('type', 'business').lower()}/{income_id}",
+                    "isRead": False,
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                
+                await create_notification_and_cleanup(notification)
+                logger.info(f"Created auto-entry notification for {income_name}")
+                
+    except Exception as e:
+        logger.error(f"Error auto-recording fixed income: {str(e)}")
+
+
 async def check_and_send_reminders():
     """
     Background task that runs every minute to check for income reminders.
