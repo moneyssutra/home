@@ -1,12 +1,15 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import SetPasswordModal from "./SetPasswordModal";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { processGoogleSession } = useAuth();
   const hasProcessed = useRef(false);
+  const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     // Use ref to prevent double processing in StrictMode
@@ -23,8 +26,16 @@ const AuthCallback = () => {
         const result = await processGoogleSession(sessionId);
         
         if (result.success) {
-          // Navigate to home with user data
-          navigate("/home", { replace: true, state: { user: result.user } });
+          setUserData(result.user);
+          
+          // Check if this is a Google user without a password set
+          if (result.user.auth_type === 'google' && !result.user.has_password) {
+            // Show the set password modal for first-time Google users
+            setShowSetPasswordModal(true);
+          } else {
+            // Navigate to home with user data
+            navigate("/home", { replace: true, state: { user: result.user } });
+          }
         } else {
           // Navigate to login with error
           navigate("/login", { replace: true, state: { error: result.error } });
@@ -38,12 +49,31 @@ const AuthCallback = () => {
     processSession();
   }, []);
 
+  const handlePasswordSet = () => {
+    // Navigate to home after password is set
+    navigate("/home", { replace: true, state: { user: userData } });
+  };
+
+  const handleSkipPassword = () => {
+    // Navigate to home even if password is skipped
+    setShowSetPasswordModal(false);
+    navigate("/home", { replace: true, state: { user: userData } });
+  };
+
   return (
     <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-12 h-12 border-4 border-[#14B8A6] border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-[#334155]/60">Authenticating...</p>
-      </div>
+      {showSetPasswordModal ? (
+        <SetPasswordModal 
+          isOpen={showSetPasswordModal}
+          onClose={handleSkipPassword}
+          onSuccess={handlePasswordSet}
+        />
+      ) : (
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#14B8A6] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-[#334155]/60">Authenticating...</p>
+        </div>
+      )}
     </div>
   );
 };
