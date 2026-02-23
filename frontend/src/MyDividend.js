@@ -33,6 +33,12 @@ const MyDividend = () => {
     };
   }, [dividends]);
 
+  const filteredDividends = useMemo(() => {
+    if (activeFilter === "fixed") return fixedDividends;
+    if (activeFilter === "variable") return variableDividends;
+    return dividends;
+  }, [dividends, fixedDividends, variableDividends, activeFilter]);
+
   const getPaymentStatus = (dividend) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
