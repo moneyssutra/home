@@ -2566,6 +2566,65 @@ async def get_expenses(request: Request):
     
     return expenses
 
+@api_router.get("/expenses/list/summary")
+async def get_expense_list_summary(request: Request, category: Optional[str] = None, expense_type: Optional[str] = None):
+    """
+    Optimized endpoint for expense list views - returns lightweight data with transaction summary.
+    """
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    if category:
+        user_filter["category"] = category
+    if expense_type:
+        user_filter["expenseType"] = expense_type
+    
+    # Fetch only essential fields for list view
+    projection = {
+        "_id": 0,
+        "id": 1,
+        "expenseName": 1,
+        "expenseType": 1,
+        "category": 1,
+        "expectedAmount": 1,
+        "frequency": 1,
+        "selectedDay": 1,
+        "selectedDate": 1
+    }
+    
+    expenses = await db.expenses.find(user_filter, projection).to_list(1000)
+    
+    # Batch fetch transaction summaries
+    entity_ids = [e["id"] for e in expenses]
+    
+    pipeline = [
+        {"$match": {"entityId": {"$in": entity_ids}}},
+        {"$group": {
+            "_id": "$entityId",
+            "totalRecorded": {"$sum": "$amount"},
+            "transactionCount": {"$sum": 1},
+            "lastTransaction": {"$max": "$transactionDate"}
+        }}
+    ]
+    
+    transaction_stats = {}
+    async for stat in db.expense_transactions.aggregate(pipeline):
+        transaction_stats[stat["_id"]] = {
+            "totalRecorded": stat["totalRecorded"],
+            "transactionCount": stat["transactionCount"],
+            "lastTransaction": stat["lastTransaction"]
+        }
+    
+    for expense in expenses:
+        stats = transaction_stats.get(expense["id"], {})
+        expense["totalRecorded"] = stats.get("totalRecorded", 0)
+        expense["transactionCount"] = stats.get("transactionCount", 0)
+        expense["lastTransaction"] = stats.get("lastTransaction")
+    
+    return expenses
+
 @api_router.get("/expenses/with-next-date")
 async def get_expenses_with_next_date(request: Request):
     """Get all expenses with calculated next deduction dates"""
