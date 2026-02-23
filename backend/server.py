@@ -5695,6 +5695,7 @@ async def send_reminder_notifications(api_key: str = None):
                 "type": "income_reminder",
                 "relatedIncomeId": source_id,
                 "relatedIncomeName": income_name,
+                "expectedAmount": expected_amount,
                 "actionUrl": action_url,
                 "isRead": False,
                 "createdAt": datetime.now(timezone.utc).isoformat()
