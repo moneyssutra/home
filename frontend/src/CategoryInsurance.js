@@ -86,10 +86,21 @@ const CategoryInsurance = () => {
   // Filter insurances for this category
   const { categoryInsurances, totalCoverage, totalPremium } = useMemo(() => {
     const filtered = allInsurances.filter(ins => {
-      const insType = (ins.insuranceType || "Other").toLowerCase().replace(/\s+/g, '-');
-      return insType === category || 
-             (category === 'other' && !Object.keys(insuranceTypeConfig).includes(insType)) ||
-             ins.insuranceType === config.name;
+      const insType = (ins.insuranceType || "Other");
+      const insTypeSlug = insType.toLowerCase().replace(/\s+/g, '-');
+      
+      // Direct match by slug
+      if (insTypeSlug === category) return true;
+      
+      // Match by config name
+      if (insType === config.name) return true;
+      
+      // Handle "other" category for unknown types
+      if (category === 'other') {
+        return !Object.keys(insuranceTypeConfig).includes(insTypeSlug);
+      }
+      
+      return false;
     });
     
     return {
