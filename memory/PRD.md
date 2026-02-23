@@ -8,6 +8,41 @@ Build a comprehensive personal finance tracking application with multi-user work
 
 ## What Was Implemented (Latest Session - Feb 23, 2026)
 
+### 7. Investment Form SIP Enhancements (COMPLETED ✅ - Feb 23, 2026)
+**Feature**: Enhanced investment form with dynamic date pickers and auto-expense creation for SIP investments.
+
+**New Features Implemented**:
+1. **PPF and NPS Categories**: Added "PPF" and "NPS" to investment category dropdown
+2. **Frequency-Based Date Pickers**:
+   - **Weekly**: Day-of-week buttons (Mon, Tue, Wed, Thu, Fri, Sat, Sun)
+   - **Monthly/Quarterly/Half-Yearly/Yearly**: Day-of-month dropdown (1-28)
+3. **Auto Create SIP Expense Toggle**:
+   - Appears when frequency is set AND SIP amount > 0
+   - When enabled, creates linked recurring expense on investment save
+   - Expense details:
+     - Name: "SIP - {investment_name}"
+     - Category: "Investments"
+     - Type: "Fixed"
+     - Frequency: Matches investment frequency
+     - selectedDay/selectedDate: Copied from investment
+
+**Backend Changes**:
+- Updated `Investment` model with `sipSelectedDay`, `sipSelectedDate`, `autoCreateExpense`, `isLiquidAsset`, `linkedExpenseId`
+- Updated `Expense` model with `linkedInvestmentId` for bidirectional linking
+- Modified `POST /api/investments` to auto-create expense when toggle is enabled
+
+**Frontend Changes**:
+- `InvestmentForm.js`: Added UI for frequency-based date pickers and auto-expense toggle
+- Payload now includes new fields for backend processing
+
+**Testing**: 100% pass rate (16/16 backend tests, all frontend tests passed)
+- `/app/test_reports/iteration_48.json`
+- `/app/backend/tests/test_investment_sip_expense_api.py`
+
+---
+
+## What Was Previously Implemented (Feb 23, 2026)
+
 ### 1. Automated Income Ledger System (COMPLETED ✅)
 **Feature**: Overhauled Income Module to "dynamic ledger" system with unique, date-stamped transactions.
 
