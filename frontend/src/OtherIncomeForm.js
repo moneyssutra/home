@@ -730,14 +730,13 @@ const OtherIncomeForm = () => {
         </div>
       )}
 
-      {/* Record Transaction Modal */}
-      <RecordTransactionModal
-        isOpen={showRecordModal}
-        onClose={() => setShowRecordModal(false)}
+      {/* Income Amount Modal (for recording income) */}
+      <IncomeAmountModal
+        isOpen={showIncomeModal}
+        onClose={() => setShowIncomeModal(false)}
         entityId={id}
         entityName={formData.incomeName}
         expectedAmount={parseFloat(formData.amount) || 0}
-        type="income"
         onSubmit={async (data) => {
           await recordIncomeTransaction(data);
           await dismissRelatedNotifications(id);
