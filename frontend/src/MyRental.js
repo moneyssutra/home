@@ -10,6 +10,7 @@ import { useIncomeList } from "@/hooks/useApi";
 const MyRental = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
   const [assets, setAssets] = useState([]);
   
   const { data: rentals = [], isLoading: loading, error } = useIncomeList("Rental");

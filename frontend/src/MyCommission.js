@@ -9,6 +9,7 @@ import { useIncomeList } from "@/hooks/useApi";
 const MyCommission = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
   
   const { data: commissions = [], isLoading: loading, error } = useIncomeList("Commission");
 

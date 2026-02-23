@@ -9,6 +9,7 @@ import { useIncomeList } from "@/hooks/useApi";
 const MyInterest = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
   
   const { data: interests = [], isLoading: loading, error } = useIncomeList("Interest");
 
