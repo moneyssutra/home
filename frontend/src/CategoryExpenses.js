@@ -386,7 +386,18 @@ const CategoryExpenses = () => {
             return (
               <button
                 key={expense.id}
-                onClick={() => navigate(`/expense/${expense.id}`)}
+                onClick={() => {
+                  // Navigate to parent entity for linked expenses, otherwise to expense edit
+                  if (expense.linkedLoanId) {
+                    navigate(`/loan/${expense.linkedLoanId}`);
+                  } else if (expense.linkedInsuranceId) {
+                    navigate(`/insurance/${expense.linkedInsuranceId}`);
+                  } else if (expense.linkedInvestmentId) {
+                    navigate(`/investment/${expense.linkedInvestmentId}`);
+                  } else {
+                    navigate(`/expense/${expense.id}`);
+                  }
+                }}
                 className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md"
                 style={{ 
                   backgroundColor: "var(--bg-card)",

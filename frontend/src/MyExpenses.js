@@ -165,13 +165,15 @@ const MyExpenses = () => {
       {/* Expense Allocation */}
       {sortedCategories.length > 0 && (
         <div className="px-6 -mt-4">
-          <button 
-            onClick={() => navigate("/expense-breakdown")}
+          <div 
             className="w-full rounded-2xl p-5 shadow-card text-left transition-all hover:shadow-lg" 
             style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} 
             data-testid="expense-allocation"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div 
+              className="flex items-center justify-between mb-4 cursor-pointer"
+              onClick={() => navigate("/expense-breakdown")}
+            >
               <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Expense Breakdown</h3>
               <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--brand-primary-soft)", color: "var(--brand-primary)" }}>
                 View All →
@@ -182,8 +184,17 @@ const MyExpenses = () => {
                 const percentage = totalExpenses > 0 ? (data.total / totalExpenses) * 100 : 0;
                 const Icon = getCategoryIcon(category);
                 const catColor = getCategoryColor(category);
+                // Map category name to route slug
+                const categorySlug = category.toLowerCase().replace(/\s+/g, '-');
                 return (
-                  <div key={category} className="flex items-center gap-3">
+                  <div 
+                    key={category} 
+                    className="flex items-center gap-3 cursor-pointer rounded-lg p-1 -m-1 hover:bg-gray-50 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/expenses/${categorySlug}`);
+                    }}
+                  >
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: catColor.bg }}>
                       <Icon className="h-5 w-5" style={{ color: catColor.text }} />
                     </div>
@@ -203,7 +214,7 @@ const MyExpenses = () => {
                 );
               })}
             </div>
-          </button>
+          </div>
         </div>
       )}
 
@@ -307,7 +318,18 @@ const MyExpenses = () => {
               return (
                 <button
                   key={expense.id}
-                  onClick={() => navigate(`/expense/${expense.id}`)}
+                  onClick={() => {
+                    // Navigate to parent entity for linked expenses, otherwise to expense edit
+                    if (expense.linkedLoanId) {
+                      navigate(`/loan/${expense.linkedLoanId}`);
+                    } else if (expense.linkedInsuranceId) {
+                      navigate(`/insurance/${expense.linkedInsuranceId}`);
+                    } else if (expense.linkedInvestmentId) {
+                      navigate(`/investment/${expense.linkedInvestmentId}`);
+                    } else {
+                      navigate(`/expense/${expense.id}`);
+                    }
+                  }}
                   className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card"
                   style={{ 
                     backgroundColor: "var(--bg-card)", 
