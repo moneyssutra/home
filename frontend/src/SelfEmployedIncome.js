@@ -1017,9 +1017,9 @@ const SelfEmployedIncome = () => {
               </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 pb-8">
               {Object.entries(filteredProfessions).map(([category, professions]) => (
-                <div key={category} className="mb-4">
+                <div key={category} className="mb-4 last:mb-8">
                   <h4 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>
                     {category}
                   </h4>
