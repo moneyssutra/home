@@ -194,6 +194,7 @@ export default {
   getMonthlyIncomeSummary,
   getMonthlyExpenseSummary,
   deleteIncomeTransaction,
+  updateIncomeTransaction,
   deleteExpenseTransaction,
   dismissRelatedNotifications
 };
