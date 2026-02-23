@@ -156,7 +156,7 @@ const MyBusiness = () => {
     return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
-  const sortedBusinesses = [...businesses].sort((a, b) => {
+  const sortedBusinesses = [...filteredBusinesses].sort((a, b) => {
     const statusOrder = { 'upcoming': 0, 'due-today': 1, 'received': 2 };
     return statusOrder[getPaymentStatus(a)] - statusOrder[getPaymentStatus(b)];
   });
