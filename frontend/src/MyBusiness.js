@@ -220,7 +220,7 @@ const MyBusiness = () => {
       {/* Header */}
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #10B981 0%, #14B8A6 100%)" }}>
         <div className="flex items-center gap-4 mb-6">
-          <BackButton fallbackPath="/" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <BackButton fallbackPath="/my-income" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             My Business
           </h1>
