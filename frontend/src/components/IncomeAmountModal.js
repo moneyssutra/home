@@ -213,10 +213,10 @@ const IncomeAmountModal = ({
             {isSubmitting ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                <span>Saving...</span>
+                <span>{isEditing ? "Updating..." : "Saving..."}</span>
               </div>
             ) : (
-              "Save Income"
+              isEditing ? "Update Transaction" : "Save Income"
             )}
           </button>
         </div>
