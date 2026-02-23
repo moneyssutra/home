@@ -144,6 +144,18 @@ export function useInvestmentList(options = {}) {
 }
 
 /**
+ * Hook for fetching other income list
+ * @param {object} options - SWR options
+ */
+export function useOtherIncomeList(options = {}) {
+  return useSWR(`${backendUrl}/api/other-income`, fetcher, {
+    ...defaultConfig,
+    revalidateIfStale: true,
+    ...options
+  });
+}
+
+/**
  * Hook for fetching notifications
  * @param {object} options - SWR options
  */
