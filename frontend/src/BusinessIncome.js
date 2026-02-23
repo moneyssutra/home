@@ -16,7 +16,7 @@ import {
 } from "@/lib/validations";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
 import TransactionHistoryPanel from "@/components/TransactionHistoryPanel";
-import RecordTransactionModal from "@/components/RecordTransactionModal";
+import IncomeAmountModal from "@/components/IncomeAmountModal";
 import { 
   recordIncomeTransaction, 
   getIncomeTransactionHistory,
