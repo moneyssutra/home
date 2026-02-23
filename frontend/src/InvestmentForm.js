@@ -99,6 +99,68 @@ const InvestmentForm = () => {
   const compoundingFrequencyOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly"];
   const payoutFrequencyOptions = ["Monthly", "Quarterly", "Half-Yearly", "Yearly"];
 
+  // Constants for frequency selections (same as BusinessIncome)
+  const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const allMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const quarters = [
+    { id: "Q1", label: "Q1 (Jan-Mar)", months: ["January", "February", "March"] },
+    { id: "Q2", label: "Q2 (Apr-Jun)", months: ["April", "May", "June"] },
+    { id: "Q3", label: "Q3 (Jul-Sep)", months: ["July", "August", "September"] },
+    { id: "Q4", label: "Q4 (Oct-Dec)", months: ["October", "November", "December"] }
+  ];
+  const halves = [
+    { id: "H1", label: "H1 (Jan-Jun)", months: ["January", "February", "March", "April", "May", "June"] },
+    { id: "H2", label: "H2 (Jul-Dec)", months: ["July", "August", "September", "October", "November", "December"] }
+  ];
+
+  // Computed values for quarter/half month selection
+  const quarterMonths = useMemo(() => {
+    const q = quarters.find(q => q.label === sipSelectedQuarter);
+    return q ? q.months : [];
+  }, [sipSelectedQuarter]);
+
+  const halfMonths = useMemo(() => {
+    const h = halves.find(h => h.label === sipSelectedHalf);
+    return h ? h.months : [];
+  }, [sipSelectedHalf]);
+
+  const getMonthIndex = (monthName) => allMonths.indexOf(monthName);
+
+  // Calculate quarterly dates preview
+  const calculateQuarterlyDates = useMemo(() => {
+    if (!sipSelectedMonth || !sipSelectedDate) return [];
+    const monthIndex = getMonthIndex(sipSelectedMonth);
+    const day = new Date(sipSelectedDate).getDate();
+    const today = new Date();
+    const dates = [];
+    const quarterMonthIndices = [monthIndex, monthIndex + 3, monthIndex + 6, monthIndex + 9].map(m => m % 12);
+    
+    for (let i = 0; i < 4; i++) {
+      const targetMonth = quarterMonthIndices[i];
+      let targetYear = today.getFullYear();
+      if (targetMonth < today.getMonth()) {
+        targetYear++;
+      }
+      const date = new Date(targetYear, targetMonth, day);
+      dates.push(date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }));
+    }
+    return dates;
+  }, [sipSelectedMonth, sipSelectedDate]);
+
+  // Calculate half-yearly date preview
+  const calculateHalfYearlyDate = useMemo(() => {
+    if (!sipSelectedMonth || !sipSelectedDate) return null;
+    const monthIndex = getMonthIndex(sipSelectedMonth);
+    const day = new Date(sipSelectedDate).getDate();
+    const today = new Date();
+    
+    let nextDate = new Date(today.getFullYear(), monthIndex, day);
+    if (nextDate <= today) {
+      nextDate.setMonth(nextDate.getMonth() + 6);
+    }
+    return nextDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }, [sipSelectedMonth, sipSelectedDate]);
+
   // Auto-suggest mode based on category
   useEffect(() => {
     if (!investmentMode && investmentCategory) {
