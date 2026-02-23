@@ -89,7 +89,17 @@ const ExpenseBreakdown = () => {
       {/* Header */}
       <div className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3 mb-4">
-          <BackButton to="/my-expenses" />
+          <button
+            onClick={() => navigate(-1)}
+            className="flex h-10 w-10 items-center justify-center rounded-full transition-colors"
+            style={{ 
+              backgroundColor: "var(--bg-card)", 
+              border: "1px solid var(--border-light)" 
+            }}
+            aria-label="Go back"
+          >
+            <ChevronRight className="h-5 w-5 rotate-180" style={{ color: "var(--text-primary)" }} />
+          </button>
           <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
             Expense Breakdown
           </h1>
