@@ -261,7 +261,14 @@ const MyRental = () => {
       )}
 
       <div className="px-6 mt-6">
-        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>All Properties</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>All Properties</h3>
+          <div className="flex items-center gap-1 p-1 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <button onClick={() => setActiveFilter("all")} className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeFilter === "all" ? "bg-white shadow-sm" : ""}`} style={{ color: activeFilter === "all" ? "var(--brand-primary)" : "var(--text-muted)" }}>All ({rentals.length})</button>
+            <button onClick={() => setActiveFilter("fixed")} className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeFilter === "fixed" ? "bg-white shadow-sm" : ""}`} style={{ color: activeFilter === "fixed" ? "var(--brand-primary)" : "var(--text-muted)" }}>Fixed ({fixedRentals.length})</button>
+            <button onClick={() => setActiveFilter("variable")} className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeFilter === "variable" ? "bg-white shadow-sm" : ""}`} style={{ color: activeFilter === "variable" ? "var(--status-warning)" : "var(--text-muted)" }}>Variable ({variableRentals.length})</button>
+          </div>
+        </div>
         
         {loading ? (
           <div className="flex items-center justify-center py-12"><div style={{ color: "var(--text-muted)" }}>Loading...</div></div>
@@ -275,6 +282,11 @@ const MyRental = () => {
             <button onClick={() => navigate("/rental-income")} className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium" style={{ backgroundColor: "var(--brand-primary)" }} data-testid="add-rental-empty-button">
               <Plus className="h-5 w-5" />Add Rental
             </button>
+          </div>
+        ) : filteredRentals.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 px-6">
+            <p className="text-center text-sm" style={{ color: "var(--text-muted)" }}>No {activeFilter} rentals found</p>
+            <button onClick={() => setActiveFilter("all")} className="mt-2 text-sm font-medium" style={{ color: "var(--brand-primary)" }}>Show all rentals</button>
           </div>
         ) : (
           <div className="space-y-3">
