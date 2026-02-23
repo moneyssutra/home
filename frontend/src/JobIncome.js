@@ -54,8 +54,8 @@ const JobIncome = () => {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [existingJob, setExistingJob] = useState(null);
   
-  // Transaction recording
-  const [showRecordModal, setShowRecordModal] = useState(false);
+  // Income Amount Modal (for Variable income)
+  const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
