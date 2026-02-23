@@ -44,6 +44,9 @@ const InvestmentForm = () => {
   const [expectedMaturityValue, setExpectedMaturityValue] = useState("");
   const [lockInPeriod, setLockInPeriod] = useState("");
   const [investmentFrequency, setInvestmentFrequency] = useState("");
+  const [sipSelectedDay, setSipSelectedDay] = useState("");
+  const [sipSelectedDate, setSipSelectedDate] = useState("");
+  const [autoCreateExpense, setAutoCreateExpense] = useState(false);
   const [sipAmount, setSipAmount] = useState("");
   const [isLiquidAsset, setIsLiquidAsset] = useState(false);
   
