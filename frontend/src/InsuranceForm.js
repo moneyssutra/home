@@ -25,6 +25,10 @@ const InsuranceForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Get pre-filled insurance type from URL params
+  const prefilledType = searchParams.get('type') || '';
   
   // Field refs for auto-focus
   const fieldRefs = {
