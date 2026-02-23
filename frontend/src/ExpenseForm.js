@@ -132,6 +132,11 @@ const ExpenseForm = () => {
 
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     fetchAccounts();
     if (id) {
