@@ -1,290 +1,256 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, Percent } from "lucide-react";
-import axios from "axios";
+import { ChevronRight, Plus, BadgePercent, TrendingUp, Clock, CalendarClock, Shield, Zap, Target } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import BackButton from "@/components/BackButton";
+import { useIncomeList } from "@/hooks/useApi";
 
 const MyCommission = () => {
   const navigate = useNavigate();
-  const [commissions, setCommissions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
   
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const { data: commissions = [], isLoading: loading, error } = useIncomeList("Commission");
 
-  useEffect(() => {
-    fetchCommissions();
-  }, []);
-
-  const fetchCommissions = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/income`);
-      // Filter only Commission type and sort by createdAt DESC
-      const commissionData = response.data
-        .filter(item => item.type === "Commission")
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setCommissions(commissionData);
-    } catch (error) {
-      console.error("Error fetching commissions:", error);
-    } finally {
-      setLoading(false);
-    }
+  const formatAmount = (amount) => {
+    if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
+    if (amount >= 100000) return `${(amount / 100000).toFixed(2)} L`;
+    if (amount >= 1000) return `${(amount / 1000).toFixed(1)} K`;
+    return new Intl.NumberFormat("en-IN").format(amount);
   };
 
-  const getNextPaymentDate = (commission) => {
-    const { frequency, selectedDay, selectedDate, selectedQuarter, selectedHalf, selectedMonth, customDate } = commission;
+  const { totalIncome, fixedCommissions, variableCommissions, fixedTotal, variableTotal } = useMemo(() => {
+    const total = commissions.reduce((sum, c) => sum + (c.expectedAmount || 0), 0);
+    const fixed = commissions.filter(c => c.incomeType === "fixed" || !c.incomeType);
+    const variable = commissions.filter(c => c.incomeType === "variable");
+    return {
+      totalIncome: total,
+      fixedCommissions: fixed,
+      variableCommissions: variable,
+      fixedTotal: fixed.reduce((sum, c) => sum + (c.expectedAmount || 0), 0),
+      variableTotal: variable.reduce((sum, c) => sum + (c.expectedAmount || 0), 0)
+    };
+  }, [commissions]);
+
+  const getPaymentStatus = (commission) => {
     const today = new Date();
-    
+    today.setHours(0, 0, 0, 0);
+    const nextDate = getNextPaymentDateObj(commission);
+    if (!nextDate) return 'upcoming';
+    nextDate.setHours(0, 0, 0, 0);
+    if (nextDate < today) return 'received';
+    if (nextDate.getTime() === today.getTime()) return 'due-today';
+    return 'upcoming';
+  };
+
+  const getNextPaymentDateObj = (commission) => {
+    const { frequency, selectedDate, selectedMonth, customDate } = commission;
+    const today = new Date();
     switch (frequency) {
-      case "Daily":
-        // Daily has no specific date
-        return "Daily";
-        
-      case "Weekly":
-        if (!selectedDay) return "Not set";
-        // Find next occurrence of selected day
-        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const targetDay = daysOfWeek.indexOf(selectedDay);
-        const currentDay = today.getDay();
-        let daysUntilTarget = targetDay - currentDay;
-        if (daysUntilTarget <= 0) daysUntilTarget += 7;
-        const nextDate = new Date(today);
-        nextDate.setDate(today.getDate() + daysUntilTarget);
-        return formatDate(nextDate);
-        
       case "Monthly":
-        if (!selectedDate) return "Not set";
-        const day = parseInt(selectedDate);
+        if (!selectedDate) return null;
+        const day = new Date(selectedDate).getDate();
         const nextMonthlyDate = new Date(today.getFullYear(), today.getMonth(), day);
-        if (nextMonthlyDate <= today) {
-          nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);
-        }
-        return formatDate(nextMonthlyDate);
-        
-      case "Quarterly":
-        if (!selectedQuarter || !selectedDate) return "Not set";
-        return calculateQuarterlyNextDate(selectedQuarter, selectedDate);
-        
-      case "Half-Yearly":
-        if (!selectedHalf || !selectedDate) return "Not set";
-        return calculateHalfYearlyNextDate(selectedHalf, selectedDate);
-        
+        if (nextMonthlyDate <= today) nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);
+        return nextMonthlyDate;
       case "Yearly":
-        if (!selectedMonth || !selectedDate) return "Not set";
+        if (!selectedMonth || !selectedDate) return null;
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const monthIndex = months.indexOf(selectedMonth);
-        const yearlyDay = parseInt(selectedDate);
+        const yearlyDay = new Date(selectedDate).getDate();
         const nextYearlyDate = new Date(today.getFullYear(), monthIndex, yearlyDay);
-        if (nextYearlyDate <= today) {
-          nextYearlyDate.setFullYear(nextYearlyDate.getFullYear() + 1);
-        }
-        return formatDate(nextYearlyDate);
-        
-      case "Irregular":
-        if (customDate) {
-          return formatDate(new Date(customDate));
-        }
-        return "Irregular";
-        
+        if (nextYearlyDate <= today) nextYearlyDate.setFullYear(nextYearlyDate.getFullYear() + 1);
+        return nextYearlyDate;
+      case "Others":
+        return customDate ? new Date(customDate) : null;
       default:
-        return "Not set";
+        return null;
     }
-  };
-
-  const calculateQuarterlyNextDate = (quarter, dateStr) => {
-    const quarterMonthsMap = {
-      "Q1 (Jan–Mar)": [0, 3, 6, 9],
-      "Q2 (Apr–Jun)": [1, 4, 7, 10],
-      "Q3 (Jul–Sep)": [2, 5, 8, 11],
-      "Q4 (Oct–Dec)": [3, 6, 9, 0]
-    };
-    
-    const day = parseInt(dateStr);
-    const today = new Date();
-    const quarterMonths = quarterMonthsMap[quarter] || [0, 3, 6, 9];
-    
-    for (let qMonth of quarterMonths) {
-      const nextDate = new Date(today.getFullYear(), qMonth, day);
-      if (nextDate > today) {
-        return formatDate(nextDate);
-      }
-    }
-    
-    // If all dates in current year have passed, return first quarter date next year
-    const nextYearDate = new Date(today.getFullYear() + 1, quarterMonths[0], day);
-    return formatDate(nextYearDate);
-  };
-
-  const calculateHalfYearlyNextDate = (half, dateStr) => {
-    const halfMonthsMap = {
-      "Jan–Jun": [0, 6],
-      "Jul–Dec": [6, 0]
-    };
-    
-    const day = parseInt(dateStr);
-    const today = new Date();
-    const halfMonths = halfMonthsMap[half] || [0, 6];
-    
-    for (let hMonth of halfMonths) {
-      const nextDate = new Date(today.getFullYear(), hMonth, day);
-      if (nextDate > today) {
-        return formatDate(nextDate);
-      }
-    }
-    
-    // Next year
-    const nextYearDate = new Date(today.getFullYear() + 1, halfMonths[0], day);
-    return formatDate(nextYearDate);
   };
 
   const formatDate = (date) => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    if (!date) return "Not set";
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
-  const formatAmount = (amount) => {
-    return new Intl.NumberFormat('en-IN').format(amount);
+  const sortedCommissions = [...commissions].sort((a, b) => {
+    const statusOrder = { 'upcoming': 0, 'due-today': 1, 'received': 2 };
+    return statusOrder[getPaymentStatus(a)] - statusOrder[getPaymentStatus(b)];
+  });
+
+  const commissionByFrequency = commissions.reduce((acc, c) => {
+    const freq = c.frequency || "Other";
+    if (!acc[freq]) acc[freq] = { total: 0, count: 0 };
+    acc[freq].total += c.expectedAmount || 0;
+    acc[freq].count += 1;
+    return acc;
+  }, {});
+
+  const sortedFrequencies = Object.entries(commissionByFrequency).sort(([, a], [, b]) => b.total - a.total);
+
+  const getFrequencyIcon = (frequency) => {
+    const icons = { "Daily": Clock, "Weekly": CalendarClock, "Monthly": TrendingUp, "Quarterly": TrendingUp, "Half-Yearly": TrendingUp, "Yearly": TrendingUp };
+    return icons[frequency] || BadgePercent;
   };
+
+  const getFrequencyColor = (frequency) => {
+    const colors = {
+      "Daily": { bg: "var(--status-success-soft)", text: "var(--status-success)" },
+      "Weekly": { bg: "var(--status-info-soft)", text: "var(--status-info)" },
+      "Monthly": { bg: "var(--brand-primary-soft)", text: "var(--brand-primary)" },
+      "Quarterly": { bg: "#F3E8FF", text: "var(--chart-accent2)" },
+      "Half-Yearly": { bg: "#FCE7F3", text: "#DB2777" },
+      "Yearly": { bg: "var(--status-warning-soft)", text: "var(--status-warning)" },
+    };
+    return colors[frequency] || { bg: "var(--bg-subtle)", text: "var(--text-secondary)" };
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'received': return { bg: "var(--status-success-soft)", text: "var(--status-success)", border: "var(--status-success)" };
+      case 'due-today': return { bg: "var(--status-warning-soft)", text: "var(--status-warning)", border: "var(--status-warning)" };
+      case 'upcoming': return { bg: "var(--status-info-soft)", text: "var(--status-info)", border: "var(--status-info)" };
+      default: return { bg: "var(--bg-subtle)", text: "var(--text-secondary)", border: "var(--border-light)" };
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) { case 'received': return 'Received'; case 'due-today': return 'Due Today'; case 'upcoming': return 'Upcoming'; default: return ''; }
+  };
+
+  const chartColors = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B", "#EC4899", "#06B6D4"];
+
+  const fixedReceivedTotal = fixedCommissions.filter(c => getPaymentStatus(c) === 'received').reduce((sum, c) => sum + (c.expectedAmount || 0), 0);
+  const fixedPendingTotal = fixedCommissions.filter(c => getPaymentStatus(c) !== 'received').reduce((sum, c) => sum + (c.expectedAmount || 0), 0);
+  const variableReceivedTotal = variableCommissions.filter(c => getPaymentStatus(c) === 'received').reduce((sum, c) => sum + (c.expectedAmount || 0), 0);
+  const variablePendingTotal = variableCommissions.filter(c => getPaymentStatus(c) !== 'received').reduce((sum, c) => sum + (c.expectedAmount || 0), 0);
 
   return (
-    <div
-      className="min-h-screen honeycomb-bg flex flex-col"
-      data-testid="my-commission-page"
-    >
-      {/* Header */}
-      <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
-          onClick={() => navigate("/")}
-          aria-label="Back to income source"
-          data-testid="back-button"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <h1
-          className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#334155]"
-          style={{ fontFamily: "'Manrope', sans-serif" }}
-          data-testid="page-title"
-        >
-          My Commission
-        </h1>
-        <div className="h-10 w-10" aria-hidden="true" />
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-commission-page">
+      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%)" }}>
+        <div className="flex items-center gap-4 mb-6">
+          <BackButton fallbackPath="/my-income" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>My Commission</h1>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="total-income-card">
+          <p className="text-white/70 text-sm font-medium mb-1">Total Expected Commission</p>
+          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalIncome)}</h2>
+          <p className="text-white/50 text-xs mt-1">{commissions.length} commission sources</p>
+          
+          <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-white/70 mb-1">Fixed Commission</p>
+              <p className="text-white font-medium"><span style={{ color: "#A7F3D0" }}>₹{formatAmount(fixedReceivedTotal)} Received</span></p>
+              <p className="text-white font-medium"><span style={{ color: "#FDE68A" }}>₹{formatAmount(fixedPendingTotal)} Pending</span></p>
+            </div>
+            <div>
+              <p className="text-white/70 mb-1">Variable Commission</p>
+              <p className="text-white font-medium"><span style={{ color: "#A7F3D0" }}>₹{formatAmount(variableReceivedTotal)} Received</span></p>
+              <p className="text-white font-medium"><span style={{ color: "#FDE68A" }}>₹{formatAmount(variablePendingTotal)} Pending</span></p>
+            </div>
+          </div>
+        </div>
       </header>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-32">
-        <div className="mx-auto w-full max-w-[620px] px-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-[#334155]/60">Loading...</div>
-            </div>
-          ) : commissions.length === 0 ? (
-            /* Empty State */
-            <div className="flex flex-col items-center justify-center py-16 px-6">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F4] mb-6">
-                <Percent className="h-12 w-12 text-[#14B8A6]" />
-              </div>
-              <h2 className="text-xl font-semibold text-[#334155] mb-2">
-                No Commission Income Added Yet
-              </h2>
-              <p className="text-[#334155]/60 text-center mb-8">
-                Start by adding your first commission income source
-              </p>
-              <button
-                type="button"
-                onClick={() => navigate("/commission-income")}
-                className="flex items-center gap-2 rounded-xl bg-[#14B8A6] px-6 py-3 text-white font-medium transition-all hover:bg-[#0D9488] active:scale-[0.98] shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
-                data-testid="add-commission-empty-button"
-              >
-                <Plus className="h-5 w-5" />
-                Add New Commission
-              </button>
-            </div>
-          ) : (
-            /* Commission List */
-            <div className="space-y-4">
-              {/* Commission Cards */}
-              <div className="space-y-3">
-                {commissions.map((commission) => (
-                  <div
-                    key={commission.id}
-                    className="flex items-center justify-between rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
-                    onClick={() => navigate(`/commission-income/${commission.id}`)}
-                    data-testid={`commission-card-${commission.id}`}
-                  >
+      {sortedFrequencies.length > 0 && (
+        <div className="px-6 -mt-4">
+          <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Income by Frequency</h3>
+            <div className="space-y-3">
+              {sortedFrequencies.slice(0, 5).map(([frequency, data], idx) => {
+                const percentage = totalIncome > 0 ? (data.total / totalIncome) * 100 : 0;
+                const Icon = getFrequencyIcon(frequency);
+                const freqColor = getFrequencyColor(frequency);
+                return (
+                  <div key={frequency} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: freqColor.bg }}><Icon className="h-5 w-5" style={{ color: freqColor.text }} /></div>
                     <div className="flex-1">
-                      {/* Source Name and Type Badge */}
-                      <div className="flex items-center gap-2 mb-3">
-                        <h3 className="text-lg font-semibold text-[#334155]">
-                          {commission.name}
-                        </h3>
-                        {/* Fixed/Variable Badge */}
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          commission.isVariable === false 
-                            ? "bg-[#334155]/10 text-[#334155]" 
-                            : "bg-[#F59E0B]/10 text-[#F59E0B]"
-                        }`}>
-                          {commission.isVariable === false ? "Fixed" : "Variable"}
-                        </span>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{frequency}</span>
+                        <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data.total)}</span>
                       </div>
-
-                      {/* Details Grid */}
-                      <div className="space-y-2">
-                        {/* Expected Amount */}
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-sm text-[#334155]/60">Expected Amount:</span>
-                          <span className="text-base font-semibold text-[#334155]">
-                            ₹ {formatAmount(commission.expectedAmount)}
-                          </span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }} />
                         </div>
-
-                        {/* Frequency */}
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-[#334155]/60">Frequency:</span>
-                          <span className="text-sm font-medium text-[#334155]">
-                            {commission.frequency}
-                          </span>
-                        </div>
-
-                        {/* Next Payment Date */}
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-[#334155]/60">Date:</span>
-                          <span className="text-sm font-medium text-[#14B8A6]">
-                            {getNextPaymentDate(commission)}
-                          </span>
-                        </div>
+                        <span className="text-xs w-12 text-right" style={{ color: "var(--text-muted)" }}>{percentage.toFixed(0)}%</span>
                       </div>
-                    </div>
-
-                    {/* Chevron */}
-                    <div className="ml-4">
-                      <ChevronRight className="h-6 w-6 text-[#334155]/40" />
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Add New Commission Button */}
-              <div className="pt-4">
-                <button
-                  type="button"
-                  onClick={() => navigate("/commission-income")}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#14B8A6] bg-[#E8F8F4] px-6 py-4 text-[#14B8A6] font-semibold transition-all hover:bg-[#14B8A6] hover:text-white active:scale-[0.98]"
-                  data-testid="add-commission-button"
-                >
-                  <Plus className="h-5 w-5" />
-                  Add New Commission
-                </button>
-              </div>
+                );
+              })}
             </div>
-          )}
+          </div>
         </div>
+      )}
+
+      {commissions.length > 0 && (
+        <div className="px-6 mt-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl p-4 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+              <div className="flex items-center gap-2 mb-3"><div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--bg-subtle)" }}><Shield className="h-4 w-4" style={{ color: "var(--text-secondary)" }} /></div><span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Fixed</span></div>
+              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(fixedTotal)}</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{fixedCommissions.length} sources</p>
+              <div className="mt-2 space-y-1">{fixedCommissions.slice(0, 3).map(c => (<div key={c.id} className="flex justify-between text-xs"><span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{c.name}</span><span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(c.expectedAmount)}</span></div>))}</div>
+            </div>
+            <div className="rounded-2xl p-4 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+              <div className="flex items-center gap-2 mb-3"><div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--status-warning-soft)" }}><Zap className="h-4 w-4" style={{ color: "var(--status-warning)" }} /></div><span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Variable</span></div>
+              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(variableTotal)}</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{variableCommissions.length} sources</p>
+              <div className="mt-2 space-y-1">{variableCommissions.slice(0, 3).map(c => (<div key={c.id} className="flex justify-between text-xs"><span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{c.name}</span><span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(c.expectedAmount)}</span></div>))}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="px-6 mt-6">
+        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>All Commissions</h3>
+        {loading ? (<div className="flex items-center justify-center py-12"><div style={{ color: "var(--text-muted)" }}>Loading...</div></div>
+        ) : commissions.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full mb-4" style={{ backgroundColor: "#FCE7F3" }}><BadgePercent className="h-10 w-10" style={{ color: "#EC4899" }} /></div>
+            <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>No Commission Added Yet</h2>
+            <p className="text-center text-sm mb-6" style={{ color: "var(--text-secondary)" }}>Start by adding your commission income</p>
+            <button onClick={() => navigate("/commission-income")} className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium" style={{ backgroundColor: "var(--brand-primary)" }}><Plus className="h-5 w-5" />Add Commission</button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sortedCommissions.map((commission) => {
+              const status = getPaymentStatus(commission);
+              const Icon = getFrequencyIcon(commission.frequency);
+              const freqColor = getFrequencyColor(commission.frequency);
+              const statusColor = getStatusColor(status);
+              const nextDate = getNextPaymentDateObj(commission);
+              const formattedNextDate = formatDate(nextDate);
+              return (
+                <button key={commission.id} onClick={() => navigate(`/commission-income/${commission.id}`)} className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", opacity: status === 'received' ? 0.7 : 1 }} data-testid={`commission-card-${commission.id}`}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: freqColor.bg }}><Icon className="h-6 w-6" style={{ color: freqColor.text }} /></div>
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <h3 className="font-semibold truncate" style={{ color: "var(--text-primary)" }}>{commission.name}</h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap" style={{ backgroundColor: statusColor.bg, color: statusColor.text, border: `1px solid ${statusColor.border}` }}>{getStatusLabel(status)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs flex-wrap" style={{ color: "var(--text-muted)" }}>
+                      <span>{commission.frequency}</span><span>•</span><span>{commission.incomeType === "variable" ? "Variable" : "Fixed"}</span>
+                      {commission.commissionRate && (<><span>•</span><span className="font-medium" style={{ color: "var(--status-success)" }}>{commission.commissionRate}%</span></>)}
+                      {formattedNextDate && commission.incomeType !== "variable" && (<><span>•</span><span className="font-medium" style={{ color: "var(--status-warning)" }}>Next: {formattedNextDate}</span></>)}
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0 ml-2">
+                    <p className="font-bold" style={{ color: status === 'received' ? "var(--status-success)" : "var(--text-primary)" }}>₹ {formatAmount(commission.expectedAmount)}</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{commission.frequency}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Bottom Navigation */}
+      {commissions.length > 0 && (<div className="px-6 mt-6"><button onClick={() => navigate("/commission-income")} className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 font-medium" style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}><Plus className="h-5 w-5" />Add New Commission</button></div>)}
+
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>

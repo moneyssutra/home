@@ -1,396 +1,275 @@
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, TrendingUp, Calendar } from "lucide-react";
-import axios from "axios";
+import { ChevronRight, Plus, Landmark, TrendingUp, Clock, CalendarClock, Shield, Zap, Percent } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import BackButton from "@/components/BackButton";
+import { useIncomeList } from "@/hooks/useApi";
 
 const MyInterest = () => {
   const navigate = useNavigate();
-  const [interests, setInterests] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
   
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const { data: interests = [], isLoading: loading, error } = useIncomeList("Interest");
 
-  useEffect(() => {
-    fetchInterests();
-  }, []);
-
-  const fetchInterests = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/income`);
-      const interestData = response.data
-        .filter(item => item.type === "Interest")
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setInterests(interestData);
-    } catch (error) {
-      console.error("Error fetching interests:", error);
-    } finally {
-      setLoading(false);
-    }
+  const formatAmount = (amount) => {
+    if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
+    if (amount >= 100000) return `${(amount / 100000).toFixed(2)} L`;
+    if (amount >= 1000) return `${(amount / 1000).toFixed(1)} K`;
+    return new Intl.NumberFormat("en-IN").format(amount);
   };
 
-  // Calculate current amount for an interest entry
-  const calculateCurrentAmount = (interest) => {
-    const p = parseFloat(interest.principal) || 0;
-    const r = parseFloat(interest.rate) || 0;
-    const startDate = interest.startDate ? new Date(interest.startDate) : null;
-    const endDate = interest.endDate ? new Date(interest.endDate) : null;
-    
-    if (p <= 0 || r <= 0 || !startDate) return p;
-    
+  const { totalIncome, fixedInterests, variableInterests, fixedTotal, variableTotal } = useMemo(() => {
+    const total = interests.reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
+    const fixed = interests.filter(i => i.incomeType === "fixed" || !i.incomeType);
+    const variable = interests.filter(i => i.incomeType === "variable");
+    return {
+      totalIncome: total,
+      fixedInterests: fixed,
+      variableInterests: variable,
+      fixedTotal: fixed.reduce((sum, i) => sum + (i.expectedAmount || 0), 0),
+      variableTotal: variable.reduce((sum, i) => sum + (i.expectedAmount || 0), 0)
+    };
+  }, [interests]);
+
+  const getPaymentStatus = (interest) => {
     const today = new Date();
-    
-    // If start date is in future, no interest accrued yet
-    if (startDate > today) return p;
-    
-    // Calculate up to today or end date (whichever is earlier)
-    const calcEndDate = endDate && endDate < today ? endDate : today;
-    
-    // Calculate days/years between dates
-    const diffTime = calcEndDate - startDate;
-    const diffDays = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-    const years = diffDays / 365;
-    
-    let totalInterest = 0;
-    
-    if (interest.interestType === "Simple Interest") {
-      totalInterest = (p * r * years) / 100;
-    } else {
-      // Compound Interest
-      const n = getCompoundingPeriods(interest.compoundingFrequency);
-      const periods = years * n;
-      const amount = p * Math.pow(1 + r / (100 * n), periods);
-      totalInterest = amount - p;
-    }
-    
-    return p + totalInterest;
+    today.setHours(0, 0, 0, 0);
+    const nextDate = getNextPaymentDateObj(interest);
+    if (!nextDate) return 'upcoming';
+    nextDate.setHours(0, 0, 0, 0);
+    if (nextDate < today) return 'received';
+    if (nextDate.getTime() === today.getTime()) return 'due-today';
+    return 'upcoming';
   };
 
-  const getCompoundingPeriods = (compoundingFrequency) => {
-    switch (compoundingFrequency) {
-      case "Monthly": return 12;
-      case "Quarterly": return 4;
-      case "Half-Yearly": return 2;
-      case "Yearly": return 1;
-      default: return 1;
-    }
-  };
-
-  const getNextPaymentDate = (interest) => {
-    const { frequency, selectedDate, selectedQuarter, selectedHalf, selectedMonth, endDate } = interest;
+  const getNextPaymentDateObj = (interest) => {
+    const { frequency, selectedDate, selectedMonth, customDate } = interest;
     const today = new Date();
-    const maturityDate = endDate ? new Date(endDate) : null;
-    
-    // If already matured, show "Matured"
-    if (maturityDate && maturityDate < today) {
-      return "Matured";
-    }
     
     switch (frequency) {
       case "Monthly":
-        if (!selectedDate) return "Not set";
+        if (!selectedDate) return null;
         const day = new Date(selectedDate).getDate();
         const nextMonthlyDate = new Date(today.getFullYear(), today.getMonth(), day);
-        if (nextMonthlyDate <= today) {
-          nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);
-        }
-        // Check if next payment is after maturity
-        if (maturityDate && nextMonthlyDate > maturityDate) return "Matured";
-        return formatDate(nextMonthlyDate);
-        
+        if (nextMonthlyDate <= today) nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);
+        return nextMonthlyDate;
       case "Quarterly":
-        if (!selectedMonth || !selectedDate) return "Not set";
-        return calculateQuarterlyNextDate(selectedMonth, selectedDate, maturityDate);
-        
-      case "Half-Yearly":
-        if (!selectedMonth || !selectedDate) return "Not set";
-        return calculateHalfYearlyNextDate(selectedMonth, selectedDate, maturityDate);
-        
-      case "Yearly":
-        if (!selectedMonth || !selectedDate) return "Not set";
+        if (!selectedMonth || !selectedDate) return null;
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const monthIndex = months.indexOf(selectedMonth);
+        const qDay = new Date(selectedDate).getDate();
+        const quarterMonths = [monthIndex, (monthIndex + 3) % 12, (monthIndex + 6) % 12, (monthIndex + 9) % 12];
+        for (let qMonth of quarterMonths) {
+          const nextDate = new Date(today.getFullYear(), qMonth, qDay);
+          if (nextDate > today) return nextDate;
+        }
+        return new Date(today.getFullYear() + 1, monthIndex, qDay);
+      case "Yearly":
+        if (!selectedMonth || !selectedDate) return null;
+        const allMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const mIndex = allMonths.indexOf(selectedMonth);
         const yearlyDay = new Date(selectedDate).getDate();
-        const nextYearlyDate = new Date(today.getFullYear(), monthIndex, yearlyDay);
-        if (nextYearlyDate <= today) {
-          nextYearlyDate.setFullYear(nextYearlyDate.getFullYear() + 1);
-        }
-        if (maturityDate && nextYearlyDate > maturityDate) return "Matured";
-        return formatDate(nextYearlyDate);
-        
+        const nextYearlyDate = new Date(today.getFullYear(), mIndex, yearlyDay);
+        if (nextYearlyDate <= today) nextYearlyDate.setFullYear(nextYearlyDate.getFullYear() + 1);
+        return nextYearlyDate;
       case "Others":
-        if (interest.customDate) {
-          const customDateObj = new Date(interest.customDate);
-          if (maturityDate && customDateObj > maturityDate) return "Matured";
-          return formatDate(customDateObj);
-        }
-        return "Custom";
-        
+        return customDate ? new Date(customDate) : null;
       default:
-        return "Not set";
+        return null;
     }
-  };
-
-  const calculateQuarterlyNextDate = (month, dateStr, maturityDate) => {
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const monthIndex = months.indexOf(month);
-    const day = new Date(dateStr).getDate();
-    const today = new Date();
-    
-    const quarterMonths = [monthIndex, monthIndex + 3, monthIndex + 6, monthIndex + 9].map(m => m % 12);
-    
-    for (let qMonth of quarterMonths) {
-      const nextDate = new Date(today.getFullYear(), qMonth, day);
-      if (nextDate > today) {
-        if (maturityDate && nextDate > maturityDate) return "Matured";
-        return formatDate(nextDate);
-      }
-    }
-    
-    const nextYearDate = new Date(today.getFullYear() + 1, monthIndex, day);
-    if (maturityDate && nextYearDate > maturityDate) return "Matured";
-    return formatDate(nextYearDate);
-  };
-
-  const calculateHalfYearlyNextDate = (month, dateStr, maturityDate) => {
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const monthIndex = months.indexOf(month);
-    const day = new Date(dateStr).getDate();
-    const today = new Date();
-    
-    const currentYearDate = new Date(today.getFullYear(), monthIndex, day);
-    if (currentYearDate > today) {
-      if (maturityDate && currentYearDate > maturityDate) return "Matured";
-      return formatDate(currentYearDate);
-    }
-    
-    const nextHalfDate = new Date(today.getFullYear(), monthIndex + 6, day);
-    if (nextHalfDate > today) {
-      if (maturityDate && nextHalfDate > maturityDate) return "Matured";
-      return formatDate(nextHalfDate);
-    }
-    
-    const nextYearDate = new Date(today.getFullYear() + 1, monthIndex, day);
-    if (maturityDate && nextYearDate > maturityDate) return "Matured";
-    return formatDate(nextYearDate);
   };
 
   const formatDate = (date) => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    if (!date) return "Not set";
+    return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
-  const formatAmount = (amount) => {
-    return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount);
+  const sortedInterests = [...interests].sort((a, b) => {
+    const statusOrder = { 'upcoming': 0, 'due-today': 1, 'received': 2 };
+    return statusOrder[getPaymentStatus(a)] - statusOrder[getPaymentStatus(b)];
+  });
+
+  const interestBySource = interests.reduce((acc, i) => {
+    const src = i.sourceType || "Other";
+    if (!acc[src]) acc[src] = { total: 0, count: 0 };
+    acc[src].total += i.expectedAmount || 0;
+    acc[src].count += 1;
+    return acc;
+  }, {});
+
+  const sortedSources = Object.entries(interestBySource).sort(([, a], [, b]) => b.total - a.total);
+
+  const getSourceIcon = (source) => {
+    const icons = { "Bank FD": Landmark, "Savings Account": Landmark, "RD": Landmark, "Bonds": TrendingUp, "Post Office": Landmark };
+    return icons[source] || Percent;
   };
 
-  const isMatured = (interest) => {
-    if (!interest.endDate) return false;
-    return new Date(interest.endDate) < new Date();
+  const getSourceColor = (source) => {
+    const colors = {
+      "Bank FD": { bg: "var(--status-info-soft)", text: "var(--status-info)" },
+      "Savings Account": { bg: "var(--status-success-soft)", text: "var(--status-success)" },
+      "RD": { bg: "var(--brand-primary-soft)", text: "var(--brand-primary)" },
+      "Bonds": { bg: "#F3E8FF", text: "var(--chart-accent2)" },
+      "Post Office": { bg: "var(--status-warning-soft)", text: "var(--status-warning)" },
+    };
+    return colors[source] || { bg: "var(--bg-subtle)", text: "var(--text-secondary)" };
   };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'received': return { bg: "var(--status-success-soft)", text: "var(--status-success)", border: "var(--status-success)" };
+      case 'due-today': return { bg: "var(--status-warning-soft)", text: "var(--status-warning)", border: "var(--status-warning)" };
+      case 'upcoming': return { bg: "var(--status-info-soft)", text: "var(--status-info)", border: "var(--status-info)" };
+      default: return { bg: "var(--bg-subtle)", text: "var(--text-secondary)", border: "var(--border-light)" };
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) { case 'received': return 'Received'; case 'due-today': return 'Due Today'; case 'upcoming': return 'Upcoming'; default: return ''; }
+  };
+
+  const chartColors = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B", "#EC4899", "#06B6D4"];
+
+  const fixedReceivedTotal = fixedInterests.filter(i => getPaymentStatus(i) === 'received').reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
+  const fixedPendingTotal = fixedInterests.filter(i => getPaymentStatus(i) !== 'received').reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
+  const variableReceivedTotal = variableInterests.filter(i => getPaymentStatus(i) === 'received').reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
+  const variablePendingTotal = variableInterests.filter(i => getPaymentStatus(i) !== 'received').reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
 
   return (
-    <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="my-interest-page">
-      {/* Header */}
-      <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
-          onClick={() => navigate("/")}
-          aria-label="Back to income source"
-          data-testid="back-button"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <h1
-          className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]"
-          style={{ fontFamily: "'Manrope', sans-serif" }}
-          data-testid="page-title"
-        >
-          My Interest Income
-        </h1>
-        <div className="h-10 w-10" aria-hidden="true" />
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-interest-page">
+      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #06B6D4 0%, #3B82F6 100%)" }}>
+        <div className="flex items-center gap-4 mb-6">
+          <BackButton fallbackPath="/my-income" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>My Interest Income</h1>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="total-income-card">
+          <p className="text-white/70 text-sm font-medium mb-1">Total Expected Interest</p>
+          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalIncome)}</h2>
+          <p className="text-white/50 text-xs mt-1">{interests.length} interest sources</p>
+          
+          <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-white/70 mb-1">Fixed Interest</p>
+              <p className="text-white font-medium"><span style={{ color: "#A7F3D0" }}>₹{formatAmount(fixedReceivedTotal)} Received</span></p>
+              <p className="text-white font-medium"><span style={{ color: "#FDE68A" }}>₹{formatAmount(fixedPendingTotal)} Pending</span></p>
+            </div>
+            <div>
+              <p className="text-white/70 mb-1">Variable Interest</p>
+              <p className="text-white font-medium"><span style={{ color: "#A7F3D0" }}>₹{formatAmount(variableReceivedTotal)} Received</span></p>
+              <p className="text-white font-medium"><span style={{ color: "#FDE68A" }}>₹{formatAmount(variablePendingTotal)} Pending</span></p>
+            </div>
+          </div>
+        </div>
       </header>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto pb-32">
-        <div className="mx-auto w-full max-w-[620px] px-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-[#334155]/60">Loading...</div>
-            </div>
-          ) : interests.length === 0 ? (
-            /* Empty State */
-            <div className="flex flex-col items-center justify-center py-16 px-6">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#E8F8F4] mb-6">
-                <TrendingUp className="h-12 w-12 text-[#14B8A6]" />
-              </div>
-              <h2 className="text-xl font-semibold text-[#334155] mb-2">
-                No Interest Income Added Yet
-              </h2>
-              <p className="text-[#334155]/60 text-center mb-8">
-                Start by adding your first interest income source
-              </p>
-              <button
-                type="button"
-                onClick={() => navigate("/interest-income")}
-                className="flex items-center gap-2 rounded-xl bg-[#14B8A6] px-6 py-3 text-white font-medium transition-all hover:bg-[#0D9488] active:scale-[0.98] shadow-[0_4px_12px_rgba(0,208,156,0.3)]"
-                data-testid="add-interest-empty-button"
-              >
-                <Plus className="h-5 w-5" />
-                Add New Interest Income
-              </button>
-            </div>
-          ) : (
-            /* Interest List */
-            <div className="space-y-4">
-              <div className="space-y-3">
-                {interests.map((interest) => {
-                  const currentAmt = calculateCurrentAmount(interest);
-                  const matured = isMatured(interest);
-                  
-                  return (
-                    <div
-                      key={interest.id}
-                      className={`rounded-2xl border bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer ${
-                        matured ? "border-yellow-300" : "border-[#334155]"
-                      }`}
-                      onClick={() => navigate(`/interest-income/${interest.id}`)}
-                      data-testid={`interest-card-${interest.id}`}
-                    >
-                      {/* Matured Badge */}
-                      {matured && (
-                        <div className="mb-3">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-xs font-medium text-yellow-800">
-                            <Calendar className="h-3 w-3" />
-                            Matured
-                          </span>
+      {sortedSources.length > 0 && (
+        <div className="px-6 -mt-4">
+          <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Income by Source Type</h3>
+            <div className="space-y-3">
+              {sortedSources.slice(0, 5).map(([source, data], idx) => {
+                const percentage = totalIncome > 0 ? (data.total / totalIncome) * 100 : 0;
+                const Icon = getSourceIcon(source);
+                const srcColor = getSourceColor(source);
+                return (
+                  <div key={source} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: srcColor.bg }}>
+                      <Icon className="h-5 w-5" style={{ color: srcColor.text }} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{source}</span>
+                        <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data.total)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${percentage}%`, backgroundColor: chartColors[idx % chartColors.length] }} />
                         </div>
-                      )}
-                      
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          {/* Interest Source Name */}
-                          <h3 className="text-lg font-semibold text-[#334155] mb-3">
-                            {interest.name}
-                          </h3>
-
-                          {/* Details Grid */}
-                          <div className="space-y-2">
-                            {/* Principal & Rate Row */}
-                            <div className="flex items-center gap-4 flex-wrap">
-                              <div className="flex items-baseline gap-1">
-                                <span className="text-sm text-[#334155]/60">Principal:</span>
-                                <span className="text-sm font-semibold text-[#334155]">
-                                  ₹{formatAmount(interest.principal || 0)}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-sm text-[#334155]/60">Rate:</span>
-                                <span className="text-sm font-medium text-[#334155]">
-                                  {interest.rate}%
-                                </span>
-                                <span className="text-xs text-[#334155]/50">
-                                  ({interest.interestType === "Simple Interest" ? "SI" : "CI"})
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Current Amount - Highlighted */}
-                            <div className="rounded-lg bg-gradient-to-r from-[#E8F8F4] to-[#F0FDF9] p-3 mt-2">
-                              <div className="flex items-baseline justify-between">
-                                <span className="text-sm text-[#334155]/70">Current Amount:</span>
-                                <span className="text-lg font-bold text-[#14B8A6]">
-                                  ₹{formatAmount(currentAmt)}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between mt-1">
-                                <span className="text-xs text-[#334155]/50">Interest earned:</span>
-                                <span className="text-xs font-medium text-[#14B8A6]">
-                                  +₹{formatAmount(currentAmt - (interest.principal || 0))}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Dates Row */}
-                            <div className="flex items-center gap-4 flex-wrap mt-2">
-                              {interest.startDate && (
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs text-[#334155]/60">Start:</span>
-                                  <span className="text-xs font-medium text-[#334155]">
-                                    {formatDate(new Date(interest.startDate))}
-                                  </span>
-                                </div>
-                              )}
-                              {interest.endDate && (
-                                <div className="flex items-center gap-1">
-                                  <span className="text-xs text-[#334155]/60">End:</span>
-                                  <span className={`text-xs font-medium ${matured ? "text-yellow-600" : "text-[#334155]"}`}>
-                                    {formatDate(new Date(interest.endDate))}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Frequency & Next Payment */}
-                            <div className="flex items-center gap-4 flex-wrap pt-1 border-t border-[#334155]/50 mt-2">
-                              <div className="flex items-center gap-1">
-                                <span className="text-sm text-[#334155]/60">Frequency:</span>
-                                <span className="text-sm font-medium text-[#334155]">
-                                  {interest.frequency}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-sm text-[#334155]/60">Next:</span>
-                                <span className={`text-sm font-medium ${
-                                  getNextPaymentDate(interest) === "Matured" ? "text-yellow-600" : "text-[#14B8A6]"
-                                }`}>
-                                  {getNextPaymentDate(interest)}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Expected Income */}
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-sm text-[#334155]/60">Expected ({interest.frequency}):</span>
-                              <span className="text-sm font-semibold text-[#334155]">
-                                ₹{formatAmount(interest.expectedAmount)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Chevron */}
-                        <div className="ml-4 mt-2">
-                          <ChevronRight className="h-6 w-6 text-[#334155]/40" />
-                        </div>
+                        <span className="text-xs w-12 text-right" style={{ color: "var(--text-muted)" }}>{percentage.toFixed(0)}%</span>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* Add New Interest Button */}
-              <div className="pt-4">
-                <button
-                  type="button"
-                  onClick={() => navigate("/interest-income")}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#14B8A6] bg-[#E8F8F4] px-6 py-4 text-[#14B8A6] font-semibold transition-all hover:bg-[#14B8A6] hover:text-white active:scale-[0.98]"
-                  data-testid="add-interest-button"
-                >
-                  <Plus className="h-5 w-5" />
-                  Add New Interest Income
-                </button>
-              </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
+          </div>
         </div>
+      )}
+
+      {interests.length > 0 && (
+        <div className="px-6 mt-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl p-4 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--bg-subtle)" }}><Shield className="h-4 w-4" style={{ color: "var(--text-secondary)" }} /></div>
+                <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Fixed</span>
+              </div>
+              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(fixedTotal)}</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{fixedInterests.length} sources</p>
+              <div className="mt-2 space-y-1">{fixedInterests.slice(0, 3).map(i => (<div key={i.id} className="flex justify-between text-xs"><span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{i.name}</span><span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(i.expectedAmount)}</span></div>))}</div>
+            </div>
+            <div className="rounded-2xl p-4 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--status-warning-soft)" }}><Zap className="h-4 w-4" style={{ color: "var(--status-warning)" }} /></div>
+                <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Variable</span>
+              </div>
+              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(variableTotal)}</p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{variableInterests.length} sources</p>
+              <div className="mt-2 space-y-1">{variableInterests.slice(0, 3).map(i => (<div key={i.id} className="flex justify-between text-xs"><span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{i.name}</span><span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(i.expectedAmount)}</span></div>))}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="px-6 mt-6">
+        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>All Interest Sources</h3>
+        {loading ? (<div className="flex items-center justify-center py-12"><div style={{ color: "var(--text-muted)" }}>Loading...</div></div>
+        ) : interests.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 px-6">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full mb-4" style={{ backgroundColor: "var(--status-info-soft)" }}><Landmark className="h-10 w-10" style={{ color: "var(--status-info)" }} /></div>
+            <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>No Interest Income Added Yet</h2>
+            <p className="text-center text-sm mb-6" style={{ color: "var(--text-secondary)" }}>Start by adding your FD, savings or bond interest</p>
+            <button onClick={() => navigate("/interest-income")} className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium" style={{ backgroundColor: "var(--brand-primary)" }}><Plus className="h-5 w-5" />Add Interest</button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sortedInterests.map((interest) => {
+              const status = getPaymentStatus(interest);
+              const Icon = getSourceIcon(interest.sourceType);
+              const srcColor = getSourceColor(interest.sourceType);
+              const statusColor = getStatusColor(status);
+              const nextDate = getNextPaymentDateObj(interest);
+              const formattedNextDate = formatDate(nextDate);
+              return (
+                <button key={interest.id} onClick={() => navigate(`/interest-income/${interest.id}`)} className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", opacity: status === 'received' ? 0.7 : 1 }} data-testid={`interest-card-${interest.id}`}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: srcColor.bg }}><Icon className="h-6 w-6" style={{ color: srcColor.text }} /></div>
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <h3 className="font-semibold truncate" style={{ color: "var(--text-primary)" }}>{interest.name}</h3>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap" style={{ backgroundColor: statusColor.bg, color: statusColor.text, border: `1px solid ${statusColor.border}` }}>{getStatusLabel(status)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs flex-wrap" style={{ color: "var(--text-muted)" }}>
+                      <span>{interest.sourceType || "Interest"}</span><span>•</span><span>{interest.frequency}</span>
+                      {interest.interestRate && (<><span>•</span><span className="font-medium" style={{ color: "var(--status-success)" }}>{interest.interestRate}%</span></>)}
+                      {formattedNextDate && interest.incomeType !== "variable" && (<><span>•</span><span className="font-medium" style={{ color: "var(--status-warning)" }}>Next: {formattedNextDate}</span></>)}
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0 ml-2">
+                    <p className="font-bold" style={{ color: status === 'received' ? "var(--status-success)" : "var(--text-primary)" }}>₹ {formatAmount(interest.expectedAmount)}</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{interest.frequency}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Bottom Navigation */}
+      {interests.length > 0 && (<div className="px-6 mt-6"><button onClick={() => navigate("/interest-income")} className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 font-medium" style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}><Plus className="h-5 w-5" />Add New Interest</button></div>)}
+
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
