@@ -103,12 +103,37 @@ const NotificationBell = () => {
       }
     }
     
-    // Navigate and close panel
+    // Check if this is an income reminder notification - open Income Amount modal
+    if (notification.type === "income_reminder" && notification.relatedIncomeId) {
+      setSelectedIncome({
+        id: notification.relatedIncomeId,
+        name: notification.relatedIncomeName || notification.title?.replace("Income Reminder: ", "") || "Income",
+        expectedAmount: notification.expectedAmount || 0
+      });
+      handleClose();
+      setIncomeModalOpen(true);
+      return;
+    }
+    
+    // For other notifications, navigate and close panel
     if (notification.actionUrl) {
       handleClose();
       const mappedUrl = mapActionUrl(notification.actionUrl);
       navigate(mappedUrl);
     }
+  };
+  
+  // Handle income submission from modal
+  const handleIncomeSubmit = async (data) => {
+    await recordIncomeTransaction({
+      ...data,
+      incomeType: "Variable",
+      source: "notification"
+    });
+    await dismissRelatedNotifications(data.entityId);
+    // Remove the notification from the list
+    setNotifications(prev => prev.filter(n => n.relatedIncomeId !== data.entityId));
+    fetchNotifications(false);
   };
   
   const handleMarkAllRead = async () => {
