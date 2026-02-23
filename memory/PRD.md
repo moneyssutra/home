@@ -614,11 +614,11 @@ VAPID_CLAIMS_EMAIL=mailto:support@moneyssutra.com
 - **MongoDB Atlas Triggers**: Scheduled cron jobs (setup required)
 
 ## Recent Test Reports
+- `/app/test_reports/iteration_49.json` - Income Module UI/UX Fixes (100% pass)
 - `/app/test_reports/iteration_48.json` - Investment SIP Auto-Expense (100% pass)
 - `/app/test_reports/iteration_46.json` - Transaction Recording UI Rollout (100% pass)
 - `/app/test_reports/iteration_45.json` - Mobile Notification Panel (100% pass)
 - `/app/test_reports/iteration_44.json` - Asset Module Refinement (100% pass)
-- `/app/test_reports/iteration_43.json` - Entity Uniqueness Validation (100% pass)
 
 ## Deployment Status
 - **Health Check**: PASSED (Feb 21, 2026)
