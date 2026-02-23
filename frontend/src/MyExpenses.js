@@ -162,8 +162,18 @@ const MyExpenses = () => {
       {/* Expense Allocation */}
       {sortedCategories.length > 0 && (
         <div className="px-6 -mt-4">
-          <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="expense-allocation">
-            <h3 className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Expense Breakdown</h3>
+          <button 
+            onClick={() => navigate("/expense-breakdown")}
+            className="w-full rounded-2xl p-5 shadow-card text-left transition-all hover:shadow-lg" 
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} 
+            data-testid="expense-allocation"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Expense Breakdown</h3>
+              <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--brand-primary-soft)", color: "var(--brand-primary)" }}>
+                View All →
+              </span>
+            </div>
             <div className="space-y-3">
               {sortedCategories.slice(0, 5).map(([category, data], idx) => {
                 const percentage = totalExpenses > 0 ? (data.total / totalExpenses) * 100 : 0;
@@ -190,7 +200,7 @@ const MyExpenses = () => {
                 );
               })}
             </div>
-          </div>
+          </button>
         </div>
       )}
 
