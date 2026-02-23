@@ -3395,7 +3395,7 @@ async def get_networth_summary(request: Request):
             monthly_expenses += amount
         elif freq == 'Quarterly':
             # Check if current month is a payment month
-            selected_quarter = expense.get('selectedQuarter', '')
+            selected_quarter = expense.get('selectedQuarter') or ''
             quarter_months = {
                 'Q1': [1, 2, 3],
                 'Q2': [4, 5, 6],
@@ -3419,7 +3419,7 @@ async def get_networth_summary(request: Request):
                 if current_month in [7, 1]:
                     monthly_expenses += amount
         elif freq == 'Yearly':
-            selected_month = expense.get('selectedMonth', '')
+            selected_month = expense.get('selectedMonth') or ''
             month_mapping = {
                 "January": 1, "February": 2, "March": 3, "April": 4, 
                 "May": 5, "June": 6, "July": 7, "August": 8, 
