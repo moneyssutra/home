@@ -51,6 +51,8 @@ import FixedExpenses from "@/FixedExpenses";
 import VariableExpenses from "@/VariableExpenses";
 import InsuranceForm from "@/InsuranceForm";
 import MyInsurance from "@/MyInsurance";
+import InsuranceBreakdown from "@/InsuranceBreakdown";
+import CategoryInsurance from "@/CategoryInsurance";
 import InvestmentForm from "@/InvestmentForm";
 import MyInvestments from "@/MyInvestments";
 import CreditCardForm from "@/CreditCardForm";
