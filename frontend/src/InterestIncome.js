@@ -453,7 +453,10 @@ const InterestIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
-      navigate("/my-income");
+      // Invalidate SWR cache
+      await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
+      
+      navigate("/my-interest");
     } catch (error) {
       console.error("Error saving interest income:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -470,7 +473,11 @@ const InterestIncome = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/income/${id}`);
-      navigate("/my-income");
+      
+      // Invalidate SWR cache
+      await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
+      
+      navigate("/my-interest");
     } catch (error) {
       console.error("Error deleting interest:", error);
       setErrors({ submit: "Failed to delete. Please try again." });
