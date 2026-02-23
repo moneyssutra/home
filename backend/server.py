@@ -458,6 +458,9 @@ class InvestmentCreate(BaseModel):
     sipAmount: Optional[float] = None
     sipSelectedDay: Optional[str] = None
     sipSelectedDate: Optional[str] = None
+    sipSelectedQuarter: Optional[str] = None
+    sipSelectedHalf: Optional[str] = None
+    sipSelectedMonth: Optional[str] = None
     autoCreateExpense: bool = False
     isLiquidAsset: bool = False
 
