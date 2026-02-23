@@ -148,6 +148,9 @@ const SelfEmployedIncome = () => {
       // Variable income fields
       setIncomeType(data.incomeType || "fixed");
       setReminderTime(data.reminderTime || "19:00");
+      
+      // Mark initial load as complete after a brief delay to allow state to settle
+      setTimeout(() => setIsInitialLoad(false), 100);
     } catch (error) {
       console.error("Error fetching income data:", error);
       setErrors({ submit: "Failed to load data" });
@@ -156,8 +159,13 @@ const SelfEmployedIncome = () => {
     }
   };
 
-  // Reset conditional fields when frequency changes
+  // Reset conditional fields when frequency changes (only when creating new, not editing)
+  const [isInitialLoad, setIsInitialLoad] = useState(!!id);
+  
   useEffect(() => {
+    // Skip resetting on initial load (when editing)
+    if (isInitialLoad) return;
+    
     setSelectedDay("");
     setSelectedDate("");
     setSelectedQuarter("");
