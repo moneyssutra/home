@@ -399,7 +399,7 @@ const ExpenseForm = () => {
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full transition-colors shadow-card"
           style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
-          onClick={() => navigate("/my-expenses")}
+          onClick={() => navigate(-1)}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
