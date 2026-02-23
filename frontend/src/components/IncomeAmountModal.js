@@ -132,7 +132,7 @@ const IncomeAmountModal = ({
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div>
             <h2 className="text-lg font-semibold text-[#334155]">
-              {entityName}
+              {isEditing ? "Edit Transaction" : entityName}
             </h2>
             <p className="text-sm text-[#64748B]">
               Expected: <span className="font-medium text-[#00D09C]">₹{new Intl.NumberFormat("en-IN").format(expectedAmount)}</span>
