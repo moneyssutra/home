@@ -135,6 +135,7 @@ export const AuthProvider = ({ children }) => {
     register,
     loginWithGoogle,
     processGoogleSession,
+    setPassword,
     logout,
     checkAuth
   };
