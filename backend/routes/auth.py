@@ -219,7 +219,11 @@ async def google_session(request: GoogleSessionRequest, response: Response):
     email = session_data.get("email")
     user = await db.users.find_one({"email": email}, {"_id": 0})
     
+    is_new_user = False
+    has_password = False
+    
     if not user:
+        is_new_user = True
         user_id = f"user_{uuid.uuid4().hex[:12]}"
         user = {
             "user_id": user_id,
@@ -228,11 +232,13 @@ async def google_session(request: GoogleSessionRequest, response: Response):
             "picture": session_data.get("picture"),
             "auth_type": "google",
             "password_hash": None,
+            "has_password": False,
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.users.insert_one(user)
     else:
         user_id = user["user_id"]
+        has_password = user.get("has_password", False) or (user.get("password_hash") is not None)
         await db.users.update_one(
             {"user_id": user_id},
             {"$set": {
@@ -268,7 +274,10 @@ async def google_session(request: GoogleSessionRequest, response: Response):
         "email": email,
         "name": session_data.get("name"),
         "picture": session_data.get("picture"),
-        "session_token": session_token
+        "session_token": session_token,
+        "auth_type": "google",
+        "has_password": has_password,
+        "is_new_user": is_new_user
     }
 
 
