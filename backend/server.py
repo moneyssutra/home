@@ -3411,7 +3411,7 @@ async def get_networth_summary(request: Request):
                 if current_month in [1, 4, 7, 10]:
                     monthly_expenses += amount
         elif freq == 'Half-Yearly':
-            selected_half = expense.get('selectedHalf', '')
+            selected_half = expense.get('selectedHalf') or ''
             if 'Jan' in selected_half:
                 if current_month in [1, 7]:
                     monthly_expenses += amount
