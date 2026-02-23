@@ -451,6 +451,10 @@ class InvestmentCreate(BaseModel):
     lockInPeriod: Optional[int] = None
     investmentFrequency: Optional[str] = None
     sipAmount: Optional[float] = None
+    sipSelectedDay: Optional[str] = None
+    sipSelectedDate: Optional[str] = None
+    autoCreateExpense: bool = False
+    isLiquidAsset: bool = False
 
 # Credit Card Model
 class CreditCard(BaseModel):
