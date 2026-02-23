@@ -216,6 +216,7 @@ export default {
   useLoanList,
   useGoalList,
   useInvestmentList,
+  useOtherIncomeList,
   useNotifications,
   useDashboardSummary,
   useTransactionHistory
