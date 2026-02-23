@@ -1,39 +1,33 @@
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight, Plus, Briefcase, Banknote, Home, Percent, TrendingUp, PieChart, MoreHorizontal, Gift, UserCheck } from "lucide-react";
+import useSWR from "swr";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
 
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+const fetcher = (url) => axios.get(url, { withCredentials: true }).then(res => res.data);
+
 const MyIncome = () => {
   const navigate = useNavigate();
-  const [incomes, setIncomes] = useState([]);
-  const [otherIncomes, setOtherIncomes] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
-
-  useEffect(() => {
-    fetchAllIncomes();
-  }, []);
-
-  const fetchAllIncomes = async () => {
-    try {
-      setLoading(true);
-      const [regularRes, otherRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/income`),
-        axios.get(`${backendUrl}/api/other-income`).catch(() => ({ data: [] })),
-      ]);
-      setIncomes(regularRes.data);
-      setOtherIncomes(otherRes.data);
-    } catch (error) {
-      console.error("Error fetching incomes:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use SWR for data fetching with caching
+  const { data: incomes = [], isLoading: incomeLoading } = useSWR(
+    `${backendUrl}/api/income/list/summary`,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+  
+  const { data: otherIncomes = [], isLoading: otherLoading } = useSWR(
+    `${backendUrl}/api/other-income`,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
+  
+  const loading = incomeLoading || otherLoading;
 
   const formatAmount = (amount) => {
     if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
