@@ -2608,7 +2608,10 @@ async def get_expense_list_summary(request: Request, category: Optional[str] = N
         "expectedAmount": 1,
         "frequency": 1,
         "selectedDay": 1,
-        "selectedDate": 1
+        "selectedDate": 1,
+        "linkedLoanId": 1,
+        "linkedInsuranceId": 1,
+        "linkedInvestmentId": 1
     }
     
     expenses = await db.expenses.find(user_filter, projection).to_list(1000)
