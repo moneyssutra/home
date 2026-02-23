@@ -18,7 +18,7 @@ import {
   scrollToFirstError
 } from "@/lib/validations";
 import TransactionHistoryPanel from "@/components/TransactionHistoryPanel";
-import RecordTransactionModal from "@/components/RecordTransactionModal";
+import IncomeAmountModal from "@/components/IncomeAmountModal";
 import { 
   recordIncomeTransaction, 
   getIncomeTransactionHistory,
