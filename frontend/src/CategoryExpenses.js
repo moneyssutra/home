@@ -243,13 +243,14 @@ const CategoryExpenses = () => {
       <div className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3 mb-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/my-expenses")}
             className="flex h-10 w-10 items-center justify-center rounded-full transition-colors"
             style={{ 
               backgroundColor: "var(--bg-card)", 
               border: "1px solid var(--border-light)" 
             }}
             aria-label="Go back"
+            data-testid="back-button"
           >
             <ChevronRight className="h-5 w-5 rotate-180" style={{ color: "var(--text-primary)" }} />
           </button>
