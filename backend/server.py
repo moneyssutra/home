@@ -426,7 +426,10 @@ class Investment(BaseModel):
     investmentFrequency: Optional[str] = None  # For SIP: Weekly, Monthly, Quarterly, Yearly
     sipAmount: Optional[float] = None  # SIP amount per frequency
     sipSelectedDay: Optional[str] = None  # For weekly: Mon, Tue, etc.
-    sipSelectedDate: Optional[str] = None  # For monthly: 1-28
+    sipSelectedDate: Optional[str] = None  # Full date string for monthly/quarterly/yearly
+    sipSelectedQuarter: Optional[str] = None  # For quarterly: Q1, Q2, etc.
+    sipSelectedHalf: Optional[str] = None  # For half-yearly: H1, H2
+    sipSelectedMonth: Optional[str] = None  # For quarterly/half-yearly/yearly: January, etc.
     autoCreateExpense: bool = False  # Auto create linked recurring expense
     isLiquidAsset: bool = False  # Consider for emergency fund
     linkedExpenseId: Optional[str] = None  # Link to auto-created expense
