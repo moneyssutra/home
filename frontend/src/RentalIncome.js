@@ -1007,16 +1007,18 @@ const RentalIncome = () => {
         </div>
       )}
 
-      {/* Record Transaction Modal */}
-      <RecordTransactionModal
-        isOpen={showRecordModal}
-        onClose={() => setShowRecordModal(false)}
+      {/* Income Amount Modal (for Variable income) */}
+      <IncomeAmountModal
+        isOpen={showIncomeModal}
+        onClose={() => setShowIncomeModal(false)}
         entityId={id}
         entityName={propertyName}
         expectedAmount={parseFloat(rentalAmount) || 0}
-        type="income"
         onSubmit={async (data) => {
-          await recordIncomeTransaction(data);
+          await recordIncomeTransaction({
+            ...data,
+            incomeType: "variable"
+          });
           await dismissRelatedNotifications(id);
           setTransactionRefreshKey(k => k + 1);
         }}
