@@ -117,6 +117,7 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
                 "picture": None,
                 "auth_type": "jwt",
                 "password_hash": hash_password("test"),
+                "has_password": True,
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
             await db.users.insert_one(user)
@@ -153,9 +154,17 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
             "session_token": session_token
         }
     
-    # Regular user login
-    user = await db.users.find_one({"email": request.username, "auth_type": "jwt"}, {"_id": 0})
-    if not user or not verify_password(request.password, user.get("password_hash", "")):
+    # Regular user login - check by email regardless of auth_type if they have a password
+    user = await db.users.find_one({"email": request.username}, {"_id": 0})
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Check if user has a password set (either JWT user or Google user who set a password)
+    if not user.get("password_hash"):
+        raise HTTPException(status_code=401, detail="No password set. Please login with Google or set a password first.")
+    
+    if not verify_password(request.password, user.get("password_hash", "")):
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     session_token = str(uuid.uuid4())
