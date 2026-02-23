@@ -860,26 +860,33 @@ const RentalIncome = () => {
               </div>
             )}
 
-            {/* Record Transaction Section - Only shown in Edit Mode */}
+            {/* Income Ledger Section - Only shown in Edit Mode */}
             {id && (
               <div className="mt-6 p-4 rounded-xl bg-[#00D09C]/5 border border-[#00D09C]/20">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <h3 className="font-medium text-[#334155]">Record Income</h3>
-                    <p className="text-xs text-[#64748B] mt-0.5">Log when you receive income from this source</p>
+                    <h3 className="font-medium text-[#334155]">Income Ledger</h3>
+                    <p className="text-xs text-[#64748B] mt-0.5">
+                      {incomeType === "variable" 
+                        ? "Track your variable earnings" 
+                        : "Auto-recorded based on frequency"}
+                    </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowRecordModal(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00D09C] text-white text-sm font-medium hover:bg-[#00B88A] transition-colors"
-                    data-testid="record-transaction-btn"
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                    Record
-                  </button>
+                  {/* Add Today's Income - Only for Variable income */}
+                  {incomeType === "variable" && (
+                    <button
+                      type="button"
+                      onClick={() => setShowIncomeModal(true)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00D09C] text-white text-sm font-medium hover:bg-[#00B88A] transition-colors"
+                      data-testid="add-todays-income-btn"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                      Add Today's Income
+                    </button>
+                  )}
                 </div>
                 
-                {/* Transaction History Panel */}
+                {/* Transaction History Panel (Ledger) */}
                 <TransactionHistoryPanel
                   key={transactionRefreshKey}
                   entityId={id}
