@@ -475,6 +475,12 @@ const LoanIncome = () => {
               navigate(location.state.returnTo, {
                 state: { assetFormData: location.state.assetFormData }
               });
+            } else if (location.state?.fromExpenses) {
+              // If came from expenses page, go back to that page
+              navigate(location.state.fromExpenses);
+            } else if (window.history.length > 2) {
+              // Use browser history to go back if available
+              navigate(-1);
             } else {
               navigate("/my-loans");
             }
