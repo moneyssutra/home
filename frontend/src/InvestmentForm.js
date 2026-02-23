@@ -47,6 +47,9 @@ const InvestmentForm = () => {
   const [investmentFrequency, setInvestmentFrequency] = useState("");
   const [sipSelectedDay, setSipSelectedDay] = useState("");
   const [sipSelectedDate, setSipSelectedDate] = useState("");
+  const [sipSelectedQuarter, setSipSelectedQuarter] = useState("");
+  const [sipSelectedHalf, setSipSelectedHalf] = useState("");
+  const [sipSelectedMonth, setSipSelectedMonth] = useState("");
   const [autoCreateExpense, setAutoCreateExpense] = useState(false);
   const [sipAmount, setSipAmount] = useState("");
   const [isLiquidAsset, setIsLiquidAsset] = useState(false);
