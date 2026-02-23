@@ -193,7 +193,7 @@ const MyBusiness = () => {
             <div className="space-y-4">
               {/* Business Cards */}
               <div className="space-y-3">
-                {businesses.map((business) => (
+                {sortedBusinesses.map((business) => (
                   <div
                     key={business.id}
                     className="flex items-center justify-between rounded-2xl border border-[#334155] bg-[#1E293B] p-5 shadow-[0_2px_8px_rgba(15,23,42,0.06)] transition-all hover:shadow-[0_4px_12px_rgba(15,23,42,0.1)] cursor-pointer"
