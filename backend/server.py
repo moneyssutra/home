@@ -6004,6 +6004,79 @@ async def get_monthly_income_summary(month: str = None, request: Request = None)
         "byType": results
     }
 
+class IncomeTransactionUpdate(BaseModel):
+    amount: float
+    transactionDate: str
+    notes: Optional[str] = None
+
+@api_router.put("/income-transactions/{transaction_id}")
+async def update_income_transaction(transaction_id: str, update: IncomeTransactionUpdate, request: Request):
+    """
+    Update an income transaction (only if not locked).
+    Transactions become locked 24 hours after creation.
+    """
+    session_token = request.cookies.get("session_token")
+    if not session_token:
+        raise HTTPException(status_code=401, detail="User not authenticated")
+    
+    session = await db.user_sessions.find_one({"session_token": session_token})
+    if not session:
+        raise HTTPException(status_code=401, detail="Invalid session")
+    
+    user_id = session.get("user_id")
+    
+    # Find the transaction
+    transaction = await db.income_transactions.find_one(
+        {"id": transaction_id, "userId": user_id},
+        {"_id": 0}
+    )
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    # Check if locked
+    if transaction.get("isLocked"):
+        raise HTTPException(
+            status_code=403, 
+            detail="This transaction is locked and cannot be updated. Create an adjustment entry instead."
+        )
+    
+    # Check if older than 24 hours
+    created_at = transaction.get("createdAt")
+    if created_at:
+        created_time = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+        if datetime.now(timezone.utc) - created_time > timedelta(hours=24):
+            # Lock the transaction
+            await db.income_transactions.update_one(
+                {"id": transaction_id},
+                {"$set": {"isLocked": True}}
+            )
+            raise HTTPException(
+                status_code=403,
+                detail="This transaction is now locked (older than 24 hours). Create an adjustment entry instead."
+            )
+    
+    # Update the transaction
+    update_data = {
+        "amount": update.amount,
+        "transactionDate": update.transactionDate,
+        "notes": update.notes or "",
+        "updatedAt": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.income_transactions.update_one(
+        {"id": transaction_id, "userId": user_id},
+        {"$set": update_data}
+    )
+    
+    # Fetch updated transaction
+    updated = await db.income_transactions.find_one(
+        {"id": transaction_id},
+        {"_id": 0}
+    )
+    
+    return updated
+
 @api_router.delete("/income-transactions/{transaction_id}")
 async def delete_income_transaction(transaction_id: str, request: Request):
     """
