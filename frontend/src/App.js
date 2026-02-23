@@ -146,6 +146,8 @@ function AppRouter() {
       
       {/* Expenses */}
       <Route path="/my-expenses" element={<ProtectedRoute><MyExpenses /></ProtectedRoute>} />
+      <Route path="/expense-breakdown" element={<ProtectedRoute><ExpenseBreakdown /></ProtectedRoute>} />
+      <Route path="/expenses/:category" element={<ProtectedRoute><CategoryExpenses /></ProtectedRoute>} />
       <Route path="/expenses/fixed" element={<ProtectedRoute><FixedExpenses /></ProtectedRoute>} />
       <Route path="/expenses/variable" element={<ProtectedRoute><VariableExpenses /></ProtectedRoute>} />
       <Route path="/expense" element={<ProtectedRoute><ExpenseForm /></ProtectedRoute>} />
