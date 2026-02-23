@@ -119,7 +119,7 @@ const TransactionHistoryPanel = ({
         <div className="border-t border-[#E2E8F0]">
           {loading ? (
             <div className="p-4 text-center text-[#64748B]">
-              Loading transactions...
+              Loading {entityType === "income" ? "income" : "transaction"} history...
             </div>
           ) : error ? (
             <div className="p-4 text-center text-red-500 flex items-center justify-center gap-2">
@@ -128,7 +128,7 @@ const TransactionHistoryPanel = ({
             </div>
           ) : transactions.length === 0 ? (
             <div className="p-4 text-center text-[#64748B]">
-              No transactions recorded yet
+              No {entityType === "income" ? "income" : "transactions"} recorded yet
             </div>
           ) : (
             <>
