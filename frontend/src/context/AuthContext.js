@@ -38,6 +38,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const setPassword = async (newPassword) => {
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/auth/set-password`,
+        { password: newPassword },
+        { withCredentials: true }
+      );
+      // Update local user state to reflect they now have a password
+      setUser(prev => ({ ...prev, has_password: true }));
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || "Failed to set password" 
+      };
+    }
+  };
+
   const login = async (username, password, rememberMe = false) => {
     try {
       const response = await axios.post(
