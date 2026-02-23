@@ -443,14 +443,14 @@ const SelfEmployedIncome = () => {
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
-          onClick={() => navigate("/my-self-employed")}
+          onClick={() => navigate("/my-income")}
           aria-label="Back"
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
         <h1 className="flex-1 text-center text-[28px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
-          {isEditing ? "Edit Self-Employed" : "Self-Employed Income"}
+          Self-Employed Income
         </h1>
         <div className="h-10 w-10" />
       </header>
