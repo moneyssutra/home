@@ -193,25 +193,67 @@ const MyLoans = () => {
           <div className="space-y-4">
             {/* Loan Allocation - only show when viewing active loans */}
             {activeFilter !== "closed" && activeLoans.length > 0 && (
-              <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-                <p className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Loan Allocation</p>
+              <div 
+                className="bg-white rounded-2xl p-5 shadow-card" 
+                data-testid="loan-allocation"
+              >
+                <div 
+                  className="flex items-center justify-between mb-4 cursor-pointer"
+                  onClick={() => navigate("/loan-breakdown")}
+                >
+                  <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                    Loan Allocation
+                  </h3>
+                  <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--brand-primary-soft)", color: "var(--brand-primary)" }}>
+                    View All →
+                  </span>
+                </div>
+                
+                {/* Allocation by Type */}
                 <div className="space-y-3">
-                  {getLoanAllocation().map(({ type, value, percentage }) => (
-                    <div key={type} className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span style={{ color: "var(--text-secondary)" }}>{type}</span>
-                          <span className="font-medium" style={{ color: "var(--text-primary)" }}>{percentage}%</span>
+                  {getLoanAllocation().map(({ type, value, percentage }) => {
+                    const typeSlug = type.toLowerCase().replace(/\s+/g, '-');
+                    
+                    return (
+                      <div 
+                        key={type} 
+                        className="space-y-1 cursor-pointer rounded-lg p-2 -mx-2 hover:bg-gray-50 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/loans/${typeSlug}`);
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: "var(--status-warning)" }}
+                            />
+                            <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                              {type}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                              ₹{formatAmount(value)}
+                            </span>
+                            <span className="text-xs ml-2" style={{ color: "var(--text-muted)" }}>
+                              ({percentage}%)
+                            </span>
+                          </div>
                         </div>
-                        <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div 
-                            className="h-full rounded-full"
-                            style={{ width: `${percentage}%`, backgroundColor: "var(--status-warning)" }}
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ 
+                              width: `${percentage}%`,
+                              backgroundColor: "var(--status-warning)"
+                            }}
                           />
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

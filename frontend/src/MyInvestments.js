@@ -133,25 +133,67 @@ const MyInvestments = () => {
       <div className="px-6 -mt-4">
         {/* Investment Allocation */}
         {!loading && investments.length > 0 && (
-          <div className="rounded-2xl p-5 shadow-card mb-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-            <p className="text-sm font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Portfolio Allocation</p>
+          <div 
+            className="bg-white rounded-2xl p-5 shadow-card mb-4" 
+            data-testid="investment-allocation"
+          >
+            <div 
+              className="flex items-center justify-between mb-4 cursor-pointer"
+              onClick={() => navigate("/investment-breakdown")}
+            >
+              <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                Portfolio Allocation
+              </h3>
+              <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--brand-primary-soft)", color: "var(--brand-primary)" }}>
+                View All →
+              </span>
+            </div>
+            
+            {/* Allocation by Category */}
             <div className="space-y-3">
-              {getInvestmentAllocation().map(({ category, value, percentage }) => (
-                <div key={category} className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span style={{ color: "var(--text-secondary)" }}>{category}</span>
-                      <span className="font-medium" style={{ color: "var(--text-primary)" }}>{percentage}%</span>
+              {getInvestmentAllocation().map(({ category, value, percentage }) => {
+                const categorySlug = category.toLowerCase().replace(/\s+/g, '-');
+                
+                return (
+                  <div 
+                    key={category} 
+                    className="space-y-1 cursor-pointer rounded-lg p-2 -mx-2 hover:bg-gray-50 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/investments/${categorySlug}`);
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: "#8B5CF6" }}
+                        />
+                        <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                          {category}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                          ₹{formatAmount(value)}
+                        </span>
+                        <span className="text-xs ml-2" style={{ color: "var(--text-muted)" }}>
+                          ({percentage}%)
+                        </span>
+                      </div>
                     </div>
-                    <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                       <div 
-                        className="h-full rounded-full"
-                        style={{ width: `${percentage}%`, backgroundColor: "#8B5CF6" }}
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ 
+                          width: `${percentage}%`,
+                          backgroundColor: "#8B5CF6"
+                        }}
                       />
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
