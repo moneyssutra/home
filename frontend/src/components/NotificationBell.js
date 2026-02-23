@@ -394,6 +394,19 @@ const NotificationBell = () => {
           )}
         </div>
       </div>
+      
+      {/* Income Amount Modal - Triggered from notification click */}
+      <IncomeAmountModal
+        isOpen={incomeModalOpen}
+        onClose={() => {
+          setIncomeModalOpen(false);
+          setSelectedIncome(null);
+        }}
+        entityId={selectedIncome?.id}
+        entityName={selectedIncome?.name}
+        expectedAmount={selectedIncome?.expectedAmount || 0}
+        onSubmit={handleIncomeSubmit}
+      />
     </>
   );
 };
