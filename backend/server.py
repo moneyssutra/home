@@ -3081,6 +3081,32 @@ async def create_investment(input: InvestmentCreate, request: Request):
     doc = investment_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
     
+    # Auto-create SIP expense if enabled
+    linked_expense_id = None
+    if input.autoCreateExpense and input.investmentFrequency and input.sipAmount:
+        expense_name = f"SIP - {input.name}"
+        expense_dict = {
+            'expenseName': expense_name,
+            'expenseType': 'Fixed',
+            'category': 'Investments',
+            'expectedAmount': input.sipAmount,
+            'frequency': input.investmentFrequency,
+            'linkedAccountId': input.linkedAccountId,
+            'linkedInvestmentId': investment_obj.id,  # Link back to investment
+            'selectedDay': input.sipSelectedDay,
+            'selectedDate': input.sipSelectedDate,
+            'isPaid': False,
+            'userId': user.get('user_id')
+        }
+        expense_obj = Expense(**expense_dict)
+        expense_doc = expense_obj.model_dump()
+        expense_doc['createdAt'] = expense_doc['createdAt'].isoformat()
+        await db.expenses.insert_one(expense_doc)
+        linked_expense_id = expense_obj.id
+        doc['linkedExpenseId'] = linked_expense_id
+        investment_obj = Investment(**doc)
+        investment_obj.createdAt = datetime.fromisoformat(doc['createdAt'])
+    
     await db.investments.insert_one(doc)
     return investment_obj
 
