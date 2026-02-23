@@ -980,9 +980,9 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
             {"mobile": identifier}
         ]
     
-    # Check actual user credentials using $or
+    # Check actual user credentials - allow both jwt and google users with passwords
     user = await db.users.find_one(
-        {"$or": query_conditions, "auth_type": "jwt"},
+        {"$or": query_conditions},
         {"_id": 0}
     )
     
@@ -990,9 +990,18 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
     if not user and is_mobile:
         profile = await db.basic_profiles.find_one({"mobile": identifier}, {"_id": 0, "user_id": 1})
         if profile:
-            user = await db.users.find_one({"user_id": profile["user_id"], "auth_type": "jwt"}, {"_id": 0})
+            user = await db.users.find_one({"user_id": profile["user_id"]}, {"_id": 0})
     
-    if not user or not verify_password(request.password, user.get("password_hash", "")):
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email/mobile or password")
+    
+    # Check if user has a password set
+    if not user.get("password_hash"):
+        if user.get("auth_type") == "google":
+            raise HTTPException(status_code=401, detail="No password set. Please login with Google or set a password in your profile.")
+        raise HTTPException(status_code=401, detail="Invalid email/mobile or password")
+    
+    if not verify_password(request.password, user.get("password_hash", "")):
         raise HTTPException(status_code=401, detail="Invalid email/mobile or password")
     
     # Create session
