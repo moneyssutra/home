@@ -177,17 +177,26 @@ const IncomeAmountModal = ({
             )}
           </div>
           
-          {/* Today's Date Display */}
+          {/* Today's Date Display / Date Picker for Edit */}
           <div className="mb-6 p-3 bg-gray-50 rounded-xl">
             <div className="flex items-center justify-between">
               <span className="text-sm text-[#64748B]">Transaction Date</span>
-              <span className="text-sm font-medium text-[#334155]">
-                {new Date().toLocaleDateString('en-IN', { 
-                  day: 'numeric', 
-                  month: 'short', 
-                  year: 'numeric' 
-                })}
-              </span>
+              {isEditing ? (
+                <input
+                  type="date"
+                  value={transactionDate}
+                  onChange={(e) => setTransactionDate(e.target.value)}
+                  className="text-sm font-medium text-[#334155] bg-transparent border-b border-gray-300 focus:border-[#00D09C] outline-none"
+                />
+              ) : (
+                <span className="text-sm font-medium text-[#334155]">
+                  {new Date().toLocaleDateString('en-IN', { 
+                    day: 'numeric', 
+                    month: 'short', 
+                    year: 'numeric' 
+                  })}
+                </span>
+              )}
             </div>
           </div>
         </div>
