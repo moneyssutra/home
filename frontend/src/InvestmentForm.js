@@ -362,6 +362,9 @@ const InvestmentForm = () => {
         sipAmount: sipAmount ? parseFloat(sipAmount) : null,
         sipSelectedDay: sipSelectedDay || null,
         sipSelectedDate: sipSelectedDate || null,
+        sipSelectedQuarter: sipSelectedQuarter || null,
+        sipSelectedHalf: sipSelectedHalf || null,
+        sipSelectedMonth: sipSelectedMonth || null,
         autoCreateExpense: autoCreateExpense,
         isLiquidAsset: isLiquidAsset,
       };
