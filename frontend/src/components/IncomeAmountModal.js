@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { X, CheckCircle } from "lucide-react";
 import { numberToWords } from "@/lib/formatters";
 import { toast } from "sonner";
+import { format, parse, isValid } from "date-fns";
 
 /**
  * Income Amount Modal - Streamlined modal for recording income transactions
@@ -14,6 +15,8 @@ import { toast } from "sonner";
  * - entityName: string - Name of the income source
  * - expectedAmount: number - Expected amount for reference
  * - onSubmit: function - Async function to save the income transaction
+ * - editingTransaction: object - Transaction being edited (optional)
+ * - onUpdate: function - Async function to update existing transaction (optional)
  */
 const IncomeAmountModal = ({
   isOpen,
@@ -21,22 +24,35 @@ const IncomeAmountModal = ({
   entityId,
   entityName,
   expectedAmount = 0,
-  onSubmit
+  onSubmit,
+  editingTransaction = null,
+  onUpdate
 }) => {
   const [amount, setAmount] = useState("");
+  const [transactionDate, setTransactionDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef(null);
+  
+  const isEditing = !!editingTransaction;
 
   // Reset and focus when modal opens
   useEffect(() => {
     if (isOpen) {
-      setAmount("");
+      if (editingTransaction) {
+        // Pre-fill for editing
+        setAmount(editingTransaction.amount?.toString() || "");
+        setTransactionDate(editingTransaction.transactionDate?.split('T')[0] || new Date().toISOString().split('T')[0]);
+      } else {
+        // Reset for new entry
+        setAmount("");
+        setTransactionDate(new Date().toISOString().split('T')[0]);
+      }
       // Focus input after a short delay for animation
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen]);
+  }, [isOpen, editingTransaction]);
 
   const handleAmountChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
