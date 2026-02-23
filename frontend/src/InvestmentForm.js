@@ -105,6 +105,11 @@ const InvestmentForm = () => {
     }
   }, [investmentCategory]);
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Fetch accounts and investment data
   useEffect(() => {
     fetchAccounts();
