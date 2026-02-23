@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Plus, Briefcase, TrendingUp, Clock, CheckCircle, CalendarClock, Shield, Zap } from "lucide-react";
+import { ChevronRight, Plus, Briefcase, TrendingUp, Clock, CheckCircle, CalendarClock, Shield, Zap, Filter } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
@@ -9,6 +9,7 @@ import { useIncomeList } from "@/hooks/useApi";
 const MyBusiness = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all"); // "all", "fixed", "variable"
   
   // Use SWR for data fetching with caching
   const { data: businesses = [], isLoading: loading, error } = useIncomeList("Business");
@@ -33,6 +34,13 @@ const MyBusiness = () => {
       variableTotal: variable.reduce((sum, b) => sum + (b.expectedAmount || 0), 0)
     };
   }, [businesses]);
+
+  // Filter businesses based on active filter
+  const filteredBusinesses = useMemo(() => {
+    if (activeFilter === "fixed") return fixedBusinesses;
+    if (activeFilter === "variable") return variableBusinesses;
+    return businesses;
+  }, [businesses, fixedBusinesses, variableBusinesses, activeFilter]);
 
   const getPaymentStatus = (business) => {
     const today = new Date();
