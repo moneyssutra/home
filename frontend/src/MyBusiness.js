@@ -1,37 +1,24 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Plus, Briefcase } from "lucide-react";
-import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { useIncomeList } from "@/hooks/useApi";
 
 const MyBusiness = () => {
   const navigate = useNavigate();
-  const [businesses, setBusinesses] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
   
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
-
-  useEffect(() => {
-    fetchBusinesses();
-  }, []);
-
-  const fetchBusinesses = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/income`);
-      // Filter only Business type and sort by createdAt DESC
-      const businessData = response.data
-        .filter(item => item.type === "Business")
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      setBusinesses(businessData);
-    } catch (error) {
-      console.error("Error fetching businesses:", error);
-    } finally {
-      setLoading(false);
+  // Use SWR for data fetching with caching
+  const { data: businesses = [], isLoading: loading, error } = useIncomeList("Business");
+  
+  // Sort by createdAt DESC (if available)
+  const sortedBusinesses = [...businesses].sort((a, b) => {
+    if (a.createdAt && b.createdAt) {
+      return new Date(b.createdAt) - new Date(a.createdAt);
     }
-  };
+    return 0;
+  });
 
   const getNextPaymentDate = (business) => {
     const { frequency, selectedDay, selectedDate, selectedQuarter, selectedHalf, selectedMonth } = business;
