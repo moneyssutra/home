@@ -41,6 +41,43 @@ Build a comprehensive personal finance tracking application with multi-user work
 
 ---
 
+### 9. Expense Category Module Restructure (COMPLETED ✅ - Feb 23, 2026)
+**Feature**: Expense Breakdown page with category-specific navigation and smart pre-filling.
+
+**New Features Implemented**:
+1. **ExpenseBreakdown Page** (`/expense-breakdown`):
+   - Total Monthly Expenses summary with Fixed/Variable breakdown
+   - Categories with data shown first with progress bars and percentages
+   - Empty categories shown as add-new cards
+   - Clicking category navigates to `/expenses/{category}`
+
+2. **CategoryExpenses Page** (`/expenses/:category`):
+   - Filtered view of expenses for selected category
+   - Summary cards (Fixed/Variable totals)
+   - Quick filters (All/Fixed/Variable)
+   - Contextual Add button redirects appropriately:
+     - EMI → `/loan`
+     - Insurance → `/insurance`
+     - Investments → `/investment`
+     - Others → `/expense?category={name}`
+
+3. **Smart Back Navigation**:
+   - All back buttons use `navigate(-1)` for proper browser history
+   - Saves/deletes navigate back to previous page
+
+4. **Category & Type Pre-filling**:
+   - `/expense?category=Housing` pre-fills Housing AND sets Fixed type
+   - Categories that default to Fixed: Housing, EMI, Insurance, Utilities, Subscriptions, Investments
+
+5. **Investment Date Picker Fix**:
+   - Monthly/Quarterly/Half-Yearly/Yearly now allows 1-31 days (was 28)
+   - Note added for month-end handling
+
+**Testing**: 100% pass rate
+- `/app/test_reports/iteration_51.json`
+
+---
+
 ### 7. Investment Form SIP Enhancements (COMPLETED ✅ - Feb 23, 2026)
 **Feature**: Enhanced investment form with dynamic date pickers and auto-expense creation for SIP investments.
 
