@@ -33,6 +33,12 @@ const MyCommission = () => {
     };
   }, [commissions]);
 
+  const filteredCommissions = useMemo(() => {
+    if (activeFilter === "fixed") return fixedCommissions;
+    if (activeFilter === "variable") return variableCommissions;
+    return commissions;
+  }, [commissions, fixedCommissions, variableCommissions, activeFilter]);
+
   const getPaymentStatus = (commission) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
