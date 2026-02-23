@@ -85,6 +85,9 @@ const JobIncome = () => {
     }
   }, [id]);
 
+  // Track initial load for editing
+  const [isInitialLoad, setIsInitialLoad] = useState(!!id);
+
   const fetchJobData = async () => {
     try {
       setLoading(true);
@@ -105,6 +108,9 @@ const JobIncome = () => {
       // Variable income fields
       setIncomeType(data.incomeType || "fixed");
       setReminderTime(data.reminderTime || "19:00");
+      
+      // Mark initial load complete after data is loaded
+      setTimeout(() => setIsInitialLoad(false), 100);
     } catch (error) {
       console.error("Error fetching job data:", error);
       setErrors({ submit: "Failed to load job data" });
@@ -113,8 +119,11 @@ const JobIncome = () => {
     }
   };
 
-  // Reset conditional fields when frequency changes
+  // Reset conditional fields when frequency changes (only when creating new, not editing)
   useEffect(() => {
+    // Skip resetting on initial load (when editing)
+    if (isInitialLoad) return;
+    
     setSelectedDay("");
     setSelectedDate("");
     setSelectedQuarter("");
