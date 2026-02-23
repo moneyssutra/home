@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronRight, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal, TrendingUp, PiggyBank, Clock, CheckCircle, CalendarClock } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
-import BackButton from "@/components/BackButton";
 import { useExpenseList } from "@/hooks/useApi";
 
 // Category configurations
