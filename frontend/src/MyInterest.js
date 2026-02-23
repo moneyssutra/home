@@ -33,6 +33,12 @@ const MyInterest = () => {
     };
   }, [interests]);
 
+  const filteredInterests = useMemo(() => {
+    if (activeFilter === "fixed") return fixedInterests;
+    if (activeFilter === "variable") return variableInterests;
+    return interests;
+  }, [interests, fixedInterests, variableInterests, activeFilter]);
+
   const getPaymentStatus = (interest) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
