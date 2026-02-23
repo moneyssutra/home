@@ -24,9 +24,13 @@ const AssetForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Get pre-filled asset type from URL params
+  const prefilledType = searchParams.get('type') || '';
   
   // Form fields
-  const [assetType, setAssetType] = useState("");
+  const [assetType, setAssetType] = useState(prefilledType);
   const [assetName, setAssetName] = useState("");
   const [purchaseValue, setPurchaseValue] = useState("");
   const [currentValue, setCurrentValue] = useState("");

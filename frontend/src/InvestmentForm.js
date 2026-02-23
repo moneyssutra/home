@@ -22,10 +22,14 @@ const InvestmentForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [showAddSheet, setShowAddSheet] = useState(false);
   
+  // Get pre-filled investment category from URL params
+  const prefilledCategory = searchParams.get('category') || '';
+  
   // Form fields
-  const [investmentCategory, setInvestmentCategory] = useState("");
+  const [investmentCategory, setInvestmentCategory] = useState(prefilledCategory);
   const [investmentMode, setInvestmentMode] = useState("");
   const [name, setName] = useState("");
   const [principal, setPrincipal] = useState("");

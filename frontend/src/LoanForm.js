@@ -23,9 +23,13 @@ const LoanIncome = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  
+  // Get pre-filled loan type from URL params
+  const prefilledType = searchParams.get('type') || '';
   
   // Form fields
-  const [loanType, setLoanType] = useState("");
+  const [loanType, setLoanType] = useState(prefilledType);
   const [loanName, setLoanName] = useState("");
   const [lenderName, setLenderName] = useState("");
   const [principalAmount, setPrincipalAmount] = useState("");
