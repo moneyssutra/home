@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Bell, X, CheckCheck, ArrowRight, Coins, RefreshCw, BellRing, Inbox } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import IncomeAmountModal from "@/components/IncomeAmountModal";
+import { recordIncomeTransaction, dismissRelatedNotifications } from "@/utils/transactionApi";
 
 const NotificationBell = () => {
   const navigate = useNavigate();
@@ -12,6 +14,10 @@ const NotificationBell = () => {
   const [swipingId, setSwipingId] = useState(null);
   const [swipeX, setSwipeX] = useState(0);
   const touchStartX = useRef(0);
+  
+  // Income Amount Modal state
+  const [incomeModalOpen, setIncomeModalOpen] = useState(false);
+  const [selectedIncome, setSelectedIncome] = useState(null);
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   
