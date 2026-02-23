@@ -113,8 +113,13 @@ const BusinessIncome = () => {
     }
   };
 
-  // Reset conditional fields when frequency changes
+  // Reset conditional fields when frequency changes (only when creating new, not editing)
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
   useEffect(() => {
+    // Skip resetting on initial load (when editing)
+    if (isInitialLoad) return;
+    
     setSelectedDay("");
     setSelectedDate("");
     setSelectedQuarter("");
