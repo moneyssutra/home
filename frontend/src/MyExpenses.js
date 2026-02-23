@@ -67,6 +67,7 @@ const MyExpenses = () => {
       "Shopping": ShoppingBag, "Medical": Stethoscope, "Education": GraduationCap,
       "Insurance": Shield, "Subscriptions": Tv, "EMI": CreditCard,
       "Business Expense": Briefcase, "Salary Paid": Wallet,
+      "Investments": TrendingUp, "Savings": PiggyBank,
     };
     return icons[category] || MoreHorizontal;
   };
@@ -85,6 +86,8 @@ const MyExpenses = () => {
       "EMI": { bg: "#FFEDD5", text: "#EA580C" },
       "Business Expense": { bg: "#ECFCCB", text: "#65A30D" },
       "Salary Paid": { bg: "var(--status-success-soft)", text: "var(--status-success)" },
+      "Investments": { bg: "#EDE9FE", text: "#8B5CF6" },
+      "Savings": { bg: "#E0F2FE", text: "#0EA5E9" },
     };
     return colors[category] || { bg: "var(--bg-subtle)", text: "var(--text-secondary)" };
   };
