@@ -156,6 +156,9 @@ const InvestmentForm = () => {
       setLockInPeriod(data.lockInPeriod?.toString() || "");
       setInvestmentFrequency(data.investmentFrequency || "");
       setSipAmount(data.sipAmount?.toString() || "");
+      setSipSelectedDay(data.sipSelectedDay || "");
+      setSipSelectedDate(data.sipSelectedDate || "");
+      setAutoCreateExpense(data.autoCreateExpense || false);
       setIsLiquidAsset(data.isLiquidAsset || false);
     } catch (error) {
       console.error("Error fetching investment data:", error);
