@@ -6415,24 +6415,38 @@ async def startup_db_client():
     try:
         # Create indexes for user isolation queries
         await db.assets.create_index("userId")
+        await db.assets.create_index([("userId", 1), ("name", 1)])  # Compound index for name lookup
         await db.investments.create_index("userId")
+        await db.investments.create_index([("userId", 1), ("name", 1)])
         await db.loans.create_index("userId")
+        await db.loans.create_index([("userId", 1), ("loanName", 1)])
         await db.accounts.create_index("userId")
+        await db.accounts.create_index([("userId", 1), ("accountName", 1)])
         await db.credit_cards.create_index("userId")
         await db.income_sources.create_index("userId")
+        await db.income_sources.create_index([("userId", 1), ("name", 1)])  # For name uniqueness check
+        await db.income_sources.create_index([("userId", 1), ("type", 1)])  # For type filtering
         await db.other_income.create_index("userId")
+        await db.other_income.create_index([("userId", 1), ("incomeName", 1)])
         await db.expenses.create_index("userId")
+        await db.expenses.create_index([("userId", 1), ("expenseName", 1)])
+        await db.expenses.create_index([("userId", 1), ("category", 1)])  # For category filtering
         await db.goals.create_index("userId")
         await db.insurances.create_index("userId")
+        await db.insurances.create_index([("userId", 1), ("policyName", 1)])
+        await db.insurances.create_index([("userId", 1), ("insuranceType", 1)])
         await db.user_sessions.create_index("session_token")
         await db.users.create_index("user_id")
         await db.users.create_index("email")
         await db.notifications.create_index([("userId", 1), ("createdAt", -1)])
+        await db.notifications.create_index([("userId", 1), ("relatedIncomeId", 1)])  # For dismissing by entity
         # Transaction collections indexes
         await db.income_transactions.create_index([("userId", 1), ("transactionDate", -1)])
         await db.income_transactions.create_index([("entityId", 1)])
+        await db.income_transactions.create_index([("entityId", 1), ("transactionDate", -1)])  # For latest entry
         await db.expense_transactions.create_index([("userId", 1), ("transactionDate", -1)])
         await db.expense_transactions.create_index([("entityId", 1)])
+        await db.expense_transactions.create_index([("entityId", 1), ("transactionDate", -1)])  # For latest entry
         logger.info("Database indexes created successfully")
         
         # Start background reminder scheduler
