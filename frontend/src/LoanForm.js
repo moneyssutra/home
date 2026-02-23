@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams, useLocation, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Trash2, Building2, Home, ExternalLink, Plus, Check, Loader2 } from "lucide-react";
 import axios from "axios";
 import { format } from "date-fns";

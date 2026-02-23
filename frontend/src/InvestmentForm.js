@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams, useLocation, useSearchParams } from "react-router-dom";
 import { ChevronLeft, Calendar as CalendarIcon, Trash2, Info, Calendar } from "lucide-react";
 import axios from "axios";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
