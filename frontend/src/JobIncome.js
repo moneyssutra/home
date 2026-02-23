@@ -359,7 +359,10 @@ const JobIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
-      navigate("/my-income");
+      // Invalidate SWR cache
+      await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
+      
+      navigate("/my-job");
     } catch (error) {
       console.error("Error saving job income:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -376,7 +379,11 @@ const JobIncome = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/income/${id}`);
-      navigate("/my-income");
+      
+      // Invalidate SWR cache
+      await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
+      
+      navigate("/my-job");
     } catch (error) {
       console.error("Error deleting job:", error);
       setErrors({ submit: "Failed to delete. Please try again." });
@@ -395,8 +402,8 @@ const JobIncome = () => {
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
-          onClick={() => navigate("/my-income")}
-          aria-label="Back to my business"
+          onClick={() => navigate("/my-job")}
+          aria-label="Back to my jobs"
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
