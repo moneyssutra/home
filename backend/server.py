@@ -2004,6 +2004,68 @@ async def get_income_sources(request: Request):
     
     return income_sources
 
+@api_router.get("/income/list/summary")
+async def get_income_list_summary(request: Request, type: Optional[str] = None):
+    """
+    Optimized endpoint for list views - returns lightweight data with transaction summary.
+    Only fetches essential fields + latest transaction + total recorded.
+    """
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_filter = get_user_filter(user)
+    if type:
+        user_filter["type"] = type
+    
+    # Fetch only essential fields for list view
+    projection = {
+        "_id": 0,
+        "id": 1,
+        "name": 1,
+        "type": 1,
+        "expectedAmount": 1,
+        "frequency": 1,
+        "selectedDay": 1,
+        "selectedDate": 1,
+        "selectedMonth": 1,
+        "selectedQuarter": 1,
+        "incomeType": 1
+    }
+    
+    income_sources = await db.income_sources.find(user_filter, projection).to_list(1000)
+    
+    # Batch fetch transaction summaries for all entities
+    entity_ids = [s["id"] for s in income_sources]
+    
+    # Get transaction counts and totals using aggregation
+    pipeline = [
+        {"$match": {"entityId": {"$in": entity_ids}}},
+        {"$group": {
+            "_id": "$entityId",
+            "totalRecorded": {"$sum": "$amount"},
+            "transactionCount": {"$sum": 1},
+            "lastTransaction": {"$max": "$transactionDate"}
+        }}
+    ]
+    
+    transaction_stats = {}
+    async for stat in db.income_transactions.aggregate(pipeline):
+        transaction_stats[stat["_id"]] = {
+            "totalRecorded": stat["totalRecorded"],
+            "transactionCount": stat["transactionCount"],
+            "lastTransaction": stat["lastTransaction"]
+        }
+    
+    # Merge transaction stats into income sources
+    for source in income_sources:
+        stats = transaction_stats.get(source["id"], {})
+        source["totalRecorded"] = stats.get("totalRecorded", 0)
+        source["transactionCount"] = stats.get("transactionCount", 0)
+        source["lastTransaction"] = stats.get("lastTransaction")
+    
+    return income_sources
+
 @api_router.get("/income/{income_id}", response_model=IncomeSource)
 async def get_income_source(income_id: str, request: Request):
     user = await get_current_user(request)
