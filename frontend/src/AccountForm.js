@@ -44,14 +44,10 @@ const AccountForm = () => {
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   const accountTypeOptions = [
-    "Bank Account",
     "Cash",
-    "Credit Card",
-    "Digital Wallet",
-    "UPI Wallet",
-    "Brokerage Account",
-    "Business Account",
-    "Other"
+    "Bank Account",
+    "Wallet",
+    "Others"
   ];
 
   useEffect(() => {
