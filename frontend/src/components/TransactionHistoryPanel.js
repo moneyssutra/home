@@ -48,8 +48,8 @@ const TransactionHistoryPanel = ({
       setTransactions(data.transactions || []);
       setSummary(data.summary || null);
     } catch (err) {
-      console.error("Error loading transactions:", err);
-      setError("Failed to load transaction history");
+      console.error("Error loading history:", err);
+      setError(`Failed to load ${entityType === "income" ? "income" : "transaction"} history`);
     } finally {
       setLoading(false);
     }
