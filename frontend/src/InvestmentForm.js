@@ -571,10 +571,13 @@ const InvestmentForm = () => {
                         className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       >
                         <option value="">Select Day</option>
-                        {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                           <option key={day} value={day}>{day}</option>
                         ))}
                       </select>
+                      <p className="mt-1 text-xs text-[#334155]/60">
+                        Note: For months with fewer days, the investment will be processed on the last day of the month
+                      </p>
                     </div>
                   )}
                   
