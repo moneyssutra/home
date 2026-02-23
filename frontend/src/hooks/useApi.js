@@ -104,7 +104,7 @@ export function useAssetList(options = {}) {
  * @param {object} options - SWR options
  */
 export function useInsuranceList(options = {}) {
-  return useSWR(`${backendUrl}/api/insurance`, fetcher, {
+  return useSWR(`${backendUrl}/api/insurances`, fetcher, {
     ...defaultConfig,
     ...options
   });
