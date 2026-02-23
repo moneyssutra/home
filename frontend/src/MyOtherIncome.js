@@ -4,7 +4,7 @@ import { ChevronRight, Plus, Wallet, Gift, Award, TrendingUp, RefreshCw, Sparkle
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
-import { useIncomeList } from "@/hooks/useApi";
+import { useOtherIncomeList } from "@/hooks/useApi";
 
 const MyOtherIncome = () => {
   const navigate = useNavigate();
