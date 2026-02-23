@@ -61,6 +61,8 @@ const OtherIncomeForm = () => {
   // Income Amount Modal
   const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
+  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [showRecordModal, setShowRecordModal] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
