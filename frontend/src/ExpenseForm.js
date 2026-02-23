@@ -386,7 +386,11 @@ const ExpenseForm = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/expenses/${id}`);
-      navigate("/my-expenses");
+      
+      // Invalidate SWR cache
+      await mutate((key) => typeof key === 'string' && key.includes('/api/expenses'), undefined, { revalidate: true });
+      
+      navigate(-1);
     } catch (error) {
       console.error("Error deleting expense:", error);
       setErrors({ submit: "Failed to delete. Please try again." });
