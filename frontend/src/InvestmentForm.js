@@ -603,47 +603,229 @@ const InvestmentForm = () => {
                   
                   {/* Date Selection based on Frequency */}
                   {investmentFrequency === "Weekly" && (
-                    <div className="w-full">
+                    <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300">
                       <label className="block text-sm font-medium text-[#334155] mb-2">
                         Investment Day
                       </label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                          <button
-                            key={day}
-                            type="button"
-                            onClick={() => setSipSelectedDay(day)}
-                            className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
-                              sipSelectedDay === day
-                                ? "bg-[#10B981] text-white border-[#10B981]"
-                                : "border-[#334155] text-[#334155] hover:border-[#10B981]"
-                            }`}
-                          >
-                            {day}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {(investmentFrequency === "Monthly" || investmentFrequency === "Quarterly" || investmentFrequency === "Half-Yearly" || investmentFrequency === "Yearly") && (
-                    <div className="w-full">
-                      <label className="block text-sm font-medium text-[#334155] mb-2">
-                        Investment Date (Day of Month)
-                      </label>
                       <select
-                        value={sipSelectedDate}
-                        onChange={(e) => setSipSelectedDate(e.target.value)}
+                        value={sipSelectedDay}
+                        onChange={(e) => setSipSelectedDay(e.target.value)}
                         className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                       >
                         <option value="">Select Day</option>
-                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                        {weekDays.map((day) => (
                           <option key={day} value={day}>{day}</option>
                         ))}
                       </select>
-                      <p className="mt-1 text-xs text-[#334155]/60">
-                        Note: For months with fewer days, the investment will be processed on the last day of the month
-                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Monthly - Date Picker */}
+                  {investmentFrequency === "Monthly" && (
+                    <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className="block text-sm font-medium text-[#334155] mb-2">
+                        Investment Date
+                      </label>
+                      <RestrictedDatePicker
+                        value={sipSelectedDate}
+                        onChange={(date) => setSipSelectedDate(date)}
+                        placeholder="Select investment date"
+                        testId="sip-date-select"
+                      />
+                    </div>
+                  )}
+
+                  {/* Quarterly - Quarter → Month → Date */}
+                  {investmentFrequency === "Quarterly" && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="w-full">
+                        <label className="block text-sm font-medium text-[#334155] mb-2">
+                          Select Quarter
+                        </label>
+                        <select
+                          value={sipSelectedQuarter}
+                          onChange={(e) => {
+                            setSipSelectedQuarter(e.target.value);
+                            setSipSelectedMonth("");
+                            setSipSelectedDate("");
+                          }}
+                          className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                        >
+                          <option value="">Select Quarter</option>
+                          {quarters.map((q) => (
+                            <option key={q.id} value={q.label}>{q.label}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {sipSelectedQuarter && (
+                        <div className="w-full">
+                          <label className="block text-sm font-medium text-[#334155] mb-2">
+                            Select Month
+                          </label>
+                          <select
+                            value={sipSelectedMonth}
+                            onChange={(e) => {
+                              setSipSelectedMonth(e.target.value);
+                              setSipSelectedDate("");
+                            }}
+                            className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                          >
+                            <option value="">Select Month</option>
+                            {quarterMonths.map((month) => (
+                              <option key={month} value={month}>{month}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {sipSelectedMonth && (
+                        <div className="w-full">
+                          <label className="block text-sm font-medium text-[#334155] mb-2">
+                            Select Date
+                          </label>
+                          <RestrictedDatePicker
+                            value={sipSelectedDate}
+                            onChange={(date) => setSipSelectedDate(date)}
+                            restrictedMonth={getMonthIndex(sipSelectedMonth)}
+                            placeholder="Select date in selected month"
+                            testId="sip-date-select"
+                          />
+                        </div>
+                      )}
+
+                      {/* Show Next Recurring Dates */}
+                      {calculateQuarterlyDates.length > 0 && (
+                        <div className="w-full rounded-xl bg-[#E8F8F4] border border-[#14B8A6]/30 p-4">
+                          <div className="flex items-start gap-2">
+                            <Calendar className="h-5 w-5 text-[#14B8A6] mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium text-[#334155] mb-1">
+                                Next Recurring Dates:
+                              </p>
+                              <div className="text-sm text-[#334155]/80 space-y-1">
+                                {calculateQuarterlyDates.map((date, idx) => (
+                                  <div key={idx}>• {date}</div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Half-Yearly - Half → Month → Date */}
+                  {investmentFrequency === "Half-Yearly" && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="w-full">
+                        <label className="block text-sm font-medium text-[#334155] mb-2">
+                          Select Half
+                        </label>
+                        <select
+                          value={sipSelectedHalf}
+                          onChange={(e) => {
+                            setSipSelectedHalf(e.target.value);
+                            setSipSelectedMonth("");
+                            setSipSelectedDate("");
+                          }}
+                          className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                        >
+                          <option value="">Select Half</option>
+                          {halves.map((h) => (
+                            <option key={h.id} value={h.label}>{h.label}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {sipSelectedHalf && (
+                        <div className="w-full">
+                          <label className="block text-sm font-medium text-[#334155] mb-2">
+                            Select Month
+                          </label>
+                          <select
+                            value={sipSelectedMonth}
+                            onChange={(e) => {
+                              setSipSelectedMonth(e.target.value);
+                              setSipSelectedDate("");
+                            }}
+                            className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                          >
+                            <option value="">Select Month</option>
+                            {halfMonths.map((month) => (
+                              <option key={month} value={month}>{month}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {sipSelectedMonth && (
+                        <div className="w-full">
+                          <label className="block text-sm font-medium text-[#334155] mb-2">
+                            Select Date
+                          </label>
+                          <RestrictedDatePicker
+                            value={sipSelectedDate}
+                            onChange={(date) => setSipSelectedDate(date)}
+                            restrictedMonth={getMonthIndex(sipSelectedMonth)}
+                            placeholder="Select date in selected month"
+                            testId="sip-date-select"
+                          />
+                        </div>
+                      )}
+
+                      {/* Show Next Recurring Date */}
+                      {calculateHalfYearlyDate && (
+                        <div className="w-full rounded-xl bg-[#E8F8F4] border border-[#14B8A6]/30 p-4">
+                          <div className="flex items-start gap-2">
+                            <Calendar className="h-5 w-5 text-[#14B8A6] mt-0.5 flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium text-[#334155] mb-1">
+                                Next Recurring Date:
+                              </p>
+                              <div className="text-sm text-[#334155]/80">
+                                • {calculateHalfYearlyDate}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Yearly - Month → Date */}
+                  {investmentFrequency === "Yearly" && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="w-full">
+                        <label className="block text-sm font-medium text-[#334155] mb-2">
+                          Select Month
+                        </label>
+                        <select
+                          value={sipSelectedMonth}
+                          onChange={(e) => setSipSelectedMonth(e.target.value)}
+                          className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                        >
+                          <option value="">Select Month</option>
+                          {allMonths.map((m) => (
+                            <option key={m} value={m}>{m}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {sipSelectedMonth && (
+                        <div className="w-full">
+                          <label className="block text-sm font-medium text-[#334155] mb-2">
+                            Select Date
+                          </label>
+                          <RestrictedDatePicker
+                            value={sipSelectedDate}
+                            onChange={(date) => setSipSelectedDate(date)}
+                            restrictedMonth={getMonthIndex(sipSelectedMonth)}
+                            placeholder="Select date in selected month"
+                            testId="sip-date-select"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                   
