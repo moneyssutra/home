@@ -503,7 +503,7 @@ const InterestIncome = () => {
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
-          onClick={() => navigate("/my-income")}
+          onClick={() => navigate("/my-interest")}
           aria-label="Back to my interest"
           data-testid="back-button"
         >
