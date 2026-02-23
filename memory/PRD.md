@@ -73,7 +73,15 @@ Build a comprehensive personal finance tracking application with multi-user work
    - Monthly/Quarterly/Half-Yearly/Yearly now allows 1-31 days (was 28)
    - Note added for month-end handling
 
-**Testing**: 100% pass rate
+6. **Investment Frequency Cascade (Like Business Income)**:
+   - Weekly: Day dropdown (Monday-Sunday)
+   - Monthly: RestrictedDatePicker
+   - Quarterly: Quarter → Month → Date cascade with next 4 dates preview
+   - Half-Yearly: Half → Month → Date cascade with next date preview
+   - Yearly: Month → Date cascade
+   - Added sipSelectedQuarter, sipSelectedHalf, sipSelectedMonth fields
+
+**Testing**: 100% pass rate (Backend API tested with curl)
 - `/app/test_reports/iteration_51.json`
 
 ---
