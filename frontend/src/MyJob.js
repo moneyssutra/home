@@ -9,6 +9,7 @@ import { useIncomeList } from "@/hooks/useApi";
 const MyJob = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("all");
   
   const { data: jobs = [], isLoading: loading, error } = useIncomeList("Job");
 
