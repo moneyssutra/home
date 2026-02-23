@@ -10,7 +10,7 @@ const MyOtherIncome = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
   
-  const { data: otherIncomes = [], isLoading: loading, error } = useIncomeList("Other");
+  const { data: otherIncomes = [], isLoading: loading, error } = useOtherIncomeList();
 
   const formatAmount = (amount) => {
     if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
