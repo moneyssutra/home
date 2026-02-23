@@ -248,7 +248,7 @@ const CategoryInsurance = () => {
               {config.description}
             </p>
             <button
-              onClick={() => navigate("/insurance")}
+              onClick={() => navigate(`/insurance?type=${encodeURIComponent(config.name)}`)}
               className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium transition-all active:scale-[0.98]"
               style={{ backgroundColor: config.color }}
               data-testid="add-insurance-empty-button"
@@ -321,7 +321,7 @@ const CategoryInsurance = () => {
         {/* Add Button */}
         {categoryInsurances.length > 0 && (
           <button
-            onClick={() => navigate("/insurance")}
+            onClick={() => navigate(`/insurance?type=${encodeURIComponent(config.name)}`)}
             className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 mt-4 font-medium transition-all"
             style={{ borderColor: config.color, color: config.color }}
             data-testid="add-insurance-button"
