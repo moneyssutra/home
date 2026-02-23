@@ -5285,6 +5285,7 @@ async def send_test_reminder(income_id: str, request: Request):
         "type": "income_reminder",
         "relatedIncomeId": income_id,
         "relatedIncomeName": source_name,
+        "expectedAmount": expected_amount,
         "actionUrl": action_url,
         "isRead": False,
         "createdAt": datetime.now(timezone.utc).isoformat()
