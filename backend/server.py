@@ -6617,8 +6617,9 @@ async def check_and_send_reminders():
             
             # Check for due premiums once per day (at startup or when date changes)
             if last_premium_check_date != today:
-                logger.info(f"Running daily premium check for {today}")
+                logger.info(f"Running daily checks for {today}")
                 await check_and_process_due_premiums()
+                await auto_record_fixed_income()
                 last_premium_check_date = today
             
             logger.debug(f"Checking reminders for time: {current_time}")
