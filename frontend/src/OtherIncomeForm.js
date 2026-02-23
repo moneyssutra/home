@@ -748,14 +748,26 @@ const OtherIncomeForm = () => {
 
       {/* Income Amount Modal (for recording income) */}
       <IncomeAmountModal
-        isOpen={showIncomeModal}
-        onClose={() => setShowIncomeModal(false)}
+        isOpen={showIncomeModal || showRecordModal}
+        onClose={() => {
+          setShowIncomeModal(false);
+          setShowRecordModal(false);
+          setEditingTransaction(null);
+        }}
         entityId={id}
         entityName={formData.incomeName}
         expectedAmount={parseFloat(formData.amount) || 0}
+        editingTransaction={editingTransaction}
         onSubmit={async (data) => {
           await recordIncomeTransaction(data);
           await dismissRelatedNotifications(id);
+          setTransactionRefreshKey(k => k + 1);
+        }}
+        onUpdate={async (data) => {
+          await updateIncomeTransaction(data.transactionId, {
+            amount: data.amount,
+            transactionDate: data.transactionDate
+          });
           setTransactionRefreshKey(k => k + 1);
         }}
       />
