@@ -581,25 +581,31 @@ const InvestmentForm = () => {
                     </div>
                   )}
                   
-                  {/* Auto Create SIP Expense Toggle */}
-                  {investmentFrequency && investmentFrequency !== "" && parseFloat(sipAmount) > 0 && (
+                  {/* Auto Create SIP Expense Toggle - Show when frequency is selected and is not One-Time */}
+                  {investmentFrequency && investmentFrequency !== "" && (
                     <div className="w-full p-4 rounded-xl bg-[#FEF3C7] border border-[#F59E0B]/30">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <p className="text-sm font-medium text-[#334155]">Auto Create SIP Expense</p>
-                          <p className="text-xs text-[#334155]/60 mt-0.5">Creates recurring expense entry linked to this investment</p>
+                          <p className="text-xs text-[#334155]/60 mt-0.5">
+                            Creates recurring expense entry linked to this investment
+                            {!sipAmount || parseFloat(sipAmount) <= 0 ? (
+                              <span className="text-amber-600 block mt-1">Enter SIP amount above to enable</span>
+                            ) : null}
+                          </p>
                         </div>
                         <button
                           type="button"
-                          onClick={() => setAutoCreateExpense(!autoCreateExpense)}
+                          onClick={() => sipAmount && parseFloat(sipAmount) > 0 && setAutoCreateExpense(!autoCreateExpense)}
+                          disabled={!sipAmount || parseFloat(sipAmount) <= 0}
                           className={`relative w-12 h-6 rounded-full transition-colors ${
-                            autoCreateExpense ? "bg-[#10B981]" : "bg-gray-300"
-                          }`}
+                            autoCreateExpense && sipAmount && parseFloat(sipAmount) > 0 ? "bg-[#10B981]" : "bg-gray-300"
+                          } ${!sipAmount || parseFloat(sipAmount) <= 0 ? "opacity-50 cursor-not-allowed" : ""}`}
                           data-testid="auto-expense-toggle"
                         >
                           <span
                             className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                              autoCreateExpense ? "translate-x-6" : ""
+                              autoCreateExpense && sipAmount && parseFloat(sipAmount) > 0 ? "translate-x-6" : ""
                             }`}
                           />
                         </button>
