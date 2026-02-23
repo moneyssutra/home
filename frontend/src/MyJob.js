@@ -33,6 +33,12 @@ const MyJob = () => {
     };
   }, [jobs]);
 
+  const filteredJobs = useMemo(() => {
+    if (activeFilter === "fixed") return fixedJobs;
+    if (activeFilter === "variable") return variableJobs;
+    return jobs;
+  }, [jobs, fixedJobs, variableJobs, activeFilter]);
+
   const getPaymentStatus = (job) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
