@@ -949,6 +949,10 @@ const SelfEmployedIncome = () => {
                 fetchHistory={getIncomeTransactionHistory}
                 deleteTransaction={deleteIncomeTransaction}
                 onTransactionDeleted={() => setTransactionRefreshKey(k => k + 1)}
+                onEditTransaction={(txn) => {
+                  setEditingTransaction(txn);
+                  setShowRecordModal(true);
+                }}
               />
             </div>
           )}
