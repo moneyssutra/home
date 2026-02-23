@@ -151,6 +151,8 @@ class IncomeSource(BaseModel):
     # Dividend-specific fields
     sourceCategory: Optional[str] = None
     units: Optional[float] = None
+    # Self-Employed specific fields
+    profession: Optional[str] = None
     # Variable Income fields
     incomeType: Optional[str] = "fixed"  # "fixed" or "variable"
     lastRecordedAmount: Optional[float] = None
