@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Trash2, Plus, TrendingUp, PlusCircle } from "lucide-react";
 import axios from "axios";
+import { mutate } from "swr";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
