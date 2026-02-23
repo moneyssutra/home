@@ -80,7 +80,7 @@ const MyCommission = () => {
     return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
-  const sortedCommissions = [...commissions].sort((a, b) => {
+  const sortedCommissions = [...filteredCommissions].sort((a, b) => {
     const statusOrder = { 'upcoming': 0, 'due-today': 1, 'received': 2 };
     return statusOrder[getPaymentStatus(a)] - statusOrder[getPaymentStatus(b)];
   });
