@@ -396,6 +396,9 @@ const SelfEmployedIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
+      // Invalidate SWR cache to ensure fresh data on list pages
+      await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
+      
       navigate("/my-self-employed");
     } catch (error) {
       console.error("Error saving self-employed income:", error);
@@ -413,6 +416,10 @@ const SelfEmployedIncome = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/income/${id}`);
+      
+      // Invalidate SWR cache to ensure fresh data on list pages
+      await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
+      
       navigate("/my-self-employed");
     } catch (error) {
       console.error("Error deleting income:", error);
