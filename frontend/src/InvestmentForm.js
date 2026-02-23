@@ -528,6 +528,75 @@ const InvestmentForm = () => {
                       )}
                     </div>
                   )}
+                  
+                  {/* Date Selection based on Frequency */}
+                  {investmentFrequency === "Weekly" && (
+                    <div className="w-full">
+                      <label className="block text-sm font-medium text-[#334155] mb-2">
+                        Investment Day
+                      </label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => setSipSelectedDay(day)}
+                            className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
+                              sipSelectedDay === day
+                                ? "bg-[#10B981] text-white border-[#10B981]"
+                                : "border-[#334155] text-[#334155] hover:border-[#10B981]"
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {(investmentFrequency === "Monthly" || investmentFrequency === "Quarterly" || investmentFrequency === "Half-Yearly" || investmentFrequency === "Yearly") && (
+                    <div className="w-full">
+                      <label className="block text-sm font-medium text-[#334155] mb-2">
+                        Investment Date (Day of Month)
+                      </label>
+                      <select
+                        value={sipSelectedDate}
+                        onChange={(e) => setSipSelectedDate(e.target.value)}
+                        className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      >
+                        <option value="">Select Day</option>
+                        {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
+                          <option key={day} value={day}>{day}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  
+                  {/* Auto Create SIP Expense Toggle */}
+                  {investmentFrequency && investmentFrequency !== "" && parseFloat(sipAmount) > 0 && (
+                    <div className="w-full p-4 rounded-xl bg-[#FEF3C7] border border-[#F59E0B]/30">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-[#334155]">Auto Create SIP Expense</p>
+                          <p className="text-xs text-[#334155]/60 mt-0.5">Creates recurring expense entry linked to this investment</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setAutoCreateExpense(!autoCreateExpense)}
+                          className={`relative w-12 h-6 rounded-full transition-colors ${
+                            autoCreateExpense ? "bg-[#10B981]" : "bg-gray-300"
+                          }`}
+                          data-testid="auto-expense-toggle"
+                        >
+                          <span
+                            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                              autoCreateExpense ? "translate-x-6" : ""
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
