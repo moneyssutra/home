@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Plus, Landmark, Home, Building2, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Landmark, Home, Building2, ExternalLink, CheckCircle } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -11,10 +11,12 @@ const MyLoans = () => {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [activeFilter, setActiveFilter] = useState("active"); // "all", "active", "closed"
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     fetchData();
   }, []);
 
@@ -34,6 +36,25 @@ const MyLoans = () => {
       setLoading(false);
     }
   };
+
+  // Filter and sort loans
+  const { activeLoans, closedLoans, filteredLoans } = useMemo(() => {
+    const active = loans.filter(l => (l.outstandingAmount > 0) || l.status === "Active");
+    const closed = loans.filter(l => (l.outstandingAmount <= 0) && l.status !== "Active")
+      .sort((a, b) => new Date(b.closedDate || b.updatedAt || b.createdAt) - new Date(a.closedDate || a.updatedAt || a.createdAt));
+    
+    let filtered;
+    if (activeFilter === "active") {
+      filtered = active;
+    } else if (activeFilter === "closed") {
+      filtered = closed;
+    } else {
+      // All - active first, then closed
+      filtered = [...active, ...closed];
+    }
+    
+    return { activeLoans: active, closedLoans: closed, filteredLoans: filtered };
+  }, [loans, activeFilter]);
 
   const getLinkedAsset = (assetId) => {
     return assets.find(a => a.id === assetId);
@@ -55,11 +76,11 @@ const MyLoans = () => {
     return (paid / loan.principalAmount) * 100;
   };
 
-  const totalOutstanding = loans.reduce((sum, l) => sum + (l.outstandingAmount || 0), 0);
+  const totalOutstanding = activeLoans.reduce((sum, l) => sum + (l.outstandingAmount || 0), 0);
 
   const getLoanAllocation = () => {
     const allocation = {};
-    loans.forEach(loan => {
+    activeLoans.forEach(loan => {
       const type = loan.loanType || "Other";
       allocation[type] = (allocation[type] || 0) + (loan.outstandingAmount || 0);
     });
@@ -71,6 +92,8 @@ const MyLoans = () => {
       }))
       .sort((a, b) => parseFloat(b.percentage) - parseFloat(a.percentage));
   };
+
+  const isLoanClosed = (loan) => loan.outstandingAmount <= 0 && loan.status !== "Active";
 
   return (
     <div className="min-h-screen pb-24 honeycomb-bg" data-testid="my-loans-page">
@@ -97,7 +120,44 @@ const MyLoans = () => {
             <Landmark className="h-6 w-6 text-white/60" />
           </div>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalOutstanding)}</h2>
-          <p className="text-white/50 text-xs mt-1">{loans.length} active loan{loans.length !== 1 ? 's' : ''}</p>
+          <p className="text-white/50 text-xs mt-1">{activeLoans.length} active loan{activeLoans.length !== 1 ? 's' : ''}{closedLoans.length > 0 ? ` • ${closedLoans.length} closed` : ''}</p>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex items-center gap-2 mt-4">
+          <button
+            onClick={() => setActiveFilter("all")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              activeFilter === "all" 
+                ? "bg-white text-[#D97706]" 
+                : "bg-white/20 text-white hover:bg-white/30"
+            }`}
+            data-testid="filter-all"
+          >
+            All ({loans.length})
+          </button>
+          <button
+            onClick={() => setActiveFilter("active")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              activeFilter === "active" 
+                ? "bg-white text-[#D97706]" 
+                : "bg-white/20 text-white hover:bg-white/30"
+            }`}
+            data-testid="filter-active"
+          >
+            Active ({activeLoans.length})
+          </button>
+          <button
+            onClick={() => setActiveFilter("closed")}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              activeFilter === "closed" 
+                ? "bg-white text-[#D97706]" 
+                : "bg-white/20 text-white hover:bg-white/30"
+            }`}
+            data-testid="filter-closed"
+          >
+            Closed ({closedLoans.length})
+          </button>
         </div>
       </header>
 
