@@ -353,7 +353,37 @@ const MyBusiness = () => {
 
       {/* Business List */}
       <div className="px-6 mt-6">
-        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>All Businesses</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>All Businesses</h3>
+          
+          {/* Quick Filters */}
+          <div className="flex items-center gap-1 p-1 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <button
+              onClick={() => setActiveFilter("all")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeFilter === "all" ? "bg-white shadow-sm" : ""}`}
+              style={{ color: activeFilter === "all" ? "var(--brand-primary)" : "var(--text-muted)" }}
+              data-testid="filter-all"
+            >
+              All ({businesses.length})
+            </button>
+            <button
+              onClick={() => setActiveFilter("fixed")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeFilter === "fixed" ? "bg-white shadow-sm" : ""}`}
+              style={{ color: activeFilter === "fixed" ? "var(--brand-primary)" : "var(--text-muted)" }}
+              data-testid="filter-fixed"
+            >
+              Fixed ({fixedBusinesses.length})
+            </button>
+            <button
+              onClick={() => setActiveFilter("variable")}
+              className={`px-3 py-1 text-xs font-medium rounded-md transition-all ${activeFilter === "variable" ? "bg-white shadow-sm" : ""}`}
+              style={{ color: activeFilter === "variable" ? "var(--status-warning)" : "var(--text-muted)" }}
+              data-testid="filter-variable"
+            >
+              Variable ({variableBusinesses.length})
+            </button>
+          </div>
+        </div>
         
         {loading ? (
           <div className="flex items-center justify-center py-12">
