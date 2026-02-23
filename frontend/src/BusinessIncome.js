@@ -58,6 +58,7 @@ const BusinessIncome = () => {
   // Income Amount Modal (for Variable income)
   const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
+  const [editingTransaction, setEditingTransaction] = useState(null);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
   
