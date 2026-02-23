@@ -263,6 +263,32 @@ async def google_session(request: GoogleSessionRequest, response: Response):
     }
 
 
+@router.post("/set-password")
+async def set_password(request: Request, response: Response):
+    """Allow Google users to set a password for email/password login"""
+    user = await get_current_user(request)
+    
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    body = await request.json()
+    new_password = body.get("password")
+    
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    # Update user with password hash and allow both auth types
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {
+            "password_hash": hash_password(new_password),
+            "has_password": True
+        }}
+    )
+    
+    return {"message": "Password set successfully. You can now login with email and password."}
+
+
 @router.get("/me")
 async def get_me(request: Request):
     """Get current authenticated user"""
@@ -275,7 +301,9 @@ async def get_me(request: Request):
         "user_id": user.get("user_id"),
         "email": user.get("email"),
         "name": user.get("name"),
-        "picture": user.get("picture")
+        "picture": user.get("picture"),
+        "auth_type": user.get("auth_type"),
+        "has_password": user.get("has_password", user.get("auth_type") == "jwt")
     }
 
 
