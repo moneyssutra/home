@@ -22,6 +22,7 @@ import {
   recordIncomeTransaction, 
   getIncomeTransactionHistory,
   deleteIncomeTransaction,
+  updateIncomeTransaction,
   dismissRelatedNotifications
 } from "@/utils/transactionApi";
 import { toast } from "sonner";
