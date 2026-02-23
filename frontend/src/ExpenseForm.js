@@ -147,6 +147,16 @@ const ExpenseForm = () => {
       if (typeParam === 'Fixed' || typeParam === 'Variable') {
         setExpenseType(typeParam);
       }
+      
+      // Check for category parameter when creating new expense
+      const categoryParam = searchParams.get('category');
+      if (categoryParam) {
+        setCategory(decodeURIComponent(categoryParam));
+        // Default to Fixed for certain categories
+        if (['Housing', 'EMI', 'Insurance', 'Utilities', 'Subscriptions', 'Investments'].includes(decodeURIComponent(categoryParam))) {
+          setExpenseType('Fixed');
+        }
+      }
     }
   }, [id, searchParams]);
 
