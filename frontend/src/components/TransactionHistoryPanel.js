@@ -171,6 +171,18 @@ const TransactionHistoryPanel = ({
                       </div>
                     </div>
                     
+                    {/* Edit button - only if not locked and callback provided */}
+                    {!txn.isLocked && onEditTransaction && (
+                      <button
+                        type="button"
+                        onClick={() => onEditTransaction(txn)}
+                        className="p-2 text-[#94A3B8] hover:text-[#00D09C] transition-colors"
+                        title="Edit transaction"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </button>
+                    )}
+                    
                     {/* Delete button - only if not locked */}
                     {!txn.isLocked && deleteTransaction && (
                       <button
