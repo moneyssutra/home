@@ -134,6 +134,26 @@ export const deleteIncomeTransaction = async (transactionId) => {
 };
 
 /**
+ * Update an income transaction (only if not locked)
+ * @param {string} transactionId - ID of the transaction to update
+ * @param {Object} data - Updated transaction data
+ * @returns {Promise<Object>} - Updated transaction
+ */
+export const updateIncomeTransaction = async (transactionId, data) => {
+  try {
+    const response = await axios.put(`${backendUrl}/api/income-transactions/${transactionId}`, {
+      amount: data.amount,
+      transactionDate: data.transactionDate,
+      notes: data.notes || ""
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating income transaction:", error);
+    throw error;
+  }
+};
+
+/**
  * Delete an expense transaction (only if not locked)
  * @param {string} transactionId - ID of the transaction to delete
  * @returns {Promise<Object>} - Deletion result
