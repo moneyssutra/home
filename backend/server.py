@@ -423,6 +423,11 @@ class Investment(BaseModel):
     lockInPeriod: Optional[int] = None
     investmentFrequency: Optional[str] = None  # For SIP: Weekly, Monthly, Quarterly, Yearly
     sipAmount: Optional[float] = None  # SIP amount per frequency
+    sipSelectedDay: Optional[str] = None  # For weekly: Mon, Tue, etc.
+    sipSelectedDate: Optional[str] = None  # For monthly: 1-28
+    autoCreateExpense: bool = False  # Auto create linked recurring expense
+    isLiquidAsset: bool = False  # Consider for emergency fund
+    linkedExpenseId: Optional[str] = None  # Link to auto-created expense
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class InvestmentCreate(BaseModel):
