@@ -1087,17 +1087,29 @@ const BusinessIncome = () => {
 
       {/* Income Amount Modal (for Variable income) */}
       <IncomeAmountModal
-        isOpen={showIncomeModal}
-        onClose={() => setShowIncomeModal(false)}
+        isOpen={showIncomeModal || showRecordModal}
+        onClose={() => {
+          setShowIncomeModal(false);
+          setShowRecordModal(false);
+          setEditingTransaction(null);
+        }}
         entityId={id}
         entityName={businessName}
         expectedAmount={parseFloat(expectedAmount) || 0}
+        editingTransaction={editingTransaction}
         onSubmit={async (data) => {
           await recordIncomeTransaction({
             ...data,
             incomeType: "variable"
           });
           await dismissRelatedNotifications(id);
+          setTransactionRefreshKey(k => k + 1);
+        }}
+        onUpdate={async (data) => {
+          await updateIncomeTransaction(data.transactionId, {
+            amount: data.amount,
+            transactionDate: data.transactionDate
+          });
           setTransactionRefreshKey(k => k + 1);
         }}
       />
