@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Calendar as CalendarIcon, Trash2, Info } from "lucide-react";
+import { ChevronLeft, Calendar as CalendarIcon, Trash2, Info, Calendar } from "lucide-react";
 import axios from "axios";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { numberToWords } from "@/lib/formatters";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
+import { RestrictedDatePicker } from "@/components/ui/date-picker";
 import { 
   validatePositiveAmount, 
   validateDateRange,
