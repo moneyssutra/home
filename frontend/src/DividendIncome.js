@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Trash2, Info, Check, Loader2, PlusCircle } from "lucide-react";
 import axios from "axios";
+import { mutate } from "swr";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
@@ -335,7 +336,8 @@ const DividendIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
-      navigate("/my-income");
+      await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
+      navigate("/my-dividend");
     } catch (error) {
       console.error("Error saving dividend:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -352,7 +354,8 @@ const DividendIncome = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/income/${id}`);
-      navigate("/my-income");
+      await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
+      navigate("/my-dividend");
     } catch (error) {
       console.error("Error deleting dividend:", error);
       setErrors({ submit: "Failed to delete. Please try again." });
