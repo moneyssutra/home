@@ -197,11 +197,11 @@ const MyExpenses = () => {
       {/* Fixed vs Variable Split */}
       {expenses.length > 0 && (
         <div className="px-6 mt-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3" style={{ alignItems: "stretch" }}>
             <button
               onClick={() => navigate('/expenses/fixed')}
-              className="rounded-2xl p-4 shadow-card text-left hover:shadow-md transition-all"
-              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+              className="rounded-2xl p-4 shadow-card text-left hover:shadow-md transition-all flex flex-col"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", minHeight: "180px" }}
               data-testid="fixed-expenses-card"
             >
               <div className="flex items-center gap-2 mb-3">
@@ -212,21 +212,24 @@ const MyExpenses = () => {
                 <ChevronRight className="h-4 w-4 ml-auto" style={{ color: "var(--text-muted)" }} />
               </div>
               <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(fixedTotal)}</p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{fixedExpenses.length} expenses</p>
-              <div className="mt-2 space-y-1">
-                {fixedExpenses.slice(0, 3).map(exp => (
+              <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>{fixedExpenses.length} expenses</p>
+              <div className="mt-auto space-y-1">
+                {fixedExpenses.slice(0, 2).map(exp => (
                   <div key={exp.id} className="flex justify-between text-xs">
                     <span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{exp.expenseName}</span>
                     <span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(exp.expectedAmount)}</span>
                   </div>
                 ))}
+                {fixedExpenses.length > 2 && (
+                  <p className="text-xs font-medium" style={{ color: "var(--brand-primary)" }}>+{fixedExpenses.length - 2} more</p>
+                )}
               </div>
             </button>
 
             <button
               onClick={() => navigate('/expenses/variable')}
-              className="rounded-2xl p-4 shadow-card text-left hover:shadow-md transition-all"
-              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+              className="rounded-2xl p-4 shadow-card text-left hover:shadow-md transition-all flex flex-col"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", minHeight: "180px" }}
               data-testid="variable-expenses-card"
             >
               <div className="flex items-center gap-2 mb-3">
@@ -237,14 +240,17 @@ const MyExpenses = () => {
                 <ChevronRight className="h-4 w-4 ml-auto" style={{ color: "var(--text-muted)" }} />
               </div>
               <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(variableTotal)}</p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{variableExpenses.length} expenses</p>
-              <div className="mt-2 space-y-1">
-                {variableExpenses.slice(0, 3).map(exp => (
+              <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>{variableExpenses.length} expenses</p>
+              <div className="mt-auto space-y-1">
+                {variableExpenses.slice(0, 2).map(exp => (
                   <div key={exp.id} className="flex justify-between text-xs">
                     <span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{exp.expenseName}</span>
                     <span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(exp.expectedAmount)}</span>
                   </div>
                 ))}
+                {variableExpenses.length > 2 && (
+                  <p className="text-xs font-medium" style={{ color: "var(--status-warning)" }}>+{variableExpenses.length - 2} more</p>
+                )}
               </div>
             </button>
           </div>
