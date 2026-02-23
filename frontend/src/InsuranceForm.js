@@ -43,7 +43,7 @@ const InsuranceForm = () => {
   };
   
   // Form fields
-  const [insuranceType, setInsuranceType] = useState("");
+  const [insuranceType, setInsuranceType] = useState(prefilledType);
   const [policyName, setPolicyName] = useState("");
   const [coverageAmount, setCoverageAmount] = useState("");
   const [premiumAmount, setPremiumAmount] = useState("");
