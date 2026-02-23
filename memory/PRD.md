@@ -544,12 +544,10 @@ VAPID_CLAIMS_EMAIL=mailto:support@moneyssutra.com
 
 ## Upcoming Tasks
 
-### P0 - Transaction Model Frontend Integration (COMPLETED)
-- ✅ **Frontend Refactoring**: All income/expense forms updated with transaction recording UI
-  - ✅ "Record Income/Expense" section added to all edit forms
-  - ✅ RecordTransactionModal for entering actual amounts
-  - ✅ TransactionHistoryPanel for viewing recorded transactions
-  - Pending: "Actual vs Expected" comparison on dashboard
+### P0 - Expense Category Module Restructure
+- **Create Expense Breakdown Page**: New main page listing all expense categories
+- **Category-Specific Pages**: EMI, Housing, Insurance, Utilities, etc. with filtered data
+- **Contextual Add Buttons**: Redirect to appropriate forms (Add Loan, Add Insurance, Add Expense with pre-filled category)
 
 ### P1 - High Priority
 - **MongoDB Atlas Triggers**: User needs to configure daily triggers using the provided guide at `/app/docs/ATLAS_TRIGGERS_SETUP.md`
