@@ -291,6 +291,9 @@ const InvestmentForm = () => {
         lockInPeriod: lockInPeriod ? parseInt(lockInPeriod) : null,
         investmentFrequency: investmentFrequency || null,
         sipAmount: sipAmount ? parseFloat(sipAmount) : null,
+        sipSelectedDay: sipSelectedDay || null,
+        sipSelectedDate: sipSelectedDate || null,
+        autoCreateExpense: autoCreateExpense,
         isLiquidAsset: isLiquidAsset,
       };
 
