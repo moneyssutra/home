@@ -5679,6 +5679,7 @@ async def send_reminder_notifications(api_key: str = None):
             user_id = source.get("userId")
             source_id = source.get("id")
             income_name = source.get("name", "Unknown Income")
+            income_expected_amount = source.get("expectedAmount", 0)
             
             # Get user name
             user = await db.users.find_one({"user_id": user_id}, {"_id": 0, "name": 1})
@@ -5695,7 +5696,7 @@ async def send_reminder_notifications(api_key: str = None):
                 "type": "income_reminder",
                 "relatedIncomeId": source_id,
                 "relatedIncomeName": income_name,
-                "expectedAmount": expected_amount,
+                "expectedAmount": income_expected_amount,
                 "actionUrl": action_url,
                 "isRead": False,
                 "createdAt": datetime.now(timezone.utc).isoformat()
