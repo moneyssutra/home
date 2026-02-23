@@ -72,26 +72,45 @@ const IncomeAmountModal = ({
 
     setIsSubmitting(true);
     try {
-      await onSubmit({
-        entityId,
-        amount: parseInt(amount),
-        transactionDate: new Date().toISOString().split('T')[0], // Today's date
-        type: "Variable",
-        source: "manual"
-      });
-      
-      toast.success(
-        <div className="flex items-center gap-2">
-          <CheckCircle className="h-5 w-5 text-[#00D09C]" />
-          <span>Income saved successfully!</span>
-        </div>
-      );
+      if (isEditing && onUpdate) {
+        // Update existing transaction
+        await onUpdate({
+          transactionId: editingTransaction.id,
+          entityId,
+          amount: parseInt(amount),
+          transactionDate: transactionDate,
+          type: editingTransaction.type || "Variable",
+          source: "manual"
+        });
+        toast.success(
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-[#00D09C]" />
+            <span>Transaction updated!</span>
+          </div>
+        );
+      } else {
+        // Create new transaction
+        await onSubmit({
+          entityId,
+          amount: parseInt(amount),
+          transactionDate: transactionDate,
+          type: "Variable",
+          source: "manual"
+        });
+        toast.success(
+          <div className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5 text-[#00D09C]" />
+            <span>Income saved successfully!</span>
+          </div>
+        );
+      }
       
       setAmount("");
+      setTransactionDate("");
       onClose();
     } catch (error) {
       console.error("Error saving income:", error);
-      toast.error("Failed to save income. Please try again.");
+      toast.error(isEditing ? "Failed to update transaction." : "Failed to save income. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
