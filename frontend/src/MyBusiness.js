@@ -301,10 +301,10 @@ const MyBusiness = () => {
       {/* Fixed vs Variable Split */}
       {businesses.length > 0 && (
         <div className="px-6 mt-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3" style={{ alignItems: "stretch" }}>
             <div
-              className="rounded-2xl p-4 shadow-card text-left"
-              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+              className="rounded-2xl p-4 shadow-card text-left flex flex-col"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", minHeight: "160px" }}
               data-testid="fixed-income-card"
             >
               <div className="flex items-center gap-2 mb-3">
@@ -314,20 +314,23 @@ const MyBusiness = () => {
                 <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Fixed</span>
               </div>
               <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(fixedTotal)}</p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{fixedBusinesses.length} businesses</p>
-              <div className="mt-2 space-y-1">
-                {fixedBusinesses.slice(0, 3).map(biz => (
+              <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>{fixedBusinesses.length} businesses</p>
+              <div className="mt-auto space-y-1">
+                {fixedBusinesses.slice(0, 2).map(biz => (
                   <div key={biz.id} className="flex justify-between text-xs">
                     <span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{biz.name}</span>
                     <span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(biz.expectedAmount)}</span>
                   </div>
                 ))}
+                {fixedBusinesses.length > 2 && (
+                  <p className="text-xs font-medium" style={{ color: "var(--brand-primary)" }}>+{fixedBusinesses.length - 2} more</p>
+                )}
               </div>
             </div>
 
             <div
-              className="rounded-2xl p-4 shadow-card text-left"
-              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+              className="rounded-2xl p-4 shadow-card text-left flex flex-col"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", minHeight: "160px" }}
               data-testid="variable-income-card"
             >
               <div className="flex items-center gap-2 mb-3">
@@ -337,14 +340,17 @@ const MyBusiness = () => {
                 <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Variable</span>
               </div>
               <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(variableTotal)}</p>
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{variableBusinesses.length} businesses</p>
-              <div className="mt-2 space-y-1">
-                {variableBusinesses.slice(0, 3).map(biz => (
+              <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>{variableBusinesses.length} businesses</p>
+              <div className="mt-auto space-y-1">
+                {variableBusinesses.slice(0, 2).map(biz => (
                   <div key={biz.id} className="flex justify-between text-xs">
                     <span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{biz.name}</span>
                     <span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(biz.expectedAmount)}</span>
                   </div>
                 ))}
+                {variableBusinesses.length > 2 && (
+                  <p className="text-xs font-medium" style={{ color: "var(--status-warning)" }}>+{variableBusinesses.length - 2} more</p>
+                )}
               </div>
             </div>
           </div>
