@@ -1073,7 +1073,7 @@ const BusinessIncome = () => {
         onSubmit={async (data) => {
           await recordIncomeTransaction({
             ...data,
-            incomeType: "Variable"
+            incomeType: "variable"
           });
           await dismissRelatedNotifications(id);
           setTransactionRefreshKey(k => k + 1);
