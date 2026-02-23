@@ -172,10 +172,21 @@ const MyInsurance = () => {
         ) : (
           <div className="space-y-4">
             {/* Insurance Allocation Section */}
-            <div className="bg-white rounded-2xl p-5 shadow-card" data-testid="insurance-allocation">
-              <h3 className="text-lg font-semibold mb-4" style={{ color: "var(--text-primary)" }}>
-                Insurance Allocation
-              </h3>
+            <div 
+              className="bg-white rounded-2xl p-5 shadow-card" 
+              data-testid="insurance-allocation"
+            >
+              <div 
+                className="flex items-center justify-between mb-4 cursor-pointer"
+                onClick={() => navigate("/insurance-breakdown")}
+              >
+                <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                  Insurance Allocation
+                </h3>
+                <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--brand-primary-soft)", color: "var(--brand-primary)" }}>
+                  View All →
+                </span>
+              </div>
               
               {/* Allocation by Type */}
               <div className="space-y-3">
@@ -194,9 +205,17 @@ const MyInsurance = () => {
                   return sortedTypes.map(([type, amount]) => {
                     const percentage = totalCoverage > 0 ? (amount / totalCoverage * 100) : 0;
                     const typeStyle = getInsuranceTypeStyle(type);
+                    const typeSlug = type.toLowerCase().replace(/\s+/g, '-');
                     
                     return (
-                      <div key={type} className="space-y-1">
+                      <div 
+                        key={type} 
+                        className="space-y-1 cursor-pointer rounded-lg p-2 -mx-2 hover:bg-gray-50 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/insurances/${typeSlug}`);
+                        }}
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <div 
