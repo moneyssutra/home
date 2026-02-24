@@ -355,6 +355,7 @@ async def process_gamification(request: Request):
 
     new_xp = profile.get("xp", 0) + xp_earned
     old_level_info = _get_level(profile.get("xp", 0))
+    pre_badge_level = _get_level(new_xp)
 
     # Check domain achievements
     investments = await db.investments.find(user_filter, {"_id": 0, "name": 1}).to_list(1000)
@@ -424,10 +425,10 @@ async def process_gamification(request: Request):
         "STREAK_52W": current_streak >= 52,
         "CONSISTENCY_KING": longest_streak >= 8,
         # Elite
-        "FINANCIAL_CLIMBER": new_level_info["level"] >= 5,
-        "STABILITY_ARCHITECT": new_level_info["level"] >= 10,
+        "FINANCIAL_CLIMBER": pre_badge_level["level"] >= 5,
+        "STABILITY_ARCHITECT": pre_badge_level["level"] >= 10,
         "CONTROL_MASTER": score >= 80 and survival_days >= 180,
-        "WEALTH_WARRIOR": new_level_info["level"] >= 15,
+        "WEALTH_WARRIOR": pre_badge_level["level"] >= 15,
         "INDEPENDENCE_ACHIEVED": survival_days >= 541,
         "FINANCIAL_SOVEREIGN": survival_days >= 1001,
     }
