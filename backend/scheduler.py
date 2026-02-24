@@ -455,10 +455,14 @@ async def run_weekly_health_digest():
                     prev_rate = last_digest.get("savingsRate", 0)
                     day_diff = survival_days - prev_days
                     rate_diff = savings_rate - prev_rate
-                    if day_diff > 0: changes.append(f"Runway +{day_diff} days")
-                    elif day_diff < 0: changes.append(f"Runway {day_diff} days")
-                    if rate_diff > 2: changes.append(f"Savings rate +{rate_diff:.1f}%")
-                    elif rate_diff < -2: changes.append(f"Savings rate {rate_diff:.1f}%")
+                    if day_diff > 0:
+                        changes.append(f"Runway +{day_diff} days")
+                    elif day_diff < 0:
+                        changes.append(f"Runway {day_diff} days")
+                    if rate_diff > 2:
+                        changes.append(f"Savings rate +{rate_diff:.1f}%")
+                    elif rate_diff < -2:
+                        changes.append(f"Savings rate {rate_diff:.1f}%")
 
                 summary = " | ".join(changes) if changes else "Metrics stable this week"
                 now = datetime.now(timezone.utc)
