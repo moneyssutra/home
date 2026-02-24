@@ -17,7 +17,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
-  Activity
+  Activity,
+  HelpCircle
 } from "lucide-react";
 import axios from "axios";
 
@@ -63,12 +64,67 @@ const getStatusIcon = (status) => {
   return <AlertCircle className="h-4 w-4" />;
 };
 
+// Calculation explanations for each metric
+const METRIC_EXPLANATIONS = {
+  emergencyFund: {
+    current: "Sum of all your liquid funds (bank accounts + liquid mutual funds + FDs)",
+    benchmark: "6 months of essential expenses (fixed bills + EMIs + insurance premiums)",
+    gap: "Benchmark minus Current. If negative, you have excess emergency fund"
+  },
+  lifeInsurance: {
+    current: "Total sum assured from all your term life insurance policies",
+    benchmark: "12x your annual income (conservative multiplier for family protection)",
+    gap: "Benchmark minus Current coverage. Indicates additional cover needed"
+  },
+  healthInsurance: {
+    current: "Total sum insured from all your health/mediclaim policies",
+    benchmark: "₹10 Lakh recommended per adult (metro city standard)",
+    gap: "Benchmark minus Current coverage"
+  },
+  investmentAllocation: {
+    current: "Percentage of equity investments (stocks, equity MF, ELSS) in your total portfolio",
+    benchmark: "(100 - Your Age)% is recommended equity allocation. Minimum 30%",
+    gap: "Difference between recommended and actual equity percentage"
+  },
+  creditUtilization: {
+    current: "(Credit Card Outstanding ÷ Total Credit Limit) × 100",
+    benchmark: "Below 30% is ideal for maintaining a good credit score",
+    gap: "How much above the 30% threshold you are"
+  },
+  loanBurden: {
+    current: "(Total Monthly EMIs ÷ Monthly Income) × 100",
+    benchmark: "Below 20% is healthy. Banks may not lend if above 50%",
+    gap: "How much above the 20% healthy limit"
+  },
+  debtToAsset: {
+    current: "(Total Loans + CC Outstanding) ÷ (Assets + Investments + Cash) × 100",
+    benchmark: "Below 40% indicates stable financial position",
+    gap: "How much above the 40% stable limit"
+  },
+  savingsRate: {
+    current: "(Monthly Income - Monthly Expenses) ÷ Monthly Income × 100",
+    benchmark: "Above 35% is excellent for wealth building",
+    gap: "How much below the 35% excellent threshold"
+  },
+  retirementReadiness: {
+    current: "Sum of retirement-tagged investments (NPS, EPF, PPF) or 30% of total investments",
+    benchmark: "25x Annual Expenses (based on 4% safe withdrawal rule)",
+    gap: "Remaining corpus needed to achieve retirement goal"
+  },
+  netWorthTrend: {
+    current: "Total Assets + Investments + Cash - All Liabilities",
+    benchmark: "Previous month's net worth for comparison",
+    gap: "Month-over-month percentage change"
+  }
+};
+
 const FinancialHealth = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [healthData, setHealthData] = useState(null);
   const [expandedCards, setExpandedCards] = useState({});
   const [overallScore, setOverallScore] = useState(0);
+  const [activeTooltip, setActiveTooltip] = useState(null);
 
   useEffect(() => {
     fetchHealthData();
@@ -105,6 +161,56 @@ const FinancialHealth = () => {
     if (score >= 60) return { label: "Good", color: "#047857" };
     if (score >= 40) return { label: "Needs Attention", color: "#92400E" };
     return { label: "At Risk", color: "#991B1B" };
+  };
+
+  // Tooltip Component
+  const Tooltip = ({ explanation, onClose }) => (
+    <div 
+      className="absolute z-50 left-0 right-0 top-full mt-1 p-3 rounded-lg shadow-lg text-xs leading-relaxed"
+      style={{ backgroundColor: "#1F2937", color: "#F9FAFB" }}
+    >
+      <button 
+        onClick={onClose}
+        className="absolute top-1 right-2 text-gray-400 hover:text-white"
+      >
+        ×
+      </button>
+      <p>{explanation}</p>
+    </div>
+  );
+
+  // Value Box with Tooltip
+  const ValueBox = ({ label, value, explanation, metricKey, boxType }) => {
+    const tooltipKey = `${metricKey}-${boxType}`;
+    const isActive = activeTooltip === tooltipKey;
+    
+    return (
+      <div className="relative p-2 rounded-lg bg-white/50">
+        <div className="flex items-center justify-between">
+          <p className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "inherit", opacity: 0.8 }}>
+            {label}
+          </p>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveTooltip(isActive ? null : tooltipKey);
+            }}
+            className="p-0.5 rounded hover:bg-white/30 transition-colors"
+          >
+            <HelpCircle className="h-3 w-3" style={{ opacity: 0.6 }} />
+          </button>
+        </div>
+        <p className="text-sm font-bold" style={{ color: "inherit" }}>
+          {value}
+        </p>
+        {isActive && (
+          <Tooltip 
+            explanation={explanation} 
+            onClose={() => setActiveTooltip(null)} 
+          />
+        )}
+      </div>
+    );
   };
 
   const healthModules = healthData ? [
@@ -178,7 +284,8 @@ const FinancialHealth = () => {
       gap: Math.max(0, (healthData.loanBurden?.emiRatio || 0) - 20),
       status: healthData.loanBurden?.status || "N/A",
       action: healthData.loanBurden?.action || "",
-      format: "percent"
+      format: "percent",
+      extraInfo: healthData.loanBurden ? `Total EMI: ₹${formatAmount(healthData.loanBurden.totalEmi)}/month` : null
     },
     {
       key: "debtToAsset",
@@ -190,7 +297,8 @@ const FinancialHealth = () => {
       gap: Math.max(0, (healthData.debtToAsset?.ratio || 0) - 40),
       status: healthData.debtToAsset?.status || "N/A",
       action: healthData.debtToAsset?.action || "",
-      format: "percent"
+      format: "percent",
+      extraInfo: healthData.debtToAsset ? `Debt: ₹${formatAmount(healthData.debtToAsset.totalDebt)} | Worth: ₹${formatAmount(healthData.debtToAsset.totalWorth)}` : null
     },
     {
       key: "savingsRate",
@@ -202,7 +310,8 @@ const FinancialHealth = () => {
       gap: Math.max(0, 35 - (healthData.savingsRate?.rate || 0)),
       status: healthData.savingsRate?.status || "N/A",
       action: healthData.savingsRate?.action || "",
-      format: "percent"
+      format: "percent",
+      extraInfo: healthData.savingsRate ? `Surplus: ₹${formatAmount(healthData.savingsRate.surplus)}/month` : null
     },
     {
       key: "retirementReadiness",
@@ -315,6 +424,7 @@ const FinancialHealth = () => {
           const Icon = module.icon;
           const statusColors = getStatusColor(module.status);
           const isExpanded = expandedCards[module.key];
+          const explanations = METRIC_EXPLANATIONS[module.key];
           
           return (
             <div 
@@ -353,40 +463,70 @@ const FinancialHealth = () => {
               
               {/* Expanded Content */}
               {isExpanded && (
-                <div className="px-3 pb-3 pt-1 border-t" style={{ borderColor: statusColors.border }}>
-                  <div className="grid grid-cols-2 gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-white/50">
-                      <p className="text-[10px] uppercase tracking-wide mb-1" style={{ color: statusColors.text }}>Current</p>
-                      <p className="text-sm font-bold" style={{ color: statusColors.text }}>
-                        {module.format === "percent" 
+                <div className="px-3 pb-3 pt-1 border-t" style={{ borderColor: statusColors.border, color: statusColors.text }}>
+                  {/* Value Boxes with Tooltips */}
+                  {module.key === "netWorthTrend" ? (
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <ValueBox 
+                        label="Current" 
+                        value={`₹${formatAmount(module.current)}`}
+                        explanation={explanations?.current}
+                        metricKey={module.key}
+                        boxType="current"
+                      />
+                      <ValueBox 
+                        label="Growth" 
+                        value={`${module.growth >= 0 ? "+" : ""}${module.growth?.toFixed(1)}%`}
+                        explanation={explanations?.gap}
+                        metricKey={module.key}
+                        boxType="growth"
+                      />
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <ValueBox 
+                        label="Current" 
+                        value={module.format === "percent" 
                           ? `${module.current?.toFixed(1)}%`
                           : `₹${formatAmount(module.current)}`
                         }
-                      </p>
-                    </div>
-                    <div className="p-2 rounded-lg bg-white/50">
-                      <p className="text-[10px] uppercase tracking-wide mb-1" style={{ color: statusColors.text }}>
-                        {module.key === "netWorthTrend" ? "Growth" : "Benchmark"}
-                      </p>
-                      <p className="text-sm font-bold" style={{ color: statusColors.text }}>
-                        {module.key === "netWorthTrend" 
-                          ? `${module.growth >= 0 ? "+" : ""}${module.growth?.toFixed(1)}%`
-                          : module.format === "percent" 
-                            ? `${module.target}%`
-                            : `₹${formatAmount(module.target)}`
+                        explanation={explanations?.current}
+                        metricKey={module.key}
+                        boxType="current"
+                      />
+                      <ValueBox 
+                        label="Benchmark" 
+                        value={module.format === "percent" 
+                          ? `${module.target}%`
+                          : `₹${formatAmount(module.target)}`
                         }
-                      </p>
+                        explanation={explanations?.benchmark}
+                        metricKey={module.key}
+                        boxType="benchmark"
+                      />
                     </div>
-                  </div>
+                  )}
                   
                   {module.gap > 0 && module.key !== "netWorthTrend" && (
-                    <div className="p-2 rounded-lg bg-white/50 mb-3">
-                      <p className="text-[10px] uppercase tracking-wide mb-1" style={{ color: statusColors.text }}>Gap</p>
-                      <p className="text-sm font-bold" style={{ color: statusColors.text }}>
-                        {module.format === "percent" 
+                    <div className="mb-3">
+                      <ValueBox 
+                        label="Gap" 
+                        value={module.format === "percent" 
                           ? `${module.gap?.toFixed(1)}%`
                           : `₹${formatAmount(module.gap)}`
                         }
+                        explanation={explanations?.gap}
+                        metricKey={module.key}
+                        boxType="gap"
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Extra Info (for loan burden, debt ratio, etc.) */}
+                  {module.extraInfo && (
+                    <div className="p-2 rounded-lg bg-white/30 mb-3">
+                      <p className="text-[10px]" style={{ color: statusColors.text }}>
+                        {module.extraInfo}
                       </p>
                     </div>
                   )}
