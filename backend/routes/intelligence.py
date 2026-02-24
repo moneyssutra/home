@@ -210,14 +210,30 @@ async def get_survival_clock(request: Request):
 
     level_info = _get_runway_level(survival_days)
 
+    # Build visible stages: current + 5 behind + 4 ahead
+    current_stage = level_info["stage"]
+    start = max(0, current_stage - 6)
+    end = min(len(SURVIVAL_STAGES), current_stage + 4)
+    if end - start < 10:
+        start = max(0, end - 10)
+    visible_stages = SURVIVAL_STAGES[start:end]
+
     return {
-        "effectiveFunds": round(effective_funds, 2),
-        "monthlyMandatoryExpense": round(monthly_mandatory, 2),
-        "dailyBurnRate": round(daily_expense, 2),
+        "effectiveFunds": round(effective_funds, 0),
+        "monthlyMandatoryExpense": round(monthly_mandatory, 0),
+        "dailyBurnRate": round(daily_expense, 0),
         "survivalDays": survival_days,
         "survivalMonths": survival_months,
         "level": level_info["level"],
         "levelColor": level_info["color"],
+        "stage": level_info["stage"],
+        "phase": level_info["phase"],
+        "phaseNum": level_info["phase_num"],
+        "totalStages": 20,
+        "visibleStages": [
+            {**s, "reached": survival_days >= s["min"], "current": s["stage"] == current_stage}
+            for s in visible_stages
+        ],
         "fundBreakdown": fund_breakdown,
         "explanation": f"If your income stops today, your accessible savings of ₹{effective_funds:,.0f} can cover {survival_days} days ({survival_months} months) of essential expenses.",
         "tip": _get_runway_tip(survival_days)
