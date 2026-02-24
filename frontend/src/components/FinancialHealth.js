@@ -514,7 +514,13 @@ const FinancialHealth = () => {
                     </div>
                   </div>
                 </div>
-                {isExpanded ? (
+                <div className="flex items-center gap-2">
+                  {healthData?.contributions?.[module.key] && (
+                    <span className="text-xs font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `${module.iconColor}15`, color: module.iconColor }}>
+                      +{healthData.contributions[module.key].contribution}
+                    </span>
+                  )}
+                  {isExpanded ? (
                   <ChevronUp className="h-5 w-5" style={{ color: statusColors.text }} />
                 ) : (
                   <ChevronDown className="h-5 w-5" style={{ color: statusColors.text }} />
