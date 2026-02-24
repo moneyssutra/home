@@ -525,7 +525,7 @@ const Insights = () => {
 
         {/* Quick Links */}
         <div className="space-y-2.5 pt-2">
-          <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: "var(--text-muted)" }}>Explore</p>
+          <p className="text-xs font-bold tracking-wider uppercase" style={{ color: "var(--text-muted)" }}>Explore</p>
           {[
             { id: "analytics", title: "Analytics", desc: "Charts & trends", icon: BarChart3, color: "#8B5CF6", path: "/insights/analytics" },
             { id: "reports", title: "Reports", desc: "PDF & Excel export", icon: FileText, color: "#059669", path: "/insights/reports" },
