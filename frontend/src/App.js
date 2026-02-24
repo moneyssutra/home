@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 // Auth & Context
 import { AuthProvider } from "@/context/AuthContext";
 import { WorkspaceProvider } from "@/context/WorkspaceContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AuthCallback from "@/components/AuthCallback";
 import Login from "@/pages/Login";
