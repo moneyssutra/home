@@ -594,8 +594,12 @@ def _get_sim_insight(current, simulated, inc_pct, exp_pct, extra):
         parts.append(f"with {inc_pct:.0f}% more income")
 
     action = " and ".join(parts) if parts else "No changes"
+
     if diff > 0:
         return f"{action} would extend your runway by {diff} days."
     elif diff < 0:
         return f"{action} would reduce your runway by {abs(diff)} days."
+    # Runway unchanged but income changed - explain projection impact
+    if inc_pct < 0:
+        return f"{action} — immediate runway stays at {current} days (it already assumes no income), but your savings will deplete faster. Check the 12-month projection below."
     return f"{action} — your runway stays the same."
