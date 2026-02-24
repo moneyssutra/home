@@ -8,43 +8,47 @@ Build a comprehensive personal finance tracking application with multi-user work
 
 ## What Was Implemented (Latest Session - Feb 24, 2026)
 
-### 23. Backend Refactoring - Modular Routes (COMPLETED ✅ - Feb 24, 2026)
+### 24. Financial Health Calculation Explanations (COMPLETED ✅ - Feb 24, 2026)
 
-**New Route Modules Created:**
-1. `/app/backend/routes/analytics.py` (191 lines)
-   - `/api/analytics/snapshots` - Historical data
-   - `/api/analytics/snapshot` - Create snapshot
-   - `/api/analytics/investment-performance` - Investment stats
+**Added tooltip explanations for each Financial Health metric:**
 
-2. `/app/backend/routes/financial_health.py` (433 lines)
-   - `/api/financial-health` - 11 rule-based metrics
+Each value box (Current, Benchmark, Gap) now has a **?** help icon that explains how the value is calculated:
 
-3. `/app/backend/routes/reports.py` (246 lines)
-   - `/api/reports/generate/{type}` - PDF/Excel generation
+| Metric | Current Calculation | Benchmark | Gap |
+|--------|---------------------|-----------|-----|
+| Emergency Fund | Sum of liquid funds (bank accounts + liquid MF + FDs) | 6 months × Essential Expenses | Benchmark - Current |
+| Life Insurance | Total sum assured from term life policies | 12× Annual Income | Benchmark - Current |
+| Health Insurance | Total sum insured from health policies | ₹10 Lakh (metro city standard) | Benchmark - Current |
+| Investment Allocation | (Equity Investments ÷ Total Investments) × 100 | (100 - Age)% min 30% | Difference from recommended |
+| Credit Card Utilization | (Outstanding ÷ Credit Limit) × 100 | Below 30% | Amount above 30% |
+| Loan Burden | (Total EMIs ÷ Monthly Income) × 100 | Below 20% | Amount above 20% |
+| Debt to Asset | (Loans + CC Outstanding) ÷ Total Worth × 100 | Below 40% | Amount above 40% |
+| Savings Rate | (Income - Expenses) ÷ Income × 100 | Above 35% | Amount below 35% |
+| Retirement Readiness | NPS + EPF + PPF or 30% of investments | 25× Annual Expenses | Remaining corpus needed |
+| Net Worth Trend | Assets + Investments + Cash - Liabilities | Previous month's NW | Month-over-month % change |
 
-4. `/app/backend/routes/settings.py` (258 lines)
-   - `/api/settings/notifications` - Notification settings
-   - `/api/settings/preferences` - App preferences
-   - `/api/settings/data-privacy` - Privacy settings
-   - `/api/settings/export-data` - Data export
-   - `/api/settings/delete-account` - Account deletion
+**Extra Info Added:**
+- Loan Burden: Shows "Total EMI: ₹X/month"
+- Debt to Asset: Shows "Debt: ₹X | Worth: ₹X"
+- Savings Rate: Shows "Surplus: ₹X/month"
 
-5. `/app/backend/routes/security.py` (199 lines)
-   - `/api/auth/change-password` - Password change
-   - `/api/auth/2fa/toggle` - 2FA toggle
-   - `/api/auth/2fa/status` - 2FA status
-   - `/api/auth/sessions` - Session list
-   - `/api/auth/sessions/logout` - Logout session
-   - `/api/auth/sessions/logout-all` - Logout all
+---
 
-**Updated Files:**
-- `/app/backend/routes/__init__.py` - Added new router exports
-- `/app/backend/routes/auth.py` - Added `validate_password_strength`
-- `/app/backend/server.py` - Added router includes
+### 23. Server.py Cleanup (COMPLETED ✅ - Feb 24, 2026)
 
-**Total New Modular Code:** 1,327 lines
+**Removed ~900 duplicate lines from server.py:**
+- Removed duplicate Financial Health API (~430 lines)
+- Removed duplicate Security routes (~175 lines)
+- Removed duplicate Analytics routes (~135 lines)
+- Removed duplicate Settings APIs (~160 lines)
 
-**Note:** server.py still contains duplicate routes. Full cleanup requires removing ~1,300 lines of duplicate code from server.py in a separate refactoring session with thorough testing.
+**Final size: 7,526 lines** (down from 8,431)
+
+**Modular routes now handle:**
+- `/api/financial-health` → routes/financial_health.py
+- `/api/analytics/*` → routes/analytics.py
+- `/api/auth/change-password`, `/api/auth/2fa/*`, `/api/auth/sessions/*` → routes/security.py
+- `/api/settings/*` → routes/settings.py
 
 ---
 
