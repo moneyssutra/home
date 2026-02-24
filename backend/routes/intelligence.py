@@ -498,3 +498,105 @@ async def get_behavior_alerts(request: Request):
         "highCount": sum(1 for a in alerts if a["severity"] == "HIGH"),
         "generated_at": datetime.now(timezone.utc).isoformat()
     }
+
+
+@router.get("/runway-simulator")
+async def runway_simulator(
+    request: Request,
+    income_change_pct: float = Query(0, description="Income change percentage (-100 to +100)"),
+    expense_change_pct: float = Query(0, description="Expense change percentage (-100 to +100)"),
+    extra_savings: float = Query(0, description="One-time extra savings added"),
+):
+    """Simulate how changes affect your emergency runway."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_filter = get_user_filter(user)
+    fund_breakdown = await _get_fund_breakdown(user_filter)
+    monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
+    monthly_income = await _get_monthly_income(user_filter)
+    monthly_discretionary = await _get_monthly_discretionary_spending(user_filter)
+
+    effective_funds = fund_breakdown["effectiveTotal"]
+
+    # Current baseline
+    daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 0
+    current_survival = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+
+    # Simulated scenario
+    sim_income = monthly_income * (1 + income_change_pct / 100)
+    sim_mandatory = monthly_mandatory * (1 + expense_change_pct / 100)
+    sim_funds = effective_funds + extra_savings
+
+    # If income still active, monthly net savings extend runway
+    sim_daily_expense = sim_mandatory / 30 if sim_mandatory > 0 else 0
+    sim_survival = int(sim_funds / sim_daily_expense) if sim_daily_expense > 0 else 999
+
+    # Monthly net savings with new income/expense
+    monthly_net = sim_income - sim_mandatory - monthly_discretionary
+    sim_monthly_savings = max(monthly_net, 0)
+
+    # Project 12-month runway growth
+    projections = []
+    running_funds = sim_funds
+    for month in range(0, 13):
+        days = int(running_funds / sim_daily_expense) if sim_daily_expense > 0 else 999
+        projections.append({
+            "month": month,
+            "funds": round(running_funds, 0),
+            "survivalDays": min(days, 9999),
+            "level": _get_runway_level(days)["level"],
+        })
+        running_funds += sim_monthly_savings
+
+    change_days = sim_survival - current_survival
+    change_pct = round((change_days / current_survival) * 100, 1) if current_survival > 0 else 0
+
+    return {
+        "current": {
+            "survivalDays": current_survival,
+            "effectiveFunds": round(effective_funds, 0),
+            "monthlyExpense": round(monthly_mandatory, 0),
+            "monthlyIncome": round(monthly_income, 0),
+            "level": _get_runway_level(current_survival)["level"],
+        },
+        "simulated": {
+            "survivalDays": sim_survival,
+            "effectiveFunds": round(sim_funds, 0),
+            "monthlyExpense": round(sim_mandatory, 0),
+            "monthlyIncome": round(sim_income, 0),
+            "monthlySavings": round(sim_monthly_savings, 0),
+            "level": _get_runway_level(sim_survival)["level"],
+            "levelColor": _get_runway_level(sim_survival)["color"],
+        },
+        "impact": {
+            "changeDays": change_days,
+            "changePct": change_pct,
+            "direction": "up" if change_days > 0 else ("down" if change_days < 0 else "same"),
+        },
+        "projections": projections,
+        "insight": _get_sim_insight(current_survival, sim_survival, income_change_pct, expense_change_pct, extra_savings),
+    }
+
+
+def _get_sim_insight(current, simulated, inc_pct, exp_pct, extra):
+    diff = simulated - current
+    parts = []
+    if extra > 0:
+        parts.append(f"Adding ₹{extra:,.0f} to savings")
+    if exp_pct < 0:
+        parts.append(f"cutting expenses by {abs(exp_pct):.0f}%")
+    if exp_pct > 0:
+        parts.append(f"increasing expenses by {exp_pct:.0f}%")
+    if inc_pct < 0:
+        parts.append(f"with {abs(inc_pct):.0f}% less income")
+    if inc_pct > 0:
+        parts.append(f"with {inc_pct:.0f}% more income")
+
+    action = " and ".join(parts) if parts else "No changes"
+    if diff > 0:
+        return f"{action} would extend your runway by {diff} days."
+    elif diff < 0:
+        return f"{action} would reduce your runway by {abs(diff)} days."
+    return f"{action} — your runway stays the same."
