@@ -414,7 +414,13 @@ async def shock_test(request: Request):
 
     body = await request.json()
     scenario_id = body.get("scenarioId", "job_loss")
-    scenario = next((s for s in SHOCK_SCENARIOS if s["id"] == scenario_id), SHOCK_SCENARIOS[0])
+    custom_amount = body.get("customAmount")
+    
+    # Custom scenario
+    if custom_amount and custom_amount > 0:
+        scenario = {"id": "custom", "title": "Custom Shock", "icon": "edit", "description": f"₹{fmt_py(custom_amount)} sudden expense", "impact_type": "lump_sum", "amount": custom_amount}
+    else:
+        scenario = next((s for s in SHOCK_SCENARIOS if s["id"] == scenario_id), SHOCK_SCENARIOS[0])
 
     user_filter = get_user_filter(user)
     fund_breakdown = await _get_fund_breakdown(user_filter)
