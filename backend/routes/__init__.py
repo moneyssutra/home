@@ -14,9 +14,14 @@ from routes.goals import router as goals_router
 from routes.dashboard import router as dashboard_router
 from routes.profile import router as profile_router
 from routes.ai_insights import router as ai_insights_router
+from routes.analytics import router as analytics_router
+from routes.financial_health import router as financial_health_router
+from routes.reports import router as reports_router
+from routes.settings import router as settings_router
+from routes.security import router as security_router
 
 # Re-export commonly used functions
-from routes.auth import get_current_user
+from routes.auth import get_current_user, hash_password, verify_password, validate_password_strength
 from routes.workspace import (
     get_user_workspace, 
     ensure_user_has_workspace, 
@@ -43,8 +48,16 @@ __all__ = [
     'dashboard_router',
     'profile_router',
     'ai_insights_router',
+    'analytics_router',
+    'financial_health_router',
+    'reports_router',
+    'settings_router',
+    'security_router',
     # Functions
     'get_current_user',
+    'hash_password',
+    'verify_password',
+    'validate_password_strength',
     'get_user_workspace',
     'ensure_user_has_workspace',
     'get_user_filter',
