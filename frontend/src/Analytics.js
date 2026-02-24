@@ -399,15 +399,21 @@ const Analytics = () => {
         <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
           <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Wealth Breakdown</h3>
           <div className="h-10 rounded-full overflow-hidden flex mb-4" style={{ backgroundColor: "var(--bg-subtle)" }}>
-            <div className="h-full transition-all flex items-center justify-center text-xs font-medium text-white" style={{ width: `${assetPercent}%`, backgroundColor: "#3B82F6", minWidth: "40px" }}>
-              {assetPercent}%
-            </div>
-            <div className="h-full transition-all flex items-center justify-center text-xs font-medium text-white" style={{ width: `${investmentPercent}%`, backgroundColor: "#8B5CF6", minWidth: "40px" }}>
-              {investmentPercent}%
-            </div>
-            <div className="h-full transition-all flex items-center justify-center text-xs font-medium text-white" style={{ width: `${liquidPercent}%`, backgroundColor: "#EC4899", minWidth: "40px" }}>
-              {liquidPercent}%
-            </div>
+            {Number(assetPercent) > 0 && (
+              <div className="h-full transition-all flex items-center justify-center text-xs font-medium text-white" style={{ width: `${assetPercent}%`, backgroundColor: "#3B82F6", minWidth: Number(assetPercent) > 0 ? "40px" : "0" }}>
+                {assetPercent}%
+              </div>
+            )}
+            {Number(investmentPercent) > 0 && (
+              <div className="h-full transition-all flex items-center justify-center text-xs font-medium text-white" style={{ width: `${investmentPercent}%`, backgroundColor: "#8B5CF6", minWidth: Number(investmentPercent) > 0 ? "40px" : "0" }}>
+                {investmentPercent}%
+              </div>
+            )}
+            {Number(liquidPercent) > 0 && (
+              <div className="h-full transition-all flex items-center justify-center text-xs font-medium text-white" style={{ width: `${liquidPercent}%`, backgroundColor: "#EC4899", minWidth: Number(liquidPercent) > 0 ? "40px" : "0" }}>
+                {liquidPercent}%
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-3">
             {[
