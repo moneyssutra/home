@@ -287,20 +287,35 @@ const Analytics = () => {
             })}
           </div>
           
-          {/* Labels */}
+          {/* Labels - only show unique, evenly spaced labels */}
           <div className="flex justify-between">
-            {historicalData.map((point, i) => (
-              <span 
-                key={i} 
-                className="text-[9px] text-center flex-1"
-                style={{ 
-                  color: hoveredIndex === i ? color : "var(--text-muted)",
-                  fontWeight: hoveredIndex === i || point.isCurrent ? "600" : "400"
-                }}
-              >
-                {point.label}
-              </span>
-            ))}
+            {(() => {
+              // Calculate which indices should show labels
+              const total = historicalData.length;
+              const maxLabels = timeFilter === "All" ? 6 : timeFilter === "1Y" ? 6 : total;
+              const step = Math.max(1, Math.ceil(total / maxLabels));
+              // Track shown labels to avoid duplicates
+              const shown = new Set();
+              
+              return historicalData.map((point, i) => {
+                const showLabel = (i % step === 0 || i === total - 1) && !shown.has(point.label);
+                if (showLabel) shown.add(point.label);
+                
+                return (
+                  <span 
+                    key={i} 
+                    className="text-[9px] text-center flex-1"
+                    style={{ 
+                      color: hoveredIndex === i ? color : "var(--text-muted)",
+                      fontWeight: hoveredIndex === i || point.isCurrent ? "600" : "400",
+                      visibility: showLabel ? "visible" : "hidden"
+                    }}
+                  >
+                    {point.label}
+                  </span>
+                );
+              });
+            })()}
           </div>
           
           {/* Data status indicator */}
