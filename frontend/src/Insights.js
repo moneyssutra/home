@@ -672,6 +672,126 @@ const ShockTestWidget = ({ clockData }) => {
   );
 };
 
+// ─── FUTURE YOU (12-month projection) ───
+const FutureYouWidget = ({ data }) => {
+  if (!data) return null;
+  const cur = data.current || {};
+  const proj = data.projected || {};
+  const imp = data.improvement || {};
+  const projections = data.projections || [];
+
+  const maxDays = Math.max(...projections.map(p => p.survivalDays), cur.survivalDays, 1);
+
+  return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="future-you">
+      <div className="flex items-center gap-2 mb-1">
+        <Rocket className="h-5 w-5" style={{ color: "#8B5CF6" }} />
+        <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Future You</h3>
+      </div>
+      <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>12-month projection at current pace</p>
+
+      {/* Now vs Future comparison */}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
+          <p className="text-[9px] font-bold uppercase" style={{ color: "var(--text-muted)" }}>Today</p>
+          <p className="text-xl font-black" style={{ color: "var(--text-primary)" }}>{cur.survivalDays}d</p>
+          <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{cur.stage}</p>
+        </div>
+        <div className="p-3 rounded-xl" style={{ backgroundColor: "#8B5CF608", border: "1px solid #8B5CF620" }}>
+          <p className="text-[9px] font-bold uppercase" style={{ color: "#8B5CF6" }}>12 Months</p>
+          <p className="text-xl font-black" style={{ color: "#8B5CF6" }}>{proj.survivalDays}d</p>
+          <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{proj.stage}</p>
+        </div>
+      </div>
+
+      {/* Gains */}
+      <div className="grid grid-cols-3 gap-2 mb-3">
+        {[
+          { label: "Runway", val: `+${imp.survivalDaysGain}d`, color: imp.survivalDaysGain > 0 ? "#10B981" : "#EF4444" },
+          { label: "Score", val: `+${imp.scoreGain}`, color: imp.scoreGain > 0 ? "#10B981" : "#EF4444" },
+          { label: "Net Worth", val: `+₹${fmt(imp.netWorthGain)}`, color: imp.netWorthGain > 0 ? "#10B981" : "#EF4444" },
+        ].map((g, i) => (
+          <div key={i} className="text-center p-2 rounded-lg" style={{ backgroundColor: `${g.color}08` }}>
+            <p className="text-[8px]" style={{ color: "var(--text-muted)" }}>{g.label}</p>
+            <p className="text-xs font-bold" style={{ color: g.color }}>{g.val}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Mini chart */}
+      <div className="flex items-end gap-[2px] h-12">
+        {projections.map((p, i) => (
+          <div key={i} className="flex-1 flex flex-col items-center justify-end">
+            <div className="w-full rounded-t-sm" style={{
+              height: `${Math.max((p.survivalDays / maxDays) * 100, 5)}%`,
+              backgroundColor: i === projections.length - 1 ? "#8B5CF6" : "#8B5CF640",
+            }} />
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-between mt-1">
+        <span className="text-[8px]" style={{ color: "var(--text-muted)" }}>{projections[0]?.label}</span>
+        <span className="text-[8px]" style={{ color: "var(--text-muted)" }}>{projections[projections.length - 1]?.label}</span>
+      </div>
+
+      <p className="text-[10px] mt-2 leading-relaxed" style={{ color: "var(--text-secondary)" }}>{data.tip}</p>
+    </div>
+  );
+};
+
+// ─── PERSONALITY EVOLUTION TRACKER ───
+const PersonalityEvolutionWidget = ({ data, currentPersonality }) => {
+  const history = data?.history || [];
+  if (!currentPersonality) return null;
+
+  const ZONE_COLORS = { Survival: "#EF4444", Stabilizing: "#F97316", Control: "#EAB308", Growth: "#22C55E", Advanced: "#3B82F6" };
+
+  return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="personality-evolution">
+      <div className="flex items-center gap-2 mb-1">
+        <TrendingUp className="h-5 w-5" style={{ color: "#F59E0B" }} />
+        <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Personality Evolution</h3>
+      </div>
+      <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>How your financial identity has evolved</p>
+
+      {history.length > 0 ? (
+        <div className="relative">
+          <div className="absolute left-3 top-3 bottom-3 w-0.5" style={{ backgroundColor: "var(--border-light)" }} />
+          <div className="space-y-2">
+            {history.map((h, i) => {
+              const zc = ZONE_COLORS[h.zone] || "#94A3B8";
+              const isCurrent = i === 0;
+              return (
+                <div key={i} className="flex items-center gap-3 relative pl-1">
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center z-10 flex-shrink-0" style={{
+                    backgroundColor: isCurrent ? zc : `${zc}30`,
+                    border: isCurrent ? `2px solid ${zc}` : "none"
+                  }}>
+                    <span className="text-[7px] font-black" style={{ color: isCurrent ? "#fff" : zc }}>{h.personalityId}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold" style={{ color: isCurrent ? zc : "var(--text-primary)" }}>{h.personality}</span>
+                      {isCurrent && <span className="text-[8px] font-bold px-1 py-0.5 rounded-full" style={{ backgroundColor: `${zc}20`, color: zc }}>NOW</span>}
+                    </div>
+                    <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{h.month} · {h.zone} · {h.confidence}% match</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-4">
+          <p className="text-xs" style={{ color: "var(--text-muted)" }}>Your personality evolution will show here next month.</p>
+          <p className="text-[10px] mt-1" style={{ color: "var(--text-secondary)" }}>Current: <span className="font-bold">{currentPersonality}</span></p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
 
 // ─── MAIN INSIGHTS PAGE ───
 const Insights = () => {
