@@ -1,7 +1,7 @@
 # Moneyssutra - Personal Finance Tracker PRD
 
 ## Original Problem Statement
-Full-stack personal finance manager (React/FastAPI/MongoDB) with a "Financial Control Operating System" on the Insights page. Features include survival clock, financial score, gamification engine (100 badges, 20 stages), money pattern recognition, emergency runway, and shareable score cards.
+Full-stack personal finance manager (React/FastAPI/MongoDB) with a "Financial Control Operating System" on the Insights page. Features include survival clock, financial score, gamification engine (100 badges, 20 stages), money pattern recognition, emergency runway, shareable score cards, financial journey, and shock test.
 
 ## Core Architecture
 - **Frontend**: React + Tailwind + Shadcn UI (port 3000)
@@ -12,34 +12,28 @@ Full-stack personal finance manager (React/FastAPI/MongoDB) with a "Financial Co
 
 ## What's Been Implemented
 
-### Feb 24, 2026 Session
-- **Financial Health Contributions**: Each module card shows score/max badge (e.g., 8.8/17.5). Debt to Asset Ratio added to scoring (10% weight). Removed "HOW YOUR SCORE ADDS UP" verbose section.
-- **Financial Score Period**: Shows "Rolling 3-month window: start — end" based on 3-month data window
-- **XP Rules Bug Fix**: Fixed invisible labels (was "None" due to action vs rule key mismatch) and double text ("++20 XP XP" → "+20 XP")
-- **Badge Icons in Notifications**: Trophy for badge unlocks, Star for level-ups, Flame for streaks. Backend stores badgeIcon field in notifications.
-- **Stage Journey Redesign**: All 20 levels shown in visual bar + info (i) icon expands scrollable detail list with checkmarks/locks/YOU badge
-- **Fund Breakdown Detail**: Semi-Liquid & Illiquid sections show individual asset names with amounts
-- **Stage Explanation**: Kid-friendly one-liner under each stage name (STAGE_EXPLAIN mapping)
-- **ObjectId Fix**: Fixed _unlock_achievement to remove _id after MongoDB insert
+### Feb 24, 2026 Session (Latest)
+- **Financial Journey Widget**: 5-phase progression (Survival→Stability→Control→Growth→Freedom) with vertical timeline, checkmarks, NOW badge
+- **Financial Shock Test**: 4 scenarios (Job Loss, Medical ₹5L, Repair ₹2L, EMI Hike 20%). POST /api/intelligence/shock-test endpoint. Shows before/after survival days, severity, tip
+- **Financial Score reordered**: Moved directly under Wealth Builder widget, removed sum/pts breakdown
+- **Financial Health Contributions**: Each module card shows score/max badge (e.g., 8.8/17.5). Debt to Asset added (10% weight). Removed verbose breakdown section
+- **Financial Score Period**: Rolling 3-month window display
+- **XP Rules Bug Fix**: Fixed invisible labels + double text
+- **Badge Icons in Notifications**: Trophy/Star/Flame per type
+- **Stage Journey Redesign**: All 20 levels + info icon with scrollable detail
+- **Fund Breakdown Detail**: Individual asset names in Semi-Liquid & Illiquid
+- **Stage Explanation**: Kid-friendly one-liners
+- **ObjectId Fix**: _unlock_achievement
 
-### Previous Sessions
-- Shareable Financial Score Card (html2canvas)
-- Financial Runway Simulator (what-if sliders)
-- Money Pattern Recognition endpoint
-- 100-badge gamification system (8 categories, 4 tiers)
-- 20 survival stages (5 phases: Critical/Stabilizing/Control/Growth/Power)
-- 3-tier liquidity classification (Liquid 100%, Semi-Liquid 60%, Illiquid 0%)
-- Backend modularization (routes split from monolithic server.py)
-- Emergency Runway widget, Control Score widget
-- Google Auth integration, Push notifications
-
-## Key Files
-- `backend/routes/intelligence.py` — survival-clock, control-score, money-pattern, runway-simulator
-- `backend/routes/gamification.py` — 100 badges, XP, levels, challenges
-- `backend/routes/financial_health.py` — 9-module health score with weighted contributions
-- `frontend/src/Insights.js` — Main insights dashboard (all widgets)
-- `frontend/src/components/FinancialHealth.js` — Health score with per-module contribution badges
-- `frontend/src/components/NotificationBell.js` — Badge-specific notification icons
+## Key API Endpoints
+- POST /api/intelligence/shock-test — Shock simulation (scenarioId in body)
+- GET /api/intelligence/shock-scenarios — Available scenarios
+- GET /api/intelligence/survival-clock — Stages, funds, survival days
+- GET /api/intelligence/control-score — Financial Score with period
+- GET /api/intelligence/money-pattern — Spending personality
+- GET /api/financial-health — Health score with contributions
+- GET /api/gamification/profile — 100 badges, XP, levels
+- POST /api/gamification/process — Weekly XP processing
 
 ## Financial Health Weights
 | Module | Weight |
@@ -54,21 +48,33 @@ Full-stack personal finance manager (React/FastAPI/MongoDB) with a "Financial Co
 | Retirement Readiness | 10% |
 | Debt to Asset | 10% |
 
+## Insights Page Widget Order
+1. Survival Warning
+2. Level & Stages (Wealth Builder)
+3. Financial Score
+4. Emergency Runway
+5. Runway Simulator
+6. Money Pattern
+7. Badges
+8. Challenges
+9. Financial Journey
+10. Shock Test
+11. Explore (Analytics, Reports)
+
 ## Prioritized Backlog
 
 ### P1 - Upcoming
 - Financial Command Center (Control/Pressure/Risk cockpit with trend arrows)
-- Financial Journey (multi-stage progression: Survival → Freedom)
-- Financial Shock Test (monthly simulated emergencies)
-
-### P2 - Future
 - "Future You" Score (12-month projection)
 - Decision Impact Engine (large purchase impact)
+
+### P2 - Future
 - Red Zone Mode (urgency theme for critical metrics)
 - Weekly Health Digest notification
+- Custom shock scenarios (user-defined amounts)
 
 ### Refactoring
-- Break Insights.js (600+ lines) into smaller components
+- Break Insights.js (700+ lines) into smaller components
 - Simplify state management in useData hook
 
 ## Test Credentials
