@@ -466,8 +466,13 @@ const FinancialHealth = () => {
           return (
             <div 
               key={module.key}
-              className="rounded-xl overflow-hidden transition-all"
-              style={{ backgroundColor: statusColors.bg, border: `1px solid ${statusColors.border}` }}
+              className="rounded-xl transition-all relative"
+              style={{ 
+                backgroundColor: statusColors.bg, 
+                border: `1px solid ${statusColors.border}`,
+                zIndex: activeTooltip && activeTooltip.startsWith(module.key) ? 20 : 1,
+                overflow: activeTooltip && activeTooltip.startsWith(module.key) ? 'visible' : 'hidden'
+              }}
             >
               {/* Collapsed Header */}
               <button
