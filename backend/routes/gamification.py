@@ -25,18 +25,18 @@ LEVELS = [
 STREAK_REWARDS = {4: 50, 8: 100, 12: 150, 24: 300, 52: 500}
 
 ACHIEVEMENTS = {
-    "SURVIVAL_30": {"title": "30-Day Buffer", "description": "Reached 30 days survival fund", "icon": "shield", "xp_bonus": 20},
-    "SURVIVAL_90": {"title": "Quarter Guard", "description": "Reached 90 days survival fund", "icon": "shield-check", "xp_bonus": 50},
-    "SURVIVAL_180": {"title": "Half-Year Fortress", "description": "Reached 180 days survival fund", "icon": "castle", "xp_bonus": 100},
-    "SURVIVAL_365": {"title": "Year of Safety", "description": "Full year of survival funds", "icon": "crown", "xp_bonus": 200},
-    "CONTROL_80": {"title": "Score Master", "description": "Control score above 80", "icon": "target", "xp_bonus": 50},
-    "CONTROL_90": {"title": "Elite Controller", "description": "Control score above 90", "icon": "award", "xp_bonus": 100},
-    "STREAK_4": {"title": "Month Warrior", "description": "4-week winning streak", "icon": "flame", "xp_bonus": 50},
-    "STREAK_12": {"title": "Quarter Champion", "description": "12-week winning streak", "icon": "trophy", "xp_bonus": 150},
-    "STREAK_24": {"title": "Half-Year Hero", "description": "24-week winning streak", "icon": "medal", "xp_bonus": 300},
-    "DEBT_REDUCER": {"title": "Debt Crusher", "description": "Reduced debt 3 months in a row", "icon": "trending-down", "xp_bonus": 100},
     "FIRST_SCORE": {"title": "Journey Begins", "description": "Got your first control score", "icon": "rocket", "xp_bonus": 10},
     "NO_ALERTS_WEEK": {"title": "Clean Week", "description": "No high-risk alerts this week", "icon": "check-circle", "xp_bonus": 15},
+    "SURVIVAL_30": {"title": "30-Day Buffer", "description": "Reached 30 days survival fund", "icon": "shield", "xp_bonus": 20},
+    "SURVIVAL_90": {"title": "Quarter Guard", "description": "Reached 90 days survival fund", "icon": "shield-check", "xp_bonus": 50},
+    "CONTROL_80": {"title": "Score Master", "description": "Control score above 80", "icon": "target", "xp_bonus": 50},
+    "STREAK_4": {"title": "Month Warrior", "description": "4-week winning streak", "icon": "flame", "xp_bonus": 50},
+    "SURVIVAL_180": {"title": "Half-Year Fortress", "description": "Reached 180 days survival fund", "icon": "castle", "xp_bonus": 100},
+    "CONTROL_90": {"title": "Elite Controller", "description": "Control score above 90", "icon": "award", "xp_bonus": 100},
+    "DEBT_REDUCER": {"title": "Debt Crusher", "description": "Reduced debt 3 months in a row", "icon": "trending-down", "xp_bonus": 100},
+    "STREAK_12": {"title": "Quarter Champion", "description": "12-week winning streak", "icon": "trophy", "xp_bonus": 150},
+    "SURVIVAL_365": {"title": "Year of Safety", "description": "Full year of survival funds", "icon": "crown", "xp_bonus": 200},
+    "STREAK_24": {"title": "Half-Year Hero", "description": "24-week winning streak", "icon": "medal", "xp_bonus": 300},
 }
 
 CHALLENGES = [

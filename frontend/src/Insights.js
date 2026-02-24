@@ -403,7 +403,7 @@ const Insights = () => {
       </header>
 
       {/* Content */}
-      <div className="px-4 py-2 space-y-4">
+      <div className="px-4 py-2 space-y-4 max-w-3xl mx-auto">
         {/* Gamification Profile */}
         <GamificationWidget data={gamification} onProcess={handleProcess} />
 
