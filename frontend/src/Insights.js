@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import ShareScoreCard from "@/components/ShareScoreCard";
 import { useState, useEffect } from "react";
 import { useIntelligenceData } from "@/hooks/useIntelligenceData";
 
