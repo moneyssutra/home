@@ -36,6 +36,8 @@ from routes.notifications import router as notifications_router
 from routes.push import router as push_router
 from routes.transactions import router as transactions_router
 from routes.cron import router as cron_router
+from routes.intelligence import router as intelligence_router
+from routes.gamification import router as gamification_router
 from routes.utils import get_user_filter
 
 # Configure logging
@@ -226,6 +228,8 @@ app.include_router(notifications_router, prefix="/api")
 app.include_router(push_router, prefix="/api")
 app.include_router(transactions_router, prefix="/api")
 app.include_router(cron_router, prefix="/api")
+app.include_router(intelligence_router, prefix="/api")
+app.include_router(gamification_router, prefix="/api")
 
 
 # ============ LIFECYCLE EVENTS ============
