@@ -106,61 +106,57 @@ const Reports = () => {
     try {
       const report = reports.find(r => r.id === reportId);
       const fileExt = exportFormat === 'excel' ? 'xlsx' : 'pdf';
-      const mimeType = exportFormat === 'excel' 
-        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        : 'application/pdf';
       
       // Build the URL with query parameters
       const url = `${backendUrl}/api/reports/generate/${reportId}?format=${exportFormat}&from_date=${dateRange.from}&to_date=${dateRange.to}`;
       
-      // Fetch the report as a blob
-      const response = await fetch(url, {
-        method: 'GET',
-        credentials: 'include'
-      });
+      // Use XMLHttpRequest for better download handling
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'blob';
+      xhr.withCredentials = true;
       
-      if (!response.ok) {
-        throw new Error('Failed to generate report');
-      }
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          const blob = xhr.response;
+          const filename = `${reportId}_report_${new Date().toISOString().split('T')[0]}.${fileExt}`;
+          
+          // Create download link
+          const downloadUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = filename;
+          
+          // Append to body, click, and remove
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Cleanup URL after delay
+          setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
+          
+          toast.success(`${report.title} downloaded!`);
+          setDownloadedReports(prev => [...prev, reportId]);
+          
+          setTimeout(() => {
+            setDownloadedReports(prev => prev.filter(id => id !== reportId));
+          }, 5000);
+        } else {
+          toast.error("Failed to download report");
+        }
+        setGenerating(null);
+      };
       
-      // Get blob data
-      const blob = await response.blob();
+      xhr.onerror = function() {
+        toast.error("Network error. Please try again.");
+        setGenerating(null);
+      };
       
-      // Create filename
-      const filename = `${reportId}_report_${new Date().toISOString().split('T')[0]}.${fileExt}`;
-      
-      // Create download using anchor element with proper blob type
-      const downloadBlob = new Blob([blob], { type: mimeType });
-      const downloadUrl = window.URL.createObjectURL(downloadBlob);
-      
-      // Use anchor element for download (works in all browsers without popup blockers)
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = filename;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      
-      // Trigger download
-      link.click();
-      
-      // Cleanup after small delay
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(downloadUrl);
-      }, 1000);
-      
-      toast.success(`${report.title} downloaded! Check your Downloads folder.`);
-      setDownloadedReports(prev => [...prev, reportId]);
-      
-      // Clear the checkmark after 5 seconds
-      setTimeout(() => {
-        setDownloadedReports(prev => prev.filter(id => id !== reportId));
-      }, 5000);
+      xhr.send();
       
     } catch (error) {
       console.error("Report generation error:", error);
       toast.error("Failed to generate report. Please try again.");
-    } finally {
       setGenerating(null);
     }
   };
