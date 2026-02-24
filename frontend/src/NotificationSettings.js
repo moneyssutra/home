@@ -1,73 +1,131 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Mail, Smartphone, Calendar, AlertCircle, Loader2 } from "lucide-react";
-import axios from "axios";
+import { 
+  ArrowLeft, 
+  Bell, 
+  CreditCard, 
+  PiggyBank, 
+  Shield, 
+  Target,
+  TrendingUp,
+  Mail,
+  FileText,
+  Trophy,
+  Calendar
+} from "lucide-react";
 import { toast } from "sonner";
-
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const NotificationSettings = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: false,
-    billReminders: true,
-    goalAlerts: true,
-    weeklyDigest: true,
-    monthlyReport: true
+  
+  const [financialReminders, setFinancialReminders] = useState({
+    emiReminder: { enabled: true, frequency: "3_days_before" },
+    sipReminder: { enabled: true, frequency: "same_day" },
+    insuranceReminder: { enabled: true, frequency: "3_days_before" },
+    creditCardReminder: { enabled: true, frequency: "3_days_before" },
+    goalDeadline: { enabled: true, frequency: "1_day_before" },
+    irregularIncome: { enabled: false, frequency: "same_day" }
   });
 
-  const handleToggle = (key) => {
-    setSettings(prev => ({
+  const [insightsReports, setInsightsReports] = useState({
+    monthlySummary: true,
+    quarterlyReport: true,
+    goalAchievement: true
+  });
+
+  const frequencyOptions = [
+    { value: "same_day", label: "Same day" },
+    { value: "1_day_before", label: "1 day before" },
+    { value: "3_days_before", label: "3 days before" }
+  ];
+
+  const handleFinancialToggle = (key) => {
+    setFinancialReminders(prev => ({
       ...prev,
-      [key]: !prev[key]
+      [key]: { ...prev[key], enabled: !prev[key].enabled }
     }));
-    toast.success("Settings updated");
+    toast.success("Setting updated");
   };
 
-  const notificationOptions = [
-    {
-      id: "emailNotifications",
-      title: "Email Notifications",
-      description: "Receive updates and alerts via email",
-      icon: Mail,
-      color: "#3B82F6"
+  const handleFrequencyChange = (key, frequency) => {
+    setFinancialReminders(prev => ({
+      ...prev,
+      [key]: { ...prev[key], frequency }
+    }));
+    toast.success("Reminder frequency updated");
+  };
+
+  const handleInsightToggle = (key) => {
+    setInsightsReports(prev => ({ ...prev, [key]: !prev[key] }));
+    toast.success("Setting updated");
+  };
+
+  const financialReminderItems = [
+    { 
+      key: "emiReminder", 
+      title: "EMI Reminder", 
+      description: "Get notified before loan EMI due dates",
+      icon: CreditCard, 
+      color: "#EF4444" 
     },
-    {
-      id: "pushNotifications",
-      title: "Push Notifications",
-      description: "Get instant alerts on your device",
-      icon: Smartphone,
-      color: "#8B5CF6"
+    { 
+      key: "sipReminder", 
+      title: "SIP Reminder", 
+      description: "Never miss your SIP investment dates",
+      icon: PiggyBank, 
+      color: "#8B5CF6" 
     },
-    {
-      id: "billReminders",
-      title: "Bill Reminders",
-      description: "Remind me before bills are due",
-      icon: Calendar,
-      color: "#F59E0B"
+    { 
+      key: "insuranceReminder", 
+      title: "Insurance Premium Reminder", 
+      description: "Stay updated on premium due dates",
+      icon: Shield, 
+      color: "#3B82F6" 
     },
-    {
-      id: "goalAlerts",
-      title: "Goal Alerts",
-      description: "Notify me about goal progress",
-      icon: AlertCircle,
-      color: "#059669"
+    { 
+      key: "creditCardReminder", 
+      title: "Credit Card Due Reminder", 
+      description: "Avoid late payment fees",
+      icon: CreditCard, 
+      color: "#F59E0B" 
     },
-    {
-      id: "weeklyDigest",
-      title: "Weekly Digest",
-      description: "Weekly summary of your finances",
-      icon: Bell,
-      color: "#EC4899"
+    { 
+      key: "goalDeadline", 
+      title: "Goal Deadline Alert", 
+      description: "Track progress before goal deadlines",
+      icon: Target, 
+      color: "#059669" 
     },
-    {
-      id: "monthlyReport",
-      title: "Monthly Report",
-      description: "Detailed monthly financial report",
-      icon: Bell,
-      color: "#06B6D4"
+    { 
+      key: "irregularIncome", 
+      title: "Irregular Income Prompt", 
+      description: "Reminder to log variable income",
+      icon: TrendingUp, 
+      color: "#06B6D4" 
+    }
+  ];
+
+  const insightItems = [
+    { 
+      key: "monthlySummary", 
+      title: "Monthly Summary Email", 
+      description: "Receive monthly financial overview",
+      icon: Mail, 
+      color: "#3B82F6" 
+    },
+    { 
+      key: "quarterlyReport", 
+      title: "Quarterly Wealth Report", 
+      description: "Detailed quarterly analysis",
+      icon: FileText, 
+      color: "#8B5CF6" 
+    },
+    { 
+      key: "goalAchievement", 
+      title: "Goal Achievement Notification", 
+      description: "Celebrate when you reach goals",
+      icon: Trophy, 
+      color: "#F59E0B" 
     }
   ];
 
@@ -76,7 +134,7 @@ const NotificationSettings = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 px-4 py-4 flex items-center gap-3" style={{ backgroundColor: "var(--bg-app)" }}>
         <button
-          onClick={() => navigate("/settings", { replace: true })}
+          onClick={() => navigate(-1)}
           className="flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-gray-100"
           data-testid="back-button"
         >
@@ -86,42 +144,136 @@ const NotificationSettings = () => {
       </header>
 
       {/* Content */}
-      <div className="px-4 py-2 space-y-4">
-        {notificationOptions.map((option) => {
-          const Icon = option.icon;
-          return (
-            <div 
-              key={option.id}
-              className="rounded-2xl p-4" 
-              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${option.color}15` }}
-                  >
-                    <Icon className="h-5 w-5" style={{ color: option.color }} />
-                  </div>
-                  <div>
-                    <p className="font-semibold" style={{ color: "var(--text-primary)" }}>{option.title}</p>
-                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>{option.description}</p>
+      <div className="px-4 py-2 space-y-6">
+        {/* Section 1: Financial Reminders */}
+        <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+          <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+            <Calendar className="h-5 w-5" style={{ color: "var(--brand-primary)" }} />
+            Financial Reminders
+          </h3>
+
+          <div className="space-y-1">
+            {financialReminderItems.map((item, index) => {
+              const Icon = item.icon;
+              const setting = financialReminders[item.key];
+              
+              return (
+                <div 
+                  key={item.key}
+                  className={`py-4 ${index < financialReminderItems.length - 1 ? 'border-b' : ''}`}
+                  style={{ borderColor: "var(--border-light)" }}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3 flex-1">
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: `${item.color}15` }}
+                      >
+                        <Icon className="h-5 w-5" style={{ color: item.color }} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium" style={{ color: "var(--text-primary)" }}>{item.title}</p>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{item.description}</p>
+                        
+                        {/* Frequency Selector - only show when enabled */}
+                        {setting.enabled && (
+                          <div className="flex gap-2 mt-3 flex-wrap">
+                            {frequencyOptions.map((freq) => (
+                              <button
+                                key={freq.value}
+                                onClick={() => handleFrequencyChange(item.key, freq.value)}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                  setting.frequency === freq.value ? 'text-white' : ''
+                                }`}
+                                style={{
+                                  backgroundColor: setting.frequency === freq.value ? item.color : "var(--bg-subtle)",
+                                  color: setting.frequency === freq.value ? "white" : "var(--text-secondary)"
+                                }}
+                              >
+                                {freq.label}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Toggle */}
+                    <button
+                      onClick={() => handleFinancialToggle(item.key)}
+                      className={`relative w-12 h-7 rounded-full transition-colors flex-shrink-0 ml-3 ${
+                        setting.enabled ? "bg-green-500" : "bg-gray-300"
+                      }`}
+                    >
+                      <div 
+                        className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                          setting.enabled ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
                   </div>
                 </div>
-                
-                {/* Toggle Switch */}
-                <button
-                  onClick={() => handleToggle(option.id)}
-                  className={`relative w-12 h-7 rounded-full transition-colors ${settings[option.id] ? "bg-green-500" : "bg-gray-300"}`}
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section 2: Insights & Reports */}
+        <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+          <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+            <Bell className="h-5 w-5" style={{ color: "#8B5CF6" }} />
+            Insights & Reports
+          </h3>
+
+          <div className="space-y-1">
+            {insightItems.map((item, index) => {
+              const Icon = item.icon;
+              
+              return (
+                <div 
+                  key={item.key}
+                  className={`flex items-center justify-between py-4 ${
+                    index < insightItems.length - 1 ? 'border-b' : ''
+                  }`}
+                  style={{ borderColor: "var(--border-light)" }}
                 >
-                  <div 
-                    className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${settings[option.id] ? "translate-x-6" : "translate-x-1"}`}
-                  />
-                </button>
-              </div>
-            </div>
-          );
-        })}
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-10 h-10 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: `${item.color}15` }}
+                    >
+                      <Icon className="h-5 w-5" style={{ color: item.color }} />
+                    </div>
+                    <div>
+                      <p className="font-medium" style={{ color: "var(--text-primary)" }}>{item.title}</p>
+                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>{item.description}</p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => handleInsightToggle(item.key)}
+                    className={`relative w-12 h-7 rounded-full transition-colors ${
+                      insightsReports[item.key] ? "bg-green-500" : "bg-gray-300"
+                    }`}
+                  >
+                    <div 
+                      className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                        insightsReports[item.key] ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Info Note */}
+        <div className="px-4 py-3 rounded-xl" style={{ backgroundColor: "var(--brand-primary-soft)" }}>
+          <p className="text-xs text-center" style={{ color: "var(--brand-primary)" }}>
+            Changes are saved automatically
+          </p>
+        </div>
       </div>
     </div>
   );
