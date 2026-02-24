@@ -382,6 +382,7 @@ async def get_financial_health(request: Request):
     
     return {
         "overallScore": round(overall_score),
+        "contributions": contributions,
         "emergencyFund": {
             "current": emergency_current,
             "target": emergency_target,
