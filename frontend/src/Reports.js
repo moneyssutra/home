@@ -152,9 +152,6 @@ const Reports = () => {
       setGenerating(null);
     }
   };
-      setGenerating(null);
-    }
-  };
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="reports-page">
