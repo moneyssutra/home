@@ -521,10 +521,11 @@ const FinancialHealth = () => {
                     </span>
                   )}
                   {isExpanded ? (
-                  <ChevronUp className="h-5 w-5" style={{ color: statusColors.text }} />
-                ) : (
-                  <ChevronDown className="h-5 w-5" style={{ color: statusColors.text }} />
-                )}
+                    <ChevronUp className="h-5 w-5" style={{ color: statusColors.text }} />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" style={{ color: statusColors.text }} />
+                  )}
+                </div>
               </button>
               
               {/* Expanded Content */}
