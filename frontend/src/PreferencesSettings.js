@@ -1,15 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
   Palette, 
   Moon, 
-  Sun
+  Sun,
+  Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import axios from "axios";
+
+const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const PreferencesSettings = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   
   const [preferences, setPreferences] = useState({
     theme: "light",
@@ -25,10 +31,53 @@ const PreferencesSettings = () => {
     { value: "#EC4899", name: "Pink" }
   ];
 
-  const handleChange = (key, value) => {
-    setPreferences(prev => ({ ...prev, [key]: value }));
-    toast.success("Preference updated");
+  useEffect(() => {
+    fetchPreferences();
+  }, []);
+
+  const fetchPreferences = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/settings/preferences`, { withCredentials: true });
+      if (response.data) {
+        setPreferences({
+          theme: response.data.theme || "light",
+          accentColor: response.data.accentColor || "#10B981"
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch preferences:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleChange = async (key, value) => {
+    const newPrefs = { ...preferences, [key]: value };
+    setPreferences(newPrefs);
+    
+    // Auto-save on change
+    try {
+      await axios.put(`${backendUrl}/api/settings/preferences`, {
+        theme: newPrefs.theme,
+        accentColor: newPrefs.accentColor,
+        currency: "INR",
+        dateFormat: "DD/MM/YYYY",
+        language: "en"
+      }, { withCredentials: true });
+      toast.success("Preference saved");
+    } catch (error) {
+      console.error("Failed to save preference:", error);
+      toast.error("Failed to save");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}>
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--brand-primary)" }} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="preferences-settings-page">
@@ -104,6 +153,7 @@ const PreferencesSettings = () => {
                   }`}
                   style={{ backgroundColor: color.value, ringColor: color.value }}
                   title={color.name}
+                  data-testid={`color-${color.name.toLowerCase()}`}
                 />
               ))}
             </div>
@@ -113,7 +163,7 @@ const PreferencesSettings = () => {
         {/* Info Note */}
         <div className="px-4 py-3 rounded-xl" style={{ backgroundColor: "var(--brand-primary-soft)" }}>
           <p className="text-xs text-center" style={{ color: "var(--brand-primary)" }}>
-            More preferences coming soon
+            Dark mode and accent colors will be fully implemented in a future update
           </p>
         </div>
       </div>
