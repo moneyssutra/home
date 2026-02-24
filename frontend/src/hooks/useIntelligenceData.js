@@ -78,5 +78,5 @@ export function useIntelligenceData() {
     fetchAll();
   }, []);
 
-  return { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, loading, error, refresh: fetchAll, processWeekly, joinChallenge, leaveChallenge };
+  return { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, error, refresh: fetchAll, processWeekly, joinChallenge, leaveChallenge };
 }
