@@ -143,16 +143,41 @@ async def _get_liquid_funds(user_filter: dict) -> float:
     return breakdown["effectiveTotal"]
 
 
+# 20 Survival Stages aligned with survival days
+SURVIVAL_STAGES = [
+    # Phase 1 — Critical Zone (0–30)
+    {"stage": 1,  "name": "Exposed",          "min": 0,    "max": 7,    "phase": "Critical",     "phase_num": 1, "color": "#DC2626"},
+    {"stage": 2,  "name": "Unstable",          "min": 8,    "max": 14,   "phase": "Critical",     "phase_num": 1, "color": "#DC2626"},
+    {"stage": 3,  "name": "Vulnerable",         "min": 15,   "max": 21,   "phase": "Critical",     "phase_num": 1, "color": "#EF4444"},
+    {"stage": 4,  "name": "Recovering",         "min": 22,   "max": 30,   "phase": "Critical",     "phase_num": 1, "color": "#EF4444"},
+    # Phase 2 — Short-Term Stability (31–90)
+    {"stage": 5,  "name": "Balancing",          "min": 31,   "max": 45,   "phase": "Stabilizing",  "phase_num": 2, "color": "#F97316"},
+    {"stage": 6,  "name": "Securing",           "min": 46,   "max": 60,   "phase": "Stabilizing",  "phase_num": 2, "color": "#F97316"},
+    {"stage": 7,  "name": "Shielded",           "min": 61,   "max": 75,   "phase": "Stabilizing",  "phase_num": 2, "color": "#FB923C"},
+    {"stage": 8,  "name": "Grounded",           "min": 76,   "max": 90,   "phase": "Stabilizing",  "phase_num": 2, "color": "#FB923C"},
+    # Phase 3 — Stable Zone (91–180)
+    {"stage": 9,  "name": "Structured",         "min": 91,   "max": 110,  "phase": "Control",      "phase_num": 3, "color": "#EAB308"},
+    {"stage": 10, "name": "Disciplined",         "min": 111,  "max": 130,  "phase": "Control",      "phase_num": 3, "color": "#EAB308"},
+    {"stage": 11, "name": "In Control",          "min": 131,  "max": 150,  "phase": "Control",      "phase_num": 3, "color": "#FACC15"},
+    {"stage": 12, "name": "Stabilized",          "min": 151,  "max": 180,  "phase": "Control",      "phase_num": 3, "color": "#FACC15"},
+    # Phase 4 — Strong Zone (181–365)
+    {"stage": 13, "name": "Advancing",           "min": 181,  "max": 210,  "phase": "Growth",       "phase_num": 4, "color": "#22C55E"},
+    {"stage": 14, "name": "Strategic",           "min": 211,  "max": 240,  "phase": "Growth",       "phase_num": 4, "color": "#22C55E"},
+    {"stage": 15, "name": "Expanding",           "min": 241,  "max": 270,  "phase": "Growth",       "phase_num": 4, "color": "#16A34A"},
+    {"stage": 16, "name": "Wealth Builder",      "min": 271,  "max": 365,  "phase": "Growth",       "phase_num": 4, "color": "#16A34A"},
+    # Phase 5 — Financial Power Zone (365+)
+    {"stage": 17, "name": "Fortified",           "min": 366,  "max": 540,  "phase": "Power",        "phase_num": 5, "color": "#3B82F6"},
+    {"stage": 18, "name": "Independent",         "min": 541,  "max": 720,  "phase": "Power",        "phase_num": 5, "color": "#2563EB"},
+    {"stage": 19, "name": "Financially Free",    "min": 721,  "max": 1000, "phase": "Power",        "phase_num": 5, "color": "#7C3AED"},
+    {"stage": 20, "name": "Sovereign",           "min": 1001, "max": 99999,"phase": "Power",        "phase_num": 5, "color": "#9333EA"},
+]
+
 def _get_runway_level(days: int) -> dict:
-    if days > 365:
-        return {"level": "CHAMPION", "color": "#8B5CF6", "emoji": "star"}
-    elif days > 180:
-        return {"level": "SECURE", "color": "#3B82F6", "emoji": "shield-check"}
-    elif days > 90:
-        return {"level": "COMFORTABLE", "color": "#10B981", "emoji": "thumbs-up"}
-    elif days > 30:
-        return {"level": "BUILDING", "color": "#F59E0B", "emoji": "construction"}
-    return {"level": "NEEDS ATTENTION", "color": "#EF4444", "emoji": "alert"}
+    """Get the survival stage based on days."""
+    for s in reversed(SURVIVAL_STAGES):
+        if days >= s["min"]:
+            return {"level": s["name"], "color": s["color"], "stage": s["stage"], "phase": s["phase"], "phase_num": s["phase_num"]}
+    return {"level": "Exposed", "color": "#DC2626", "stage": 1, "phase": "Critical", "phase_num": 1}
 
 
 def _get_control_grade(score: int) -> str:
