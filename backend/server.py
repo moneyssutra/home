@@ -2085,7 +2085,8 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
     
     user_filter = get_user_filter(user)
     if type:
-        user_filter["type"] = type
+        # Case-insensitive type filter using regex
+        user_filter["type"] = {"$regex": f"^{type}$", "$options": "i"}
     
     # Fetch only essential fields for list view
     projection = {
