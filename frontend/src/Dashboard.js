@@ -28,7 +28,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState(null);
   const [profile, setProfile] = useState(null);
   const [insights, setInsights] = useState([]);
@@ -71,13 +70,6 @@ const Dashboard = () => {
     } finally {
       setInsightsLoading(false);
     }
-  };
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchDashboardData();
-    fetchInsights();
-    setRefreshing(false);
   };
 
   useEffect(() => {
