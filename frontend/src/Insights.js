@@ -6,7 +6,7 @@ import {
   AlertCircle, Repeat, ArrowUpRight, ShieldAlert, ShieldCheck,
   Crown, Rocket, CheckCircle, Medal, Swords, Info, X,
   HeartPulse, LifeBuoy, PieChart, ListChecks, Flag, GitBranch, CircleCheckBig, Gauge,
-  Lock, BarChart3 as BarChart3Icon, XCircle, Piggy as PiggyBank
+  Lock, BarChart3 as BarChart3Icon, XCircle, PiggyBank
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
