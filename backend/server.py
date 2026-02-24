@@ -8363,6 +8363,20 @@ async def delete_user_account(request: Request):
 # Include the router in the main app - MUST be after all routes are defined
 app.include_router(api_router)
 
+# Include modular routers
+from routes import (
+    analytics_router,
+    financial_health_router, 
+    reports_router,
+    settings_router,
+    security_router
+)
+app.include_router(analytics_router, prefix="/api")
+app.include_router(financial_health_router, prefix="/api")
+app.include_router(reports_router, prefix="/api")
+app.include_router(settings_router, prefix="/api")
+app.include_router(security_router, prefix="/api")
+
 @app.on_event("startup")
 async def startup_db_client():
     """Create database indexes and start background scheduler"""
