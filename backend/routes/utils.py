@@ -1,18 +1,13 @@
 """Common utilities shared across route modules."""
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Optional
 import uuid
+import logging
 
-import sys
-sys.path.insert(0, '/app/backend')
 from database import db
+from server_models import ROLE_PERMISSIONS, MAX_NOTIFICATIONS_PER_USER
 
-ROLE_PERMISSIONS = {
-    "owner": {"view": True, "add": True, "edit": True, "delete": True, "invite": True},
-    "admin": {"view": True, "add": True, "edit": True, "delete": False, "invite": False},
-    "editor": {"view": True, "add": True, "edit": True, "delete": False, "invite": False},
-    "viewer": {"view": True, "add": False, "edit": False, "delete": False, "invite": False},
-}
+logger = logging.getLogger(__name__)
 
 
 def get_user_filter(user):
@@ -41,6 +36,15 @@ def get_workspace_filter(workspace_id: str, user_id: str = None, user_email: str
 def check_permission(role: str, action: str) -> bool:
     """Check if a role has permission for an action"""
     return ROLE_PERMISSIONS.get(role, {}).get(action, False)
+
+
+def convert_datetime_fields(doc: dict):
+    """Convert string datetime fields to datetime objects"""
+    if 'createdAt' in doc and isinstance(doc['createdAt'], str):
+        try:
+            doc['createdAt'] = datetime.fromisoformat(doc['createdAt'])
+        except (ValueError, TypeError):
+            pass
 
 
 async def get_user_workspace(user, workspace_id: Optional[str] = None):
@@ -96,6 +100,21 @@ async def ensure_user_has_workspace(user):
                 {"$set": {"workspaceId": workspace_id}}
             )
     return workspace_id
+
+
+async def create_notification_and_cleanup(notification: dict):
+    """Create a new notification and remove old ones if user has more than MAX."""
+    user_id = notification.get("userId")
+    await db.notifications.insert_one(notification)
+    total_count = await db.notifications.count_documents({"userId": user_id})
+    if total_count > MAX_NOTIFICATIONS_PER_USER:
+        excess_count = total_count - MAX_NOTIFICATIONS_PER_USER
+        oldest_notifications = await db.notifications.find(
+            {"userId": user_id}, {"_id": 1}
+        ).sort("createdAt", 1).limit(excess_count).to_list(excess_count)
+        if oldest_notifications:
+            ids_to_delete = [n["_id"] for n in oldest_notifications]
+            await db.notifications.delete_many({"_id": {"$in": ids_to_delete}})
 
 
 def now_iso() -> str:
