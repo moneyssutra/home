@@ -277,6 +277,7 @@ const Reports = () => {
             const Icon = report.icon;
             const isGenerating = generating === report.id;
             const isDownloaded = downloadedReports.includes(report.id);
+            const directUrl = `${backendUrl}/api/reports/generate/${report.id}?format=${exportFormat}&from_date=${dateRange.from}&to_date=${dateRange.to}`;
             
             return (
               <div
@@ -300,30 +301,44 @@ const Reports = () => {
                       {report.description}
                     </p>
                     
-                    <button
-                      onClick={() => handleGenerateReport(report.id)}
-                      disabled={isGenerating}
-                      className="mt-3 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all disabled:opacity-50"
-                      style={{ backgroundColor: `${report.color}15`, color: report.color }}
-                      data-testid={`generate-${report.id}-btn`}
-                    >
-                      {isGenerating ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Generating...
-                        </>
-                      ) : isDownloaded ? (
-                        <>
-                          <CheckCircle2 className="h-4 w-4" />
-                          Downloaded!
-                        </>
-                      ) : (
-                        <>
-                          <Download className="h-4 w-4" />
-                          Download {exportFormat.toUpperCase()}
-                        </>
-                      )}
-                    </button>
+                    <div className="flex items-center gap-2 mt-3">
+                      <button
+                        onClick={() => handleGenerateReport(report.id)}
+                        disabled={isGenerating}
+                        className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all disabled:opacity-50"
+                        style={{ backgroundColor: `${report.color}15`, color: report.color }}
+                        data-testid={`generate-${report.id}-btn`}
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Generating...
+                          </>
+                        ) : isDownloaded ? (
+                          <>
+                            <CheckCircle2 className="h-4 w-4" />
+                            Downloaded!
+                          </>
+                        ) : (
+                          <>
+                            <Download className="h-4 w-4" />
+                            Download {exportFormat.toUpperCase()}
+                          </>
+                        )}
+                      </button>
+                      
+                      {/* Direct link as fallback */}
+                      <a
+                        href={directUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-2 rounded-xl text-xs font-medium transition-all hover:opacity-80"
+                        style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-muted)" }}
+                        title="Open in new tab (if download is blocked)"
+                      >
+                        Open
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
