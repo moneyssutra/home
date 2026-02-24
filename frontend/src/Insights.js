@@ -633,6 +633,16 @@ const ShockTestWidget = ({ clockData }) => {
 
       {testing && <div className="mt-3 text-center text-xs" style={{ color: "var(--text-muted)" }}>Simulating...</div>}
 
+      {/* Custom amount input */}
+      <div className="mt-2 flex gap-2">
+        <input type="number" placeholder="Custom ₹ amount" value={customAmount} onChange={(e) => setCustomAmount(e.target.value)}
+          className="flex-1 px-3 py-2 rounded-lg text-xs" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+          data-testid="custom-shock-input" />
+        <button onClick={() => { if (customAmount > 0) runTest("custom", Number(customAmount)); }} disabled={testing || !customAmount}
+          className="px-3 py-2 rounded-lg text-xs font-bold" style={{ backgroundColor: customAmount ? "#8B5CF620" : "var(--bg-subtle)", color: customAmount ? "#8B5CF6" : "var(--text-muted)" }}
+          data-testid="custom-shock-btn">Test</button>
+      </div>
+
       {result && !testing && (
         <div className="mt-3 p-3 rounded-xl" style={{ backgroundColor: `${sevColor[result.impact.severity]}08`, border: `1px solid ${sevColor[result.impact.severity]}30` }} data-testid="shock-result">
           <div className="flex items-center justify-between mb-2">
