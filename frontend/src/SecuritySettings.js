@@ -405,10 +405,12 @@ const SecuritySettings = () => {
               </div>
             ))}
           </div>
+          )}
 
           <button
             onClick={handleLogoutAllSessions}
-            className="w-full mt-4 py-3 rounded-xl font-medium flex items-center justify-center gap-2"
+            disabled={activeSessions.filter(s => !s.current).length === 0}
+            className="w-full mt-4 py-3 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ backgroundColor: "rgba(239, 68, 68, 0.1)", color: "#EF4444" }}
           >
             <LogOut className="h-4 w-4" />
