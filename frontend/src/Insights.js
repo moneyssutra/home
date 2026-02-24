@@ -106,7 +106,7 @@ const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
       {/* Header */}
       <div className="px-5 pt-4 pb-1 flex items-center gap-2">
         <Rocket className="h-4 w-4" style={{ color: "#8B5CF6" }} />
-        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Journey</h3>
+        <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Financial Journey</h3>
       </div>
       {/* Main identity */}
       <div className="p-5 pb-3 pt-2">
@@ -267,7 +267,7 @@ const EmergencyRunwayWidget = ({ data }) => {
     <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="emergency-runway">
       <div className="flex items-center gap-2 mb-1">
         <Shield className="h-5 w-5" style={{ color: levelColor }} />
-        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Emergency Runway</h3>
+        <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Emergency Runway</h3>
         <button onClick={() => setShowBreakdown(!showBreakdown)} className="ml-auto" data-testid="runway-breakdown-btn">
           <Info className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
         </button>
@@ -390,7 +390,7 @@ const FinancialScoreWidget = ({ data }) => {
     <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-score">
       <div className="flex items-center gap-2 mb-1">
         <Target className="h-5 w-5" style={{ color: gc }} />
-        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Score</h3>
+        <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Financial Score</h3>
       </div>
       <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
         {period ? `Rolling 3-month window: ${period}` : `Updated ${today}`}
@@ -608,7 +608,7 @@ const ShockTestWidget = ({ clockData }) => {
     <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="shock-test">
       <div className="flex items-center gap-2 mb-1">
         <Zap className="h-5 w-5" style={{ color: "#EF4444" }} />
-        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Shock Test</h3>
+        <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Shock Test</h3>
       </div>
       <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>Can your finances handle an emergency?</p>
 
