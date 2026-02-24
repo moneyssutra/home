@@ -2,7 +2,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://analytics-debug-7.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://finance-health-check.preview.emergentagent.com')
 
 class TestIncomeTransactionAPI:
     """Test Income Transaction endpoints including PUT for editing"""
