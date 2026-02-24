@@ -113,19 +113,17 @@ const Reports = () => {
       const report = reports.find(r => r.id === reportId);
       const fileExt = exportFormat === 'excel' ? 'xlsx' : 'pdf';
       const filename = `${reportId}_report_${new Date().toISOString().split('T')[0]}.${fileExt}`;
+      const mimeType = exportFormat === 'excel' 
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/pdf';
       
       // Build the URL with query parameters
       const url = `${backendUrl}/api/reports/generate/${reportId}?format=${exportFormat}&from_date=${dateRange.from}&to_date=${dateRange.to}`;
       
-      // Use fetch with blob and create object URL
+      // Fetch as blob
       const response = await fetch(url, {
         method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Accept': exportFormat === 'excel' 
-            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            : 'application/pdf'
-        }
+        credentials: 'include'
       });
       
       if (!response.ok) {
@@ -133,76 +131,54 @@ const Reports = () => {
       }
       
       const blob = await response.blob();
+      const blobWithType = new Blob([blob], { type: mimeType });
       
-      // Create a File object from the blob
-      const file = new File([blob], filename, { 
-        type: exportFormat === 'excel' 
-          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          : 'application/pdf'
-      });
-      
-      // Use the File System Access API if available (Chrome 86+)
-      if ('showSaveFilePicker' in window) {
+      // Use File System Access API if available (modern Chrome)
+      if (typeof window.showSaveFilePicker === 'function') {
         try {
           const handle = await window.showSaveFilePicker({
             suggestedName: filename,
             types: [{
-              description: exportFormat === 'excel' ? 'Excel File' : 'PDF Document',
-              accept: exportFormat === 'excel' 
-                ? { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
-                : { 'application/pdf': ['.pdf'] }
+              description: exportFormat === 'excel' ? 'Excel Spreadsheet' : 'PDF Document',
+              accept: { [mimeType]: [`.${fileExt}`] }
             }]
           });
           const writable = await handle.createWritable();
-          await writable.write(file);
+          await writable.write(blobWithType);
           await writable.close();
           
           toast.success(`${report.title} saved successfully!`);
           setDownloadedReports(prev => [...prev, reportId]);
-          setTimeout(() => {
-            setDownloadedReports(prev => prev.filter(id => id !== reportId));
-          }, 5000);
+          setTimeout(() => setDownloadedReports(prev => prev.filter(id => id !== reportId)), 5000);
+          setGenerating(null);
           return;
-        } catch (fsError) {
-          // User cancelled or API not supported, fall through to blob method
-          if (fsError.name === 'AbortError') {
+        } catch (err) {
+          if (err.name === 'AbortError') {
             setGenerating(null);
-            return;
+            return; // User cancelled
           }
+          // Fall through to traditional download
         }
       }
       
-      // Fallback: Create blob URL and trigger download
-      const blobUrl = URL.createObjectURL(blob);
+      // Traditional blob download method
+      const blobUrl = URL.createObjectURL(blobWithType);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename;
+      link.setAttribute('type', mimeType);
       
-      // Create invisible iframe for download (less likely to be blocked)
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
-      // Create link inside iframe
-      const iframeDoc = iframe.contentWindow.document;
-      iframeDoc.open();
-      iframeDoc.write(`
-        <html><body>
-          <a id="downloadLink" href="${blobUrl}" download="${filename}">Download</a>
-          <script>document.getElementById('downloadLink').click();</script>
-        </body></html>
-      `);
-      iframeDoc.close();
-      
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-        URL.revokeObjectURL(blobUrl);
-      }, 5000);
+      // Cleanup blob URL after delay
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
       
       toast.success(`${report.title} downloaded! Check your Downloads folder.`);
       setDownloadedReports(prev => [...prev, reportId]);
-      
-      setTimeout(() => {
-        setDownloadedReports(prev => prev.filter(id => id !== reportId));
-      }, 5000);
+      setTimeout(() => setDownloadedReports(prev => prev.filter(id => id !== reportId)), 5000);
       
     } catch (error) {
       console.error("Report generation error:", error);
