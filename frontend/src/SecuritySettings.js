@@ -104,7 +104,7 @@ const SecuritySettings = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 px-4 py-4 flex items-center gap-3" style={{ backgroundColor: "var(--bg-app)" }}>
         <button
-          onClick={() => navigate("/home", { replace: true })}
+          onClick={() => navigate("/settings", { replace: true })}
           className="flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-gray-100"
           data-testid="back-button"
         >
