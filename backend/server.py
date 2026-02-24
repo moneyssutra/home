@@ -6848,6 +6848,820 @@ async def check_and_send_reminders():
         # Wait 60 seconds before next check
         await asyncio.sleep(60)
 
+# ============ ANALYTICS API ============
+class AnalyticsSnapshot(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    userId: str
+    month: int
+    year: int
+    netWorth: float = 0
+    totalAssets: float = 0
+    totalInvestments: float = 0
+    totalLiabilities: float = 0
+    liquidBalance: float = 0
+    monthlyIncome: float = 0
+    monthlyExpense: float = 0
+    savingsRate: float = 0
+    investmentGains: float = 0
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+@api_router.get("/analytics/snapshots")
+async def get_analytics_snapshots(request: Request, months: int = 12):
+    """Get historical monthly snapshots for analytics"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    
+    # Get snapshots from database
+    snapshots = await db.analytics_snapshots.find(
+        {"userId": user_id},
+        {"_id": 0}
+    ).sort([("year", -1), ("month", -1)]).limit(months).to_list(months)
+    
+    return snapshots
+
+@api_router.post("/analytics/snapshot")
+async def create_analytics_snapshot(request: Request):
+    """Create a monthly snapshot of current financial state"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    now = datetime.now(timezone.utc)
+    current_month = now.month
+    current_year = now.year
+    
+    # Check if snapshot already exists for this month
+    existing = await db.analytics_snapshots.find_one({
+        "userId": user_id,
+        "month": current_month,
+        "year": current_year
+    })
+    
+    # Get current financial data
+    user_filter = {"userId": user_id}
+    
+    assets, investments, accounts, loans, credit_cards, incomes, expenses = await asyncio.gather(
+        db.assets.find(user_filter, {"_id": 0}).to_list(1000),
+        db.investments.find(user_filter, {"_id": 0}).to_list(1000),
+        db.accounts.find(user_filter, {"_id": 0}).to_list(1000),
+        db.loans.find(user_filter, {"_id": 0}).to_list(1000),
+        db.credit_cards.find(user_filter, {"_id": 0}).to_list(1000),
+        db.income_sources.find(user_filter, {"_id": 0}).to_list(1000),
+        db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
+    )
+    
+    total_assets = sum(a.get('currentValue', 0) for a in assets)
+    total_investments = sum(i.get('currentValue', 0) for i in investments)
+    investment_principal = sum(i.get('principal', 0) for i in investments)
+    investment_gains = total_investments - investment_principal
+    
+    liquid_balance = sum(acc.get('currentBalance', 0) or acc.get('balance', 0) for acc in accounts)
+    
+    total_liabilities = sum(l.get('outstandingAmount', 0) for l in loans)
+    total_liabilities += sum(c.get('currentOutstanding', 0) or c.get('outstandingAmount', 0) for c in credit_cards)
+    
+    net_worth = total_assets + total_investments + liquid_balance - total_liabilities
+    
+    # Calculate monthly income/expense
+    monthly_income = sum(i.get('expectedAmount', 0) for i in incomes if i.get('frequency') == 'Monthly')
+    monthly_income += sum(i.get('expectedAmount', 0) * 4 for i in incomes if i.get('frequency') == 'Weekly')
+    monthly_income += sum(i.get('expectedAmount', 0) * 30 for i in incomes if i.get('frequency') == 'Daily')
+    
+    monthly_expense = sum(e.get('expectedAmount', 0) for e in expenses if e.get('frequency') == 'Monthly')
+    monthly_expense += sum(e.get('expectedAmount', 0) * 4 for e in expenses if e.get('frequency') == 'Weekly')
+    
+    savings_rate = ((monthly_income - monthly_expense) / monthly_income * 100) if monthly_income > 0 else 0
+    
+    snapshot_data = {
+        "id": str(uuid.uuid4()),
+        "userId": user_id,
+        "month": current_month,
+        "year": current_year,
+        "netWorth": net_worth,
+        "totalAssets": total_assets,
+        "totalInvestments": total_investments,
+        "totalLiabilities": total_liabilities,
+        "liquidBalance": liquid_balance,
+        "monthlyIncome": monthly_income,
+        "monthlyExpense": monthly_expense,
+        "savingsRate": round(savings_rate, 1),
+        "investmentGains": investment_gains,
+        "createdAt": now
+    }
+    
+    if existing:
+        # Update existing snapshot
+        await db.analytics_snapshots.update_one(
+            {"userId": user_id, "month": current_month, "year": current_year},
+            {"$set": snapshot_data}
+        )
+    else:
+        # Create new snapshot
+        await db.analytics_snapshots.insert_one(snapshot_data)
+    
+    return {"message": "Snapshot created", "snapshot": snapshot_data}
+
+@api_router.get("/analytics/investment-performance")
+async def get_investment_performance(request: Request):
+    """Get investment performance breakdown"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    user_filter = {"userId": user_id}
+    
+    investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+    
+    total_invested = sum(i.get('principal', 0) for i in investments)
+    current_value = sum(i.get('currentValue', 0) for i in investments)
+    total_gains = current_value - total_invested
+    gain_percent = (total_gains / total_invested * 100) if total_invested > 0 else 0
+    
+    # Group by category
+    by_category = {}
+    for inv in investments:
+        cat = inv.get('investmentCategory', 'Other')
+        if cat not in by_category:
+            by_category[cat] = {"invested": 0, "current": 0, "count": 0}
+        by_category[cat]["invested"] += inv.get('principal', 0)
+        by_category[cat]["current"] += inv.get('currentValue', 0)
+        by_category[cat]["count"] += 1
+    
+    return {
+        "totalInvested": total_invested,
+        "currentValue": current_value,
+        "totalGains": total_gains,
+        "gainPercent": round(gain_percent, 2),
+        "byCategory": by_category
+    }
+
+# ============ REPORTS API ============
+from io import BytesIO
+from fastapi.responses import StreamingResponse
+
+@api_router.get("/reports/generate/{report_type}")
+async def generate_report(
+    request: Request, 
+    report_type: str, 
+    format: str = "pdf",
+    from_date: Optional[str] = None,
+    to_date: Optional[str] = None
+):
+    """Generate and download financial reports"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    user_name = user.get('name', 'User')
+    user_filter = {"userId": user_id}
+    
+    # Parse dates
+    try:
+        start_date = datetime.strptime(from_date, "%Y-%m-%d") if from_date else datetime.now(timezone.utc).replace(day=1)
+        end_date = datetime.strptime(to_date, "%Y-%m-%d") if to_date else datetime.now(timezone.utc)
+    except:
+        start_date = datetime.now(timezone.utc).replace(day=1)
+        end_date = datetime.now(timezone.utc)
+    
+    # Fetch relevant data based on report type
+    data = {}
+    
+    if report_type in ["income", "cashflow", "networth"]:
+        data["incomes"] = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
+    
+    if report_type in ["expense", "cashflow", "networth"]:
+        data["expenses"] = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
+    
+    if report_type in ["loan", "networth"]:
+        data["loans"] = await db.loans.find(user_filter, {"_id": 0}).to_list(1000)
+    
+    if report_type in ["investment", "networth"]:
+        data["investments"] = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+    
+    if report_type in ["networth"]:
+        data["assets"] = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
+        data["accounts"] = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
+        data["credit_cards"] = await db.credit_cards.find(user_filter, {"_id": 0}).to_list(1000)
+    
+    if report_type == "goal":
+        data["goals"] = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
+    
+    # Generate report
+    if format == "excel":
+        return await generate_excel_report(report_type, data, user_name, start_date, end_date)
+    else:
+        return await generate_pdf_report(report_type, data, user_name, start_date, end_date)
+
+async def generate_pdf_report(report_type: str, data: dict, user_name: str, start_date: datetime, end_date: datetime):
+    """Generate PDF report using ReportLab"""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    # Title
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=18, spaceAfter=20)
+    report_titles = {
+        "income": "Income Report",
+        "expense": "Expense Report",
+        "cashflow": "Cash Flow Report",
+        "loan": "Loan Report",
+        "investment": "Investment Report",
+        "networth": "Net Worth Report",
+        "goal": "Goal Progress Report"
+    }
+    elements.append(Paragraph(report_titles.get(report_type, "Financial Report"), title_style))
+    elements.append(Paragraph(f"Generated for: {user_name}", styles['Normal']))
+    elements.append(Paragraph(f"Period: {start_date.strftime('%d %b %Y')} - {end_date.strftime('%d %b %Y')}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+    
+    # Generate content based on report type
+    if report_type == "income" and data.get("incomes"):
+        elements.append(Paragraph("Income Sources", styles['Heading2']))
+        table_data = [["Source", "Type", "Amount", "Frequency"]]
+        total = 0
+        for inc in data["incomes"]:
+            amt = inc.get('expectedAmount', 0)
+            total += amt
+            table_data.append([
+                inc.get('name', 'N/A'),
+                inc.get('type', 'N/A').title(),
+                f"₹{amt:,.0f}",
+                inc.get('frequency', 'Monthly')
+            ])
+        table_data.append(["Total", "", f"₹{total:,.0f}", ""])
+        
+        table = Table(table_data, colWidths=[2*inch, 1.2*inch, 1.2*inch, 1.2*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#10B981')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#D1FAE5')),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB'))
+        ]))
+        elements.append(table)
+    
+    elif report_type == "expense" and data.get("expenses"):
+        elements.append(Paragraph("Expense Breakdown", styles['Heading2']))
+        table_data = [["Expense", "Category", "Amount", "Frequency"]]
+        total = 0
+        for exp in data["expenses"]:
+            amt = exp.get('expectedAmount', 0)
+            total += amt
+            table_data.append([
+                exp.get('expenseName', 'N/A'),
+                exp.get('category', 'N/A'),
+                f"₹{amt:,.0f}",
+                exp.get('frequency', 'Monthly')
+            ])
+        table_data.append(["Total", "", f"₹{total:,.0f}", ""])
+        
+        table = Table(table_data, colWidths=[2*inch, 1.2*inch, 1.2*inch, 1.2*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#EF4444')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#FEE2E2')),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB'))
+        ]))
+        elements.append(table)
+    
+    elif report_type == "investment" and data.get("investments"):
+        elements.append(Paragraph("Investment Portfolio", styles['Heading2']))
+        table_data = [["Name", "Category", "Invested", "Current Value", "Gain/Loss"]]
+        total_invested = 0
+        total_current = 0
+        for inv in data["investments"]:
+            invested = inv.get('principal', 0)
+            current = inv.get('currentValue', 0)
+            gain = current - invested
+            total_invested += invested
+            total_current += current
+            table_data.append([
+                inv.get('name', 'N/A')[:20],
+                inv.get('investmentCategory', 'N/A'),
+                f"₹{invested:,.0f}",
+                f"₹{current:,.0f}",
+                f"₹{gain:,.0f}"
+            ])
+        table_data.append(["Total", "", f"₹{total_invested:,.0f}", f"₹{total_current:,.0f}", f"₹{total_current - total_invested:,.0f}"])
+        
+        table = Table(table_data, colWidths=[1.5*inch, 1*inch, 1*inch, 1.1*inch, 1*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#8B5CF6')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#EDE9FE')),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB'))
+        ]))
+        elements.append(table)
+    
+    elif report_type == "loan" and data.get("loans"):
+        elements.append(Paragraph("Loan Details", styles['Heading2']))
+        table_data = [["Loan Name", "Type", "Outstanding", "EMI", "Interest Rate"]]
+        total_outstanding = 0
+        for loan in data["loans"]:
+            outstanding = loan.get('outstandingAmount', 0)
+            total_outstanding += outstanding
+            table_data.append([
+                loan.get('loanName', 'N/A')[:20],
+                loan.get('loanType', 'N/A'),
+                f"₹{outstanding:,.0f}",
+                f"₹{loan.get('emiAmount', 0):,.0f}",
+                f"{loan.get('interestRate', 0)}%"
+            ])
+        table_data.append(["Total Outstanding", "", f"₹{total_outstanding:,.0f}", "", ""])
+        
+        table = Table(table_data, colWidths=[1.4*inch, 1.1*inch, 1.1*inch, 1*inch, 1*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#F59E0B')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#FEF3C7')),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB'))
+        ]))
+        elements.append(table)
+    
+    elif report_type == "networth":
+        # Calculate totals
+        total_assets = sum(a.get('currentValue', 0) for a in data.get("assets", []))
+        total_investments = sum(i.get('currentValue', 0) for i in data.get("investments", []))
+        liquid_balance = sum(a.get('currentBalance', 0) or a.get('balance', 0) for a in data.get("accounts", []))
+        total_loans = sum(l.get('outstandingAmount', 0) for l in data.get("loans", []))
+        total_cc = sum(c.get('currentOutstanding', 0) or c.get('outstandingAmount', 0) for c in data.get("credit_cards", []))
+        total_liabilities = total_loans + total_cc
+        net_worth = total_assets + total_investments + liquid_balance - total_liabilities
+        
+        elements.append(Paragraph("Net Worth Summary", styles['Heading2']))
+        summary_data = [
+            ["Category", "Amount"],
+            ["Total Assets", f"₹{total_assets:,.0f}"],
+            ["Total Investments", f"₹{total_investments:,.0f}"],
+            ["Liquid Balance (Bank)", f"₹{liquid_balance:,.0f}"],
+            ["Total Liabilities", f"₹{total_liabilities:,.0f}"],
+            ["Net Worth", f"₹{net_worth:,.0f}"]
+        ]
+        
+        table = Table(summary_data, colWidths=[3*inch, 2*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#3B82F6')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#DBEAFE')),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB'))
+        ]))
+        elements.append(table)
+    
+    elif report_type == "goal" and data.get("goals"):
+        elements.append(Paragraph("Financial Goals Progress", styles['Heading2']))
+        table_data = [["Goal", "Target", "Current", "Progress", "Target Date"]]
+        for goal in data["goals"]:
+            target = goal.get('targetAmount', 0)
+            current = goal.get('currentAmount', 0)
+            progress = (current / target * 100) if target > 0 else 0
+            target_date = goal.get('targetDate', 'N/A')
+            if isinstance(target_date, datetime):
+                target_date = target_date.strftime('%d %b %Y')
+            table_data.append([
+                goal.get('goalName', 'N/A')[:20],
+                f"₹{target:,.0f}",
+                f"₹{current:,.0f}",
+                f"{progress:.0f}%",
+                target_date[:10] if target_date else 'N/A'
+            ])
+        
+        table = Table(table_data, colWidths=[1.5*inch, 1*inch, 1*inch, 0.8*inch, 1.2*inch])
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#EC4899')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#E5E7EB'))
+        ]))
+        elements.append(table)
+    
+    # Build PDF
+    doc.build(elements)
+    buffer.seek(0)
+    
+    filename = f"{report_type}_report_{datetime.now().strftime('%Y%m%d')}.pdf"
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+async def generate_excel_report(report_type: str, data: dict, user_name: str, start_date: datetime, end_date: datetime):
+    """Generate Excel report using openpyxl"""
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+    
+    wb = Workbook()
+    ws = wb.active
+    
+    # Styles
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="10B981", end_color="10B981", fill_type="solid")
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    report_titles = {
+        "income": "Income Report",
+        "expense": "Expense Report",
+        "cashflow": "Cash Flow Report",
+        "loan": "Loan Report",
+        "investment": "Investment Report",
+        "networth": "Net Worth Report",
+        "goal": "Goal Progress Report"
+    }
+    
+    ws.title = report_titles.get(report_type, "Report")
+    
+    # Header
+    ws['A1'] = report_titles.get(report_type, "Financial Report")
+    ws['A1'].font = Font(bold=True, size=14)
+    ws['A2'] = f"Generated for: {user_name}"
+    ws['A3'] = f"Period: {start_date.strftime('%d %b %Y')} - {end_date.strftime('%d %b %Y')}"
+    
+    row = 5
+    
+    if report_type == "income" and data.get("incomes"):
+        headers = ["Source", "Type", "Amount", "Frequency"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+        
+        row += 1
+        total = 0
+        for inc in data["incomes"]:
+            amt = inc.get('expectedAmount', 0)
+            total += amt
+            ws.cell(row=row, column=1, value=inc.get('name', 'N/A')).border = border
+            ws.cell(row=row, column=2, value=inc.get('type', 'N/A').title()).border = border
+            ws.cell(row=row, column=3, value=amt).border = border
+            ws.cell(row=row, column=4, value=inc.get('frequency', 'Monthly')).border = border
+            row += 1
+        
+        ws.cell(row=row, column=1, value="Total").font = Font(bold=True)
+        ws.cell(row=row, column=3, value=total).font = Font(bold=True)
+    
+    elif report_type == "expense" and data.get("expenses"):
+        header_fill = PatternFill(start_color="EF4444", end_color="EF4444", fill_type="solid")
+        headers = ["Expense", "Category", "Amount", "Frequency"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+        
+        row += 1
+        total = 0
+        for exp in data["expenses"]:
+            amt = exp.get('expectedAmount', 0)
+            total += amt
+            ws.cell(row=row, column=1, value=exp.get('expenseName', 'N/A')).border = border
+            ws.cell(row=row, column=2, value=exp.get('category', 'N/A')).border = border
+            ws.cell(row=row, column=3, value=amt).border = border
+            ws.cell(row=row, column=4, value=exp.get('frequency', 'Monthly')).border = border
+            row += 1
+        
+        ws.cell(row=row, column=1, value="Total").font = Font(bold=True)
+        ws.cell(row=row, column=3, value=total).font = Font(bold=True)
+    
+    elif report_type == "investment" and data.get("investments"):
+        header_fill = PatternFill(start_color="8B5CF6", end_color="8B5CF6", fill_type="solid")
+        headers = ["Name", "Category", "Invested", "Current Value", "Gain/Loss"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+        
+        row += 1
+        total_invested = 0
+        total_current = 0
+        for inv in data["investments"]:
+            invested = inv.get('principal', 0)
+            current = inv.get('currentValue', 0)
+            total_invested += invested
+            total_current += current
+            ws.cell(row=row, column=1, value=inv.get('name', 'N/A')).border = border
+            ws.cell(row=row, column=2, value=inv.get('investmentCategory', 'N/A')).border = border
+            ws.cell(row=row, column=3, value=invested).border = border
+            ws.cell(row=row, column=4, value=current).border = border
+            ws.cell(row=row, column=5, value=current - invested).border = border
+            row += 1
+        
+        ws.cell(row=row, column=1, value="Total").font = Font(bold=True)
+        ws.cell(row=row, column=3, value=total_invested).font = Font(bold=True)
+        ws.cell(row=row, column=4, value=total_current).font = Font(bold=True)
+        ws.cell(row=row, column=5, value=total_current - total_invested).font = Font(bold=True)
+    
+    elif report_type == "loan" and data.get("loans"):
+        header_fill = PatternFill(start_color="F59E0B", end_color="F59E0B", fill_type="solid")
+        headers = ["Loan Name", "Type", "Outstanding", "EMI", "Interest Rate"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+        
+        row += 1
+        total = 0
+        for loan in data["loans"]:
+            outstanding = loan.get('outstandingAmount', 0)
+            total += outstanding
+            ws.cell(row=row, column=1, value=loan.get('loanName', 'N/A')).border = border
+            ws.cell(row=row, column=2, value=loan.get('loanType', 'N/A')).border = border
+            ws.cell(row=row, column=3, value=outstanding).border = border
+            ws.cell(row=row, column=4, value=loan.get('emiAmount', 0)).border = border
+            ws.cell(row=row, column=5, value=f"{loan.get('interestRate', 0)}%").border = border
+            row += 1
+        
+        ws.cell(row=row, column=1, value="Total Outstanding").font = Font(bold=True)
+        ws.cell(row=row, column=3, value=total).font = Font(bold=True)
+    
+    elif report_type == "networth":
+        header_fill = PatternFill(start_color="3B82F6", end_color="3B82F6", fill_type="solid")
+        
+        total_assets = sum(a.get('currentValue', 0) for a in data.get("assets", []))
+        total_investments = sum(i.get('currentValue', 0) for i in data.get("investments", []))
+        liquid_balance = sum(a.get('currentBalance', 0) or a.get('balance', 0) for a in data.get("accounts", []))
+        total_loans = sum(l.get('outstandingAmount', 0) for l in data.get("loans", []))
+        total_cc = sum(c.get('currentOutstanding', 0) or c.get('outstandingAmount', 0) for c in data.get("credit_cards", []))
+        net_worth = total_assets + total_investments + liquid_balance - total_loans - total_cc
+        
+        headers = ["Category", "Amount"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+        
+        row += 1
+        items = [
+            ("Total Assets", total_assets),
+            ("Total Investments", total_investments),
+            ("Liquid Balance", liquid_balance),
+            ("Loans Outstanding", -total_loans),
+            ("Credit Card Due", -total_cc),
+            ("Net Worth", net_worth)
+        ]
+        for item, value in items:
+            ws.cell(row=row, column=1, value=item).border = border
+            ws.cell(row=row, column=2, value=value).border = border
+            row += 1
+        
+        ws.cell(row=row-1, column=1).font = Font(bold=True)
+        ws.cell(row=row-1, column=2).font = Font(bold=True)
+    
+    elif report_type == "goal" and data.get("goals"):
+        header_fill = PatternFill(start_color="EC4899", end_color="EC4899", fill_type="solid")
+        headers = ["Goal", "Target", "Current", "Progress %", "Target Date"]
+        for col, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.border = border
+        
+        row += 1
+        for goal in data["goals"]:
+            target = goal.get('targetAmount', 0)
+            current = goal.get('currentAmount', 0)
+            progress = (current / target * 100) if target > 0 else 0
+            target_date = goal.get('targetDate', 'N/A')
+            if isinstance(target_date, datetime):
+                target_date = target_date.strftime('%d %b %Y')
+            
+            ws.cell(row=row, column=1, value=goal.get('goalName', 'N/A')).border = border
+            ws.cell(row=row, column=2, value=target).border = border
+            ws.cell(row=row, column=3, value=current).border = border
+            ws.cell(row=row, column=4, value=f"{progress:.0f}%").border = border
+            ws.cell(row=row, column=5, value=str(target_date)[:10] if target_date else 'N/A').border = border
+            row += 1
+    
+    # Adjust column widths
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        ws.column_dimensions[column].width = min(max_length + 2, 30)
+    
+    # Save to buffer
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    
+    filename = f"{report_type}_report_{datetime.now().strftime('%Y%m%d')}.xlsx"
+    return StreamingResponse(
+        buffer,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+# ============ SETTINGS APIs ============
+class NotificationPreferences(BaseModel):
+    emailNotifications: bool = True
+    pushNotifications: bool = True
+    smsNotifications: bool = False
+    incomeReminders: bool = True
+    expenseReminders: bool = True
+    billReminders: bool = True
+    goalReminders: bool = True
+    weeklyDigest: bool = True
+    monthlyReport: bool = True
+
+class UserPreferences(BaseModel):
+    theme: str = "light"
+    accentColor: str = "#10B981"
+    currency: str = "INR"
+    dateFormat: str = "DD/MM/YYYY"
+    language: str = "en"
+
+@api_router.get("/settings/notifications")
+async def get_notification_settings(request: Request):
+    """Get user notification preferences"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    
+    prefs = await db.user_preferences.find_one({"userId": user_id, "type": "notifications"}, {"_id": 0})
+    
+    if not prefs:
+        # Return defaults
+        return NotificationPreferences().model_dump()
+    
+    return prefs.get("settings", NotificationPreferences().model_dump())
+
+@api_router.put("/settings/notifications")
+async def update_notification_settings(request: Request, prefs: NotificationPreferences):
+    """Update user notification preferences"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    
+    await db.user_preferences.update_one(
+        {"userId": user_id, "type": "notifications"},
+        {"$set": {"userId": user_id, "type": "notifications", "settings": prefs.model_dump(), "updatedAt": datetime.now(timezone.utc)}},
+        upsert=True
+    )
+    
+    return {"message": "Notification preferences updated", "settings": prefs.model_dump()}
+
+@api_router.get("/settings/preferences")
+async def get_user_preferences(request: Request):
+    """Get user app preferences"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    
+    prefs = await db.user_preferences.find_one({"userId": user_id, "type": "app"}, {"_id": 0})
+    
+    if not prefs:
+        return UserPreferences().model_dump()
+    
+    return prefs.get("settings", UserPreferences().model_dump())
+
+@api_router.put("/settings/preferences")
+async def update_user_preferences(request: Request, prefs: UserPreferences):
+    """Update user app preferences"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    
+    await db.user_preferences.update_one(
+        {"userId": user_id, "type": "app"},
+        {"$set": {"userId": user_id, "type": "app", "settings": prefs.model_dump(), "updatedAt": datetime.now(timezone.utc)}},
+        upsert=True
+    )
+    
+    return {"message": "Preferences updated", "settings": prefs.model_dump()}
+
+@api_router.get("/settings/data-export")
+async def export_user_data(request: Request):
+    """Export all user data as JSON"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    user_filter = {"userId": user_id}
+    
+    # Gather all user data
+    data = {
+        "user": {
+            "email": user.get('email'),
+            "name": user.get('name'),
+            "exportedAt": datetime.now(timezone.utc).isoformat()
+        },
+        "assets": await db.assets.find(user_filter, {"_id": 0}).to_list(1000),
+        "investments": await db.investments.find(user_filter, {"_id": 0}).to_list(1000),
+        "accounts": await db.accounts.find(user_filter, {"_id": 0}).to_list(1000),
+        "loans": await db.loans.find(user_filter, {"_id": 0}).to_list(1000),
+        "credit_cards": await db.credit_cards.find(user_filter, {"_id": 0}).to_list(1000),
+        "income_sources": await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000),
+        "expenses": await db.expenses.find(user_filter, {"_id": 0}).to_list(1000),
+        "goals": await db.goals.find(user_filter, {"_id": 0}).to_list(1000),
+        "insurances": await db.insurances.find(user_filter, {"_id": 0}).to_list(1000)
+    }
+    
+    import json
+    json_data = json.dumps(data, default=str, indent=2)
+    buffer = BytesIO(json_data.encode())
+    
+    filename = f"moneyssutra_data_export_{datetime.now().strftime('%Y%m%d')}.json"
+    return StreamingResponse(
+        buffer,
+        media_type="application/json",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@api_router.delete("/settings/delete-account")
+async def delete_user_account(request: Request):
+    """Delete user account and all associated data"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    user_id = user.get('user_id')
+    user_filter = {"userId": user_id}
+    
+    # Delete all user data from all collections
+    await asyncio.gather(
+        db.assets.delete_many(user_filter),
+        db.investments.delete_many(user_filter),
+        db.accounts.delete_many(user_filter),
+        db.loans.delete_many(user_filter),
+        db.credit_cards.delete_many(user_filter),
+        db.income_sources.delete_many(user_filter),
+        db.other_income.delete_many(user_filter),
+        db.expenses.delete_many(user_filter),
+        db.goals.delete_many(user_filter),
+        db.insurances.delete_many(user_filter),
+        db.user_preferences.delete_many(user_filter),
+        db.analytics_snapshots.delete_many(user_filter),
+        db.notifications.delete_many(user_filter),
+        db.income_transactions.delete_many(user_filter),
+        db.expense_transactions.delete_many(user_filter),
+        db.user_sessions.delete_many({"user_id": user_id}),
+        db.users.delete_one({"user_id": user_id})
+    )
+    
+    return {"message": "Account and all data deleted successfully"}
+
 @app.on_event("startup")
 async def startup_db_client():
     """Create database indexes and start background scheduler"""
