@@ -218,6 +218,11 @@ async def get_survival_clock(request: Request):
         start = max(0, end - 10)
     visible_stages = SURVIVAL_STAGES[start:end]
 
+    all_stages = [
+        {**s, "reached": survival_days >= s["min"], "current": s["stage"] == current_stage}
+        for s in SURVIVAL_STAGES
+    ]
+
     return {
         "effectiveFunds": round(effective_funds, 0),
         "monthlyMandatoryExpense": round(monthly_mandatory, 0),
@@ -234,6 +239,7 @@ async def get_survival_clock(request: Request):
             {**s, "reached": survival_days >= s["min"], "current": s["stage"] == current_stage}
             for s in visible_stages
         ],
+        "allStages": all_stages,
         "fundBreakdown": fund_breakdown,
         "explanation": f"If your income stops today, your accessible savings of ₹{effective_funds:,.0f} can cover {survival_days} days ({survival_months} months) of essential expenses.",
         "tip": _get_runway_tip(survival_days)
