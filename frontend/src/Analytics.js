@@ -23,36 +23,73 @@ const Analytics = () => {
     monthlyExpense: 0,
     savingsRate: 0
   });
+  const [investmentPerf, setInvestmentPerf] = useState({
+    totalInvested: 0,
+    currentValue: 0,
+    totalGains: 0,
+    gainPercent: 0,
+    byCategory: {}
+  });
+  const [snapshots, setSnapshots] = useState([]);
 
   const timeFilters = ["1M", "3M", "6M", "1Y", "All"];
+  const monthsMap = { "1M": 1, "3M": 3, "6M": 6, "1Y": 12, "All": 24 };
 
   useEffect(() => {
-    fetchAnalyticsData();
+    fetchAllData();
   }, [timeFilter]);
 
-  const fetchAnalyticsData = async () => {
+  const fetchAllData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${backendUrl}/api/dashboard/networth`, {
-        withCredentials: true
-      });
+      // Fetch all data in parallel
+      const [networthRes, investmentRes, snapshotsRes] = await Promise.all([
+        axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/analytics/investment-performance`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/analytics/snapshots?months=${monthsMap[timeFilter]}`, { withCredentials: true })
+      ]);
       
-      const monthlyIncome = response.data.monthlyIncome || 0;
-      const monthlyExpense = response.data.monthlyExpense || 0;
+      const monthlyIncome = networthRes.data.monthlyIncome || 0;
+      const monthlyExpense = networthRes.data.monthlyExpense || 0;
       const surplus = monthlyIncome - monthlyExpense;
       const savingsRate = monthlyIncome > 0 ? ((surplus / monthlyIncome) * 100).toFixed(1) : 0;
       
+      // Calculate net worth change from snapshots
+      let netWorthChange = 0;
+      const snapshotData = snapshotsRes.data || [];
+      if (snapshotData.length >= 2) {
+        const latest = snapshotData[0]?.netWorth || 0;
+        const previous = snapshotData[snapshotData.length - 1]?.netWorth || 0;
+        if (previous > 0) {
+          netWorthChange = ((latest - previous) / previous * 100).toFixed(1);
+        }
+      }
+      
       setData({
-        netWorth: response.data.netWorth || 0,
-        netWorthChange: 5.2, // Placeholder - would come from historical data
-        totalAssets: response.data.totalAssets || 0,
-        totalInvestments: response.data.totalInvestments || 0,
-        totalLoans: response.data.totalLiabilities || 0,
-        totalCreditCards: response.data.creditCardDue || 0,
+        netWorth: networthRes.data.netWorth || 0,
+        netWorthChange: parseFloat(netWorthChange) || 0,
+        totalAssets: networthRes.data.totalAssets || 0,
+        totalInvestments: networthRes.data.totalInvestments || 0,
+        totalLoans: networthRes.data.totalLiabilities || 0,
+        totalCreditCards: networthRes.data.creditCardDue || 0,
         monthlyIncome,
         monthlyExpense,
         savingsRate
       });
+      
+      setInvestmentPerf(investmentRes.data || {
+        totalInvested: 0,
+        currentValue: 0,
+        totalGains: 0,
+        gainPercent: 0,
+        byCategory: {}
+      });
+      
+      setSnapshots(snapshotData.reverse()); // Oldest first for chart
+      
+      // Create snapshot for current month
+      await axios.post(`${backendUrl}/api/analytics/snapshot`, {}, { withCredentials: true });
+      
     } catch (error) {
       console.error("Failed to fetch analytics:", error);
     } finally {
@@ -61,6 +98,7 @@ const Analytics = () => {
   };
 
   const formatAmount = (amount) => {
+    if (!amount) return "0";
     if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
     if (amount >= 100000) return `${(amount / 100000).toFixed(2)} L`;
     if (amount >= 1000) return `${(amount / 1000).toFixed(1)} K`;
@@ -71,6 +109,14 @@ const Analytics = () => {
   const totalWealth = data.totalAssets + data.totalInvestments;
   const assetPercent = totalWealth > 0 ? ((data.totalAssets / totalWealth) * 100).toFixed(0) : 50;
   const investmentPercent = totalWealth > 0 ? ((data.totalInvestments / totalWealth) * 100).toFixed(0) : 50;
+
+  // Generate chart bars from snapshots or placeholder data
+  const chartBars = snapshots.length > 0 
+    ? snapshots.map(s => s.netWorth)
+    : [40, 55, 45, 60, 50, 70, 65, 80, 75, 85, 90, 100].map(h => h * 100000);
+  
+  const maxBar = Math.max(...chartBars, 1);
+  const normalizedBars = chartBars.map(b => (b / maxBar) * 100);
 
   if (loading) {
     return (
@@ -98,7 +144,7 @@ const Analytics = () => {
           <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Analytics</h1>
         </div>
         <button
-          onClick={fetchAnalyticsData}
+          onClick={fetchAllData}
           className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100"
         >
           <RefreshCw className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
@@ -141,19 +187,26 @@ const Analytics = () => {
             ₹{formatAmount(data.netWorth)}
           </p>
           
-          {/* Simple Chart Placeholder */}
+          {/* Chart */}
           <div className="h-32 rounded-xl flex items-end gap-1 p-4" style={{ backgroundColor: "var(--bg-subtle)" }}>
-            {[40, 55, 45, 60, 50, 70, 65, 80, 75, 85, 90, 100].map((height, i) => (
+            {normalizedBars.map((height, i) => (
               <div 
                 key={i}
                 className="flex-1 rounded-t transition-all"
                 style={{ 
-                  height: `${height}%`,
-                  backgroundColor: i === 11 ? "var(--brand-primary)" : "var(--brand-primary-soft)"
+                  height: `${Math.max(height, 5)}%`,
+                  backgroundColor: i === normalizedBars.length - 1 ? "var(--brand-primary)" : "var(--brand-primary-soft)"
                 }}
               />
             ))}
           </div>
+          
+          {snapshots.length > 0 && (
+            <div className="flex justify-between text-xs mt-2" style={{ color: "var(--text-muted)" }}>
+              <span>{snapshots[0]?.month}/{snapshots[0]?.year}</span>
+              <span>{snapshots[snapshots.length-1]?.month}/{snapshots[snapshots.length-1]?.year}</span>
+            </div>
+          )}
           
           {data.netWorth === 0 && (
             <p className="text-center text-sm mt-4" style={{ color: "var(--text-muted)" }}>
@@ -206,18 +259,49 @@ const Analytics = () => {
             <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Investment Performance</h3>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>Total Invested</p>
-              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(data.totalInvestments)}</p>
+              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(investmentPerf.totalInvested)}</p>
             </div>
             <div className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>Current Value</p>
-              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(data.totalInvestments)}</p>
+              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(investmentPerf.currentValue)}</p>
             </div>
           </div>
           
-          {data.totalInvestments === 0 && (
+          {/* Gain/Loss indicator */}
+          <div className="p-3 rounded-xl" style={{ backgroundColor: investmentPerf.totalGains >= 0 ? "rgba(5, 150, 105, 0.1)" : "rgba(239, 68, 68, 0.1)" }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Total Returns</p>
+                <p className="text-xl font-bold" style={{ color: investmentPerf.totalGains >= 0 ? "#059669" : "#EF4444" }}>
+                  {investmentPerf.totalGains >= 0 ? "+" : ""}₹{formatAmount(Math.abs(investmentPerf.totalGains))}
+                </p>
+              </div>
+              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${investmentPerf.gainPercent >= 0 ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+                {investmentPerf.gainPercent >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                {investmentPerf.gainPercent >= 0 ? "+" : ""}{investmentPerf.gainPercent}%
+              </div>
+            </div>
+          </div>
+          
+          {/* Category breakdown */}
+          {Object.keys(investmentPerf.byCategory || {}).length > 0 && (
+            <div className="mt-4 space-y-2">
+              <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>By Category</p>
+              {Object.entries(investmentPerf.byCategory).slice(0, 5).map(([cat, vals]) => (
+                <div key={cat} className="flex items-center justify-between text-sm">
+                  <span style={{ color: "var(--text-secondary)" }}>{cat}</span>
+                  <span className={`font-medium ${vals.current - vals.invested >= 0 ? "text-green-600" : "text-red-600"}`}>
+                    {vals.current - vals.invested >= 0 ? "+" : ""}₹{formatAmount(vals.current - vals.invested)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {investmentPerf.totalInvested === 0 && (
             <p className="text-center text-sm mt-4" style={{ color: "var(--text-muted)" }}>
               Add investments to track performance
             </p>
@@ -243,16 +327,18 @@ const Analytics = () => {
               <span className="font-semibold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(data.totalCreditCards)}</span>
             </div>
             
-            {/* Progress Bar */}
-            <div className="h-3 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
-              <div 
-                className="h-full rounded-full transition-all"
-                style={{ width: "30%", backgroundColor: "#EF4444" }}
-              />
-            </div>
-            <p className="text-xs text-center" style={{ color: "var(--text-muted)" }}>
-              {data.totalLoans === 0 ? "No active loans" : "30% repaid"}
-            </p>
+            {data.totalLoans === 0 && data.totalCreditCards === 0 ? (
+              <p className="text-center text-sm pt-2" style={{ color: "var(--text-muted)" }}>
+                No active loans or credit card dues
+              </p>
+            ) : (
+              <div className="pt-2">
+                <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>Total Liabilities</p>
+                <p className="text-2xl font-bold" style={{ color: "#EF4444" }}>
+                  ₹{formatAmount(data.totalLoans + data.totalCreditCards)}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -267,11 +353,11 @@ const Analytics = () => {
           
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(5, 150, 105, 0.1)" }}>
-              <p className="text-xs" style={{ color: "#059669" }}>Avg Monthly Income</p>
+              <p className="text-xs" style={{ color: "#059669" }}>Monthly Income</p>
               <p className="text-lg font-bold" style={{ color: "#059669" }}>₹{formatAmount(data.monthlyIncome)}</p>
             </div>
             <div className="p-3 rounded-xl" style={{ backgroundColor: "rgba(239, 68, 68, 0.1)" }}>
-              <p className="text-xs" style={{ color: "#EF4444" }}>Avg Monthly Expense</p>
+              <p className="text-xs" style={{ color: "#EF4444" }}>Monthly Expense</p>
               <p className="text-lg font-bold" style={{ color: "#EF4444" }}>₹{formatAmount(data.monthlyExpense)}</p>
             </div>
           </div>
@@ -283,9 +369,12 @@ const Analytics = () => {
                 <p className="text-2xl font-bold" style={{ color: data.savingsRate >= 20 ? "#059669" : "#F59E0B" }}>
                   {data.savingsRate}%
                 </p>
+                <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
+                  Monthly Surplus: ₹{formatAmount(data.monthlyIncome - data.monthlyExpense)}
+                </p>
               </div>
               <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ 
-                background: `conic-gradient(${data.savingsRate >= 20 ? "#059669" : "#F59E0B"} ${data.savingsRate * 3.6}deg, var(--bg-card) 0deg)`
+                background: `conic-gradient(${data.savingsRate >= 20 ? "#059669" : "#F59E0B"} ${Math.min(data.savingsRate, 100) * 3.6}deg, var(--bg-card) 0deg)`
               }}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--bg-subtle)" }}>
                   <TrendingUp className="h-5 w-5" style={{ color: data.savingsRate >= 20 ? "#059669" : "#F59E0B" }} />
