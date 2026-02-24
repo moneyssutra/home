@@ -486,6 +486,9 @@ const Insights = () => {
         <button onClick={() => navigate("/home", { replace: true })} className="flex items-center justify-center w-9 h-9 rounded-full" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="back-button"><ArrowLeft className="h-4 w-4" /></button>
         <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Insights</h1>
         <div className="ml-auto flex gap-2">
+          <button onClick={() => setShowShareCard(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-secondary)" }} data-testid="share-card-btn">
+            <Share2 className="h-3.5 w-3.5" />Share
+          </button>
           <button onClick={handleProcess} disabled={processing} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95" style={{ backgroundColor: "var(--brand-primary)", opacity: processing ? 0.6 : 1 }} data-testid="process-weekly-btn">
             <Zap className="h-3.5 w-3.5" />{processing ? "..." : "Update"}
           </button>
