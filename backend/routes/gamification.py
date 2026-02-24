@@ -369,29 +369,73 @@ async def process_gamification(request: Request):
     sip_count = sum(1 for n in inv_names if re.search(r'fund|sip|mutual', n))
 
     new_achievements = []
+    savings_rate_pct = savings_ratio * 100
+    inv_count = len(investments)
+
     checks = {
-        "FIRST_STEPS": True,
-        "ALERT_FREE": high_alerts == 0,
-        "SAFETY_1M": survival_days >= 30,
-        "SAFETY_3M": survival_days >= 90,
-        "SAFETY_6M": survival_days >= 180,
-        "SAFETY_1Y": survival_days >= 365,
+        # Survival & Liquidity
+        "FIRST_STEP": True,
+        "BUFFER_7D": survival_days >= 7,
+        "BUFFER_14D": survival_days >= 14,
+        "BUFFER_30D": survival_days >= 30,
+        "BUFFER_60D": survival_days >= 60,
+        "BUFFER_90D": survival_days >= 90,
+        "BUFFER_120D": survival_days >= 120,
+        "BUFFER_180D": survival_days >= 180,
+        "BUFFER_270D": survival_days >= 270,
+        "BUFFER_365D": survival_days >= 365,
+        "BUFFER_500D": survival_days >= 500,
+        "BUFFER_730D": survival_days >= 730,
+        "LIQUIDITY_BUILDER": survival_days >= 90,
+        "EMERGENCY_STARTER": True,
+        "EMERGENCY_PRO": survival_days >= 90,
+        "EMERGENCY_MASTER": survival_days >= 180,
+        "SURVIVAL_STRATEGIST": survival_days >= 110,
+        "FINANCIAL_FORTRESS": survival_days >= 366,
+        # Score
         "SCORE_60": score >= 60,
-        "SCORE_80": score > 80,
-        "SCORE_90": score > 90,
+        "SCORE_70": score >= 70,
+        "SCORE_75": score >= 75,
+        "SCORE_80": score >= 80,
+        "SCORE_85": score >= 85,
+        "SCORE_90": score >= 90,
+        "SCORE_95": score >= 95,
+        "SCORE_100": score >= 100,
+        # Behavior
+        "ALERT_FREE_WEEK": high_alerts == 0,
+        "SMART_SPENDER": monthly_income > 0 and (monthly_discretionary / monthly_income) < 0.20,
+        "EMI_PROTECTOR": emi_ratio < 0.30,
+        # Savings
+        "SAVED_10K": effective_funds >= 10000,
+        "SAVED_50K": effective_funds >= 50000,
+        "SAVED_1L": effective_funds >= 100000,
+        "SAVED_5L": effective_funds >= 500000,
+        "SAVINGS_RATE_20": savings_rate_pct >= 20,
+        "SAVINGS_RATE_30": savings_rate_pct >= 30,
+        "SAVINGS_RATE_40": savings_rate_pct >= 40,
+        # Debt
+        "FREEDOM_BUILDER": total_debt == 0 and await db.loans.count_documents(user_filter) > 0,
+        "DEBT_FREE_STARTER": emi_ratio < 0.20,
+        "ZERO_EMI_MONTH": total_emi == 0,
+        # Investment
+        "FIRST_SIP": sip_count >= 1,
+        "DIVERSIFIED_PORTFOLIO": inv_count >= 5,
+        "EQUITY_EXPLORER": any(re.search(r'stock|equity|share', n) for n in inv_names),
+        # Streak
+        "STREAK_2W": current_streak >= 2,
         "STREAK_4W": current_streak >= 4,
+        "STREAK_8W": current_streak >= 8,
         "STREAK_12W": current_streak >= 12,
         "STREAK_24W": current_streak >= 24,
-        "INSURANCE_GUARDIAN": insurance_count >= 3,
-        "EMERGENCY_PRO": survival_days >= 90,
-        "DIVERSIFIED_PRO": len(investment_types) >= 5 or len(set(re.sub(r'[^a-z]', '', n.split()[0]) for n in inv_names if n)) >= 5,
-        "FD_LEGEND": fd_count >= 3,
-        "SIP_STAR": sip_count >= 3,
-        "BUDGET_CHAMPION": len(expense_cats) >= 6,
-        "GOAL_CHAMPION": goals_count >= 3,
-        "MULTI_INCOME_PRO": income_count >= 3,
-        "ZERO_DEBT_LEGEND": total_debt == 0 and await db.loans.count_documents(user_filter) > 0,
-        "SAVINGS_HERO": savings_ratio > 0.30,
+        "STREAK_52W": current_streak >= 52,
+        "CONSISTENCY_KING": longest_streak >= 8,
+        # Elite
+        "FINANCIAL_CLIMBER": new_level_info["level"] >= 5,
+        "STABILITY_ARCHITECT": new_level_info["level"] >= 10,
+        "CONTROL_MASTER": score >= 80 and survival_days >= 180,
+        "WEALTH_WARRIOR": new_level_info["level"] >= 15,
+        "INDEPENDENCE_ACHIEVED": survival_days >= 541,
+        "FINANCIAL_SOVEREIGN": survival_days >= 1001,
     }
 
     for code, condition in checks.items():
