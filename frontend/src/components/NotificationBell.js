@@ -209,31 +209,37 @@ const NotificationBell = () => {
     const type = notification.type;
     const badgeIcon = notification.badgeIcon;
     
-    // Badge/achievement notifications - show specific icon
-    if ((type === "achievement" || type === "gamification" || type === "streak") && badgeIcon) {
-      const iconMap = {
-        "rocket": <Rocket className="h-5 w-5 text-[#8B5CF6]" />,
-        "shield": <Shield className="h-5 w-5 text-[#3B82F6]" />,
-        "shield-check": <ShieldCheck className="h-5 w-5 text-[#10B981]" />,
-        "castle": <Castle className="h-5 w-5 text-[#F59E0B]" />,
-        "crown": <Crown className="h-5 w-5 text-[#F59E0B]" />,
-        "star": <Star className="h-5 w-5 text-[#F59E0B]" />,
-        "trophy": <Trophy className="h-5 w-5 text-[#F59E0B]" />,
-        "target": <Target className="h-5 w-5 text-[#3B82F6]" />,
-        "flame": <Flame className="h-5 w-5 text-[#EF4444]" />,
-        "award": <Award className="h-5 w-5 text-[#8B5CF6]" />,
-        "medal": <Medal className="h-5 w-5 text-[#F59E0B]" />,
-        "trending-up": <TrendingUp className="h-5 w-5 text-[#10B981]" />,
-        "trending-down": <TrendingDown className="h-5 w-5 text-[#EF4444]" />,
-        "check-circle": <CheckCircle className="h-5 w-5 text-[#10B981]" />,
-        "gauge": <Gauge className="h-5 w-5 text-[#3B82F6]" />,
-        "piggy-bank": <PiggyBank className="h-5 w-5 text-[#10B981]" />,
-        "life-buoy": <LifeBuoy className="h-5 w-5 text-[#3B82F6]" />,
-        "lock": <Lock className="h-5 w-5 text-[#94A3B8]" />,
-        "flag": <Flag className="h-5 w-5 text-[#EF4444]" />,
-        "swords": <Swords className="h-5 w-5 text-[#8B5CF6]" />,
-      };
-      return iconMap[badgeIcon] || <Trophy className="h-5 w-5 text-[#F59E0B]" />;
+    // Badge/achievement notifications - show specific icon or type-based fallback
+    if (type === "achievement" || type === "gamification" || type === "streak") {
+      if (badgeIcon) {
+        const iconMap = {
+          "rocket": <Rocket className="h-5 w-5 text-[#8B5CF6]" />,
+          "shield": <Shield className="h-5 w-5 text-[#3B82F6]" />,
+          "shield-check": <ShieldCheck className="h-5 w-5 text-[#10B981]" />,
+          "castle": <Castle className="h-5 w-5 text-[#F59E0B]" />,
+          "crown": <Crown className="h-5 w-5 text-[#F59E0B]" />,
+          "star": <Star className="h-5 w-5 text-[#F59E0B]" />,
+          "trophy": <Trophy className="h-5 w-5 text-[#F59E0B]" />,
+          "target": <Target className="h-5 w-5 text-[#3B82F6]" />,
+          "flame": <Flame className="h-5 w-5 text-[#EF4444]" />,
+          "award": <Award className="h-5 w-5 text-[#8B5CF6]" />,
+          "medal": <Medal className="h-5 w-5 text-[#F59E0B]" />,
+          "trending-up": <TrendingUp className="h-5 w-5 text-[#10B981]" />,
+          "trending-down": <TrendingDown className="h-5 w-5 text-[#EF4444]" />,
+          "check-circle": <CheckCircle className="h-5 w-5 text-[#10B981]" />,
+          "gauge": <Gauge className="h-5 w-5 text-[#3B82F6]" />,
+          "piggy-bank": <PiggyBank className="h-5 w-5 text-[#10B981]" />,
+          "life-buoy": <LifeBuoy className="h-5 w-5 text-[#3B82F6]" />,
+          "lock": <Lock className="h-5 w-5 text-[#94A3B8]" />,
+          "flag": <Flag className="h-5 w-5 text-[#EF4444]" />,
+          "swords": <Swords className="h-5 w-5 text-[#8B5CF6]" />,
+        };
+        return iconMap[badgeIcon] || <Trophy className="h-5 w-5 text-[#F59E0B]" />;
+      }
+      // Fallback icons for old notifications without badgeIcon
+      if (type === "achievement") return <Trophy className="h-5 w-5 text-[#F59E0B]" />;
+      if (type === "gamification") return <Star className="h-5 w-5 text-[#F59E0B]" />;
+      if (type === "streak") return <Flame className="h-5 w-5 text-[#EF4444]" />;
     }
     
     switch (type) {
