@@ -50,7 +50,7 @@ const SurvivalWarning = ({ data }) => {
 };
 
 // ─── LEVEL JOURNEY ───
-const LevelJourney = ({ data }) => {
+const LevelJourney = ({ data, onShare }) => {
   const [showXP, setShowXP] = useState(false);
   if (!data?.allLevels) return null;
   const color = LVL_COLORS[data.level] || "#10B981";
