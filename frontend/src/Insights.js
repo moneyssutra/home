@@ -713,6 +713,12 @@ const Insights = () => {
         <BadgesWidget data={gamification} />
         <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
 
+        {/* Future You Widget */}
+        <FutureYouWidget data={futureYou} />
+
+        {/* Personality Evolution */}
+        <PersonalityEvolutionWidget data={personalityHistory} currentPersonality={moneyPattern?.personality} />
+
         {/* Quick Links */}
         <div className="space-y-2.5 pt-2">
           <p className="text-xs font-bold tracking-wider uppercase" style={{ color: "var(--text-muted)" }}>Explore</p>
