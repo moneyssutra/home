@@ -9,7 +9,7 @@ const BottomNav = ({ onAddClick }) => {
     { id: "home", label: "Home", icon: Home, path: "/home" },
     { id: "income", label: "Income", icon: TrendingUp, path: "/my-income" },
     { id: "add", label: "Add", icon: Plus, path: null },
-    { id: "expenses", label: "Expenses", icon: Receipt, path: "/my-expenses" },
+    { id: "portfolio", label: "Portfolio", icon: PieChart, path: "/portfolio" },
     { id: "insights", label: "Insights", icon: BarChart3, path: "/insights" },
   ];
 
