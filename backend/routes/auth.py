@@ -23,6 +23,26 @@ def verify_password(password: str, hashed: str) -> bool:
     return hash_password(password) == hashed
 
 
+def validate_password_strength(password: str) -> tuple:
+    """
+    Validate password strength:
+    - Min 8 chars
+    - At least 1 uppercase
+    - At least 1 number
+    - At least 1 special character
+    Returns (is_valid, error_message)
+    """
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters"
+    if not any(c.isupper() for c in password):
+        return False, "Password must contain at least 1 uppercase letter"
+    if not any(c.isdigit() for c in password):
+        return False, "Password must contain at least 1 number"
+    if not any(c in "!@#$%^&*()_+-=[]{}|;':\",./<>?" for c in password):
+        return False, "Password must contain at least 1 special character"
+    return True, ""
+
+
 async def get_current_user(request: Request):
     """Get current user from session token (cookie or header)"""
     token = request.cookies.get("session_token")
