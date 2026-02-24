@@ -299,7 +299,10 @@ const ControlScoreWidget = ({ data }) => {
     { ...bd.incomeConsistency, label: "Income Consistency", help: "Income stability" },
   ].filter(b => b.score !== undefined);
 
-  const gradeColor = data.score >= 85 ? "#10B981" : data.score >= 70 ? "#3B82F6" : data.score >= 55 ? "#F59E0B" : data.score >= 40 ? "#F97316" : "#EF4444";
+  const score = data.finalScore || data.score || 0;
+  const grade = data.grade || "C";
+  const gradeColor = score >= 85 ? "#10B981" : score >= 70 ? "#3B82F6" : score >= 55 ? "#F59E0B" : score >= 40 ? "#F97316" : "#EF4444";
+  const m = data.metrics || {};
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-score">
