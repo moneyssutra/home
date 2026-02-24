@@ -304,7 +304,7 @@ const SecuritySettings = () => {
 
             <button
               onClick={handleChangePassword}
-              disabled={saving || passwords.new.length < 6 || passwords.new !== passwords.confirm}
+              disabled={saving || passwords.new.length < 8 || passwords.new !== passwords.confirm || (hasPassword && !passwords.current)}
               className="w-full py-3 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50"
               style={{ backgroundColor: "var(--brand-primary)" }}
             >
@@ -323,13 +323,17 @@ const SecuritySettings = () => {
               </div>
             </div>
             <button
-              onClick={() => {
-                setTwoFAEnabled(!twoFAEnabled);
-                toast.info("2FA " + (!twoFAEnabled ? "enabled" : "disabled"));
-              }}
+              onClick={handleToggle2FA}
+              disabled={twoFALoading}
               className={`relative w-12 h-7 rounded-full transition-colors ${twoFAEnabled ? "bg-green-500" : "bg-gray-300"}`}
             >
-              <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${twoFAEnabled ? "translate-x-6" : "translate-x-1"}`} />
+              {twoFALoading ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader2 className="h-4 w-4 animate-spin text-white" />
+                </div>
+              ) : (
+                <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${twoFAEnabled ? "translate-x-6" : "translate-x-1"}`} />
+              )}
             </button>
           </div>
 
@@ -361,6 +365,11 @@ const SecuritySettings = () => {
             Active Sessions
           </h3>
 
+          {sessionsLoading ? (
+            <div className="flex items-center justify-center py-6">
+              <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--text-muted)" }} />
+            </div>
+          ) : (
           <div className="space-y-3">
             {activeSessions.map((session) => (
               <div 
