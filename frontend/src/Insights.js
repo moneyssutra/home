@@ -157,8 +157,8 @@ const LevelJourney = ({ data }) => {
 
 // ─── EMERGENCY RUNWAY (was Survival Clock) ───
 const EmergencyRunwayWidget = ({ data }) => {
-  if (!data) return null;
   const [showBreakdown, setShowBreakdown] = useState(false);
+  if (!data) return null;
   const levelColor = data.levelColor || "#EF4444";
   const maxDays = 365;
   const pct = Math.min((data.survivalDays / maxDays) * 100, 100);
