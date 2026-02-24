@@ -257,7 +257,8 @@ const BehaviorAlertsWidget = ({ data }) => {
 const AchievementsWidget = ({ data }) => {
   const [showAll, setShowAll] = useState(false);
   if (!data?.allAchievements) return null;
-  const items = showAll ? data.allAchievements : data.allAchievements.slice(0, 6);
+  const sorted = [...data.allAchievements].sort((a, b) => (b.unlocked ? 1 : 0) - (a.unlocked ? 1 : 0));
+  const items = showAll ? sorted : sorted.slice(0, 6);
 
   return (
     <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="achievements-widget">
