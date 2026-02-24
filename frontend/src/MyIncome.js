@@ -300,8 +300,9 @@ const MyIncome = () => {
                   <button
                     key={type}
                     onClick={() => navigate(getTypePath(type))}
-                    className="w-full flex items-center gap-3 p-3 rounded-xl transition-colors"
-                    style={{ backgroundColor: "transparent" }}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer hover:bg-gray-50 active:scale-[0.98]"
+                    style={{ backgroundColor: "var(--bg-subtle)" }}
+                    data-testid={`income-source-${type.toLowerCase().replace(' ', '-')}`}
                   >
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: typeColor.bg }}>
                       <Icon className="h-5 w-5" style={{ color: typeColor.text }} />
