@@ -200,7 +200,17 @@ export default function RunwaySimulator({ currentData }) {
           {/* 12-month projection mini chart */}
           {projections.length > 1 && (
             <div className="mt-3">
-              <p className="text-[10px] font-bold tracking-wider uppercase mb-2" style={{ color: "var(--text-muted)" }}>12-Month Runway Projection</p>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: "var(--text-muted)" }}>12-Month Runway Projection</p>
+                {projections[12] && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{
+                    backgroundColor: projections[12].survivalDays > cur?.survivalDays ? "#D1FAE5" : projections[12].survivalDays < cur?.survivalDays ? "#FEE2E2" : "var(--bg-subtle)",
+                    color: projections[12].survivalDays > cur?.survivalDays ? "#065F46" : projections[12].survivalDays < cur?.survivalDays ? "#991B1B" : "var(--text-muted)",
+                  }}>
+                    {projections[12].survivalDays > cur?.survivalDays ? "+" : ""}{projections[12].survivalDays - (cur?.survivalDays || 0)} days in 1yr
+                  </span>
+                )}
+              </div>
               <div className="flex items-end gap-1" style={{ height: "60px" }}>
                 {projections.map((p, i) => {
                   const h = Math.max((p.survivalDays / maxDays) * 100, 4);
