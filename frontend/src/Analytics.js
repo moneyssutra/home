@@ -16,7 +16,6 @@ const Analytics = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState("6M");
-  const [selectedBar, setSelectedBar] = useState(null);
   const [data, setData] = useState({
     netWorth: 0,
     totalAssets: 0,
@@ -28,6 +27,7 @@ const Analytics = () => {
     savingsRate: 0,
     liquidBalance: 0
   });
+  const [snapshots, setSnapshots] = useState([]);
   const [investmentPerf, setInvestmentPerf] = useState({
     totalInvested: 0,
     currentValue: 0,
@@ -49,9 +49,10 @@ const Analytics = () => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
       
-      const [networthRes, investmentRes] = await Promise.all([
+      const [networthRes, investmentRes, snapshotsRes] = await Promise.all([
         axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true, signal: controller.signal }),
-        axios.get(`${backendUrl}/api/analytics/investment-performance`, { withCredentials: true, signal: controller.signal })
+        axios.get(`${backendUrl}/api/analytics/investment-performance`, { withCredentials: true, signal: controller.signal }),
+        axios.get(`${backendUrl}/api/analytics/snapshots?period=${timeFilter}`, { withCredentials: true, signal: controller.signal })
       ]);
       
       clearTimeout(timeoutId);
@@ -66,12 +67,20 @@ const Analytics = () => {
         totalAssets: networthRes.data.totalAssets || 0,
         totalInvestments: networthRes.data.totalInvestments || 0,
         totalLoans: networthRes.data.totalLiabilities || 0,
-        totalCreditCards: networthRes.data.creditCardDue || 0,
+        totalCreditCards: networthRes.data.creditCardOutstanding || 0,
         liquidBalance: networthRes.data.liquidBalance || 0,
         monthlyIncome,
         monthlyExpense,
         savingsRate
       });
+      
+      // Process snapshots - sort by date
+      const snapshotData = Array.isArray(snapshotsRes.data) ? snapshotsRes.data : [];
+      const sortedSnapshots = snapshotData.sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.month - b.month;
+      });
+      setSnapshots(sortedSnapshots);
       
       setInvestmentPerf(investmentRes.data || {
         totalInvested: 0,
@@ -81,6 +90,7 @@ const Analytics = () => {
         byCategory: {}
       });
       
+      // Create snapshot for current month if needed
       axios.post(`${backendUrl}/api/analytics/snapshot`, {}, { withCredentials: true }).catch(() => {});
       
     } catch (error) {
@@ -105,96 +115,109 @@ const Analytics = () => {
     return amount.toFixed(0);
   };
 
-  // Generate historical data with dates and amounts
-  const generateHistoricalData = (currentValue, trend = "up") => {
+  // Get historical data from snapshots for a specific metric
+  const getHistoricalData = (metricKey, currentValue) => {
     const today = new Date();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    // Determine number of points based on time filter
+    let numMonths;
+    if (timeFilter === "1M") numMonths = 1;
+    else if (timeFilter === "3M") numMonths = 3;
+    else if (timeFilter === "6M") numMonths = 6;
+    else if (timeFilter === "1Y") numMonths = 12;
+    else numMonths = 24; // All - show up to 2 years
+    
     const dataPoints = [];
     
-    let numPoints, getLabel;
-    
-    if (timeFilter === "1M") {
-      numPoints = 10;
-      getLabel = (i) => {
-        const date = new Date(today);
-        date.setDate(date.getDate() - (numPoints - 1 - i) * 3);
-        return `${date.getDate()}/${date.getMonth() + 1}`;
-      };
-    } else if (timeFilter === "3M") {
-      numPoints = 3;
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      getLabel = (i) => {
-        const date = new Date(today);
-        date.setMonth(date.getMonth() - (numPoints - 1 - i));
-        return monthNames[date.getMonth()];
-      };
-    } else if (timeFilter === "6M") {
-      numPoints = 6;
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      getLabel = (i) => {
-        const date = new Date(today);
-        date.setMonth(date.getMonth() - (numPoints - 1 - i));
-        return monthNames[date.getMonth()];
-      };
-    } else if (timeFilter === "1Y") {
-      numPoints = 12;
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      getLabel = (i) => {
-        const date = new Date(today);
-        date.setMonth(date.getMonth() - (numPoints - 1 - i));
-        return monthNames[date.getMonth()];
-      };
-    } else { // All
-      numPoints = 8;
-      getLabel = (i) => {
-        const date = new Date(today);
-        date.setMonth(date.getMonth() - (numPoints - 1 - i) * 3);
+    // Generate labels for each month in the range
+    for (let i = numMonths - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setMonth(date.getMonth() - i);
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear();
+      
+      // Find snapshot for this month/year
+      const snapshot = snapshots.find(s => s.month === month && s.year === year);
+      
+      let value = 0;
+      if (snapshot) {
+        // Map metric keys to snapshot fields
+        const fieldMap = {
+          netWorth: 'netWorth',
+          totalAssets: 'totalAssets',
+          totalInvestments: 'totalInvestments',
+          totalLoans: 'totalLiabilities',
+          monthlyIncome: 'monthlyIncome',
+          monthlyExpense: 'monthlyExpense',
+          liquidBalance: 'liquidBalance',
+          cashFlow: null // Special case - calculate from income - expense
+        };
+        
+        if (metricKey === 'cashFlow') {
+          value = (snapshot.monthlyIncome || 0) - (snapshot.monthlyExpense || 0);
+        } else if (fieldMap[metricKey]) {
+          value = snapshot[fieldMap[metricKey]] || 0;
+        }
+      }
+      
+      // For current month, use live data
+      const isCurrentMonth = i === 0;
+      if (isCurrentMonth) {
+        if (metricKey === 'cashFlow') {
+          value = data.monthlyIncome - data.monthlyExpense;
+        } else {
+          value = currentValue;
+        }
+      }
+      
+      let label;
+      if (timeFilter === "1M") {
+        // For 1M, show week labels
+        label = `Week ${numMonths - i}`;
+      } else if (timeFilter === "All" && numMonths > 12) {
+        // For All, show quarter labels
         const q = Math.floor(date.getMonth() / 3) + 1;
-        return `Q${q}'${date.getFullYear().toString().slice(-2)}`;
-      };
-    }
-    
-    // Generate realistic historical values
-    const baseValue = currentValue * 0.7;
-    const growth = trend === "up" ? 0.3 : -0.2;
-    
-    for (let i = 0; i < numPoints; i++) {
-      const progressFactor = i / (numPoints - 1);
-      const randomVariance = (Math.random() - 0.5) * 0.1;
-      const value = baseValue * (1 + (growth * progressFactor) + randomVariance);
+        label = `Q${q}'${year.toString().slice(-2)}`;
+      } else {
+        label = monthNames[date.getMonth()];
+      }
       
       dataPoints.push({
-        label: getLabel(i),
-        value: Math.max(0, value),
-        isCurrent: i === numPoints - 1
+        label,
+        value,
+        month,
+        year,
+        isCurrent: isCurrentMonth
       });
-    }
-    
-    // Ensure last point is current value
-    if (dataPoints.length > 0) {
-      dataPoints[dataPoints.length - 1].value = currentValue;
     }
     
     return dataPoints;
   };
 
-  // Enhanced bar chart with amounts shown
-  const MetricCard = ({ title, value, color, icon: Icon, trend }) => {
+  // Enhanced bar chart with real historical data
+  const MetricCard = ({ title, value, color, icon: Icon, metricKey }) => {
     const [hoveredIndex, setHoveredIndex] = useState(null);
-    const historicalData = generateHistoricalData(value, trend);
+    const historicalData = getHistoricalData(metricKey, value);
     const maxValue = Math.max(...historicalData.map(d => d.value), 1);
-    const minValue = Math.min(...historicalData.map(d => d.value));
+    const minValue = Math.min(...historicalData.filter(d => d.value > 0).map(d => d.value), 0);
     
-    // Calculate change from first to last
-    const firstValue = historicalData[0]?.value || 0;
+    // Calculate change from first non-zero to last
+    const firstNonZero = historicalData.find(d => d.value > 0);
+    const firstValue = firstNonZero?.value || 0;
     const changePercent = firstValue > 0 
       ? (((value - firstValue) / firstValue) * 100).toFixed(1) 
       : 0;
     const isPositive = changePercent >= 0;
     
+    // Check if we have any historical data
+    const hasHistoricalData = historicalData.some(d => d.value > 0 && !d.isCurrent);
+    
     return (
       <div 
         className="rounded-2xl p-4" 
         style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+        data-testid={`metric-card-${metricKey}`}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
@@ -204,10 +227,12 @@ const Analytics = () => {
             </div>
             <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{title}</span>
           </div>
-          <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${isPositive ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
-            {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-            {isPositive ? "+" : ""}{changePercent}%
-          </div>
+          {hasHistoricalData && (
+            <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${isPositive ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+              {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+              {isPositive ? "+" : ""}{changePercent}%
+            </div>
+          )}
         </div>
         
         {/* Current Value */}
@@ -218,13 +243,14 @@ const Analytics = () => {
         {/* Chart with hover values */}
         <div className="relative">
           {/* Hovered value tooltip */}
-          {hoveredIndex !== null && (
+          {hoveredIndex !== null && historicalData[hoveredIndex] && (
             <div 
-              className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-lg text-xs font-medium z-10 whitespace-nowrap"
+              className="absolute -top-8 px-2 py-1 rounded-lg text-xs font-medium z-10 whitespace-nowrap"
               style={{ 
                 backgroundColor: color, 
                 color: "white",
-                left: `${(hoveredIndex / (historicalData.length - 1)) * 100}%`
+                left: `${(hoveredIndex / Math.max(historicalData.length - 1, 1)) * 100}%`,
+                transform: "translateX(-50%)"
               }}
             >
               ₹{formatAmount(historicalData[hoveredIndex]?.value, true)}
@@ -234,22 +260,23 @@ const Analytics = () => {
           {/* Bars */}
           <div className="flex items-end gap-1 h-16 mb-1">
             {historicalData.map((point, i) => {
-              const height = maxValue > minValue 
-                ? ((point.value - minValue) / (maxValue - minValue)) * 100 
-                : 50;
+              const height = maxValue > 0 
+                ? (point.value / maxValue) * 100 
+                : 0;
               
               return (
                 <div 
                   key={i}
                   className="flex-1 rounded-t cursor-pointer transition-all hover:opacity-80"
                   style={{ 
-                    height: `${Math.max(height, 10)}%`,
-                    backgroundColor: point.isCurrent ? color : `${color}40`,
+                    height: `${Math.max(height, point.value > 0 ? 10 : 2)}%`,
+                    backgroundColor: point.value === 0 ? "var(--border-light)" : (point.isCurrent ? color : `${color}40`),
                     transform: hoveredIndex === i ? 'scaleY(1.05)' : 'scaleY(1)'
                   }}
                   onMouseEnter={() => setHoveredIndex(i)}
                   onMouseLeave={() => setHoveredIndex(null)}
                   onClick={() => setHoveredIndex(hoveredIndex === i ? null : i)}
+                  data-testid={`bar-${metricKey}-${i}`}
                 />
               );
             })}
@@ -271,26 +298,32 @@ const Analytics = () => {
             ))}
           </div>
           
-          {/* Min/Max indicators */}
+          {/* Data status indicator */}
           <div className="flex justify-between mt-2 text-[10px]" style={{ color: "var(--text-muted)" }}>
-            <span>Start: ₹{formatAmount(firstValue, true)}</span>
-            <span>Now: ₹{formatAmount(value, true)}</span>
+            {hasHistoricalData ? (
+              <>
+                <span>First: ₹{formatAmount(firstValue, true)}</span>
+                <span>Now: ₹{formatAmount(value, true)}</span>
+              </>
+            ) : (
+              <span className="w-full text-center italic">No historical data yet</span>
+            )}
           </div>
         </div>
       </div>
     );
   };
 
-  // Metric definitions
+  // Metric definitions with keys matching snapshot fields
   const metrics = [
-    { title: "Net Worth", value: data.netWorth, color: "#10B981", icon: Wallet, trend: "up" },
-    { title: "Total Assets", value: data.totalAssets, color: "#3B82F6", icon: Home, trend: "up" },
-    { title: "Investments", value: data.totalInvestments, color: "#8B5CF6", icon: PiggyBank, trend: investmentPerf.gainPercent >= 0 ? "up" : "down" },
-    { title: "Monthly Income", value: data.monthlyIncome, color: "#059669", icon: TrendingUp, trend: "up" },
-    { title: "Monthly Expense", value: data.monthlyExpense, color: "#EF4444", icon: TrendingDown, trend: "down" },
-    { title: "Total Loans", value: data.totalLoans + data.totalCreditCards, color: "#F59E0B", icon: CreditCard, trend: "down" },
-    { title: "Cash Flow", value: data.monthlyIncome - data.monthlyExpense, color: "#06B6D4", icon: BarChart3, trend: (data.monthlyIncome - data.monthlyExpense) >= 0 ? "up" : "down" },
-    { title: "Liquid Balance", value: data.liquidBalance, color: "#EC4899", icon: DollarSign, trend: "up" }
+    { title: "Net Worth", value: data.netWorth, color: "#10B981", icon: Wallet, metricKey: "netWorth" },
+    { title: "Total Assets", value: data.totalAssets, color: "#3B82F6", icon: Home, metricKey: "totalAssets" },
+    { title: "Investments", value: data.totalInvestments, color: "#8B5CF6", icon: PiggyBank, metricKey: "totalInvestments" },
+    { title: "Monthly Income", value: data.monthlyIncome, color: "#059669", icon: TrendingUp, metricKey: "monthlyIncome" },
+    { title: "Monthly Expense", value: data.monthlyExpense, color: "#EF4444", icon: TrendingDown, metricKey: "monthlyExpense" },
+    { title: "Total Loans", value: data.totalLoans + data.totalCreditCards, color: "#F59E0B", icon: CreditCard, metricKey: "totalLoans" },
+    { title: "Cash Flow", value: data.monthlyIncome - data.monthlyExpense, color: "#06B6D4", icon: BarChart3, metricKey: "cashFlow" },
+    { title: "Liquid Balance", value: data.liquidBalance, color: "#EC4899", icon: DollarSign, metricKey: "liquidBalance" }
   ];
 
   if (loading) {
@@ -320,7 +353,7 @@ const Analytics = () => {
           </button>
           <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Analytics</h1>
         </div>
-        <button onClick={fetchAllData} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100">
+        <button onClick={fetchAllData} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100" data-testid="refresh-button">
           <RefreshCw className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
         </button>
       </header>
@@ -338,6 +371,7 @@ const Analytics = () => {
                 color: timeFilter === filter ? "white" : "var(--text-secondary)",
                 border: timeFilter === filter ? "none" : "1px solid var(--border-light)"
               }}
+              data-testid={`filter-${filter}`}
             >
               {filter}
             </button>
@@ -346,7 +380,7 @@ const Analytics = () => {
         
         {/* Info Banner */}
         <div className="px-3 py-2 rounded-xl text-xs" style={{ backgroundColor: "var(--brand-primary-soft)", color: "var(--brand-primary)" }}>
-          💡 Hover or tap on any bar to see the value for that period
+          Tap on any bar to see the value for that period. Data is based on monthly snapshots.
         </div>
 
         {/* Metric Cards Grid */}
