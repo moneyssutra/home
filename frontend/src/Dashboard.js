@@ -13,7 +13,6 @@ import {
   LineChart,
   Target,
   ChevronRight,
-  Sparkles,
   AlertTriangle,
   Lightbulb,
   TrendingUp as TrendIcon,
@@ -23,6 +22,7 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
+import FinancialHealth from "@/components/FinancialHealth";
 import { useAuth } from "@/context/AuthContext";
 
 const Dashboard = () => {
@@ -31,8 +31,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [insights, setInsights] = useState([]);
-  const [insightsLoading, setInsightsLoading] = useState(false);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [goalsSummary, setGoalsSummary] = useState(null);
 
