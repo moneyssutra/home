@@ -133,25 +133,40 @@ const Reports = () => {
       const downloadBlob = new Blob([blob], { type: mimeType });
       const downloadUrl = window.URL.createObjectURL(downloadBlob);
       
-      // Create and trigger download
+      // Method 1: Try using download attribute (most reliable)
       const link = document.createElement('a');
       link.href = downloadUrl;
       link.download = filename;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       link.style.display = 'none';
       document.body.appendChild(link);
+      link.click();
       
-      // Force click with a slight delay for Safari/iOS compatibility
+      // Method 2: Fallback - open in new tab (for Safari/iOS)
       setTimeout(() => {
-        link.click();
-        
-        // Cleanup after download starts
-        setTimeout(() => {
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(downloadUrl);
-        }, 100);
-      }, 0);
+        // If download didn't trigger, open in new window
+        const newWindow = window.open(downloadUrl, '_blank');
+        if (!newWindow || newWindow.closed) {
+          // If popup blocked, show manual download link
+          toast.info(`Click here to download: ${filename}`, {
+            action: {
+              label: 'Download',
+              onClick: () => window.open(downloadUrl, '_blank')
+            },
+            duration: 10000
+          });
+        }
+      }, 500);
       
-      toast.success(`${report.title} downloaded! Check your Downloads folder.`);
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        // Don't revoke URL immediately in case user needs to retry
+        setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 60000);
+      }, 1000);
+      
+      toast.success(`${report.title} ready! Check your Downloads folder.`);
       setDownloadedReports(prev => [...prev, reportId]);
       
       // Clear the checkmark after 5 seconds
