@@ -703,6 +703,16 @@ const Insights = () => {
       </header>
 
       <div className="px-4 py-4 space-y-4 max-w-3xl mx-auto">
+        {/* Red Zone Warning */}
+        {survivalClock && survivalClock.survivalDays < 30 && (
+          <div className="rounded-2xl p-4 flex items-center gap-3 animate-pulse" style={{ backgroundColor: "#EF444415", border: "2px solid #EF4444" }} data-testid="red-zone-alert">
+            <AlertTriangle className="h-6 w-6 flex-shrink-0" style={{ color: "#EF4444" }} />
+            <div>
+              <p className="text-sm font-black" style={{ color: "#EF4444" }}>RED ZONE</p>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Only {survivalClock.survivalDays} days of runway left. Take immediate action to build your emergency fund.</p>
+            </div>
+          </div>
+        )}
         <SurvivalWarning data={survivalClock} />
         <LevelAndStagesWidget gamData={gamification} clockData={survivalClock} onShare={() => setShowShareCard(true)} />
         <FinancialScoreWidget data={controlScore} />
