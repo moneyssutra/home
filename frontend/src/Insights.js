@@ -388,7 +388,7 @@ const FinancialScoreWidget = ({ data }) => {
         <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Score</h3>
       </div>
       <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
-        {period ? `Period: ${period}` : `Updated ${today}`}
+        {period ? `Rolling 3-month window: ${period}` : `Updated ${today}`}
       </p>
 
       <div className="flex items-center gap-5">
