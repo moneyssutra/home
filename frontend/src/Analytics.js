@@ -371,7 +371,7 @@ const Analytics = () => {
           <button onClick={() => navigate("/insights", { replace: true })} className="flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-gray-100" data-testid="back-button">
             <ArrowLeft className="h-5 w-5" style={{ color: "var(--text-primary)" }} />
           </button>
-          <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Analytics</h1>
+          <h1 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>Analytics</h1>
         </div>
         <button onClick={fetchAllData} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100" data-testid="refresh-button">
           <RefreshCw className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
