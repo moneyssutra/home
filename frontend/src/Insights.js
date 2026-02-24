@@ -103,8 +103,13 @@ const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="stage-journey">
+      {/* Header */}
+      <div className="px-5 pt-4 pb-1 flex items-center gap-2">
+        <Rocket className="h-4 w-4" style={{ color: "#8B5CF6" }} />
+        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Journey</h3>
+      </div>
       {/* Main identity */}
-      <div className="p-5 pb-3">
+      <div className="p-5 pb-3 pt-2">
         <div className="flex items-start gap-4">
           <div className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center flex-shrink-0" style={{ background: `linear-gradient(135deg, ${stageColor}25, ${stageColor}08)`, border: `2px solid ${stageColor}50` }}>
             <span className="text-2xl font-black leading-none" style={{ color: stageColor }}>{stageNum}</span>
