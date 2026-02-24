@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, TrendingUp, Plus, Receipt, PieChart } from "lucide-react";
+import { Home, TrendingUp, Plus, Receipt, PieChart, BarChart3 } from "lucide-react";
 
 const BottomNav = ({ onAddClick }) => {
   const navigate = useNavigate();
@@ -10,7 +10,7 @@ const BottomNav = ({ onAddClick }) => {
     { id: "income", label: "Income", icon: TrendingUp, path: "/my-income" },
     { id: "add", label: "Add", icon: Plus, path: null },
     { id: "expenses", label: "Expenses", icon: Receipt, path: "/my-expenses" },
-    { id: "portfolio", label: "Portfolio", icon: PieChart, path: "/portfolio" },
+    { id: "insights", label: "Insights", icon: BarChart3, path: "/insights" },
   ];
 
   const isActive = (path) => {
