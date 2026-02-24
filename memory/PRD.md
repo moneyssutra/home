@@ -76,6 +76,24 @@ Build a comprehensive personal finance tracking application with multi-user work
 
 ---
 
+### 16. Fixed My Job Page - Jobs Not Showing (COMPLETED ✅ - Feb 24, 2026)
+**Issue**: The `/my-job` page showed "No Jobs Added Yet" even though job income data existed in the database.
+
+**Root Cause**: The frontend sent `type=Job` (capitalized) but the database stored `type: "job"` (lowercase). The backend filter was case-sensitive.
+
+**Fix**: Updated `/api/income/list/summary` endpoint to use case-insensitive regex filter:
+```python
+# Before: user_filter["type"] = type
+# After: user_filter["type"] = {"$regex": f"^{type}$", "$options": "i"}
+```
+
+**Files Modified**:
+- `backend/server.py` - Line ~2088: Changed type filter to case-insensitive regex
+
+**Result**: All income type pages now work correctly (My Job, My Business, My Rental, etc.)
+
+---
+
 ## What Was Implemented (Previous Session - Feb 23, 2026)
 
 ### 12. Clickable Allocation Redesign for Loans, Assets & Investments (COMPLETED ✅ - Feb 23, 2026)
