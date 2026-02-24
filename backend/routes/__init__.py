@@ -19,6 +19,10 @@ from routes.financial_health import router as financial_health_router
 from routes.reports import router as reports_router
 from routes.settings import router as settings_router
 from routes.security import router as security_router
+from routes.notifications import router as notifications_router
+from routes.push import router as push_router
+from routes.transactions import router as transactions_router
+from routes.cron import router as cron_router
 
 # Re-export commonly used functions
 from routes.auth import get_current_user, hash_password, verify_password, validate_password_strength
@@ -53,6 +57,10 @@ __all__ = [
     'reports_router',
     'settings_router',
     'security_router',
+    'notifications_router',
+    'push_router',
+    'transactions_router',
+    'cron_router',
     # Functions
     'get_current_user',
     'hash_password',
