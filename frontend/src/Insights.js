@@ -349,14 +349,14 @@ const ControlScoreWidget = ({ data }) => {
         {/* Monthly metrics */}
         <div className="grid grid-cols-4 gap-2 mt-3">
           {[
-            { label: "Income", val: data.monthlyIncome },
-            { label: "Expenses", val: data.monthlyExpenses },
-            { label: "Total EMI", val: data.totalEmi },
-            { label: "Liquid Funds", val: data.accessibleFunds },
-          ].map((m, i) => (
+            { label: "Income", val: m.monthlyIncome },
+            { label: "Expenses", val: m.monthlyExpenses },
+            { label: "Total EMI", val: m.totalEMI },
+            { label: "Liquid Funds", val: m.availableFunds },
+          ].map((mt, i) => (
             <div key={i} className="text-center p-1.5 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
-              <p className="text-[8px]" style={{ color: "var(--text-muted)" }}>{m.label}</p>
-              <p className="text-[10px] font-bold" style={{ color: "var(--text-primary)" }}>{fmt(m.val || 0)}</p>
+              <p className="text-[8px]" style={{ color: "var(--text-muted)" }}>{mt.label}</p>
+              <p className="text-[10px] font-bold" style={{ color: "var(--text-primary)" }}>{fmt(mt.val || 0)}</p>
             </div>
           ))}
         </div>
