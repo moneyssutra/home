@@ -6497,9 +6497,6 @@ async def delete_expense_transaction(transaction_id: str, request: Request):
     return {"success": True, "message": "Transaction deleted"}
 
 
-# Include the router in the main app
-app.include_router(api_router)
-
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
