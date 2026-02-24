@@ -348,14 +348,15 @@ async def get_financial_health(request: Request):
         return scores.get(status, 50)
     
     weights = {
-        "emergencyFund": 0.20,
+        "emergencyFund": 0.175,
         "lifeInsurance": 0.075,
         "healthInsurance": 0.075,
-        "savingsRate": 0.15,
-        "loanBurden": 0.15,
+        "savingsRate": 0.125,
+        "loanBurden": 0.125,
         "creditUtilization": 0.10,
-        "investmentAllocation": 0.15,
-        "retirementReadiness": 0.10
+        "investmentAllocation": 0.125,
+        "retirementReadiness": 0.10,
+        "debtToAsset": 0.10
     }
     
     module_scores = {
@@ -366,7 +367,8 @@ async def get_financial_health(request: Request):
         "loanBurden": status_to_score(loan_status),
         "creditUtilization": status_to_score(cc_status),
         "investmentAllocation": status_to_score(allocation_status),
-        "retirementReadiness": status_to_score(retirement_status)
+        "retirementReadiness": status_to_score(retirement_status),
+        "debtToAsset": status_to_score(debt_status)
     }
     
     contributions = {}
