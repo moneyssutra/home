@@ -1,5 +1,5 @@
 """Financial Intelligence Engine - Emergency Runway, Financial Score, Behavior Alerts."""
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Query
 from datetime import datetime, timezone, timedelta
 import math
 import logging
