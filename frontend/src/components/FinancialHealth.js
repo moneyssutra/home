@@ -454,22 +454,22 @@ const FinancialHealth = () => {
               {healthModules.map((mod) => {
                 const c = healthData.contributions[mod.key];
                 if (!c) return null;
-                const barWidth = Math.max((c.contribution / overallScore) * 100, 2);
+                const pct = c.maxContribution > 0 ? (c.contribution / c.maxContribution) * 100 : 0;
                 return (
                   <div key={mod.key} className="flex items-center gap-2">
                     <span className="text-[10px] w-[90px] truncate text-gray-600">{mod.title}</span>
                     <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${barWidth}%`, backgroundColor: mod.iconColor }} />
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: mod.iconColor }} />
                     </div>
-                    <span className="text-[10px] font-bold w-8 text-right" style={{ color: mod.iconColor }}>
-                      {c.contribution}
+                    <span className="text-[10px] font-bold w-14 text-right" style={{ color: mod.iconColor }}>
+                      {c.contribution}/{c.maxContribution}
                     </span>
                   </div>
                 );
               })}
             </div>
             <p className="text-[9px] text-gray-400 mt-2 text-center">
-              {healthModules.map(m => healthData.contributions[m.key]?.contribution || 0).filter(Boolean).map(v => v).join(' + ')} = {overallScore} / 100
+              {healthModules.map(m => healthData.contributions[m.key]?.contribution || 0).filter(Boolean).join(' + ')} = {overallScore} / 100
             </p>
           </div>
         )}
