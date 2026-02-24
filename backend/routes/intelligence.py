@@ -38,16 +38,16 @@ async def _get_fund_breakdown(user_filter: dict) -> dict:
         atype = (a.get("accountType", "") or "").lower()
         name = a.get("accountName", atype)
         nl = name.lower()
-        # Bank accounts are always liquid — match by type OR name
-        if atype in ("savings", "current", "cash", "wallet") or re.search(r'savings|current|salary|bank|wallet|cash|axis|hdfc|icici|sbi|kotak|bob|boi|canara|pnb|union', nl):
+        # Check FD/RD first (by type or name) — before liquid catch-all
+        if atype in ("fixed deposit", "fd") or re.search(r'\bfd\b|fixed deposit', nl):
+            semi_liquid_total += bal
+            details.append({"name": name, "amount": bal, "category": "semi_liquid", "pct": 60})
+        elif atype in ("recurring deposit", "rd") or re.search(r'\brd\b|recurring deposit', nl):
+            semi_liquid_total += bal
+            details.append({"name": name, "amount": bal, "category": "semi_liquid", "pct": 60})
+        elif atype in ("savings", "current", "cash", "wallet") or re.search(r'savings|current|salary|bank|wallet|cash', nl):
             liquid_total += bal
             details.append({"name": name, "amount": bal, "category": "liquid", "pct": 100})
-        elif atype in ("fixed deposit", "fd"):
-            semi_liquid_total += bal
-            details.append({"name": name, "amount": bal, "category": "semi_liquid", "pct": 60})
-        elif atype in ("recurring deposit", "rd"):
-            semi_liquid_total += bal
-            details.append({"name": name, "amount": bal, "category": "semi_liquid", "pct": 60})
         else:
             # Unknown account type — default to liquid (it's a bank account after all)
             liquid_total += bal
