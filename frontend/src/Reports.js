@@ -105,6 +105,10 @@ const Reports = () => {
     
     try {
       const report = reports.find(r => r.id === reportId);
+      const fileExt = exportFormat === 'excel' ? 'xlsx' : 'pdf';
+      const mimeType = exportFormat === 'excel' 
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/pdf';
       
       // Build the URL with query parameters
       const url = `${backendUrl}/api/reports/generate/${reportId}?format=${exportFormat}&from_date=${dateRange.from}&to_date=${dateRange.to}`;
@@ -119,26 +123,35 @@ const Reports = () => {
         throw new Error('Failed to generate report');
       }
       
-      // Get the filename from the Content-Disposition header or create one
-      const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = `${reportId}_report_${new Date().toISOString().split('T')[0]}.${exportFormat === 'excel' ? 'xlsx' : 'pdf'}`;
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename=(.+)/);
-        if (match) filename = match[1];
-      }
-      
-      // Convert response to blob and download
+      // Get blob data
       const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
+      
+      // Create filename
+      const filename = `${reportId}_report_${new Date().toISOString().split('T')[0]}.${fileExt}`;
+      
+      // Create download using anchor element with proper blob type
+      const downloadBlob = new Blob([blob], { type: mimeType });
+      const downloadUrl = window.URL.createObjectURL(downloadBlob);
+      
+      // Create and trigger download
       const link = document.createElement('a');
       link.href = downloadUrl;
       link.download = filename;
+      link.style.display = 'none';
       document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
       
-      toast.success(`${report.title} downloaded successfully!`);
+      // Force click with a slight delay for Safari/iOS compatibility
+      setTimeout(() => {
+        link.click();
+        
+        // Cleanup after download starts
+        setTimeout(() => {
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(downloadUrl);
+        }, 100);
+      }, 0);
+      
+      toast.success(`${report.title} downloaded! Check your Downloads folder.`);
       setDownloadedReports(prev => [...prev, reportId]);
       
       // Clear the checkmark after 5 seconds
