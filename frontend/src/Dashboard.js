@@ -133,36 +133,19 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="dashboard-page">
-      {/* Header */}
+      {/* Minimal Header */}
       <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
-        <div className="relative px-6 pt-8 pb-6">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <p className="text-white/70 text-sm font-medium">
-                Welcome{getUserName() ? `, ${getUserName()}` : ""}
-              </p>
-              <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
-                Moneyssutra
-              </h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <NotificationBell />
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white transition-all hover:bg-white/20 active:scale-95 disabled:opacity-50"
-                data-testid="refresh-button"
-              >
-                <RefreshCw className={`h-5 w-5 ${refreshing ? "animate-spin" : ""}`} />
-              </button>
-              <ProfileMenu 
-                userName={getUserName()} 
-                userPicture={user?.picture}
-              />
-            </div>
+        <div className="relative px-5 pt-4 pb-6">
+          {/* Header Row - Just icons */}
+          <div className="flex items-center justify-end gap-3 mb-4">
+            <NotificationBell />
+            <ProfileMenu 
+              userName={getUserName()} 
+              userPicture={user?.picture}
+            />
           </div>
 
-          {/* Net Worth Card */}
+          {/* Net Worth Card - Hero */}
           <div className="relative">
             <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20" data-testid="networth-card">
               <div className="flex items-start justify-between mb-2">
