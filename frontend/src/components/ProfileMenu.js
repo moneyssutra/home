@@ -38,7 +38,7 @@ const ProfileMenu = ({ userName, userPicture }) => {
   };
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative" ref={menuRef} style={{ zIndex: 100 }}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-center w-9 h-9 rounded-full overflow-hidden transition-all hover:ring-2 hover:ring-white/30 active:scale-95"
@@ -60,18 +60,21 @@ const ProfileMenu = ({ userName, userPicture }) => {
       {/* Dropdown Menu */}
       {isOpen && (
         <div 
-          className="absolute right-0 top-12 w-48 rounded-xl shadow-lg overflow-hidden z-50"
+          className="absolute left-0 top-12 w-48 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
           style={{ 
-            backgroundColor: "var(--bg-card)", 
-            border: "1px solid var(--border-light)"
+            backgroundColor: "#FFFFFF", 
+            border: "1px solid #E5E7EB",
+            zIndex: 9999,
+            boxShadow: "0 10px 40px rgba(0,0,0,0.15)"
           }}
+          data-testid="profile-dropdown"
         >
           {/* User Info Header */}
-          <div className="px-4 py-3 border-b" style={{ borderColor: "var(--border-light)" }}>
-            <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+          <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+            <p className="text-sm font-semibold text-gray-900 truncate">
               {userName || "User"}
             </p>
-            <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs text-gray-500 truncate">
               Manage your account
             </p>
           </div>
@@ -83,8 +86,8 @@ const ProfileMenu = ({ userName, userPicture }) => {
               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
               data-testid="settings-menu-item"
             >
-              <Settings className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
-              <span className="text-sm" style={{ color: "var(--text-primary)" }}>Settings</span>
+              <Settings className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-700">Settings</span>
             </button>
 
             <button
@@ -93,7 +96,7 @@ const ProfileMenu = ({ userName, userPicture }) => {
               data-testid="logout-menu-item"
             >
               <LogOut className="h-4 w-4 text-red-500" />
-              <span className="text-sm text-red-500">Logout</span>
+              <span className="text-sm text-red-600 font-medium">Logout</span>
             </button>
           </div>
         </div>
