@@ -580,22 +580,24 @@ const ShockTestWidget = ({ clockData }) => {
   const [result, setResult] = useState(null);
   const [testing, setTesting] = useState(false);
   const [activeId, setActiveId] = useState(null);
+  const [customAmount, setCustomAmount] = useState("");
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   const scenarios = [
     { id: "job_loss", title: "Job Loss", icon: AlertTriangle, color: "#EF4444", desc: "No income for 3 months" },
-    { id: "medical", title: "Medical Emergency", icon: HeartPulse, color: "#F97316", desc: "Sudden ₹5L expense" },
-    { id: "car_repair", title: "Major Repair", icon: AlertCircle, color: "#EAB308", desc: "Unexpected ₹2L cost" },
-    { id: "emi_hike", title: "EMI Rate Hike", icon: TrendingUp, color: "#8B5CF6", desc: "All EMIs up 20%" },
+    { id: "medical", title: "Medical", icon: HeartPulse, color: "#F97316", desc: "₹5L expense" },
+    { id: "car_repair", title: "Repair", icon: AlertCircle, color: "#EAB308", desc: "₹2L cost" },
+    { id: "emi_hike", title: "EMI Hike", icon: TrendingUp, color: "#8B5CF6", desc: "All EMIs +20%" },
   ];
 
-  const runTest = async (id) => {
+  const runTest = async (id, custom = null) => {
     setTesting(true); setActiveId(id); setResult(null);
     try {
+      const body = custom ? { customAmount: custom } : { scenarioId: id };
       const res = await fetch(`${backendUrl}/api/intelligence/shock-test`, {
         method: "POST", credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenarioId: id })
+        body: JSON.stringify(body)
       });
       if (res.ok) setResult(await res.json());
     } catch (e) { console.error(e); }
