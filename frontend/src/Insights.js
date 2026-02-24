@@ -152,6 +152,16 @@ const LevelJourney = ({ data }) => {
           </div>
         ))}
       </div>
+
+      {/* Share Score Card Button */}
+      {onShare && (
+        <button onClick={onShare} className="w-full flex items-center justify-center gap-2 py-3 text-xs font-bold transition-all active:scale-[0.98]"
+          style={{ backgroundColor: "var(--bg-subtle)", borderTop: "1px solid var(--border-light)", color: "var(--brand-primary)" }}
+          data-testid="share-card-btn">
+          <Share2 className="h-3.5 w-3.5" />
+          Share Your Financial Score Card
+        </button>
+      )}
     </div>
   );
 };
