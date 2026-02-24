@@ -11,6 +11,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import ShareScoreCard from "@/components/ShareScoreCard";
+import RunwaySimulator from "@/components/RunwaySimulator";
 import { useState, useEffect } from "react";
 import { useIntelligenceData } from "@/hooks/useIntelligenceData";
 
