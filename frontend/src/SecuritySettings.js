@@ -93,8 +93,12 @@ const SecuritySettings = () => {
   const passwordStrength = getPasswordStrength(passwords.new);
 
   const handleChangePassword = async () => {
-    if (passwords.new.length < 6) {
-      toast.error("Password must be at least 6 characters");
+    if (hasPassword && !passwords.current) {
+      toast.error("Please enter your current password");
+      return;
+    }
+    if (passwords.new.length < 8) {
+      toast.error("Password must be at least 8 characters");
       return;
     }
     if (passwords.new !== passwords.confirm) {
@@ -104,26 +108,67 @@ const SecuritySettings = () => {
 
     setSaving(true);
     try {
-      const result = await setPassword(passwords.new);
-      if (result.success) {
-        toast.success("Password updated successfully");
-        setPasswords({ new: "", confirm: "" });
+      if (hasPassword) {
+        // Use change-password endpoint if user already has a password
+        await axios.post(`${backendUrl}/api/auth/change-password`, {
+          current_password: passwords.current,
+          new_password: passwords.new
+        }, { withCredentials: true });
+        toast.success("Password changed successfully");
       } else {
-        toast.error(result.error || "Failed to update password");
+        // Use set-password for first-time password setup
+        const result = await setPassword(passwords.new);
+        if (result.success) {
+          toast.success("Password set successfully");
+        } else {
+          toast.error(result.error || "Failed to set password");
+          return;
+        }
       }
+      setPasswords({ current: "", new: "", confirm: "" });
     } catch (error) {
-      toast.error("Failed to update password");
+      toast.error(error.response?.data?.detail || "Failed to change password");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleLogoutSession = (sessionId) => {
-    toast.success("Session logged out");
+  const handleToggle2FA = async () => {
+    setTwoFALoading(true);
+    try {
+      const newState = !twoFAEnabled;
+      await axios.post(`${backendUrl}/api/auth/2fa/toggle`, {
+        enabled: newState
+      }, { withCredentials: true });
+      setTwoFAEnabled(newState);
+      toast.success(`Two-factor authentication ${newState ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to update 2FA");
+    } finally {
+      setTwoFALoading(false);
+    }
   };
 
-  const handleLogoutAllSessions = () => {
-    toast.success("All other sessions logged out");
+  const handleLogoutSession = async (sessionId) => {
+    try {
+      await axios.post(`${backendUrl}/api/auth/sessions/logout`, {
+        session_id: sessionId
+      }, { withCredentials: true });
+      toast.success("Session logged out");
+      fetchSessions();
+    } catch (error) {
+      toast.error("Failed to logout session");
+    }
+  };
+
+  const handleLogoutAllSessions = async () => {
+    try {
+      await axios.post(`${backendUrl}/api/auth/sessions/logout-all`, {}, { withCredentials: true });
+      toast.success("All other sessions logged out");
+      fetchSessions();
+    } catch (error) {
+      toast.error("Failed to logout sessions");
+    }
   };
 
   const handleDeleteAccount = () => {
