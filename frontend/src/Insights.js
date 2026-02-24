@@ -740,12 +740,37 @@ const FutureYouWidget = ({ data }) => {
   );
 };
 
-// ─── PERSONALITY EVOLUTION TRACKER ───
+// ─── PERSONALITY EVOLUTION TRACKER (Line Chart) ───
 const PersonalityEvolutionWidget = ({ data, currentPersonality }) => {
   const history = data?.history || [];
   if (!currentPersonality) return null;
 
   const ZONE_COLORS = { Survival: "#EF4444", Stabilizing: "#F97316", Control: "#EAB308", Growth: "#22C55E", Advanced: "#3B82F6" };
+
+  // Prepare chart data (reversed so oldest first for left-to-right timeline)
+  const chartData = [...history].reverse().map(h => ({
+    month: h.month,
+    personality: h.personality,
+    personalityId: h.personalityId || 0,
+    confidence: h.confidence || 0,
+    survivalDays: h.survivalDays || 0,
+    controlScore: h.controlScore || 0,
+    zone: h.zone,
+    zoneColor: ZONE_COLORS[h.zone] || "#94A3B8",
+  }));
+
+  const CustomTooltip = ({ active, payload }) => {
+    if (!active || !payload?.length) return null;
+    const d = payload[0].payload;
+    return (
+      <div className="rounded-lg px-3 py-2 text-xs shadow-lg" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+        <p className="font-bold" style={{ color: d.zoneColor }}>{d.personality}</p>
+        <p style={{ color: "var(--text-muted)" }}>{d.month} · {d.zone}</p>
+        <p style={{ color: "var(--text-secondary)" }}>Level {d.personalityId} · {d.confidence}% match</p>
+        {d.survivalDays > 0 && <p style={{ color: "var(--text-muted)" }}>{d.survivalDays}d runway · Score {d.controlScore}</p>}
+      </div>
+    );
+  };
 
   return (
     <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="personality-evolution">
@@ -755,32 +780,63 @@ const PersonalityEvolutionWidget = ({ data, currentPersonality }) => {
       </div>
       <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>How your financial identity has evolved</p>
 
-      {history.length > 0 ? (
-        <div className="relative">
-          <div className="absolute left-3 top-3 bottom-3 w-0.5" style={{ backgroundColor: "var(--border-light)" }} />
-          <div className="space-y-2">
-            {history.map((h, i) => {
+      {chartData.length >= 2 ? (
+        <>
+          <div style={{ width: "100%", height: 180 }}>
+            <ResponsiveContainer>
+              <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
+                <YAxis domain={[0, 20]} tick={{ fontSize: 10, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Line type="monotone" dataKey="personalityId" stroke="#F59E0B" strokeWidth={2.5} dot={(props) => {
+                  const { cx, cy, payload } = props;
+                  const isLast = payload === chartData[chartData.length - 1];
+                  return (
+                    <circle cx={cx} cy={cy} r={isLast ? 5 : 3} fill={payload.zoneColor} stroke={isLast ? "#fff" : "none"} strokeWidth={isLast ? 2 : 0} />
+                  );
+                }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          {/* Zone legend */}
+          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+            {Object.entries(ZONE_COLORS).map(([zone, color]) => (
+              <div key={zone} className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>{zone}</span>
+              </div>
+            ))}
+          </div>
+          {/* Current + history list (compact) */}
+          <div className="mt-3 space-y-1.5">
+            {history.slice(0, 4).map((h, i) => {
               const zc = ZONE_COLORS[h.zone] || "#94A3B8";
               const isCurrent = i === 0;
               return (
-                <div key={i} className="flex items-center gap-3 relative pl-1">
-                  <div className="w-5 h-5 rounded-full flex items-center justify-center z-10 flex-shrink-0" style={{
-                    backgroundColor: isCurrent ? zc : `${zc}30`,
-                    border: isCurrent ? `2px solid ${zc}` : "none"
-                  }}>
-                    <span className="text-[7px] font-black" style={{ color: isCurrent ? "#fff" : zc }}>{h.personalityId}</span>
+                <div key={i} className="flex items-center gap-2 px-2 py-1.5 rounded-lg" style={{ backgroundColor: isCurrent ? `${zc}08` : "transparent" }}>
+                  <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: zc }}>
+                    <span className="text-[7px] font-black text-white">{h.personalityId}</span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold" style={{ color: isCurrent ? zc : "var(--text-primary)" }}>{h.personality}</span>
-                      {isCurrent && <span className="text-[8px] font-bold px-1 py-0.5 rounded-full" style={{ backgroundColor: `${zc}20`, color: zc }}>NOW</span>}
-                    </div>
-                    <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{h.month} · {h.zone} · {h.confidence}% match</p>
-                  </div>
+                  <span className="text-xs font-bold flex-1" style={{ color: isCurrent ? zc : "var(--text-primary)" }}>{h.personality}</span>
+                  {isCurrent && <span className="text-[8px] font-bold px-1 py-0.5 rounded-full" style={{ backgroundColor: `${zc}20`, color: zc }}>NOW</span>}
+                  <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>{h.month}</span>
                 </div>
               );
             })}
           </div>
+        </>
+      ) : history.length === 1 ? (
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: `${ZONE_COLORS[history[0].zone] || "#94A3B8"}08` }}>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: ZONE_COLORS[history[0].zone] || "#94A3B8" }}>
+              <span className="text-xs font-black text-white">{history[0].personalityId}</span>
+            </div>
+            <div>
+              <p className="text-sm font-bold" style={{ color: ZONE_COLORS[history[0].zone] || "var(--text-primary)" }}>{history[0].personality}</p>
+              <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{history[0].month} · {history[0].zone} · {history[0].confidence}% match</p>
+            </div>
+          </div>
+          <p className="text-[10px] text-center" style={{ color: "var(--text-muted)" }}>Chart will appear after your 2nd monthly evaluation.</p>
         </div>
       ) : (
         <div className="text-center py-4">
