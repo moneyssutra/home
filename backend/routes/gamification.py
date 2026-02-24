@@ -231,6 +231,7 @@ async def _unlock_achievement(user_id: str, code: str) -> Optional[dict]:
         "xp_bonus": ach["xp_bonus"], "achieved_at": datetime.now(timezone.utc).isoformat()
     }
     await db.user_achievements.insert_one(doc)
+    doc.pop("_id", None)
     return doc
 
 
