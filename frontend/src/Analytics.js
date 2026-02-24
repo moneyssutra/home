@@ -38,6 +38,11 @@ const Analytics = () => {
 
   const timeFilters = ["1M", "3M", "6M", "1Y", "All"];
 
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     fetchAllData();
   }, [timeFilter]);
