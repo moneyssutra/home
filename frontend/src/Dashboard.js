@@ -120,11 +120,6 @@ const Dashboard = () => {
     return null;
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }} data-testid="dashboard-loading">
