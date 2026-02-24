@@ -570,6 +570,143 @@ const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
   );
 };
 
+// ─── FINANCIAL JOURNEY (5 phases) ───
+const FinancialJourneyWidget = ({ clockData }) => {
+  if (!clockData) return null;
+  const phaseNum = clockData.phaseNum || 1;
+  const phases = [
+    { num: 1, name: "Survival", icon: Shield, color: "#EF4444", range: "0-30 days", desc: "Building your first safety net" },
+    { num: 2, name: "Stability", icon: ShieldCheck, color: "#F97316", range: "30-90 days", desc: "Establishing financial footing" },
+    { num: 3, name: "Control", icon: Target, color: "#EAB308", range: "90-180 days", desc: "Taking charge of your money" },
+    { num: 4, name: "Growth", icon: TrendingUp, color: "#22C55E", range: "180-365 days", desc: "Building wealth actively" },
+    { num: 5, name: "Freedom", icon: Crown, color: "#3B82F6", range: "365+ days", desc: "Financial independence achieved" },
+  ];
+  return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-journey">
+      <div className="flex items-center gap-2 mb-3">
+        <Rocket className="h-5 w-5" style={{ color: "#8B5CF6" }} />
+        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Journey</h3>
+      </div>
+      <div className="relative">
+        {/* Connection line */}
+        <div className="absolute left-5 top-5 bottom-5 w-0.5" style={{ backgroundColor: "var(--border-light)" }} />
+        <div className="space-y-1">
+          {phases.map((p) => {
+            const done = phaseNum > p.num;
+            const current = phaseNum === p.num;
+            const Icon = p.icon;
+            return (
+              <div key={p.num} className="flex items-center gap-3 relative p-2 rounded-xl" style={{ backgroundColor: current ? `${p.color}08` : "transparent" }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10" style={{
+                  backgroundColor: done || current ? p.color : "var(--bg-subtle)",
+                  border: current ? `2px solid ${p.color}` : "none",
+                  boxShadow: current ? `0 0 8px ${p.color}30` : "none",
+                }}>
+                  <Icon className="h-4 w-4" style={{ color: done || current ? "#fff" : "var(--text-muted)" }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold" style={{ color: current ? p.color : done ? "var(--text-primary)" : "var(--text-muted)" }}>{p.name}</span>
+                    {current && <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${p.color}20`, color: p.color }}>NOW</span>}
+                    {done && <CheckCircle className="h-3 w-3" style={{ color: p.color }} />}
+                  </div>
+                  <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{p.range} · {p.desc}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── FINANCIAL SHOCK TEST ───
+const ShockTestWidget = ({ clockData }) => {
+  const [result, setResult] = useState(null);
+  const [testing, setTesting] = useState(false);
+  const [activeId, setActiveId] = useState(null);
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
+  const scenarios = [
+    { id: "job_loss", title: "Job Loss", icon: AlertTriangle, color: "#EF4444", desc: "No income for 3 months" },
+    { id: "medical", title: "Medical Emergency", icon: HeartPulse, color: "#F97316", desc: "Sudden ₹5L expense" },
+    { id: "car_repair", title: "Major Repair", icon: AlertCircle, color: "#EAB308", desc: "Unexpected ₹2L cost" },
+    { id: "emi_hike", title: "EMI Rate Hike", icon: TrendingUp, color: "#8B5CF6", desc: "All EMIs up 20%" },
+  ];
+
+  const runTest = async (id) => {
+    setTesting(true); setActiveId(id); setResult(null);
+    try {
+      const res = await fetch(`${backendUrl}/api/intelligence/shock-test`, {
+        method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenarioId: id })
+      });
+      if (res.ok) setResult(await res.json());
+    } catch (e) { console.error(e); }
+    setTesting(false);
+  };
+
+  const sevColor = { critical: "#EF4444", warning: "#F59E0B", safe: "#10B981" };
+
+  return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="shock-test">
+      <div className="flex items-center gap-2 mb-1">
+        <Zap className="h-5 w-5" style={{ color: "#EF4444" }} />
+        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Shock Test</h3>
+      </div>
+      <p className="text-xs mb-3" style={{ color: "var(--text-muted)" }}>Can your finances handle an emergency?</p>
+
+      <div className="grid grid-cols-2 gap-2">
+        {scenarios.map((s) => {
+          const Icon = s.icon;
+          const isActive = activeId === s.id;
+          return (
+            <button key={s.id} onClick={() => runTest(s.id)} disabled={testing}
+              className="p-3 rounded-xl text-left transition-all active:scale-[0.97]"
+              style={{ backgroundColor: isActive ? `${s.color}10` : "var(--bg-subtle)", border: `1px solid ${isActive ? s.color + '40' : 'var(--border-light)'}` }}
+              data-testid={`shock-${s.id}`}>
+              <Icon className="h-4 w-4 mb-1.5" style={{ color: s.color }} />
+              <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{s.title}</p>
+              <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{s.desc}</p>
+            </button>
+          );
+        })}
+      </div>
+
+      {testing && <div className="mt-3 text-center text-xs" style={{ color: "var(--text-muted)" }}>Simulating...</div>}
+
+      {result && !testing && (
+        <div className="mt-3 p-3 rounded-xl" style={{ backgroundColor: `${sevColor[result.impact.severity]}08`, border: `1px solid ${sevColor[result.impact.severity]}30` }} data-testid="shock-result">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{result.scenario.title}</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase" style={{ backgroundColor: `${sevColor[result.impact.severity]}20`, color: sevColor[result.impact.severity] }}>
+              {result.impact.severity}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="text-center flex-1 p-2 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
+              <p className="text-lg font-black" style={{ color: "var(--text-primary)" }}>{result.current.survivalDays}</p>
+              <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>Before</p>
+            </div>
+            <ChevronRight className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
+            <div className="text-center flex-1 p-2 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
+              <p className="text-lg font-black" style={{ color: sevColor[result.impact.severity] }}>{result.postShock.survivalDays}</p>
+              <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>After</p>
+            </div>
+          </div>
+          <p className="text-[10px] font-bold" style={{ color: sevColor[result.impact.severity] }}>
+            -{result.impact.daysLost} days · {result.impact.label}
+          </p>
+          <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>{result.tip}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+
 // ─── MAIN INSIGHTS PAGE ───
 const Insights = () => {
   const navigate = useNavigate();
