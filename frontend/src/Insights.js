@@ -6,6 +6,7 @@ import RunwaySimulator from "@/components/RunwaySimulator";
 import MoneyPatternWidget from "@/components/MoneyPatternWidget";
 import { useState } from "react";
 import { useIntelligenceData } from "@/hooks/useIntelligenceData";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import {
   ArrowLeft, BarChart3, FileText, ChevronRight, RefreshCw,
   Shield, Target, AlertTriangle, Flame, Trophy, Star,
