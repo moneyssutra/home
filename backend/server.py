@@ -7659,6 +7659,9 @@ async def delete_user_account(request: Request):
     
     return {"message": "Account and all data deleted successfully"}
 
+# Include the router in the main app - MUST be after all routes are defined
+app.include_router(api_router)
+
 @app.on_event("startup")
 async def startup_db_client():
     """Create database indexes and start background scheduler"""
