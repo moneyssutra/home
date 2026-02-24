@@ -379,6 +379,7 @@ const FinancialScoreWidget = ({ data }) => {
     { ...bd.incomeConsistency, color: "#F59E0B", help: "Income stability & consistency" },
   ].filter(b => b.label);
   const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  const period = data.scorePeriod?.label;
 
   return (
     <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-score">
@@ -386,7 +387,9 @@ const FinancialScoreWidget = ({ data }) => {
         <Target className="h-5 w-5" style={{ color: gc }} />
         <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Score</h3>
       </div>
-      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Your overall financial health · Updated {today}</p>
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
+        {period ? `Period: ${period}` : `Updated ${today}`}
+      </p>
 
       <div className="flex items-center gap-5">
         <div className="flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center" style={{ background: `linear-gradient(135deg, ${gc}20, ${gc}05)`, border: `2px solid ${gc}40` }}>
