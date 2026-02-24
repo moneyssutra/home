@@ -85,31 +85,32 @@ const SurvivalWarning = ({ data }) => {
 // ─── COMBINED: YOUR FINANCIAL STAGE + XP ───
 const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
   const [showXpRules, setShowXpRules] = useState(false);
+  const [showAllStages, setShowAllStages] = useState(false);
   if (!gamData) return null;
 
-  // Primary: Survival Stage (based on survival days)
   const stageName = clockData?.level || "—";
   const stageNum = clockData?.stage || 0;
   const stageColor = clockData?.levelColor || "#059669";
   const pm = PHASE_META[clockData?.phaseNum] || PHASE_META[1];
   const survDays = clockData?.survivalDays || 0;
-  const stages = clockData?.visibleStages || [];
+  const allStages = clockData?.allStages || clockData?.visibleStages || [];
 
-  // Secondary: XP (gamification)
   const xp = gamData.currentXP || gamData.xp || 0;
   const nextXp = gamData.nextLevelXP || gamData.nextLevelXp || 100;
   const xpPct = Math.min((xp / nextXp) * 100, 100);
+  const crossed = allStages.filter(s => s.reached && !s.current).length;
+  const remaining = allStages.filter(s => !s.reached && !s.current).length;
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="stage-journey">
-      {/* Main identity: Survival Stage */}
+      {/* Main identity */}
       <div className="p-5 pb-3">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center relative" style={{ background: `linear-gradient(135deg, ${stageColor}25, ${stageColor}08)`, border: `2px solid ${stageColor}50` }}>
+        <div className="flex items-start gap-4">
+          <div className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center flex-shrink-0" style={{ background: `linear-gradient(135deg, ${stageColor}25, ${stageColor}08)`, border: `2px solid ${stageColor}50` }}>
             <span className="text-2xl font-black leading-none" style={{ color: stageColor }}>{stageNum}</span>
             <span className="text-[8px] font-bold tracking-wide" style={{ color: stageColor }}>STAGE</span>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: pm.color }}>{pm.label} Zone</p>
             <p className="text-xl font-black leading-tight" style={{ color: "var(--text-primary)" }}>{stageName}</p>
             <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{survDays} days runway · Stage {stageNum} of 20</p>
@@ -122,32 +123,79 @@ const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
         </div>
       </div>
 
-      {/* Visual stage bar */}
-      {stages.length > 0 && (
-        <div className="px-5 pb-3">
-          <div className="flex items-end gap-0.5">
-            {stages.map((s) => (
-              <div key={s.stage} className="flex-1 flex flex-col items-center">
+      {/* All 20 stages visual bar */}
+      {allStages.length > 0 && (
+        <div className="px-5 pb-2">
+          <div className="flex items-center gap-1 mb-1.5">
+            <span className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>Your Journey</span>
+            <span className="text-[10px] ml-auto" style={{ color: "var(--text-muted)" }}>
+              <span className="font-bold" style={{ color: stageColor }}>{crossed}</span> crossed · <span className="font-bold">{remaining}</span> to go
+            </span>
+            <button onClick={() => setShowAllStages(!showAllStages)} className="ml-1.5 p-0.5" data-testid="stages-info-btn">
+              <Info className="h-3.5 w-3.5" style={{ color: showAllStages ? "var(--brand-primary)" : "var(--text-muted)" }} />
+            </button>
+          </div>
+          <div className="flex items-end gap-[3px]">
+            {allStages.map((s) => (
+              <div key={s.stage} className="flex-1 flex flex-col items-center" title={`${s.stage}. ${s.name}`}>
                 <div className="w-full rounded-sm transition-all" style={{
-                  height: s.current ? "20px" : s.reached ? "12px" : "5px",
-                  backgroundColor: s.reached ? s.color : "var(--bg-subtle)",
-                  border: s.current ? `2px solid ${s.color}` : "none",
-                  boxShadow: s.current ? `0 0 8px ${s.color}40` : "none",
+                  height: s.current ? "18px" : s.reached ? "10px" : "6px",
+                  backgroundColor: s.reached || s.current ? s.color : "var(--bg-subtle)",
+                  boxShadow: s.current ? `0 0 6px ${s.color}50` : "none",
+                  opacity: !s.reached && !s.current ? 0.4 : 1,
                 }} />
-                {(s.current || s.stage === stages[0].stage || s.stage === stages[stages.length - 1].stage) && (
-                  <span className="text-[7px] font-bold mt-0.5" style={{ color: s.current ? s.color : "var(--text-muted)" }}>{s.stage}</span>
-                )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between mt-0.5">
-            <span className="text-[8px]" style={{ color: "var(--text-muted)" }}>{stages[0]?.name}</span>
-            <span className="text-[8px]" style={{ color: "var(--text-muted)" }}>{stages[stages.length - 1]?.name}</span>
+          <div className="flex justify-between mt-1">
+            <span className="text-[8px] font-medium" style={{ color: "var(--text-muted)" }}>1 · {allStages[0]?.name}</span>
+            <span className="text-[8px] font-medium" style={{ color: "var(--text-muted)" }}>20 · {allStages[allStages.length - 1]?.name}</span>
           </div>
         </div>
       )}
 
-      {/* XP bar - secondary */}
+      {/* Expandable: all 20 stages detail */}
+      {showAllStages && allStages.length > 0 && (
+        <div className="px-5 pb-3">
+          <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-light)" }}>
+            <div className="max-h-[240px] overflow-y-auto">
+              {allStages.map((s) => {
+                const isCurrent = s.current;
+                const isReached = s.reached;
+                const pMeta = PHASE_META[s.phase_num] || {};
+                return (
+                  <div key={s.stage} className="flex items-center gap-2.5 px-3 py-2" style={{
+                    backgroundColor: isCurrent ? `${s.color}10` : "transparent",
+                    borderBottom: "1px solid var(--border-light)",
+                    borderLeft: isCurrent ? `3px solid ${s.color}` : "3px solid transparent"
+                  }}>
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 text-[9px] font-black" style={{
+                      backgroundColor: isReached || isCurrent ? s.color : "var(--bg-subtle)",
+                      color: isReached || isCurrent ? "#fff" : "var(--text-muted)"
+                    }}>{s.stage}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold" style={{ color: isCurrent ? s.color : isReached ? "var(--text-primary)" : "var(--text-muted)" }}>{s.name}</span>
+                        {isCurrent && <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${s.color}20`, color: s.color }}>YOU</span>}
+                      </div>
+                      <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+                        {s.min}-{s.max > 9000 ? "∞" : s.max} days · {pMeta.label || s.phase}
+                      </span>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {isReached && !isCurrent && <CheckCircle className="h-3.5 w-3.5" style={{ color: s.color }} />}
+                      {isCurrent && <Zap className="h-3.5 w-3.5" style={{ color: s.color }} />}
+                      {!isReached && !isCurrent && <Lock className="h-3 w-3" style={{ color: "var(--text-muted)", opacity: 0.4 }} />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* XP bar */}
       <div className="px-5 pb-3 flex items-center gap-3">
         <Zap className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "#F59E0B" }} />
         <div className="flex-1">
