@@ -1145,6 +1145,19 @@ async def get_money_pattern(request: Request):
         }}, upsert=True
     )
 
+    # Store monthly history (one entry per month)
+    current_month = now.strftime("%Y-%m")
+    await db.user_personality_history.update_one(
+        {"userId": user_id, "month": current_month},
+        {"$set": {
+            "userId": user_id, "month": current_month,
+            "date": now.isoformat(),
+            "personality": primary["name"], "personalityId": primary["id"],
+            "zone": primary["zone"], "confidence": primary["confidence"],
+            "survivalDays": survival_days, "controlScore": control_score,
+        }}, upsert=True
+    )
+
     return {
         "personality": primary["name"],
         "personalityId": primary["id"],
