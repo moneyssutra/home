@@ -213,8 +213,8 @@ const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
         <div className="px-5 pb-3 space-y-1">
           {gamData.xpRules.map((r, i) => (
             <div key={i} className="flex items-center justify-between text-[10px] px-2 py-1 rounded" style={{ backgroundColor: "var(--bg-subtle)" }}>
-              <span style={{ color: "var(--text-secondary)" }}>{r.rule}</span>
-              <span className="font-bold" style={{ color: "#F59E0B" }}>+{r.xp} XP</span>
+              <span style={{ color: "var(--text-primary)" }}>{r.action || r.rule || "Action"}</span>
+              <span className="font-bold flex-shrink-0 ml-2" style={{ color: "#F59E0B" }}>{r.xp}</span>
             </div>
           ))}
         </div>
