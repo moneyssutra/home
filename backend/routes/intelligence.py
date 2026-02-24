@@ -736,43 +736,227 @@ def _get_sim_insight(current, simulated, inc_pct, exp_pct, extra):
 
 @router.get("/money-pattern")
 async def get_money_pattern(request: Request):
-    """Money Pattern Recognition - Your financial personality profile."""
+    """20-Personality Classification Engine — data-driven financial identity."""
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     user_filter = get_user_filter(user)
+    user_id = user.get("user_id")
 
+    # ─── GATHER ALL INPUT VARIABLES ───
     monthly_income = await _get_monthly_income(user_filter)
     monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
     monthly_discretionary = await _get_monthly_discretionary_spending(user_filter)
     total_emi = await _get_total_emi(user_filter)
     fund_breakdown = await _get_fund_breakdown(user_filter)
+    effective_funds = fund_breakdown["effectiveTotal"]
+    daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
 
+    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+
+    # Control score (inline calc to avoid circular call)
+    savings_rate = ((monthly_income - monthly_mandatory - monthly_discretionary) / monthly_income) if monthly_income > 0 else 0
+    debt_to_income = (total_emi / monthly_income) if monthly_income > 0 else 0
+    discretionary_ratio = (monthly_discretionary / monthly_income) if monthly_income > 0 else 0
+
+    # Control score from breakdown (simplified)
+    sav_score = min(int(savings_rate * 100), 25)
+    emi_score = max(25 - int(debt_to_income * 50), 0)
+    buffer_months = effective_funds / monthly_mandatory if monthly_mandatory > 0 else 0
+    buf_score = min(int(buffer_months * 4), 25)
+    control_score = sav_score + emi_score + buf_score + 18  # +18 base consistency
+
+    # Income growth & volatility from transactions (last 3 months)
+    now = datetime.now(timezone.utc)
+    income_history = []
+    for i in range(3):
+        m = (now - timedelta(days=30 * (i + 1)))
+        month_key = m.strftime("%Y-%m")
+        month_income = 0
+        txns = await db.transactions.find({**user_filter, "type": "income", "date": {"$regex": f"^{month_key}"}}, {"_id": 0, "amount": 1}).to_list(500)
+        for t in txns:
+            month_income += abs(t.get("amount", 0))
+        income_history.append(month_income)
+
+    income_growth_rate = 0
+    income_volatility = 0
+    if len(income_history) >= 2 and income_history[-1] > 0:
+        income_growth_rate = (income_history[0] - income_history[-1]) / income_history[-1]
+    if len(income_history) >= 2:
+        mean_inc = sum(income_history) / len(income_history) if income_history else 1
+        if mean_inc > 0:
+            variance = sum((x - mean_inc) ** 2 for x in income_history) / len(income_history)
+            income_volatility = (variance ** 0.5) / mean_inc
+
+    # Investment ratio & categories
+    investments = await db.investments.find(user_filter, {"_id": 0, "currentValue": 1, "category": 1, "investmentType": 1}).to_list(1000)
+    total_inv_value = sum(i.get("currentValue", 0) for i in investments)
+    net_worth = fund_breakdown.get("netWorth", effective_funds + total_inv_value) or 1
+    investment_ratio = total_inv_value / net_worth if net_worth > 0 else 0
+    inv_categories = set(i.get("category") or i.get("investmentType", "Other") for i in investments)
+
+    # Semi-liquid ratio
+    semi_liquid_total = fund_breakdown.get("semiLiquid", {}).get("total", 0)
+    semi_liquid_ratio = semi_liquid_total / net_worth if net_worth > 0 else 0
+
+    # Income sources count
+    income_sources = await db.income_sources.find(user_filter, {"_id": 0}).to_list(100)
+    income_sources_count = len(income_sources) if income_sources else 1
+
+    # Alert count this month
+    current_month = now.strftime("%Y-%m")
+    alert_count = await db.notifications.count_documents({
+        "userId": user_id, "type": {"$in": ["behavior_alert", "alert", "warning"]},
+        "createdAt": {"$regex": f"^{current_month}"}
+    })
+
+    # Debt reduction trend (6 months) — check if debt decreased
+    debt_reduced_pct = 0
+    # Alert trend — check if decreasing
+    alert_decreasing = alert_count <= 1
+    # Control score rising (simplified: score > 65 = rising)
+    control_rising = control_score > 65
+    # Discretionary decreased (simplified check)
+    disc_decreased = discretionary_ratio < 0.30
+    disc_stable = 0.15 <= discretionary_ratio <= 0.35
+
+    # ─── 20-PERSONALITY CLASSIFICATION ENGINE ───
+    PERSONALITIES = [
+        # ADVANCED ZONE (17-20) — check first (highest level)
+        {"id": 20, "name": "Sovereign", "zone": "Advanced", "color": "#3B82F6", "icon": "crown",
+         "tagline": "Complete financial mastery — you've built an unshakable fortress.",
+         "conditions": lambda: survival_days > 720 and control_score >= 85 and debt_to_income < 0.20 and savings_rate >= 0.30,
+         "total_conds": 4, "check": lambda: sum([survival_days > 720, control_score >= 85, debt_to_income < 0.20, savings_rate >= 0.30])},
+        {"id": 19, "name": "Financial Architect", "zone": "Advanced", "color": "#3B82F6", "icon": "building",
+         "tagline": "You design financial systems — income flows, investments grow, risks managed.",
+         "conditions": lambda: survival_days > 540 and control_score > 80 and income_sources_count >= 2 and alert_count == 0,
+         "total_conds": 4, "check": lambda: sum([survival_days > 540, control_score > 80, income_sources_count >= 2, alert_count == 0])},
+        {"id": 18, "name": "Risk Balancer", "zone": "Advanced", "color": "#3B82F6", "icon": "scale",
+         "tagline": "Perfect balance of growth and safety — your portfolio is well-tuned.",
+         "conditions": lambda: investment_ratio >= 0.50 and survival_days > 180 and 0.20 <= semi_liquid_ratio <= 0.40,
+         "total_conds": 3, "check": lambda: sum([investment_ratio >= 0.50, survival_days > 180, 0.20 <= semi_liquid_ratio <= 0.40])},
+        {"id": 17, "name": "Capital Guardian", "zone": "Advanced", "color": "#3B82F6", "icon": "shield",
+         "tagline": "Your wealth is protected and growing — guardian of your financial future.",
+         "conditions": lambda: survival_days > 365 and investment_ratio >= 0.40 and debt_to_income < 0.25,
+         "total_conds": 3, "check": lambda: sum([survival_days > 365, investment_ratio >= 0.40, debt_to_income < 0.25])},
+        # GROWTH ZONE (13-16)
+        {"id": 16, "name": "Strategic Planner", "zone": "Growth", "color": "#22C55E", "icon": "compass",
+         "tagline": "Every financial move is calculated — strategy is your superpower.",
+         "conditions": lambda: survival_days > 240 and control_score > 75 and disc_stable and debt_to_income < 0.30,
+         "total_conds": 4, "check": lambda: sum([survival_days > 240, control_score > 75, disc_stable, debt_to_income < 0.30])},
+        {"id": 15, "name": "Income Multiplier", "zone": "Growth", "color": "#22C55E", "icon": "layers",
+         "tagline": "Multiple income streams fuel your growth — you don't depend on one source.",
+         "conditions": lambda: income_sources_count >= 3 and income_growth_rate >= 0.10,
+         "total_conds": 2, "check": lambda: sum([income_sources_count >= 3, income_growth_rate >= 0.10])},
+        {"id": 14, "name": "Diversifier", "zone": "Growth", "color": "#22C55E", "icon": "pie-chart",
+         "tagline": "Spread across asset classes — diversification is your shield.",
+         "conditions": lambda: len(inv_categories) >= 3 and investment_ratio >= 0.35,
+         "total_conds": 2, "check": lambda: sum([len(inv_categories) >= 3, investment_ratio >= 0.35])},
+        {"id": 13, "name": "Wealth Builder", "zone": "Growth", "color": "#22C55E", "icon": "trending-up",
+         "tagline": "Investments growing, savings solid — you're actively building wealth.",
+         "conditions": lambda: investment_ratio >= 0.30 and survival_days > 180 and control_score >= 70,
+         "total_conds": 3, "check": lambda: sum([investment_ratio >= 0.30, survival_days > 180, control_score >= 70])},
+        # CONTROL ZONE (9-12)
+        {"id": 12, "name": "Score Climber", "zone": "Control", "color": "#EAB308", "icon": "arrow-up-right",
+         "tagline": "Your financial score is on a rocket — momentum is everything.",
+         "conditions": lambda: control_score >= 65 and control_rising,
+         "total_conds": 2, "check": lambda: sum([control_score >= 65, control_rising])},
+        {"id": 11, "name": "Silent Saver", "zone": "Control", "color": "#EAB308", "icon": "piggy-bank",
+         "tagline": "Quietly stacking money — no drama, just disciplined growth.",
+         "conditions": lambda: savings_rate >= 0.30 and income_volatility < 0.15 and discretionary_ratio < 0.25,
+         "total_conds": 3, "check": lambda: sum([savings_rate >= 0.30, income_volatility < 0.15, discretionary_ratio < 0.25])},
+        {"id": 10, "name": "Stability Seeker", "zone": "Control", "color": "#EAB308", "icon": "anchor",
+         "tagline": "Safe and steady — you prioritize security over aggressive growth.",
+         "conditions": lambda: survival_days > 150 and investment_ratio < 0.20 and savings_rate >= 0.25,
+         "total_conds": 3, "check": lambda: sum([survival_days > 150, investment_ratio < 0.20, savings_rate >= 0.25])},
+        {"id": 9, "name": "Structured Controller", "zone": "Control", "color": "#EAB308", "icon": "sliders",
+         "tagline": "Everything is tracked, planned, and optimized — financial order achieved.",
+         "conditions": lambda: 120 <= survival_days <= 240 and control_score >= 70 and alert_count <= 1,
+         "total_conds": 3, "check": lambda: sum([120 <= survival_days <= 240, control_score >= 70, alert_count <= 1])},
+        # STABILIZING ZONE (5-8)
+        {"id": 8, "name": "Debt Warrior", "zone": "Stabilizing", "color": "#F97316", "icon": "swords",
+         "tagline": "Fighting debt with discipline — every payment is a victory.",
+         "conditions": lambda: debt_to_income > 0.30 and debt_to_income < 0.60,
+         "total_conds": 2, "check": lambda: sum([debt_to_income > 0.30, debt_to_income < 0.60])},
+        {"id": 7, "name": "Expense Controller", "zone": "Stabilizing", "color": "#F97316", "icon": "scissors",
+         "tagline": "Cutting waste, boosting control — you're tightening the financial ship.",
+         "conditions": lambda: disc_decreased and control_rising,
+         "total_conds": 2, "check": lambda: sum([disc_decreased, control_rising])},
+        {"id": 6, "name": "Buffer Builder", "zone": "Stabilizing", "color": "#F97316", "icon": "shield-plus",
+         "tagline": "Building your safety cushion — every saved rupee adds to your runway.",
+         "conditions": lambda: 60 <= survival_days <= 150 and savings_rate >= 0.20 and debt_to_income < 0.40,
+         "total_conds": 3, "check": lambda: sum([60 <= survival_days <= 150, savings_rate >= 0.20, debt_to_income < 0.40])},
+        {"id": 5, "name": "Recovering Planner", "zone": "Stabilizing", "color": "#F97316", "icon": "refresh-cw",
+         "tagline": "Getting back on track — you're rebuilding with a plan.",
+         "conditions": lambda: 30 <= survival_days <= 90 and 50 <= control_score <= 65 and alert_decreasing,
+         "total_conds": 3, "check": lambda: sum([30 <= survival_days <= 90, 50 <= control_score <= 65, alert_decreasing])},
+        # SURVIVAL ZONE (1-4)
+        {"id": 4, "name": "Lifestyle Inflator", "zone": "Survival", "color": "#EF4444", "icon": "flame",
+         "tagline": "Income is rising but lifestyle is rising faster — the silent trap.",
+         "conditions": lambda: income_growth_rate > 0.15 and discretionary_ratio > 0.40 and savings_rate < 0.15,
+         "total_conds": 3, "check": lambda: sum([income_growth_rate > 0.15, discretionary_ratio > 0.40, savings_rate < 0.15])},
+        {"id": 3, "name": "EMI Trapped", "zone": "Survival", "color": "#EF4444", "icon": "lock",
+         "tagline": "EMIs have you locked — reducing debt is the only way to breathe.",
+         "conditions": lambda: debt_to_income >= 0.60 and survival_days < 60,
+         "total_conds": 2, "check": lambda: sum([debt_to_income >= 0.60, survival_days < 60])},
+        {"id": 2, "name": "Drifter", "zone": "Survival", "color": "#EF4444", "icon": "wind",
+         "tagline": "No direction yet — small consistent steps will change everything.",
+         "conditions": lambda: survival_days < 45 and control_score < 50 and savings_rate < 0.10 and debt_to_income <= 0.50,
+         "total_conds": 4, "check": lambda: sum([survival_days < 45, control_score < 50, savings_rate < 0.10, debt_to_income <= 0.50])},
+        {"id": 1, "name": "Firefighter", "zone": "Survival", "color": "#EF4444", "icon": "alert-triangle",
+         "tagline": "Putting out financial fires daily — it's time to build a firewall.",
+         "conditions": lambda: survival_days < 30 and debt_to_income > 0.50 and alert_count >= 3,
+         "total_conds": 3, "check": lambda: sum([survival_days < 30, debt_to_income > 0.50, alert_count >= 3])},
+    ]
+
+    # ─── EVALUATE: highest-level match first, with confidence ───
+    primary = None
+    secondary = None
+    primary_confidence = 0
+
+    for p in PERSONALITIES:
+        matched = p["check"]()
+        total = p["total_conds"]
+        confidence = round((matched / total) * 100) if total > 0 else 0
+
+        if confidence >= 70:
+            if primary is None:
+                primary = {**p, "confidence": confidence, "matched": matched}
+            elif secondary is None:
+                secondary = {**p, "confidence": confidence, "matched": matched}
+                break
+
+    # Fallback: if no 70%+ match, pick best partial match
+    if primary is None:
+        best_conf = 0
+        for p in PERSONALITIES:
+            matched = p["check"]()
+            total = p["total_conds"]
+            conf = round((matched / total) * 100) if total > 0 else 0
+            if conf > best_conf:
+                best_conf = conf
+                primary = {**p, "confidence": conf, "matched": matched}
+
+    if primary is None:
+        primary = {**PERSONALITIES[-1], "confidence": 50, "matched": 1}
+
+    # ─── SPENDING DNA (kept from old system) ───
     total_expenses = monthly_mandatory + monthly_discretionary
-    savings = monthly_income - total_expenses if monthly_income > 0 else 0
-
-    # Calculate ratios
-    savings_rate = (savings / monthly_income * 100) if monthly_income > 0 else 0
-    emi_ratio = (total_emi / monthly_income * 100) if monthly_income > 0 else 0
     needs_ratio = (monthly_mandatory / monthly_income * 100) if monthly_income > 0 else 0
     wants_ratio = (monthly_discretionary / monthly_income * 100) if monthly_income > 0 else 0
-    savings_ratio_pct = max(savings_rate, 0)
+    emi_ratio = (total_emi / monthly_income * 100) if monthly_income > 0 else 0
+    savings_pct = max(savings_rate * 100, 0)
 
-    # Spending DNA
     spending_dna = {
         "needs": round(needs_ratio, 1),
         "wants": round(wants_ratio, 1),
-        "savings": round(savings_ratio_pct, 1),
+        "savings": round(savings_pct, 1),
         "emi": round(emi_ratio, 1),
     }
 
-    # Get investment diversity
-    investments = await db.investments.find(user_filter, {"_id": 0, "name": 1}).to_list(1000)
-    inv_count = len(investments)
-
-    # Get expense categories for leakage detection
-    expenses = await db.expenses.find(user_filter, {"_id": 0, "category": 1, "expectedAmount": 1, "frequency": 1, "expenseType": 1}).to_list(1000)
+    # Top expense categories
+    expenses = await db.expenses.find(user_filter, {"_id": 0, "category": 1, "expectedAmount": 1, "frequency": 1}).to_list(1000)
     cat_totals = {}
     for e in expenses:
         cat = e.get("category", "Other")
@@ -780,105 +964,59 @@ async def get_money_pattern(request: Request):
         cat_totals[cat] = cat_totals.get(cat, 0) + amt
     top_expense_cats = sorted(cat_totals.items(), key=lambda x: -x[1])[:3]
 
-    # Determine personality
-    traits = []
+    # Strengths & blind spots based on input vars
     strengths = []
     blind_spots = []
+    if savings_rate >= 0.25: strengths.append(f"Saving {savings_rate*100:.0f}% of income — strong discipline")
+    if debt_to_income < 0.20: strengths.append("Low debt burden — financial flexibility")
+    if survival_days > 180: strengths.append(f"{survival_days} days runway — solid safety net")
+    if investment_ratio >= 0.30: strengths.append(f"{investment_ratio*100:.0f}% in investments — wealth growing")
+    if discretionary_ratio > 0.35: blind_spots.append(f"Lifestyle spending at {discretionary_ratio*100:.0f}% — consider cuts")
+    if debt_to_income > 0.40: blind_spots.append(f"EMIs at {debt_to_income*100:.0f}% of income — debt pressure high")
+    if savings_rate < 0.15: blind_spots.append(f"Only saving {max(savings_rate*100,0):.0f}% — target 20%+")
+    if survival_days < 90: blind_spots.append(f"Only {survival_days} days runway — build emergency fund")
+    if not strengths: strengths.append("Consistently tracking finances")
+    if not blind_spots: blind_spots.append("No major red flags — keep it up!")
 
-    # Income level
-    if monthly_income >= 200000:
-        income_tag = "High Earning"
-    elif monthly_income >= 80000:
-        income_tag = "Moderate Earning"
-    else:
-        income_tag = "Lean Earning"
-
-    # Spending pattern
-    if wants_ratio > 35:
-        spend_tag = "High Leakage"
-        blind_spots.append("Discretionary spending exceeds 35% of income — identify cuts")
-    elif wants_ratio > 20:
-        spend_tag = "Balanced Spender"
-        traits.append("Spending is moderate but could be optimized")
-    else:
-        spend_tag = "Frugal"
-        strengths.append("Keeps discretionary spending tight")
-
-    # Primary personality
-    personality = f"{income_tag}, {spend_tag}"
-
-    # EMI analysis
-    if emi_ratio > 50:
-        personality = "Debt Warrior"
-        traits.append("EMIs consume over half of income — debt reduction is priority")
-        blind_spots.append("High EMI burden limits wealth building")
-    elif emi_ratio > 30:
-        traits.append("EMIs are significant but manageable")
-        blind_spots.append("Consider prepaying high-interest loans")
-
-    # Savings behavior
-    if savings_rate >= 30:
-        strengths.append(f"Saving {savings_rate:.0f}% of income — excellent discipline")
-        if inv_count >= 5:
-            personality = f"{income_tag}, Wealth Builder"
-            strengths.append(f"Diversified across {inv_count} investments")
-    elif savings_rate >= 15:
-        traits.append(f"Saves {savings_rate:.0f}% — room to grow")
-    else:
-        blind_spots.append(f"Only saving {max(savings_rate, 0):.0f}% of income — target 20%+")
-
-    # Buffer analysis
-    liquid_buf = fund_breakdown.get("liquidBuffer", 0)
-    if liquid_buf < monthly_mandatory * 3:
-        blind_spots.append("Liquid buffer below 3 months — build emergency fund")
-    else:
-        strengths.append("Healthy liquid emergency buffer")
-
-    # Overrides for special cases
-    if savings_rate >= 40 and emi_ratio < 15:
-        personality = f"{income_tag}, Financial Optimizer"
-    elif emi_ratio < 5 and savings_rate >= 20:
-        personality = f"{income_tag}, Debt-Free Saver"
-    elif inv_count >= 5 and savings_rate >= 25:
-        personality = f"{income_tag}, Diversified Investor"
-
-    if not traits:
-        traits.append("Overall financial behavior is healthy")
-    if not strengths:
-        strengths.append("Consistently tracking finances on MoneySutra")
-    if not blind_spots:
-        blind_spots.append("No major red flags detected — keep it up!")
+    # Store to DB
+    await db.user_personality.update_one(
+        {"userId": user_id},
+        {"$set": {
+            "userId": user_id, "primary_type": primary["name"],
+            "secondary_type": secondary["name"] if secondary else None,
+            "confidence_score": primary["confidence"],
+            "last_updated": now.isoformat(),
+        }}, upsert=True
+    )
 
     return {
-        "personality": personality,
-        "tagline": _get_pattern_tagline(personality),
+        "personality": primary["name"],
+        "personalityId": primary["id"],
+        "zone": primary["zone"],
+        "zoneColor": primary["color"],
+        "icon": primary["icon"],
+        "tagline": primary["tagline"],
+        "confidence": primary["confidence"],
+        "secondary": secondary["name"] if secondary else None,
+        "secondaryId": secondary["id"] if secondary else None,
         "spendingDNA": spending_dna,
-        "traits": traits,
+        "traits": [],
         "strengths": strengths[:4],
         "blindSpots": blind_spots[:4],
         "topExpenseCategories": [{"category": c, "amount": round(a, 0)} for c, a in top_expense_cats],
         "metrics": {
             "monthlyIncome": round(monthly_income, 0),
             "totalExpenses": round(total_expenses, 0),
-            "savings": round(max(savings, 0), 0),
-            "investments": inv_count,
+            "savings": round(max(monthly_income - total_expenses, 0), 0),
+            "investments": len(investments),
+            "survivalDays": survival_days,
+            "controlScore": control_score,
+            "savingsRate": round(savings_rate * 100, 1),
+            "debtToIncome": round(debt_to_income * 100, 1),
         },
     }
 
 
 def _get_pattern_tagline(personality: str) -> str:
-    tags = {
-        "Debt Warrior": "Your income is strong but debt is eating your growth. Time to fight back.",
-        "Financial Optimizer": "You've cracked the code — saving well, spending smart, growing wealth.",
-        "Debt-Free Saver": "Zero debt pressure with solid savings — you're in a powerful position.",
-        "Diversified Investor": "Smart allocation across assets — your money works while you sleep.",
-    }
-    for key, val in tags.items():
-        if key in personality:
-            return val
-    if "High Leakage" in personality:
-        return "You earn well but money slips through the cracks. Small cuts make big impact."
-    if "Frugal" in personality:
-        return "Tight with spending — now channel that discipline into growing your wealth."
-    return "Track, optimize, grow — every rupee has a role to play."
+    return ""
 
