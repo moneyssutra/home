@@ -272,7 +272,7 @@ async def generate_pdf_report(report_type: str, data: dict, user_name: str, star
         total_assets = sum(a.get('currentValue', 0) or 0 for a in data.get("assets", []))
         total_investments = sum(i.get('currentValue', 0) or 0 for i in data.get("investments", []))
         liquid_balance = sum(a.get('currentBalance', 0) or a.get('balance', 0) or 0 for a in data.get("accounts", []))
-        total_loans = sum(l.get('outstandingAmount', 0) or 0 for l in data.get("loans", []))
+        total_loans = sum(ln.get('outstandingAmount', 0) or 0 for ln in data.get("loans", []))
         total_cc = sum(c.get('currentOutstanding', 0) or c.get('outstandingAmount', 0) or 0 for c in data.get("credit_cards", []))
         total_liabilities = total_loans + total_cc
         net_worth = total_assets + total_investments + liquid_balance - total_liabilities
@@ -499,7 +499,7 @@ async def generate_excel_report(report_type: str, data: dict, user_name: str, st
         total_assets = sum(a.get('currentValue', 0) or 0 for a in data.get("assets", []))
         total_investments = sum(i.get('currentValue', 0) or 0 for i in data.get("investments", []))
         liquid_balance = sum(a.get('currentBalance', 0) or a.get('balance', 0) or 0 for a in data.get("accounts", []))
-        total_loans = sum(l.get('outstandingAmount', 0) or 0 for l in data.get("loans", []))
+        total_loans = sum(ln.get('outstandingAmount', 0) or 0 for ln in data.get("loans", []))
         total_cc = sum(c.get('currentOutstanding', 0) or c.get('outstandingAmount', 0) or 0 for c in data.get("credit_cards", []))
         net_worth = total_assets + total_investments + liquid_balance - total_loans - total_cc
         write_header(["Category", "Amount"], "3B82F6")
