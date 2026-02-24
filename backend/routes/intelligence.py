@@ -535,20 +535,19 @@ async def runway_simulator(
 
     # Monthly net savings with new income/expense
     monthly_net = sim_income - sim_mandatory - monthly_discretionary
-    sim_monthly_savings = max(monthly_net, 0)
 
-    # Project 12-month runway growth
+    # Project 12-month runway growth (or decline)
     projections = []
     running_funds = sim_funds
     for month in range(0, 13):
         days = int(running_funds / sim_daily_expense) if sim_daily_expense > 0 else 999
         projections.append({
             "month": month,
-            "funds": round(running_funds, 0),
-            "survivalDays": min(days, 9999),
-            "level": _get_runway_level(days)["level"],
+            "funds": round(max(running_funds, 0), 0),
+            "survivalDays": max(min(days, 9999), 0),
+            "level": _get_runway_level(max(days, 0))["level"],
         })
-        running_funds += sim_monthly_savings
+        running_funds += monthly_net  # Can be negative (spending from savings)
 
     change_days = sim_survival - current_survival
     change_pct = round((change_days / current_survival) * 100, 1) if current_survival > 0 else 0
