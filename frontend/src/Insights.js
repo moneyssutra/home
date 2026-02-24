@@ -469,6 +469,7 @@ const ChallengesWidget = ({ data, onJoin, onLeave }) => {
 const Insights = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [showShareCard, setShowShareCard] = useState(false);
   const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, loading, refresh, processWeekly, joinChallenge, leaveChallenge } = useIntelligenceData();
   const [processing, setProcessing] = useState(false);
 
