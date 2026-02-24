@@ -435,8 +435,8 @@ const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
       <div className="p-5 pb-3">
         <div className="flex items-center gap-2">
           <Swords className="h-5 w-5" style={{ color: "#8B5CF6" }} />
-          <h3 className="text-sm font-bold" style={{ color: "var(--text-secondary)" }}>Challenges</h3>
-          <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#8B5CF615", color: "#8B5CF6" }}>
+          <h3 className="text-base font-bold" style={{ color: "var(--text-secondary)" }}>Challenges</h3>
+          <span className="ml-auto text-xs font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#8B5CF615", color: "#8B5CF6" }}>
             {active.length} active
           </span>
         </div>
@@ -444,37 +444,37 @@ const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
 
       {active.length > 0 && (
         <div className="px-5 pb-3 space-y-2">
-          <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "#10B981" }}>Active</p>
+          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "#10B981" }}>Active</p>
           {active.map((c) => (
             <div key={c.id} className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
               <div className="flex items-center justify-between">
-                <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{c.title}</p>
-                <button onClick={() => onLeave(c.id)} className="text-[9px] font-bold px-2 py-1 rounded" style={{ color: "#EF4444", backgroundColor: "#EF444410" }} data-testid={`leave-challenge-${c.id}`}>Abandon</button>
+                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{c.title}</p>
+                <button onClick={() => onLeave(c.id)} className="text-xs font-bold px-2.5 py-1 rounded" style={{ color: "#EF4444", backgroundColor: "#EF444410" }} data-testid={`leave-challenge-${c.id}`}>Abandon</button>
               </div>
-              <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+              <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
                 <div className="h-full rounded-full" style={{ width: `${(c.progress / c.target) * 100}%`, backgroundColor: "#10B981" }} />
               </div>
-              <p className="text-[9px] mt-1" style={{ color: "var(--text-muted)" }}>{c.progress}/{c.target} · {c.daysLeft}d left</p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{c.progress}/{c.target} · {c.daysLeft}d left</p>
             </div>
           ))}
         </div>
       )}
 
       <div className="px-5 pb-4 space-y-2">
-        <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Available ({available.length})</p>
+        <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Available ({available.length})</p>
         {available.slice(0, 6).map((c) => (
           <div key={c.code} className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{c.title}</p>
-                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${DIFF_COLORS[c.difficulty]}15`, color: DIFF_COLORS[c.difficulty] }}>{c.difficulty}</span>
+                  <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{c.title}</p>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${DIFF_COLORS[c.difficulty]}15`, color: DIFF_COLORS[c.difficulty] }}>{c.difficulty}</span>
                 </div>
-                <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{c.description}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{c.description}</p>
               </div>
-              <button onClick={() => onJoin(c.code)} className="ml-2 text-[9px] font-bold px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: "var(--brand-primary)" }} data-testid={`join-challenge-${c.code}`}>Join</button>
+              <button onClick={() => onJoin(c.code)} className="ml-2 text-xs font-bold px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: "var(--brand-primary)" }} data-testid={`join-challenge-${c.code}`}>Join</button>
             </div>
-            <div className="flex items-center gap-3 mt-1.5 text-[9px]" style={{ color: "var(--text-muted)" }}>
+            <div className="flex items-center gap-3 mt-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
               <span>{c.duration_days}d</span><span>+{c.xp_reward} XP</span>
             </div>
           </div>
