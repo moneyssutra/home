@@ -57,7 +57,7 @@ const Analytics = () => {
       clearTimeout(timeoutId);
       
       const monthlyIncome = networthRes.data.monthlyIncome || 0;
-      const monthlyExpense = networthRes.data.monthlyExpense || 0;
+      const monthlyExpense = networthRes.data.monthlyExpenses || networthRes.data.monthlyExpense || 0;
       const surplus = monthlyIncome - monthlyExpense;
       const savingsRate = monthlyIncome > 0 ? ((surplus / monthlyIncome) * 100).toFixed(1) : 0;
       

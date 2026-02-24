@@ -37,7 +37,7 @@ const Insights = () => {
         className="sticky top-0 z-40 px-4 py-4 flex items-center gap-3"
         style={{ backgroundColor: "var(--bg-app)" }}
       >
-        <BackButton />
+        <BackButton fallbackPath="/home" />
         <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
           Insights
         </h1>
