@@ -1,60 +1,60 @@
 # Moneyssutra - Personal Finance Tracker PRD
 
 ## Original Problem Statement
-Full-stack personal finance manager (React/FastAPI/MongoDB) with a "Financial Control Operating System" on the Insights page.
+Full-stack personal finance manager with "Financial Control Operating System" on Insights page.
 
 ## Core Architecture
-- **Frontend**: React + Tailwind + Shadcn UI (port 3000)
-- **Backend**: FastAPI (port 8001, prefixed /api)
-- **Database**: MongoDB Atlas via MONGO_URL
-- **Auth**: Session-based (session_token cookie)
+- React + Tailwind + Shadcn UI (port 3000) / FastAPI (port 8001, /api) / MongoDB Atlas
 
-## 20-Personality Classification Engine
-### Input Variables (10)
-survivalDays, controlScore, debtToIncomeRatio, savingsRate, discretionaryRatio, incomeGrowthRate, incomeVolatility, investmentRatio, incomeSourcesCount, alertCountMonthly
-
-### Zones & Personalities
-- **Survival (1-4)**: Firefighter, Drifter, EMI Trapped, Lifestyle Inflator
-- **Stabilizing (5-8)**: Recovering Planner, Buffer Builder, Expense Controller, Debt Warrior
-- **Control (9-12)**: Structured Controller, Stability Seeker, Silent Saver, Score Climber
-- **Growth (13-16)**: Wealth Builder, Diversifier, Income Multiplier, Strategic Planner
-- **Advanced (17-20)**: Capital Guardian, Risk Balancer, Financial Architect, Sovereign
-
-### Classification Rules
-- Evaluated highest-level first (20→1)
-- Confidence = matched_conditions / total_conditions × 100
-- Requires 70%+ confidence, else falls to best partial match
-- Stores primary + secondary personality in user_personality collection
+## Key Features Implemented
+- 20-Personality Classification Engine (10 input variables, 5 zones, confidence scoring)
+- Financial Journey (20 stages, 5 phases, info icon with full list)
+- Financial Score (4 pillars, rolling 3-month window, pillar contributions)
+- Emergency Runway (3-tier liquidity, individual fund names)
+- Shock Test (4 presets + custom amount input)
+- Future You (12-month projection with mini chart)
+- Red Zone Mode (pulsing alert when survival < 30 days)
+- Weekly Health Digest (weekly snapshot comparison notifications)
+- Personality Evolution Tracker (monthly history timeline)
+- 100 Badges (8 categories, 4 tiers, scrollable)
+- Gamification Challenges (join/leave)
+- Financial Health (9-module weighted score with per-module contributions)
+- Shareable Score Card, Runway Simulator, Money Pattern with DNA bar
 
 ## Insights Page Widget Order
-1. Financial Journey (Wealth Builder + 20 stages + info icon)
-2. Financial Score (4 pillars, rolling 3-month window)
-3. Emergency Runway (3-tier liquidity + fund names)
-4. Shock Test (4 emergency scenarios)
-5. Runway Simulator (what-if sliders)
-6. Money Personality (20-type engine with zone, confidence, secondary)
-7. Badges (100 badges, 8 categories, 4 tiers)
-8. Challenges
-9. Explore (Analytics, Reports)
+1. Red Zone Alert (conditional)
+2. Financial Journey (Wealth Builder + 20 stages)
+3. Financial Score (4 pillars)
+4. Emergency Runway (fund names)
+5. Shock Test (4 presets + custom)
+6. Runway Simulator
+7. Money Personality (20-type engine)
+8. Badges (100)
+9. Challenges
+10. Future You (12-month projection)
+11. Personality Evolution (monthly history)
+12. Explore (Analytics, Reports)
 
 ## Key API Endpoints
-- GET /api/intelligence/money-pattern — 20-personality classification engine
-- POST /api/intelligence/shock-test — Shock simulation
-- GET /api/intelligence/survival-clock — Stages, funds, survival days
-- GET /api/intelligence/control-score — Financial Score with period
-- GET /api/financial-health — Health score with contributions
-- GET /api/gamification/profile — 100 badges, XP, levels
+- GET /api/intelligence/future-you — 12-month projection
+- GET /api/intelligence/personality-history — Evolution timeline
+- POST /api/intelligence/weekly-digest — Weekly snapshot + notification
+- POST /api/intelligence/shock-test — Supports customAmount field
+- GET /api/intelligence/money-pattern — 20-personality engine
+- GET /api/intelligence/survival-clock — Stages + allStages
+- GET /api/intelligence/control-score — Score + scorePeriod
+- GET /api/financial-health — 9 modules + contributions
 
 ## Prioritized Backlog
 ### P1
 - Financial Command Center (Control/Pressure/Risk cockpit)
-- "Future You" Score (12-month projection)
 - Decision Impact Engine (large purchase impact)
 
 ### P2
-- Red Zone Mode, Weekly Health Digest, Custom shock scenarios
-- Monthly cron for personality re-evaluation
-- Personality history timeline
+- Cron for auto weekly digest + monthly personality evaluation
+- Goal Tracker integration with Future You
+- Red Zone dark theme override
+- Personality evolution line chart
 
 ## Test Credentials
 - Username: `test`, Password: `test`
