@@ -534,7 +534,6 @@ const Dashboard = () => {
 
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
-      <PushNotificationToggle />
     </div>
   );
 };
