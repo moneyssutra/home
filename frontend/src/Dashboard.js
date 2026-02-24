@@ -185,9 +185,9 @@ const Dashboard = () => {
               onClick={() => navigate("/my-income")}
               data-testid="cashflow-income-link"
             >
-              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--finance-gain)" }}>
-                <ArrowUpRight className="h-4 w-4" />
-                <span className="text-xs font-medium">Received Income</span>
+              <div className="flex items-center justify-center gap-1 mb-1 whitespace-nowrap" style={{ color: "var(--finance-gain)" }}>
+                <ArrowUpRight className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs font-medium">Income</span>
               </div>
               <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyIncome || 0)}</p>
             </div>
@@ -196,15 +196,15 @@ const Dashboard = () => {
               onClick={() => navigate("/my-expenses")}
               data-testid="cashflow-expense-link"
             >
-              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--finance-loss)" }}>
-                <ArrowDownRight className="h-4 w-4" />
+              <div className="flex items-center justify-center gap-1 mb-1 whitespace-nowrap" style={{ color: "var(--finance-loss)" }}>
+                <ArrowDownRight className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs font-medium">Expense</span>
               </div>
               <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyExpenses || 0)}</p>
             </div>
             <div className="text-center p-2">
-              <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--status-warning)" }}>
-                <PiggyBank className="h-4 w-4" />
+              <div className="flex items-center justify-center gap-1 mb-1 whitespace-nowrap" style={{ color: "var(--status-warning)" }}>
+                <PiggyBank className="h-4 w-4 flex-shrink-0" />
                 <span className="text-xs font-medium">Balance</span>
               </div>
               <p className="text-lg font-bold" style={{ color: (data?.monthlySavings || 0) >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
