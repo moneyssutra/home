@@ -7262,16 +7262,7 @@ async def get_investment_performance(request: Request):
         "byCategory": by_category
     }
 
-# ============ FINANCIAL HEALTH API ============
-@api_router.get("/financial-health")
-async def get_financial_health(request: Request):
-    """Calculate comprehensive financial health metrics based on standard benchmarks"""
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    user_id = user.get('user_id')
-    user_filter = {"userId": user_id}
+# ============ REPORTS API ============
     
     # Fetch all required data in parallel
     (
