@@ -116,53 +116,42 @@ const Reports = () => {
       // Build the URL with query parameters
       const url = `${backendUrl}/api/reports/generate/${reportId}?format=${exportFormat}&from_date=${dateRange.from}&to_date=${dateRange.to}`;
       
-      // Use XMLHttpRequest for better download handling
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url, true);
-      xhr.responseType = 'blob';
-      xhr.withCredentials = true;
+      // Method 1: Try direct navigation to URL (most reliable for ad-blocked browsers)
+      // This opens the file directly which triggers browser's native download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${reportId}_report_${new Date().toISOString().split('T')[0]}.${fileExt}`;
+      link.style.display = 'none';
       
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          const blob = xhr.response;
-          const filename = `${reportId}_report_${new Date().toISOString().split('T')[0]}.${fileExt}`;
-          
-          // Create download link
-          const downloadUrl = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = downloadUrl;
-          link.download = filename;
-          
-          // Append to body, click, and remove
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          // Cleanup URL after delay
-          setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
-          
-          toast.success(`${report.title} downloaded!`);
-          setDownloadedReports(prev => [...prev, reportId]);
-          
-          setTimeout(() => {
-            setDownloadedReports(prev => prev.filter(id => id !== reportId));
-          }, 5000);
-        } else {
-          toast.error("Failed to download report");
-        }
-        setGenerating(null);
-      };
+      // For browsers that support it, add the download attribute
+      document.body.appendChild(link);
       
-      xhr.onerror = function() {
-        toast.error("Network error. Please try again.");
-        setGenerating(null);
-      };
+      // Try programmatic click
+      try {
+        link.click();
+      } catch (clickError) {
+        // If click fails, try direct navigation
+        window.location.href = url;
+      }
       
-      xhr.send();
+      document.body.removeChild(link);
+      
+      toast.success(`${report.title} downloading... Check your Downloads folder.`, {
+        description: "If download doesn't start, try right-clicking the button and select 'Save Link As'"
+      });
+      setDownloadedReports(prev => [...prev, reportId]);
+      
+      setTimeout(() => {
+        setDownloadedReports(prev => prev.filter(id => id !== reportId));
+      }, 5000);
       
     } catch (error) {
       console.error("Report generation error:", error);
       toast.error("Failed to generate report. Please try again.");
+    } finally {
+      setGenerating(null);
+    }
+  };
       setGenerating(null);
     }
   };
