@@ -357,16 +357,10 @@ async def process_gamification(request: Request):
     old_level_info = _get_level(profile.get("xp", 0))
 
     # Check domain achievements
-    insurance_count = await db.insurances.count_documents(user_filter)
     investments = await db.investments.find(user_filter, {"_id": 0, "name": 1}).to_list(1000)
     inv_names = [i.get("name", "").lower() for i in investments]
-    investment_types = await db.investments.distinct("investmentType", user_filter)
-    goals_count = await db.goals.count_documents(user_filter)
-    income_count = await db.income_sources.count_documents(user_filter)
-    expense_cats = await db.expenses.distinct("category", user_filter)
-    fd_count = sum(1 for n in inv_names if re.search(r'\bfd\b|fixed deposit', n))
-    fd_count += await db.accounts.count_documents({**user_filter, "accountType": {"$in": ["Fixed Deposit", "FD"]}})
     sip_count = sum(1 for n in inv_names if re.search(r'fund|sip|mutual', n))
+    total_emi = total_emi
 
     new_achievements = []
     savings_rate_pct = savings_ratio * 100
