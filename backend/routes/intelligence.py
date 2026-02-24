@@ -635,3 +635,153 @@ def _get_sim_insight(current, simulated, inc_pct, exp_pct, extra):
     if inc_pct < 0:
         return f"{action} — immediate runway stays at {current} days (it already assumes no income), but your savings will deplete faster. Check the 12-month projection below."
     return f"{action} — your runway stays the same."
+
+
+@router.get("/money-pattern")
+async def get_money_pattern(request: Request):
+    """Money Pattern Recognition - Your financial personality profile."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_filter = get_user_filter(user)
+
+    monthly_income = await _get_monthly_income(user_filter)
+    monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
+    monthly_discretionary = await _get_monthly_discretionary_spending(user_filter)
+    total_emi = await _get_total_emi(user_filter)
+    fund_breakdown = await _get_fund_breakdown(user_filter)
+
+    total_expenses = monthly_mandatory + monthly_discretionary
+    savings = monthly_income - total_expenses if monthly_income > 0 else 0
+
+    # Calculate ratios
+    savings_rate = (savings / monthly_income * 100) if monthly_income > 0 else 0
+    emi_ratio = (total_emi / monthly_income * 100) if monthly_income > 0 else 0
+    needs_ratio = (monthly_mandatory / monthly_income * 100) if monthly_income > 0 else 0
+    wants_ratio = (monthly_discretionary / monthly_income * 100) if monthly_income > 0 else 0
+    savings_ratio_pct = max(savings_rate, 0)
+
+    # Spending DNA
+    spending_dna = {
+        "needs": round(needs_ratio, 1),
+        "wants": round(wants_ratio, 1),
+        "savings": round(savings_ratio_pct, 1),
+        "emi": round(emi_ratio, 1),
+    }
+
+    # Get investment diversity
+    investments = await db.investments.find(user_filter, {"_id": 0, "name": 1}).to_list(1000)
+    inv_count = len(investments)
+
+    # Get expense categories for leakage detection
+    expenses = await db.expenses.find(user_filter, {"_id": 0, "category": 1, "expectedAmount": 1, "frequency": 1, "expenseType": 1}).to_list(1000)
+    cat_totals = {}
+    for e in expenses:
+        cat = e.get("category", "Other")
+        amt = _normalize_monthly(e.get("expectedAmount", 0), e.get("frequency", "Monthly"))
+        cat_totals[cat] = cat_totals.get(cat, 0) + amt
+    top_expense_cats = sorted(cat_totals.items(), key=lambda x: -x[1])[:3]
+
+    # Determine personality
+    traits = []
+    strengths = []
+    blind_spots = []
+
+    # Income level
+    if monthly_income >= 200000:
+        income_tag = "High Earning"
+    elif monthly_income >= 80000:
+        income_tag = "Moderate Earning"
+    else:
+        income_tag = "Lean Earning"
+
+    # Spending pattern
+    if wants_ratio > 35:
+        spend_tag = "High Leakage"
+        blind_spots.append("Discretionary spending exceeds 35% of income — identify cuts")
+    elif wants_ratio > 20:
+        spend_tag = "Balanced Spender"
+        traits.append("Spending is moderate but could be optimized")
+    else:
+        spend_tag = "Frugal"
+        strengths.append("Keeps discretionary spending tight")
+
+    # Primary personality
+    personality = f"{income_tag}, {spend_tag}"
+
+    # EMI analysis
+    if emi_ratio > 50:
+        personality = "Debt Warrior"
+        traits.append("EMIs consume over half of income — debt reduction is priority")
+        blind_spots.append("High EMI burden limits wealth building")
+    elif emi_ratio > 30:
+        traits.append("EMIs are significant but manageable")
+        blind_spots.append("Consider prepaying high-interest loans")
+
+    # Savings behavior
+    if savings_rate >= 30:
+        strengths.append(f"Saving {savings_rate:.0f}% of income — excellent discipline")
+        if inv_count >= 5:
+            personality = f"{income_tag}, Wealth Builder"
+            strengths.append(f"Diversified across {inv_count} investments")
+    elif savings_rate >= 15:
+        traits.append(f"Saves {savings_rate:.0f}% — room to grow")
+    else:
+        blind_spots.append(f"Only saving {max(savings_rate, 0):.0f}% of income — target 20%+")
+
+    # Buffer analysis
+    liquid_buf = fund_breakdown.get("liquidBuffer", 0)
+    if liquid_buf < monthly_mandatory * 3:
+        blind_spots.append("Liquid buffer below 3 months — build emergency fund")
+    else:
+        strengths.append("Healthy liquid emergency buffer")
+
+    # Overrides for special cases
+    if savings_rate >= 40 and emi_ratio < 15:
+        personality = f"{income_tag}, Financial Optimizer"
+    elif emi_ratio < 5 and savings_rate >= 20:
+        personality = f"{income_tag}, Debt-Free Saver"
+    elif inv_count >= 5 and savings_rate >= 25:
+        personality = f"{income_tag}, Diversified Investor"
+
+    if not traits:
+        traits.append("Overall financial behavior is healthy")
+    if not strengths:
+        strengths.append("Consistently tracking finances on MoneySutra")
+    if not blind_spots:
+        blind_spots.append("No major red flags detected — keep it up!")
+
+    return {
+        "personality": personality,
+        "tagline": _get_pattern_tagline(personality),
+        "spendingDNA": spending_dna,
+        "traits": traits,
+        "strengths": strengths[:4],
+        "blindSpots": blind_spots[:4],
+        "topExpenseCategories": [{"category": c, "amount": round(a, 0)} for c, a in top_expense_cats],
+        "metrics": {
+            "monthlyIncome": round(monthly_income, 0),
+            "totalExpenses": round(total_expenses, 0),
+            "savings": round(max(savings, 0), 0),
+            "investments": inv_count,
+        },
+    }
+
+
+def _get_pattern_tagline(personality: str) -> str:
+    tags = {
+        "Debt Warrior": "Your income is strong but debt is eating your growth. Time to fight back.",
+        "Financial Optimizer": "You've cracked the code — saving well, spending smart, growing wealth.",
+        "Debt-Free Saver": "Zero debt pressure with solid savings — you're in a powerful position.",
+        "Diversified Investor": "Smart allocation across assets — your money works while you sleep.",
+    }
+    for key, val in tags.items():
+        if key in personality:
+            return val
+    if "High Leakage" in personality:
+        return "You earn well but money slips through the cracks. Small cuts make big impact."
+    if "Frugal" in personality:
+        return "Tight with spending — now channel that discipline into growing your wealth."
+    return "Track, optimize, grow — every rupee has a role to play."
+
