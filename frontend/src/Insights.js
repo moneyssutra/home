@@ -695,11 +695,11 @@ const Insights = () => {
         <LevelAndStagesWidget gamData={gamification} clockData={survivalClock} onShare={() => setShowShareCard(true)} />
         <FinancialScoreWidget data={controlScore} />
         <EmergencyRunwayWidget data={survivalClock} />
+        <ShockTestWidget clockData={survivalClock} />
         <RunwaySimulator currentData={survivalClock} />
         <MoneyPatternWidget data={moneyPattern} />
         <BadgesWidget data={gamification} />
         <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
-        <ShockTestWidget clockData={survivalClock} />
 
         {/* Quick Links */}
         <div className="space-y-2.5 pt-2">
