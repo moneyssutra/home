@@ -240,14 +240,16 @@ function App() {
 
   return (
     <div className="App">
-      <AuthProvider>
-        <BrowserRouter>
-          <WorkspaceProvider>
-            <AppRouter />
-            <Toaster />
-          </WorkspaceProvider>
-        </BrowserRouter>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <WorkspaceProvider>
+              <AppRouter />
+              <Toaster />
+            </WorkspaceProvider>
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
     </div>
   );
 }
