@@ -41,7 +41,18 @@ const Insights = () => {
         className="sticky top-0 z-40 px-4 py-4 flex items-center gap-3"
         style={{ backgroundColor: "var(--bg-app)" }}
       >
-        <BackButton fallbackPath="/home" />
+        <button
+          onClick={() => navigate("/home", { replace: true })}
+          className="flex items-center justify-center w-10 h-10 rounded-full transition-colors"
+          style={{ 
+            backgroundColor: "var(--bg-card)", 
+            border: "1px solid var(--border-light)",
+            color: "var(--text-primary)"
+          }}
+          data-testid="back-button"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
         <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
           Insights
         </h1>
