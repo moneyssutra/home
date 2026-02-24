@@ -359,12 +359,12 @@ const BadgesWidget = ({ data }) => {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Trophy className="h-5 w-5" style={{ color: "#F59E0B" }} />
-            <h3 className="text-sm font-bold" style={{ color: "var(--text-secondary)" }}>Badges</h3>
+            <h3 className="text-base font-bold" style={{ color: "var(--text-secondary)" }}>Badges</h3>
           </div>
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-sm">
             <span className="font-black" style={{ color: "var(--text-primary)" }}>{unlocked.length}</span>
             <span style={{ color: "var(--text-muted)" }}>/ {all.length}</span>
-            <span className="text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ backgroundColor: "#F59E0B15", color: "#F59E0B" }}>
+            <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: "#F59E0B15", color: "#F59E0B" }}>
               Peak: {data.maxBadgesUnlocked || unlocked.length}
             </span>
           </div>
@@ -372,10 +372,10 @@ const BadgesWidget = ({ data }) => {
 
         {/* Category filter - horizontal scroll */}
         <div className="flex gap-1.5 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
-          <button onClick={() => setActiveCategory("all")} className="px-2.5 py-1 rounded-full text-[9px] font-bold whitespace-nowrap flex-shrink-0"
+          <button onClick={() => setActiveCategory("all")} className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex-shrink-0"
             style={{ backgroundColor: activeCategory === "all" ? "var(--brand-primary)" : "var(--bg-subtle)", color: activeCategory === "all" ? "#fff" : "var(--text-muted)" }} data-testid="badge-filter-all">All</button>
           {categories.map(c => (
-            <button key={c} onClick={() => setActiveCategory(c)} className="px-2.5 py-1 rounded-full text-[9px] font-bold whitespace-nowrap flex-shrink-0"
+            <button key={c} onClick={() => setActiveCategory(c)} className="px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex-shrink-0"
               style={{ backgroundColor: activeCategory === c ? "var(--brand-primary)" : "var(--bg-subtle)", color: activeCategory === c ? "#fff" : "var(--text-muted)" }} data-testid={`badge-filter-${c}`}>{CAT_LABELS[c] || c}</button>
           ))}
         </div>
@@ -384,15 +384,15 @@ const BadgesWidget = ({ data }) => {
         <div className="flex gap-3 mb-1">
           {["bronze", "silver", "gold", "platinum"].map(t => (
             <div key={t} className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: TIER_COLORS[t] }} />
-              <span className="text-[8px] font-medium capitalize" style={{ color: "var(--text-muted)" }}>{t}</span>
+              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: TIER_COLORS[t] }} />
+              <span className="text-[10px] font-medium capitalize" style={{ color: "var(--text-muted)" }}>{t}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Scrollable badge grid - fixed height, 4 rows visible */}
-      <div className="px-4 pb-3 overflow-y-auto" style={{ maxHeight: "280px", scrollbarWidth: "thin" }}>
+      <div className="px-4 pb-3 overflow-y-auto" style={{ maxHeight: "300px", scrollbarWidth: "thin" }}>
         <div className="grid grid-cols-4 gap-2">
           {filtered.map((a) => {
             const Icon = ACH_ICONS[a.icon] || Star;
@@ -406,14 +406,14 @@ const BadgesWidget = ({ data }) => {
                   opacity: a.unlocked ? 1 : 0.35,
                   filter: a.unlocked ? "none" : "grayscale(1)",
                 }} data-testid={`badge-${a.code}`}>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-1" style={{
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-1" style={{
                   backgroundColor: a.unlocked ? `${tierColor}20` : "transparent",
                 }}>
-                  <Icon className="h-4 w-4" style={{ color: tierColor }} />
+                  <Icon className="h-4.5 w-4.5" style={{ color: tierColor }} />
                 </div>
-                <p className="text-[8px] font-bold leading-tight" style={{ color: a.unlocked ? tierColor : "var(--text-muted)" }}>{a.title}</p>
+                <p className="text-[10px] font-bold leading-tight" style={{ color: a.unlocked ? tierColor : "var(--text-muted)" }}>{a.title}</p>
                 {a.unlocked && (
-                  <span className="text-[7px] font-bold mt-0.5 px-1 rounded uppercase" style={{ backgroundColor: `${tierColor}15`, color: tierColor }}>{a.tier}</span>
+                  <span className="text-[9px] font-bold mt-0.5 px-1.5 rounded uppercase" style={{ backgroundColor: `${tierColor}15`, color: tierColor }}>{a.tier}</span>
                 )}
               </div>
             );
