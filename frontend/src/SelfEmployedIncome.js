@@ -130,13 +130,28 @@ const SelfEmployedIncome = () => {
       const response = await axios.get(`${backendUrl}/api/income/${id}`);
       const data = response.data;
       
-      // Check if it's a custom profession
+      // Check if it's a known or custom profession
       const allProfessions = Object.values(PROFESSION_CATEGORIES).flat();
-      if (data.profession && !allProfessions.includes(data.profession)) {
+      const savedProfession = data.profession || "";
+      
+      if (savedProfession && allProfessions.includes(savedProfession)) {
+        // Known profession from the list
+        setProfession(savedProfession);
+        setCustomProfession("");
+      } else if (savedProfession) {
+        // Custom profession not in the standard list
         setProfession("Other");
-        setCustomProfession(data.profession);
+        setCustomProfession(savedProfession);
       } else {
-        setProfession(data.profession || "");
+        // No profession saved - try to infer from name for old entries
+        const nameMatch = allProfessions.find(p => 
+          p.toLowerCase() === (data.name || "").toLowerCase()
+        );
+        if (nameMatch) {
+          setProfession(nameMatch);
+        } else {
+          setProfession("");
+        }
       }
       
       setEntityName(data.name || "");
