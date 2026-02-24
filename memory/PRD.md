@@ -1,14 +1,30 @@
 # Moneyssutra - Personal Finance Tracker PRD
 
 ## Original Problem Statement
-Full-stack personal finance manager (React/FastAPI/MongoDB) with a "Financial Control Operating System" on the Insights page. Features include survival clock, financial score, gamification engine (100 badges, 20 stages), money pattern recognition, emergency runway, shareable score cards, shock test.
+Full-stack personal finance manager (React/FastAPI/MongoDB) with a "Financial Control Operating System" on the Insights page.
 
 ## Core Architecture
 - **Frontend**: React + Tailwind + Shadcn UI (port 3000)
 - **Backend**: FastAPI (port 8001, prefixed /api)
 - **Database**: MongoDB Atlas via MONGO_URL
 - **Auth**: Session-based (session_token cookie)
-- **3rd Party**: OpenAI GPT-5.2 (emergentintegrations), Resend, html2canvas, reportlab
+
+## 20-Personality Classification Engine
+### Input Variables (10)
+survivalDays, controlScore, debtToIncomeRatio, savingsRate, discretionaryRatio, incomeGrowthRate, incomeVolatility, investmentRatio, incomeSourcesCount, alertCountMonthly
+
+### Zones & Personalities
+- **Survival (1-4)**: Firefighter, Drifter, EMI Trapped, Lifestyle Inflator
+- **Stabilizing (5-8)**: Recovering Planner, Buffer Builder, Expense Controller, Debt Warrior
+- **Control (9-12)**: Structured Controller, Stability Seeker, Silent Saver, Score Climber
+- **Growth (13-16)**: Wealth Builder, Diversifier, Income Multiplier, Strategic Planner
+- **Advanced (17-20)**: Capital Guardian, Risk Balancer, Financial Architect, Sovereign
+
+### Classification Rules
+- Evaluated highest-level first (20→1)
+- Confidence = matched_conditions / total_conditions × 100
+- Requires 70%+ confidence, else falls to best partial match
+- Stores primary + secondary personality in user_personality collection
 
 ## Insights Page Widget Order
 1. Financial Journey (Wealth Builder + 20 stages + info icon)
@@ -16,59 +32,29 @@ Full-stack personal finance manager (React/FastAPI/MongoDB) with a "Financial Co
 3. Emergency Runway (3-tier liquidity + fund names)
 4. Shock Test (4 emergency scenarios)
 5. Runway Simulator (what-if sliders)
-6. Money Pattern (spending personality)
+6. Money Personality (20-type engine with zone, confidence, secondary)
 7. Badges (100 badges, 8 categories, 4 tiers)
 8. Challenges
 9. Explore (Analytics, Reports)
 
-## Financial Health Weights (9 modules)
-| Module | Weight |
-|--------|--------|
-| Emergency Fund | 17.5% |
-| Life Insurance | 7.5% |
-| Health Insurance | 7.5% |
-| Savings Rate | 12.5% |
-| Loan Burden | 12.5% |
-| Credit Utilization | 10% |
-| Investment Allocation | 12.5% |
-| Retirement Readiness | 10% |
-| Debt to Asset | 10% |
-
 ## Key API Endpoints
+- GET /api/intelligence/money-pattern — 20-personality classification engine
 - POST /api/intelligence/shock-test — Shock simulation
-- GET /api/intelligence/survival-clock — Stages, funds, survival days (allStages array)
-- GET /api/intelligence/control-score — Financial Score with scorePeriod
-- GET /api/intelligence/money-pattern — Spending personality
-- GET /api/financial-health — Health score with contributions + maxContribution
-- GET /api/gamification/profile — 100 badges, XP, levels, xpRules
-- POST /api/gamification/process — Weekly XP processing (badgeIcon in notifications)
-
-## What's Been Implemented (Feb 24, 2026)
-- Financial Journey heading with rocket icon on top widget
-- Shock Test: 4 scenarios (Job Loss, Medical, Repair, EMI Hike) with severity
-- Financial Health: per-module contribution badges (score/max), Debt to Asset added
-- Financial Score: rolling 3-month period display
-- XP rules fix: invisible labels + double text bug
-- Badge icons in notifications: Trophy/Star/Flame per type
-- All 20 stages with info icon + kid-friendly explanations
-- Fund breakdown with individual asset names in Semi-Liquid & Illiquid
-- ObjectId serialization fix in gamification process
-- Widget reordering: Score under Wealth Builder, Shock Test above Simulator
+- GET /api/intelligence/survival-clock — Stages, funds, survival days
+- GET /api/intelligence/control-score — Financial Score with period
+- GET /api/financial-health — Health score with contributions
+- GET /api/gamification/profile — 100 badges, XP, levels
 
 ## Prioritized Backlog
 ### P1
-- Financial Command Center (Control/Pressure/Risk cockpit with trend arrows)
+- Financial Command Center (Control/Pressure/Risk cockpit)
 - "Future You" Score (12-month projection)
 - Decision Impact Engine (large purchase impact)
 
 ### P2
-- Red Zone Mode (urgency theme for critical metrics)
-- Weekly Health Digest notification
-- Custom shock scenarios (user-defined amounts)
-- Refactor Insights.js into smaller components
+- Red Zone Mode, Weekly Health Digest, Custom shock scenarios
+- Monthly cron for personality re-evaluation
+- Personality history timeline
 
 ## Test Credentials
 - Username: `test`, Password: `test`
-
-## Mocked Features
-- 2FA and Biometric Login toggles (UI only)
