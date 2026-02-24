@@ -21,25 +21,57 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import axios from "axios";
+
+const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const SecuritySettings = () => {
   const navigate = useNavigate();
   const { user, setPassword, logout } = useAuth();
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [passwords, setPasswords] = useState({ new: "", confirm: "" });
+  const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
   const [twoFAEnabled, setTwoFAEnabled] = useState(false);
+  const [twoFALoading, setTwoFALoading] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [activeSessions, setActiveSessions] = useState([]);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
 
   const hasPassword = user?.has_password || user?.auth_type === "jwt";
 
-  // Mock active sessions - in real app, fetch from backend
-  const activeSessions = [
-    { id: 1, device: "Chrome on MacBook Pro", location: "Mumbai, India", lastActive: "Now", current: true },
-    { id: 2, device: "Safari on iPhone 14", location: "Mumbai, India", lastActive: "2 hours ago", current: false },
-  ];
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    fetch2FAStatus();
+    fetchSessions();
+  }, []);
+
+  const fetch2FAStatus = async () => {
+    try {
+      const response = await axios.get(`${backendUrl}/api/auth/2fa/status`, { withCredentials: true });
+      setTwoFAEnabled(response.data.enabled);
+    } catch (error) {
+      console.error("Error fetching 2FA status:", error);
+    }
+  };
+
+  const fetchSessions = async () => {
+    setSessionsLoading(true);
+    try {
+      const response = await axios.get(`${backendUrl}/api/auth/sessions`, { withCredentials: true });
+      setActiveSessions(response.data.sessions || []);
+    } catch (error) {
+      console.error("Error fetching sessions:", error);
+      // Fallback to mock data if API fails
+      setActiveSessions([
+        { id: "current", device: "Current Browser", location: "Current", lastActive: "Now", current: true }
+      ]);
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
 
   // Password strength calculation
   const getPasswordStrength = (password) => {
