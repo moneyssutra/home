@@ -1,13 +1,13 @@
-"""Asset routes - CRUD for assets."""
+"""Asset routes - Full CRUD with rental income linking from server.py."""
 from fastapi import APIRouter, HTTPException, Request
 from typing import List
 from datetime import datetime, timezone
 import uuid
 
 from database import db
-from models.financial import Asset, AssetCreate
+from server_models import Asset, AssetCreate
 from routes.auth import get_current_user
-from routes.utils import get_user_filter, convert_datetime_fields
+from routes.utils import get_user_filter
 
 router = APIRouter(prefix="/assets", tags=["Assets"])
 
@@ -17,36 +17,29 @@ async def create_asset(input: AssetCreate, request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     asset_dict = input.model_dump()
     asset_dict['userId'] = user.get('user_id')
     asset_obj = Asset(**asset_dict)
-    
-    # Auto-create Rental Income if asset generates income
+
     if asset_obj.generatesIncome and asset_obj.incomeAmount:
         existing_income = await db.income_sources.find_one({"assetId": asset_obj.id}, {"_id": 0})
-        
         if not existing_income:
             rental_income = {
-                "id": str(uuid.uuid4()),
-                "userId": user.get('user_id'),
-                "type": "Rental",
-                "name": asset_obj.assetName,
+                "id": str(uuid.uuid4()), "userId": user.get('user_id'),
+                "type": "Rental", "name": asset_obj.assetName,
                 "expectedAmount": asset_obj.incomeAmount,
                 "frequency": asset_obj.incomeFrequency or "Monthly",
-                "tenantName": asset_dict.get("renterName") or None,
-                "securityDeposit": asset_dict.get("securityDeposit") or None,
-                "assetId": asset_obj.id,
-                "assetValue": asset_obj.currentValue,
+                "tenantName": asset_dict.get("renterName"),
+                "securityDeposit": asset_dict.get("securityDeposit"),
+                "assetId": asset_obj.id, "assetValue": asset_obj.currentValue,
                 "rentalYield": round((asset_obj.incomeAmount * 12 / asset_obj.currentValue) * 100, 2) if asset_obj.currentValue else None,
                 "createdAt": datetime.now(timezone.utc).isoformat(),
             }
             await db.income_sources.insert_one(rental_income)
             asset_obj.linkedIncomeId = rental_income["id"]
-    
+
     doc = asset_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
-    
     await db.assets.insert_one(doc)
     return asset_obj
 
@@ -56,13 +49,11 @@ async def get_assets(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     user_filter = get_user_filter(user)
     assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
-    
     for asset in assets:
-        convert_datetime_fields(asset)
-    
+        if isinstance(asset.get('createdAt'), str):
+            asset['createdAt'] = datetime.fromisoformat(asset['createdAt'])
     return assets
 
 
@@ -71,15 +62,13 @@ async def get_asset(asset_id: str, request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     user_filter = get_user_filter(user)
     user_filter["id"] = asset_id
     asset = await db.assets.find_one(user_filter, {"_id": 0})
-    
     if not asset:
         raise HTTPException(status_code=404, detail="Asset not found")
-    
-    convert_datetime_fields(asset)
+    if isinstance(asset.get('createdAt'), str):
+        asset['createdAt'] = datetime.fromisoformat(asset['createdAt'])
     return asset
 
 
@@ -88,49 +77,35 @@ async def update_asset(asset_id: str, input: AssetCreate, request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     user_filter = get_user_filter(user)
     user_filter["id"] = asset_id
     existing = await db.assets.find_one(user_filter, {"_id": 0})
-    
     if not existing:
         raise HTTPException(status_code=404, detail="Asset not found")
-    
     asset_dict = input.model_dump()
     asset_dict['id'] = asset_id
     asset_dict['userId'] = user.get('user_id')
     asset_dict['createdAt'] = existing['createdAt']
-    
-    # Handle rental income linking
+
     if asset_dict.get('generatesIncome') and asset_dict.get('incomeAmount'):
         existing_income = await db.income_sources.find_one({"assetId": asset_id}, {"_id": 0})
-        
         if existing_income:
-            await db.income_sources.update_one(
-                {"assetId": asset_id},
-                {"$set": {
-                    "name": asset_dict['assetName'],
-                    "expectedAmount": asset_dict['incomeAmount'],
-                    "frequency": asset_dict.get('incomeFrequency') or "Monthly",
-                    "tenantName": asset_dict.get('renterName'),
-                    "securityDeposit": asset_dict.get('securityDeposit'),
-                    "assetValue": asset_dict['currentValue'],
-                    "rentalYield": round((asset_dict['incomeAmount'] * 12 / asset_dict['currentValue']) * 100, 2) if asset_dict['currentValue'] else None,
-                }}
-            )
+            await db.income_sources.update_one({"assetId": asset_id}, {"$set": {
+                "name": asset_dict['assetName'], "expectedAmount": asset_dict['incomeAmount'],
+                "frequency": asset_dict.get('incomeFrequency') or "Monthly",
+                "tenantName": asset_dict.get('renterName'), "securityDeposit": asset_dict.get('securityDeposit'),
+                "assetValue": asset_dict['currentValue'],
+                "rentalYield": round((asset_dict['incomeAmount'] * 12 / asset_dict['currentValue']) * 100, 2) if asset_dict['currentValue'] else None,
+            }})
             asset_dict['linkedIncomeId'] = existing_income['id']
         else:
             rental_income = {
-                "id": str(uuid.uuid4()),
-                "userId": user.get('user_id'),
-                "type": "Rental",
-                "name": asset_dict['assetName'],
+                "id": str(uuid.uuid4()), "userId": user.get('user_id'),
+                "type": "Rental", "name": asset_dict['assetName'],
                 "expectedAmount": asset_dict['incomeAmount'],
                 "frequency": asset_dict.get('incomeFrequency') or "Monthly",
-                "tenantName": asset_dict.get('renterName'),
-                "securityDeposit": asset_dict.get('securityDeposit'),
-                "assetId": asset_id,
-                "assetValue": asset_dict['currentValue'],
+                "tenantName": asset_dict.get('renterName'), "securityDeposit": asset_dict.get('securityDeposit'),
+                "assetId": asset_id, "assetValue": asset_dict['currentValue'],
                 "rentalYield": round((asset_dict['incomeAmount'] * 12 / asset_dict['currentValue']) * 100, 2) if asset_dict['currentValue'] else None,
                 "createdAt": datetime.now(timezone.utc).isoformat(),
             }
@@ -139,13 +114,11 @@ async def update_asset(asset_id: str, input: AssetCreate, request: Request):
     elif not asset_dict.get('generatesIncome'):
         asset_dict['linkedIncomeId'] = None
         await db.income_sources.delete_many({"assetId": asset_id})
-    
+
     await db.assets.replace_one({"id": asset_id}, asset_dict)
-    
     asset_obj = Asset(**asset_dict)
     if isinstance(asset_obj.createdAt, str):
         asset_obj.createdAt = datetime.fromisoformat(asset_obj.createdAt)
-    
     return asset_obj
 
 
@@ -154,13 +127,10 @@ async def delete_asset(asset_id: str, request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     user_filter = get_user_filter(user)
     user_filter["id"] = asset_id
     existing = await db.assets.find_one(user_filter, {"_id": 0})
-    
     if not existing:
         raise HTTPException(status_code=404, detail="Asset not found")
-    
     await db.assets.delete_one({"id": asset_id})
     return {"message": "Asset deleted successfully", "id": asset_id}
