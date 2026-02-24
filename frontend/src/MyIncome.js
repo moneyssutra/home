@@ -119,8 +119,22 @@ const MyIncome = () => {
   const totalOtherIncome = otherIncomes.reduce((sum, inc) => sum + calculateOtherIncomeMonthly(inc), 0);
   const totalIncome = totalRegularIncome + totalOtherIncome;
 
+  const capitalizeType = (type) => {
+    if (!type) return "Other";
+    // Handle special cases
+    const specialCases = {
+      'self-employed': 'Self-Employed',
+      'other income': 'Other Income'
+    };
+    if (specialCases[type.toLowerCase()]) {
+      return specialCases[type.toLowerCase()];
+    }
+    // Capitalize first letter
+    return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+  };
+
   const incomeByType = incomes.reduce((acc, inc) => {
-    const type = inc.type || "Other";
+    const type = capitalizeType(inc.type);
     if (!acc[type]) acc[type] = { total: 0, count: 0 };
     acc[type].total += calculateMonthlyAmount(inc);
     acc[type].count += 1;
