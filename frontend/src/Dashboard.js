@@ -215,7 +215,7 @@ const Dashboard = () => {
             >
               <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--finance-gain)" }}>
                 <ArrowUpRight className="h-4 w-4" />
-                <span className="text-xs font-medium">Income</span>
+                <span className="text-xs font-medium">Received</span>
               </div>
               <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyIncome || 0)}</p>
             </div>
