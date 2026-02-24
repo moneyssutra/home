@@ -311,4 +311,104 @@ async def check_and_send_reminders():
         except Exception as e:
             logger.error(f"Error in reminder scheduler: {str(e)}")
 
+        # Weekly gamification processing - Sunday at 23:59
+        if now.weekday() == 6 and current_time == "23:59":
+            await run_weekly_gamification()
+
         await asyncio.sleep(60)
+
+
+async def run_weekly_gamification():
+    """Run weekly gamification processing for all users."""
+    try:
+        logger.info("Running weekly gamification processing...")
+        users = await db.users.find({}, {"_id": 0, "user_id": 1}).to_list(10000)
+        from routes.intelligence import (
+            _get_liquid_funds, _get_monthly_mandatory_expense,
+            _get_monthly_income, _get_monthly_discretionary_spending, _get_total_emi
+        )
+        from routes.gamification import _get_level, _get_or_create_profile, _unlock_achievement, ACHIEVEMENTS, STREAK_REWARDS
+
+        for user_doc in users:
+            user_id = user_doc.get("user_id")
+            if not user_id:
+                continue
+            try:
+                user_filter = {"userId": user_id}
+                profile = await _get_or_create_profile(user_id)
+
+                liquid_funds = await _get_liquid_funds(user_filter)
+                monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
+                monthly_income = await _get_monthly_income(user_filter)
+                total_emi = await _get_total_emi(user_filter)
+
+                daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 0
+                survival_days = int(liquid_funds / daily_expense) if daily_expense > 0 else 999
+
+                debt_ratio = total_emi / monthly_income if monthly_income > 0 else 1.0
+                cash_ratio = (monthly_income - await _get_monthly_discretionary_spending(user_filter)) / monthly_income if monthly_income > 0 else 0
+
+                cash_score = 25 if cash_ratio > 0.40 else (18 if cash_ratio > 0.25 else (10 if cash_ratio > 0.10 else 5))
+                debt_score = 25 if debt_ratio < 0.25 else (18 if debt_ratio < 0.40 else (10 if debt_ratio < 0.60 else 5))
+                liquidity_score = 25 if survival_days > 180 else (18 if survival_days > 90 else (10 if survival_days > 30 else 5))
+                score = cash_score + debt_score + liquidity_score + 25
+
+                high_alerts = await db.alerts.count_documents({
+                    "userId": user_id, "severity": "HIGH",
+                    "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()}
+                })
+
+                xp_earned = 0
+                if score > 85:
+                    xp_earned += 40
+                elif score > 70:
+                    xp_earned += 20
+                if high_alerts == 0:
+                    xp_earned += 15
+
+                current_streak = profile.get("current_streak", 0)
+                if score >= 70 and high_alerts == 0:
+                    current_streak += 1
+                else:
+                    current_streak = 0
+
+                longest_streak = max(profile.get("longest_streak", 0), current_streak)
+                for weeks, bonus in STREAK_REWARDS.items():
+                    if current_streak == weeks:
+                        xp_earned += bonus
+
+                new_xp = profile.get("xp", 0) + xp_earned
+
+                await db.user_gamification_profile.update_one(
+                    {"user_id": user_id},
+                    {"$set": {
+                        "xp": new_xp,
+                        "level": _get_level(new_xp)["title"],
+                        "current_streak": current_streak,
+                        "longest_streak": longest_streak,
+                        "last_score": score,
+                        "last_survival_days": survival_days,
+                        "last_processed_at": datetime.now(timezone.utc).isoformat()
+                    }},
+                    upsert=True
+                )
+
+                # Weekly summary notification
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "title": "Weekly Financial Summary",
+                    "message": f"Score: {score} | Survival: {survival_days} days | Streak: {current_streak}w | +{xp_earned} XP",
+                    "type": "weekly_summary",
+                    "isRead": False,
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                await create_notification_and_cleanup(notification)
+
+                logger.info(f"Weekly gamification processed for user {user_id}: score={score}, xp=+{xp_earned}")
+            except Exception as e:
+                logger.error(f"Error processing gamification for user {user_id}: {str(e)}")
+
+        logger.info("Weekly gamification processing complete")
+    except Exception as e:
+        logger.error(f"Error in weekly gamification: {str(e)}")
