@@ -153,14 +153,26 @@ const Insights = () => {
             Quick Overview
           </h3>
           <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
-              <PieChart className="h-6 w-6 mx-auto mb-2" style={{ color: "#8B5CF6" }} />
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>View Charts</p>
-            </div>
-            <div className="text-center p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
-              <FileText className="h-6 w-6 mx-auto mb-2" style={{ color: "#059669" }} />
-              <p className="text-xs" style={{ color: "var(--text-muted)" }}>Download Reports</p>
-            </div>
+            <button 
+              onClick={() => navigate("/insights/analytics")}
+              className="text-center p-4 rounded-xl transition-all hover:scale-105 active:scale-95"
+              style={{ backgroundColor: "var(--bg-subtle)" }}
+              data-testid="quick-overview-charts"
+            >
+              <PieChart className="h-8 w-8 mx-auto mb-2" style={{ color: "#8B5CF6" }} />
+              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>View Charts</p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Analytics & Insights</p>
+            </button>
+            <button 
+              onClick={() => navigate("/insights/reports")}
+              className="text-center p-4 rounded-xl transition-all hover:scale-105 active:scale-95"
+              style={{ backgroundColor: "var(--bg-subtle)" }}
+              data-testid="quick-overview-reports"
+            >
+              <FileText className="h-8 w-8 mx-auto mb-2" style={{ color: "#059669" }} />
+              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Download Reports</p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>PDF & Excel Export</p>
+            </button>
           </div>
         </div>
       </div>
