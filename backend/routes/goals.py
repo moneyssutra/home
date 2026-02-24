@@ -1,216 +1,188 @@
-"""Goal routes - Goal CRUD and progress calculation."""
+"""Goal routes - Full CRUD with progress calculation from server.py."""
 from fastapi import APIRouter, HTTPException, Request
 from typing import List
 from datetime import datetime, timezone
 
 from database import db
-from models.goals import Goal, GoalCreate, GoalPriorityUpdate
+from server_models import Goal, GoalCreate, GoalPriorityUpdate
 from routes.auth import get_current_user
-from routes.utils import get_user_filter, convert_datetime_fields
+from routes.utils import get_user_filter
 
 router = APIRouter(prefix="/goals", tags=["Goals"])
 
 
 async def calculate_goal_progress(goal: dict) -> dict:
-    """Calculate the current progress of a goal based on linked sources"""
     calculated_amount = 0
     linked_details = []
     sip_projections = []
-    
-    # If manual override, use stored amount
+
     if goal.get('manualOverride') and not goal.get('autoCalculate'):
-        return {
-            "currentAmount": goal.get('currentAmount', 0),
-            "linkedDetails": [],
-            "sipProjections": [],
-            "calculationMethod": "manual"
-        }
-    
+        return {"currentAmount": goal.get('currentAmount', 0), "linkedDetails": [], "sipProjections": [], "calculationMethod": "manual"}
+
     goal_type = goal.get('goalType', '')
     target_date = goal.get('targetDate')
-    
-    # Calculate months until target
     months_to_target = 0
     if target_date:
         try:
             target_dt = datetime.fromisoformat(target_date).date()
             today = datetime.now(timezone.utc).date()
-            days_diff = (target_dt - today).days
-            months_to_target = max(0, days_diff / 30)
+            months_to_target = max(0, (target_dt - today).days / 30)
         except (ValueError, TypeError):
-            months_to_target = 0
-    
-    # Debt Elimination goals
+            pass
+
+    def _freq_to_monthly(sip_amount, frequency):
+        if frequency == 'Daily': return sip_amount * 30
+        elif frequency == 'Weekly': return sip_amount * 4
+        elif frequency == 'Monthly': return sip_amount
+        elif frequency == 'Quarterly': return sip_amount / 3
+        elif frequency == 'Yearly': return sip_amount / 12
+        return 0
+
+    def _calc_projected(current_value, monthly_contribution, return_rate, n):
+        monthly_rate = (return_rate / 100) / 12 if return_rate else 0
+        if monthly_rate > 0:
+            pv = current_value * ((1 + monthly_rate) ** n)
+            pmt = monthly_contribution * (((1 + monthly_rate) ** n - 1) / monthly_rate)
+            return pv + pmt
+        return current_value + (monthly_contribution * n)
+
+    async def _process_investments_full(inv_ids, prefix_data=None):
+        nonlocal calculated_amount
+        for inv_id in inv_ids:
+            investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
+            if not investment:
+                continue
+            cv = investment.get('currentValue', 0)
+            calculated_amount += cv
+            sa = investment.get('sipAmount', 0)
+            freq = investment.get('investmentFrequency', '')
+            rr = investment.get('returnRate', 0)
+            pv = cv
+            mc = 0
+            if sa and freq and months_to_target > 0:
+                mc = _freq_to_monthly(sa, freq)
+                pv = _calc_projected(cv, mc, rr, months_to_target)
+                sip_projections.append({
+                    "investmentId": inv_id, "investmentName": investment.get('name'),
+                    "currentValue": cv, "sipAmount": sa, "frequency": freq,
+                    "monthlyContribution": mc, "returnRate": rr,
+                    "projectedValue": round(pv, 2), "projectedGain": round(pv - cv, 2),
+                    "monthsToTarget": round(months_to_target, 1), **(prefix_data or {})
+                })
+            linked_details.append({
+                "type": "Investment", "name": investment.get('name'),
+                "category": investment.get('investmentCategory'), "contribution": cv,
+                "principal": investment.get('principal', 0), "hasSIP": bool(sa and freq),
+                "sipAmount": sa, "frequency": freq,
+                "projectedValue": round(pv, 2) if sa else None, **(prefix_data or {})
+            })
+
+    async def _process_accounts_full(acc_ids, prefix_data=None):
+        nonlocal calculated_amount
+        for acc_id in acc_ids:
+            account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
+            if account and account.get('accountType') != 'Credit Card':
+                bal = account.get('currentBalance', 0)
+                calculated_amount += bal
+                linked_details.append({
+                    "type": "Account", "name": account.get('accountName'),
+                    "accountType": account.get('accountType'), "contribution": bal,
+                    **(prefix_data or {})
+                })
+
+    async def _process_linked_accounts_new(linked_accounts):
+        nonlocal calculated_amount
+        for la in linked_accounts:
+            acc_id = la.get('id')
+            allocated = la.get('allocatedAmount', 0)
+            account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
+            if account and account.get('accountType') != 'Credit Card' and allocated > 0:
+                calculated_amount += allocated
+                linked_details.append({
+                    "type": "Account", "name": account.get('accountName'),
+                    "accountType": account.get('accountType'), "contribution": allocated,
+                    "totalBalance": account.get('currentBalance', 0),
+                    "isPartialAllocation": allocated < account.get('currentBalance', 0)
+                })
+
+    async def _process_linked_investments_new(linked_investments):
+        nonlocal calculated_amount
+        for li in linked_investments:
+            inv_id = li.get('id')
+            allocated = li.get('allocatedAmount', 0)
+            investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
+            if not investment or allocated <= 0:
+                continue
+            calculated_amount += allocated
+            cv = investment.get('currentValue', 0)
+            ratio = allocated / cv if cv > 0 else 0
+            sa = investment.get('sipAmount', 0)
+            freq = investment.get('investmentFrequency', '')
+            rr = investment.get('returnRate', 0)
+            pv = allocated
+            mc = 0
+            if sa and freq and months_to_target > 0:
+                mc = _freq_to_monthly(sa, freq) * ratio
+                pv = _calc_projected(allocated, mc, rr, months_to_target)
+                sip_projections.append({
+                    "investmentId": inv_id, "investmentName": investment.get('name'),
+                    "allocatedAmount": allocated, "currentValue": cv, "sipAmount": sa,
+                    "frequency": freq, "monthlyContribution": mc, "returnRate": rr,
+                    "projectedValue": round(pv, 2), "projectedGain": round(pv - allocated, 2),
+                    "monthsToTarget": round(months_to_target, 1)
+                })
+            linked_details.append({
+                "type": "Investment", "name": investment.get('name'),
+                "category": investment.get('investmentCategory'), "contribution": allocated,
+                "totalValue": cv, "isPartialAllocation": allocated < cv,
+                "hasSIP": bool(sa and freq), "sipAmount": sa, "frequency": freq,
+                "projectedValue": round(pv, 2) if sa else None
+            })
+
     if goal_type == "Debt Elimination":
         if goal.get('linkedLoanId'):
             loan = await db.loans.find_one({"id": goal['linkedLoanId']}, {"_id": 0})
             if loan:
-                principal = loan.get('principalAmount', 0)
-                outstanding = loan.get('outstandingAmount', 0)
-                paid_off = principal - outstanding
+                paid_off = loan.get('principalAmount', 0) - loan.get('outstandingAmount', 0)
                 calculated_amount += paid_off
-                linked_details.append({
-                    "type": "Loan",
-                    "name": loan.get('loanName'),
-                    "contribution": paid_off,
-                    "principal": principal,
-                    "outstanding": outstanding,
-                    "emiAmount": loan.get('emiAmount', 0)
-                })
-        
+                linked_details.append({"type": "Loan", "name": loan.get('loanName'), "contribution": paid_off, "principal": loan.get('principalAmount', 0), "outstanding": loan.get('outstandingAmount', 0), "emiAmount": loan.get('emiAmount', 0)})
         if goal.get('linkedCreditCardId'):
             card = await db.credit_cards.find_one({"id": goal['linkedCreditCardId']}, {"_id": 0})
             if card:
-                limit = card.get('creditLimit', 0)
-                outstanding = card.get('outstandingAmount', 0)
-                available = limit - outstanding
+                available = card.get('creditLimit', 0) - card.get('outstandingAmount', 0)
                 calculated_amount += available
-                linked_details.append({
-                    "type": "Credit Card",
-                    "name": card.get('cardName'),
-                    "contribution": available,
-                    "creditLimit": limit,
-                    "outstanding": outstanding
-                })
-    
-    # Investment/Wealth goals
+                linked_details.append({"type": "Credit Card", "name": card.get('cardName'), "contribution": available, "creditLimit": card.get('creditLimit', 0), "outstanding": card.get('outstandingAmount', 0)})
+
     elif goal_type in ["Investment Target", "Wealth Creation"]:
-        for inv_id in goal.get('linkedInvestmentIds', []):
-            investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
-            if investment:
-                current_value = investment.get('currentValue', 0)
-                calculated_amount += current_value
-                
-                # SIP projection
-                sip_amount = investment.get('sipAmount', 0)
-                frequency = investment.get('investmentFrequency', '')
-                return_rate = investment.get('returnRate', 0)
-                projected_value = current_value
-                monthly_contribution = 0
-                
-                if sip_amount and frequency and months_to_target > 0:
-                    freq_map = {'Daily': 30, 'Weekly': 4, 'Monthly': 1, 'Quarterly': 1/3, 'Yearly': 1/12}
-                    monthly_contribution = sip_amount * freq_map.get(frequency, 1)
-                    monthly_rate = (return_rate / 100) / 12 if return_rate else 0
-                    n = months_to_target
-                    
-                    if monthly_rate > 0:
-                        pv_growth = current_value * ((1 + monthly_rate) ** n)
-                        pmt_growth = monthly_contribution * (((1 + monthly_rate) ** n - 1) / monthly_rate)
-                        projected_value = pv_growth + pmt_growth
-                    else:
-                        projected_value = current_value + (monthly_contribution * n)
-                    
-                    sip_projections.append({
-                        "investmentId": inv_id,
-                        "investmentName": investment.get('name'),
-                        "currentValue": current_value,
-                        "sipAmount": sip_amount,
-                        "frequency": frequency,
-                        "monthlyContribution": monthly_contribution,
-                        "returnRate": return_rate,
-                        "projectedValue": round(projected_value, 2),
-                        "projectedGain": round(projected_value - current_value, 2),
-                        "monthsToTarget": round(months_to_target, 1)
-                    })
-                
-                linked_details.append({
-                    "type": "Investment",
-                    "name": investment.get('name'),
-                    "category": investment.get('investmentCategory'),
-                    "contribution": current_value,
-                    "hasSIP": bool(sip_amount and frequency),
-                    "projectedValue": round(projected_value, 2) if sip_amount else None
-                })
-        
-        # Add linked accounts
-        for acc_id in goal.get('linkedAccountIds', []):
-            account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
-            if account and account.get('accountType') != 'Credit Card':
-                balance = account.get('currentBalance', 0)
-                calculated_amount += balance
-                linked_details.append({
-                    "type": "Account",
-                    "name": account.get('accountName'),
-                    "accountType": account.get('accountType'),
-                    "contribution": balance
-                })
-    
-    # Emergency Fund goals
+        await _process_investments_full(goal.get('linkedInvestmentIds', []))
+        await _process_linked_accounts_new(goal.get('linkedAccounts', []))
+        processed_acc_ids = [a.get('id') for a in goal.get('linkedAccounts', [])]
+        remaining_acc_ids = [aid for aid in goal.get('linkedAccountIds', []) if aid not in processed_acc_ids]
+        await _process_accounts_full(remaining_acc_ids)
+
     elif goal_type == "Emergency Fund":
-        for acc_id in goal.get('linkedAccountIds', []):
-            account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
-            if account and account.get('accountType') != 'Credit Card':
-                balance = account.get('currentBalance', 0)
-                calculated_amount += balance
-                linked_details.append({
-                    "type": "Account",
-                    "name": account.get('accountName'),
-                    "accountType": account.get('accountType'),
-                    "contribution": balance
-                })
-        
-        # Include liquid investments
-        for inv_id in goal.get('linkedInvestmentIds', []):
-            investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
-            if investment:
-                current_value = investment.get('currentValue', 0)
-                calculated_amount += current_value
-                linked_details.append({
-                    "type": "Investment",
-                    "name": investment.get('name'),
-                    "contribution": current_value
-                })
-    
-    # Other goals
+        await _process_linked_accounts_new(goal.get('linkedAccounts', []))
+        processed_acc_ids = [a.get('id') for a in goal.get('linkedAccounts', [])]
+        remaining_acc_ids = [aid for aid in goal.get('linkedAccountIds', []) if aid not in processed_acc_ids]
+        await _process_accounts_full(remaining_acc_ids, {"isLegacy": True})
+        await _process_linked_investments_new(goal.get('linkedInvestments', []))
+        processed_inv_ids = [i.get('id') for i in goal.get('linkedInvestments', [])]
+        remaining_inv_ids = [iid for iid in goal.get('linkedInvestmentIds', []) if iid not in processed_inv_ids]
+        await _process_investments_full(remaining_inv_ids, {"isLegacy": True})
+
     else:
-        for inv_id in goal.get('linkedInvestmentIds', []):
-            investment = await db.investments.find_one({"id": inv_id}, {"_id": 0})
-            if investment:
-                current_value = investment.get('currentValue', 0)
-                calculated_amount += current_value
-                linked_details.append({
-                    "type": "Investment",
-                    "name": investment.get('name'),
-                    "contribution": current_value
-                })
-        
-        for acc_id in goal.get('linkedAccountIds', []):
-            account = await db.accounts.find_one({"id": acc_id}, {"_id": 0})
-            if account and account.get('accountType') != 'Credit Card':
-                calculated_amount += account.get('currentBalance', 0)
-                linked_details.append({
-                    "type": "Account",
-                    "name": account.get('accountName'),
-                    "contribution": account.get('currentBalance', 0)
-                })
-    
-    total_projected_from_sips = sum(sp.get('projectedValue', 0) for sp in sip_projections)
-    total_monthly_sip_contribution = sum(sp.get('monthlyContribution', 0) for sp in sip_projections)
-    
-    # Handle manual override
+        await _process_investments_full(goal.get('linkedInvestmentIds', []))
+        await _process_accounts_full(goal.get('linkedAccountIds', []))
+
+    total_projected = sum(sp.get('projectedValue', 0) for sp in sip_projections)
+    total_monthly_sip = sum(sp.get('monthlyContribution', 0) for sp in sip_projections)
+
     if goal.get('manualOverride'):
-        manual_amount = goal.get('currentAmount', 0)
-        if manual_amount > calculated_amount:
-            return {
-                "currentAmount": manual_amount,
-                "linkedDetails": linked_details,
-                "sipProjections": sip_projections,
-                "totalProjectedFromSIPs": total_projected_from_sips,
-                "totalMonthlySIPContribution": total_monthly_sip_contribution,
-                "monthsToTarget": round(months_to_target, 1),
-                "calculationMethod": "manual_override"
-            }
-    
-    return {
-        "currentAmount": calculated_amount,
-        "linkedDetails": linked_details,
-        "sipProjections": sip_projections,
-        "totalProjectedFromSIPs": total_projected_from_sips,
-        "totalMonthlySIPContribution": total_monthly_sip_contribution,
-        "monthsToTarget": round(months_to_target, 1),
-        "calculationMethod": "auto"
-    }
+        manual = goal.get('currentAmount', 0)
+        if manual > calculated_amount:
+            return {"currentAmount": manual, "linkedDetails": linked_details, "sipProjections": sip_projections, "totalProjectedFromSIPs": total_projected, "totalMonthlySIPContribution": total_monthly_sip, "monthsToTarget": round(months_to_target, 1), "calculationMethod": "manual_override"}
+
+    return {"currentAmount": calculated_amount, "linkedDetails": linked_details, "sipProjections": sip_projections, "totalProjectedFromSIPs": total_projected, "totalMonthlySIPContribution": total_monthly_sip, "monthsToTarget": round(months_to_target, 1), "calculationMethod": "auto"}
 
 
 @router.post("", response_model=Goal)
@@ -218,12 +190,9 @@ async def create_goal(input: GoalCreate, request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     goal_dict = input.model_dump()
     goal_dict['userId'] = user.get('user_id')
     goal_obj = Goal(**goal_dict)
-    
-    # Auto-set target for Debt Elimination
     if goal_obj.goalType == "Debt Elimination":
         if goal_obj.linkedLoanId:
             loan = await db.loans.find_one({"id": goal_obj.linkedLoanId}, {"_id": 0})
@@ -233,163 +202,237 @@ async def create_goal(input: GoalCreate, request: Request):
             card = await db.credit_cards.find_one({"id": goal_obj.linkedCreditCardId}, {"_id": 0})
             if card and goal_obj.targetAmount == 0:
                 goal_obj.targetAmount = card.get('outstandingAmount', 0)
-    
     doc = goal_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
-    
     await db.goals.insert_one(doc)
     return goal_obj
 
 
-@router.get("")
-async def get_goals(request: Request):
-    """Get all goals with calculated progress"""
+@router.get("/allocation-status")
+async def get_allocation_status(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     user_filter = get_user_filter(user)
     goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
-    
-    result = []
+    investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+    accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
+
+    inv_alloc = {}
+    for inv in investments:
+        iid = inv.get('id')
+        tv = inv.get('currentValue', inv.get('principal', 0))
+        inv_alloc[iid] = {"id": iid, "name": inv.get('name',''), "category": inv.get('investmentCategory',''), "totalValue": tv, "allocatedAmount": 0, "remainingAmount": tv, "allocations": []}
+    acc_alloc = {}
+    for acc in accounts:
+        aid = acc.get('id')
+        tb = acc.get('currentBalance', 0)
+        acc_alloc[aid] = {"id": aid, "name": acc.get('accountName',''), "accountType": acc.get('accountType',''), "totalBalance": tb, "allocatedAmount": 0, "remainingAmount": tb, "allocations": []}
+
     for goal in goals:
-        convert_datetime_fields(goal)
-        
-        progress_data = await calculate_goal_progress(goal)
-        goal['calculatedAmount'] = progress_data['currentAmount']
-        goal['linkedDetails'] = progress_data['linkedDetails']
-        goal['calculationMethod'] = progress_data['calculationMethod']
-        goal['sipProjections'] = progress_data.get('sipProjections', [])
-        goal['totalProjectedFromSIPs'] = progress_data.get('totalProjectedFromSIPs', 0)
-        goal['totalMonthlySIPContribution'] = progress_data.get('totalMonthlySIPContribution', 0)
-        
-        # Progress percentage
-        target = goal.get('targetAmount', 0)
-        current = progress_data['currentAmount']
-        goal['progressPercent'] = round((current / target) * 100, 1) if target > 0 else 0
-        
-        # Projected progress
-        projected_total = progress_data.get('totalProjectedFromSIPs', 0)
-        goal['projectedProgressPercent'] = round((projected_total / target) * 100, 1) if projected_total > 0 and target > 0 else goal['progressPercent']
-        
-        # Days remaining
-        target_date = goal.get('targetDate')
-        if target_date:
-            try:
-                target_dt = datetime.fromisoformat(target_date).date()
-                today = datetime.now(timezone.utc).date()
-                days_remaining = (target_dt - today).days
-                goal['daysRemaining'] = days_remaining
-                goal['isOverdue'] = days_remaining < 0
-            except (ValueError, TypeError):
-                goal['daysRemaining'] = None
-                goal['isOverdue'] = False
-        
-        result.append(goal)
-    
-    result.sort(key=lambda x: (x.get('priority', 1), x.get('daysRemaining') or 9999))
-    return result
+        gid = goal.get('id'); gn = goal.get('goalName','')
+        for li in goal.get('linkedInvestments', []):
+            iid = li.get('id'); alloc = li.get('allocatedAmount', 0)
+            if iid in inv_alloc and alloc > 0:
+                inv_alloc[iid]['allocatedAmount'] += alloc; inv_alloc[iid]['remainingAmount'] -= alloc
+                inv_alloc[iid]['allocations'].append({"goalId": gid, "goalName": gn, "allocatedAmount": alloc})
+        for iid in goal.get('linkedInvestmentIds', []):
+            already = any(a.get('goalId') == gid for a in inv_alloc.get(iid, {}).get('allocations', []))
+            if iid in inv_alloc and not already:
+                tv = inv_alloc[iid]['totalValue']
+                inv_alloc[iid]['allocatedAmount'] += tv; inv_alloc[iid]['remainingAmount'] = 0
+                inv_alloc[iid]['allocations'].append({"goalId": gid, "goalName": gn, "allocatedAmount": tv, "isLegacy": True})
+        for la in goal.get('linkedAccounts', []):
+            aid = la.get('id'); alloc = la.get('allocatedAmount', 0)
+            if aid in acc_alloc and alloc > 0:
+                acc_alloc[aid]['allocatedAmount'] += alloc; acc_alloc[aid]['remainingAmount'] -= alloc
+                acc_alloc[aid]['allocations'].append({"goalId": gid, "goalName": gn, "allocatedAmount": alloc})
+        for aid in goal.get('linkedAccountIds', []):
+            already = any(a.get('goalId') == gid for a in acc_alloc.get(aid, {}).get('allocations', []))
+            if aid in acc_alloc and not already:
+                tb = acc_alloc[aid]['totalBalance']
+                acc_alloc[aid]['allocatedAmount'] += tb; acc_alloc[aid]['remainingAmount'] = 0
+                acc_alloc[aid]['allocations'].append({"goalId": gid, "goalName": gn, "allocatedAmount": tb, "isLegacy": True})
+    return {"investments": list(inv_alloc.values()), "accounts": list(acc_alloc.values())}
 
 
 @router.get("/achievements")
 async def get_goal_achievements(request: Request):
-    """Get all completed goals for achievements page"""
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     user_filter = get_user_filter(user)
     user_filter["isCompleted"] = True
-    
-    completed_goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
-    
-    result = []
-    for goal in completed_goals:
-        convert_datetime_fields(goal)
-        progress_data = await calculate_goal_progress(goal)
-        
-        result.append({
-            "id": goal.get('id'),
-            "goalName": goal.get('goalName'),
-            "goalType": goal.get('goalType'),
-            "targetAmount": goal.get('targetAmount'),
-            "achievedAmount": progress_data['currentAmount'],
-            "completedDate": goal.get('completedDate'),
-            "reachedMilestones": goal.get('reachedMilestones', []),
-            "linkedDetails": progress_data['linkedDetails']
+    completed = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
+    achievements = []
+    for goal in completed:
+        if isinstance(goal.get('createdAt'), str): goal['createdAt'] = datetime.fromisoformat(goal['createdAt'])
+        pd = await calculate_goal_progress(goal)
+        rm = goal.get('reachedMilestones', [])
+        mh = [{"milestone": m, "reached": m in rm, "label": f"{m}% Complete"} for m in [25, 50, 75, 100]]
+        dd = None
+        ca = goal.get('createdAt'); cd = goal.get('completedDate')
+        if ca and cd:
+            try:
+                cdt = datetime.fromisoformat(ca) if isinstance(ca, str) else ca
+                dd = (datetime.fromisoformat(cd) - cdt).days
+            except (ValueError, TypeError): pass
+        achievements.append({
+            "id": goal.get('id'), "goalName": goal.get('goalName'), "goalType": goal.get('goalType'),
+            "customTypeName": goal.get('customTypeName'), "targetAmount": goal.get('targetAmount', 0),
+            "finalAmount": pd['currentAmount'], "targetDate": goal.get('targetDate'),
+            "completedDate": cd, "createdAt": ca.isoformat() if isinstance(ca, datetime) else ca,
+            "milestoneHistory": mh, "reachedMilestones": rm, "durationDays": dd,
+            "priority": goal.get('priority', 1), "notes": goal.get('notes'),
+            "linkedDetails": pd.get('linkedDetails', [])
         })
-    
-    return result
+    achievements.sort(key=lambda x: x.get('completedDate') or '', reverse=True)
+    ta = sum(a.get('finalAmount', 0) for a in achievements)
+    ad = sum(a.get('durationDays', 0) or 0 for a in achievements) / len(achievements) if achievements else 0
+    return {"totalCompleted": len(achievements), "totalAmountAchieved": ta, "averageDurationDays": round(ad), "achievements": achievements}
+
+
+@router.get("/summary/dashboard")
+async def get_goals_dashboard_summary(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["isCompleted"] = False
+    goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
+    cf = get_user_filter(user); cf["isCompleted"] = True
+    cc = await db.goals.count_documents(cf)
+    summary = {"totalActiveGoals": len(goals), "completedGoals": cc, "goals": []}
+    for goal in goals[:5]:
+        pd = await calculate_goal_progress(goal)
+        t = goal.get('targetAmount', 0); c = pd['currentAmount']
+        dr = None
+        td = goal.get('targetDate')
+        if td:
+            try:
+                dr = (datetime.fromisoformat(td).date() - datetime.now(timezone.utc).date()).days
+            except (ValueError, TypeError): pass
+        summary["goals"].append({"id": goal.get('id'), "goalName": goal.get('goalName'), "goalType": goal.get('goalType'), "targetAmount": t, "currentAmount": c, "progressPercent": round((c / t) * 100, 1) if t > 0 else 0, "daysRemaining": dr, "priority": goal.get('priority', 1)})
+    summary["goals"].sort(key=lambda x: (x.get('priority', 1), x.get('progressPercent', 0)))
+    return summary
 
 
 @router.get("/{goal_id}")
 async def get_goal(goal_id: str, request: Request):
-    """Get single goal with full details"""
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     user_filter = get_user_filter(user)
     user_filter["id"] = goal_id
     goal = await db.goals.find_one(user_filter, {"_id": 0})
-    
     if not goal:
         raise HTTPException(status_code=404, detail="Goal not found")
-    
-    convert_datetime_fields(goal)
-    progress_data = await calculate_goal_progress(goal)
-    
-    goal['calculatedAmount'] = progress_data['currentAmount']
-    goal['linkedDetails'] = progress_data['linkedDetails']
-    goal['sipProjections'] = progress_data.get('sipProjections', [])
-    goal['totalProjectedFromSIPs'] = progress_data.get('totalProjectedFromSIPs', 0)
-    goal['totalMonthlySIPContribution'] = progress_data.get('totalMonthlySIPContribution', 0)
-    goal['calculationMethod'] = progress_data['calculationMethod']
-    
-    target = goal.get('targetAmount', 0)
-    current = progress_data['currentAmount']
-    goal['progressPercent'] = round((current / target) * 100, 1) if target > 0 else 0
-    
-    target_date = goal.get('targetDate')
-    if target_date:
+    if isinstance(goal.get('createdAt'), str): goal['createdAt'] = datetime.fromisoformat(goal['createdAt'])
+    pd = await calculate_goal_progress(goal)
+    goal['calculatedAmount'] = pd['currentAmount']; goal['linkedDetails'] = pd['linkedDetails']
+    goal['calculationMethod'] = pd['calculationMethod']; goal['sipProjections'] = pd.get('sipProjections', [])
+    goal['totalProjectedFromSIPs'] = pd.get('totalProjectedFromSIPs', 0)
+    goal['totalMonthlySIPContribution'] = pd.get('totalMonthlySIPContribution', 0)
+    goal['monthsToTarget'] = pd.get('monthsToTarget', 0)
+    t = goal.get('targetAmount', 0); c = pd['currentAmount']
+    goal['progressPercent'] = round((c / t) * 100, 1) if t > 0 else 0
+    pt = pd.get('totalProjectedFromSIPs', 0)
+    goal['projectedProgressPercent'] = round((pt / t) * 100, 1) if pt > 0 and t > 0 else goal['progressPercent']
+    remaining = t - c; mtt = pd.get('monthsToTarget', 0); ms = pd.get('totalMonthlySIPContribution', 0)
+    if mtt > 0:
+        mn = remaining / mtt; goal['additionalMonthlySavingsNeeded'] = round(max(0, mn - ms), 2); goal['totalMonthlyNeeded'] = round(mn, 2)
+    else:
+        goal['additionalMonthlySavingsNeeded'] = 0; goal['totalMonthlyNeeded'] = 0
+    td = goal.get('targetDate')
+    if td:
         try:
-            target_dt = datetime.fromisoformat(target_date).date()
-            today = datetime.now(timezone.utc).date()
-            days_remaining = (target_dt - today).days
-            goal['daysRemaining'] = days_remaining
-            goal['isOverdue'] = days_remaining < 0
-        except (ValueError, TypeError):
-            goal['daysRemaining'] = None
-            goal['isOverdue'] = False
-    
+            dr = (datetime.fromisoformat(td).date() - datetime.now(timezone.utc).date()).days
+            goal['daysRemaining'] = dr; goal['isOverdue'] = dr < 0
+        except (ValueError, TypeError): goal['daysRemaining'] = None; goal['isOverdue'] = False
+    li = []
+    for iid in goal.get('linkedInvestmentIds', []):
+        inv = await db.investments.find_one({"id": iid}, {"_id": 0})
+        if inv: li.append(inv)
+    goal['linkedInvestments'] = li
+    la = []
+    for aid in goal.get('linkedAccountIds', []):
+        acc = await db.accounts.find_one({"id": aid}, {"_id": 0})
+        if acc: la.append(acc)
+    goal['linkedAccounts'] = la
+    if goal.get('linkedLoanId'):
+        goal['linkedLoan'] = await db.loans.find_one({"id": goal['linkedLoanId']}, {"_id": 0})
+    if goal.get('linkedCreditCardId'):
+        goal['linkedCreditCard'] = await db.credit_cards.find_one({"id": goal['linkedCreditCardId']}, {"_id": 0})
     return goal
 
 
-@router.put("/{goal_id}", response_model=Goal)
+@router.get("/{goal_id}/milestones")
+async def check_goal_milestones(goal_id: str):
+    goal = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    if not goal:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    pd = await calculate_goal_progress(goal)
+    ca = pd['currentAmount']; ta = goal.get('targetAmount', 0)
+    pp = round((ca / ta) * 100, 1) if ta > 0 else 0
+    rm = goal.get('reachedMilestones', []); nr = []
+    for m in [25, 50, 75, 100]:
+        if pp >= m and m not in rm: nr.append(m); rm.append(m)
+    if nr:
+        await db.goals.update_one({"id": goal_id}, {"$set": {"reachedMilestones": rm}})
+    return {"goalId": goal_id, "goalName": goal.get('goalName', ''), "progressPercent": pp, "currentAmount": ca, "targetAmount": ta, "reachedMilestones": rm, "newlyReached": nr, "isCompleted": goal.get('isCompleted', False)}
+
+
+@router.put("/{goal_id}")
 async def update_goal(goal_id: str, input: GoalCreate, request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     user_filter = get_user_filter(user)
     user_filter["id"] = goal_id
     existing = await db.goals.find_one(user_filter, {"_id": 0})
-    
     if not existing:
         raise HTTPException(status_code=404, detail="Goal not found")
-    
-    goal_dict = input.model_dump()
-    goal_dict['id'] = goal_id
-    goal_dict['userId'] = user.get('user_id')
-    goal_dict['createdAt'] = existing['createdAt']
-    
-    await db.goals.replace_one({"id": goal_id}, goal_dict)
-    
-    goal_obj = Goal(**goal_dict)
-    if isinstance(goal_obj.createdAt, str):
-        goal_obj.createdAt = datetime.fromisoformat(goal_obj.createdAt)
-    
-    return goal_obj
+    gd = input.model_dump()
+    gd['id'] = goal_id; gd['userId'] = user.get('user_id'); gd['createdAt'] = existing['createdAt']
+    gd['isCompleted'] = existing.get('isCompleted', False); gd['completedDate'] = existing.get('completedDate')
+    await db.goals.replace_one({"id": goal_id}, gd)
+    updated = await db.goals.find_one({"id": goal_id}, {"_id": 0})
+    pd = await calculate_goal_progress(updated)
+    updated['calculatedAmount'] = pd['currentAmount']
+    updated['progressPercent'] = round((pd['currentAmount'] / updated.get('targetAmount', 1)) * 100, 1) if updated.get('targetAmount', 0) > 0 else 0
+    return updated
+
+
+@router.patch("/{goal_id}/complete")
+async def mark_goal_complete(goal_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = goal_id
+    existing = await db.goals.find_one(user_filter, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    await db.goals.update_one({"id": goal_id}, {"$set": {"isCompleted": True, "completedDate": datetime.now(timezone.utc).isoformat()}})
+    return {"message": "Goal marked as completed", "id": goal_id}
+
+
+@router.patch("/{goal_id}/progress")
+async def update_goal_progress(goal_id: str, current_amount: float, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = goal_id
+    existing = await db.goals.find_one(user_filter, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    await db.goals.update_one({"id": goal_id}, {"$set": {"currentAmount": current_amount, "manualOverride": True}})
+    target = existing.get('targetAmount', 0)
+    if current_amount >= target and target > 0:
+        await db.goals.update_one({"id": goal_id}, {"$set": {"isCompleted": True, "completedDate": datetime.now(timezone.utc).isoformat()}})
+        return {"message": "Goal progress updated and marked as completed!", "id": goal_id, "currentAmount": current_amount}
+    return {"message": "Goal progress updated", "id": goal_id, "currentAmount": current_amount}
 
 
 @router.delete("/{goal_id}")
@@ -397,87 +440,49 @@ async def delete_goal(goal_id: str, request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
     user_filter = get_user_filter(user)
     user_filter["id"] = goal_id
     existing = await db.goals.find_one(user_filter, {"_id": 0})
-    
     if not existing:
         raise HTTPException(status_code=404, detail="Goal not found")
-    
     await db.goals.delete_one({"id": goal_id})
     return {"message": "Goal deleted successfully", "id": goal_id}
 
 
-@router.put("/priorities/update")
-async def update_goal_priorities(priorities: List[GoalPriorityUpdate], request: Request):
-    """Bulk update goal priorities"""
+@router.patch("/reorder")
+async def reorder_goals(updates: List[GoalPriorityUpdate]):
+    updated_count = 0
+    for update in updates:
+        result = await db.goals.update_one({"id": update.id}, {"$set": {"priority": update.priority}})
+        if result.modified_count > 0: updated_count += 1
+    return {"message": f"Updated priorities for {updated_count} goals", "updatedCount": updated_count}
+
+
+@router.get("")
+async def get_goals(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    updated = []
-    for p in priorities:
-        result = await db.goals.update_one(
-            {"id": p.id},
-            {"$set": {"priority": p.priority}}
-        )
-        if result.modified_count > 0:
-            updated.append(p.id)
-    
-    return {"updated": updated, "count": len(updated)}
-
-
-@router.put("/{goal_id}/complete")
-async def mark_goal_complete(goal_id: str, request: Request):
-    """Mark a goal as completed"""
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
     user_filter = get_user_filter(user)
-    user_filter["id"] = goal_id
-    goal = await db.goals.find_one(user_filter, {"_id": 0})
-    
-    if not goal:
-        raise HTTPException(status_code=404, detail="Goal not found")
-    
-    await db.goals.update_one(
-        {"id": goal_id},
-        {"$set": {
-            "isCompleted": True,
-            "completedDate": datetime.now(timezone.utc).isoformat()
-        }}
-    )
-    
-    return {"message": "Goal marked as complete", "id": goal_id}
-
-
-@router.put("/{goal_id}/milestone")
-async def update_goal_milestone(goal_id: str, milestone: int, request: Request):
-    """Record a milestone achievement (25, 50, 75, 100)"""
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    if milestone not in [25, 50, 75, 100]:
-        raise HTTPException(status_code=400, detail="Invalid milestone. Must be 25, 50, 75, or 100")
-    
-    user_filter = get_user_filter(user)
-    user_filter["id"] = goal_id
-    goal = await db.goals.find_one(user_filter, {"_id": 0})
-    
-    if not goal:
-        raise HTTPException(status_code=404, detail="Goal not found")
-    
-    milestones = goal.get('reachedMilestones', [])
-    if milestone not in milestones:
-        milestones.append(milestone)
-        milestones.sort()
-        
-        await db.goals.update_one(
-            {"id": goal_id},
-            {"$set": {"reachedMilestones": milestones}}
-        )
-    
-    return {"message": f"Milestone {milestone}% recorded", "reachedMilestones": milestones}
+    goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
+    result = []
+    for goal in goals:
+        if isinstance(goal.get('createdAt'), str): goal['createdAt'] = datetime.fromisoformat(goal['createdAt'])
+        pd = await calculate_goal_progress(goal)
+        goal['calculatedAmount'] = pd['currentAmount']; goal['linkedDetails'] = pd['linkedDetails']
+        goal['calculationMethod'] = pd['calculationMethod']; goal['sipProjections'] = pd.get('sipProjections', [])
+        goal['totalProjectedFromSIPs'] = pd.get('totalProjectedFromSIPs', 0)
+        goal['totalMonthlySIPContribution'] = pd.get('totalMonthlySIPContribution', 0)
+        t = goal.get('targetAmount', 0); c = pd['currentAmount']
+        goal['progressPercent'] = round((c / t) * 100, 1) if t > 0 else 0
+        pt = pd.get('totalProjectedFromSIPs', 0)
+        goal['projectedProgressPercent'] = round((pt / t) * 100, 1) if pt > 0 and t > 0 else goal['progressPercent']
+        td = goal.get('targetDate')
+        if td:
+            try:
+                dr = (datetime.fromisoformat(td).date() - datetime.now(timezone.utc).date()).days
+                goal['daysRemaining'] = dr; goal['isOverdue'] = dr < 0
+            except (ValueError, TypeError): goal['daysRemaining'] = None; goal['isOverdue'] = False
+        result.append(goal)
+    result.sort(key=lambda x: (x.get('priority', 1), x.get('daysRemaining') or 9999))
+    return result
