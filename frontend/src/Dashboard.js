@@ -58,25 +58,6 @@ const Dashboard = () => {
     }
   };
 
-  const fetchInsights = async () => {
-    setInsightsLoading(true);
-    try {
-      const response = await axios.get(`${backendUrl}/api/ai/insights`, { withCredentials: true });
-      setInsights(response.data.insights || []);
-    } catch (error) {
-      console.error("Error fetching AI insights:", error);
-      setInsights([]);
-    } finally {
-      setInsightsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (data && !insightsLoading && insights.length === 0) {
-      fetchInsights();
-    }
-  }, [data]);
-
   const formatAmount = (amount) => {
     if (amount >= 10000000) {
       const crValue = amount / 10000000;
