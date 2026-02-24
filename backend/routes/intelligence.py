@@ -35,20 +35,23 @@ async def _get_fund_breakdown(user_filter: dict) -> dict:
         bal = a.get("currentBalance", 0)
         if bal <= 0:
             continue
-        atype = a.get("accountType", "")
+        atype = (a.get("accountType", "") or "").lower()
         name = a.get("accountName", atype)
-        if atype in ("Savings", "Current", "Cash", "Wallet"):
+        nl = name.lower()
+        # Bank accounts are always liquid — match by type OR name
+        if atype in ("savings", "current", "cash", "wallet") or re.search(r'savings|current|salary|bank|wallet|cash|axis|hdfc|icici|sbi|kotak|bob|boi|canara|pnb|union', nl):
             liquid_total += bal
             details.append({"name": name, "amount": bal, "category": "liquid", "pct": 100})
-        elif atype in ("Fixed Deposit", "FD"):
+        elif atype in ("fixed deposit", "fd"):
             semi_liquid_total += bal
             details.append({"name": name, "amount": bal, "category": "semi_liquid", "pct": 60})
-        elif atype in ("Recurring Deposit", "RD"):
+        elif atype in ("recurring deposit", "rd"):
             semi_liquid_total += bal
             details.append({"name": name, "amount": bal, "category": "semi_liquid", "pct": 60})
         else:
-            illiquid_total += bal
-            details.append({"name": name, "amount": bal, "category": "illiquid", "pct": 0})
+            # Unknown account type — default to liquid (it's a bank account after all)
+            liquid_total += bal
+            details.append({"name": name, "amount": bal, "category": "liquid", "pct": 100})
 
     # 2. Investments - classify by type
     investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
