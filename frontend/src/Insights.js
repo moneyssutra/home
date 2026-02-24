@@ -450,7 +450,7 @@ const BadgesWidget = ({ data }) => {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Trophy className="h-5 w-5" style={{ color: "#F59E0B" }} />
-            <h3 className="text-base font-bold" style={{ color: "var(--text-secondary)" }}>Badges</h3>
+            <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Badges</h3>
           </div>
           <div className="flex items-center gap-2 text-sm">
             <span className="font-black" style={{ color: "var(--text-primary)" }}>{unlocked.length}</span>
@@ -526,7 +526,7 @@ const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
       <div className="p-5 pb-3">
         <div className="flex items-center gap-2">
           <Swords className="h-5 w-5" style={{ color: "#8B5CF6" }} />
-          <h3 className="text-base font-bold" style={{ color: "var(--text-secondary)" }}>Challenges</h3>
+          <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Challenges</h3>
           <span className="ml-auto text-xs font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#8B5CF615", color: "#8B5CF6" }}>
             {active.length} active
           </span>
