@@ -519,6 +519,7 @@ const Insights = () => {
         </div>
       </div>
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
+      <ShareScoreCard isOpen={showShareCard} onClose={() => setShowShareCard(false)} />
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
     </div>
   );
