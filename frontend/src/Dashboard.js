@@ -128,13 +128,13 @@ const Dashboard = () => {
       {/* Minimal Header */}
       <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
         <div className="relative px-5 pt-4 pb-6">
-          {/* Header Row - Just icons */}
-          <div className="flex items-center justify-end gap-3 mb-4">
-            <NotificationBell />
+          {/* Header Row - Profile left, Notification right */}
+          <div className="flex items-center justify-between mb-4">
             <ProfileMenu 
               userName={getUserName()} 
               userPicture={user?.picture}
             />
+            <NotificationBell />
           </div>
 
           {/* Net Worth Card - Hero */}
@@ -208,7 +208,7 @@ const Dashboard = () => {
             >
               <div className="flex items-center justify-center gap-1 mb-1" style={{ color: "var(--finance-gain)" }}>
                 <ArrowUpRight className="h-4 w-4" />
-                <span className="text-xs font-medium">Received</span>
+                <span className="text-xs font-medium">Received Income</span>
               </div>
               <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyIncome || 0)}</p>
             </div>
