@@ -1,13 +1,17 @@
 import { useNavigate } from "react-router-dom";
-import { BarChart3, FileText, ChevronRight, TrendingUp, PieChart } from "lucide-react";
+import { BarChart3, FileText, ChevronRight, TrendingUp, PieChart, ArrowLeft } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
-import BackButton from "@/components/BackButton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const Insights = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const cards = [
     {
