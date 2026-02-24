@@ -10,6 +10,8 @@ export function useIntelligenceData() {
   const [gamification, setGamification] = useState(null);
   const [challenges, setChallenges] = useState(null);
   const [moneyPattern, setMoneyPattern] = useState(null);
+  const [futureYou, setFutureYou] = useState(null);
+  const [personalityHistory, setPersonalityHistory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -17,13 +19,15 @@ export function useIntelligenceData() {
     setLoading(true);
     setError(null);
     try {
-      const [survivalRes, scoreRes, alertsRes, profileRes, challengesRes, patternRes] = await Promise.all([
+      const [survivalRes, scoreRes, alertsRes, profileRes, challengesRes, patternRes, futureRes, historyRes] = await Promise.all([
         axios.get(`${backendUrl}/api/intelligence/survival-clock`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/intelligence/control-score`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/intelligence/behavior-alerts`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/gamification/profile`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/gamification/challenges`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/intelligence/money-pattern`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/intelligence/future-you`, { withCredentials: true }).catch(() => ({ data: null })),
+        axios.get(`${backendUrl}/api/intelligence/personality-history`, { withCredentials: true }).catch(() => ({ data: null })),
       ]);
       setSurvivalClock(survivalRes.data);
       setControlScore(scoreRes.data);
@@ -31,6 +35,8 @@ export function useIntelligenceData() {
       setGamification(profileRes.data);
       setChallenges(challengesRes.data);
       setMoneyPattern(patternRes.data);
+      setFutureYou(futureRes.data);
+      setPersonalityHistory(historyRes.data);
     } catch (err) {
       setError(err.message);
     } finally {
