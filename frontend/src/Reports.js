@@ -14,11 +14,14 @@ import {
   Building2,
   Loader2,
   FileSpreadsheet,
-  File
+  File,
+  CheckCircle2
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { toast } from "sonner";
+
+const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const Reports = () => {
   const navigate = useNavigate();
@@ -29,6 +32,7 @@ const Reports = () => {
   });
   const [exportFormat, setExportFormat] = useState("pdf");
   const [generating, setGenerating] = useState(null);
+  const [downloadedReports, setDownloadedReports] = useState([]);
 
   const reports = [
     {
@@ -55,7 +59,7 @@ const Reports = () => {
     {
       id: "loan",
       title: "Loan Report",
-      description: "Outstanding loans and payment history",
+      description: "Outstanding loans and payment details",
       icon: CreditCard,
       color: "#F59E0B"
     },
@@ -100,17 +104,51 @@ const Reports = () => {
     setGenerating(reportId);
     
     try {
-      // Simulate report generation
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       const report = reports.find(r => r.id === reportId);
-      toast.success(`${report.title} generated successfully!`);
       
-      // In a real implementation, this would trigger a download
-      // For now, we'll show a success message
+      // Build the URL with query parameters
+      const url = `${backendUrl}/api/reports/generate/${reportId}?format=${exportFormat}&from_date=${dateRange.from}&to_date=${dateRange.to}`;
+      
+      // Fetch the report as a blob
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate report');
+      }
+      
+      // Get the filename from the Content-Disposition header or create one
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = `${reportId}_report_${new Date().toISOString().split('T')[0]}.${exportFormat === 'excel' ? 'xlsx' : 'pdf'}`;
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename=(.+)/);
+        if (match) filename = match[1];
+      }
+      
+      // Convert response to blob and download
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+      
+      toast.success(`${report.title} downloaded successfully!`);
+      setDownloadedReports(prev => [...prev, reportId]);
+      
+      // Clear the checkmark after 5 seconds
+      setTimeout(() => {
+        setDownloadedReports(prev => prev.filter(id => id !== reportId));
+      }, 5000);
       
     } catch (error) {
-      toast.error("Failed to generate report");
+      console.error("Report generation error:", error);
+      toast.error("Failed to generate report. Please try again.");
     } finally {
       setGenerating(null);
     }
@@ -204,6 +242,7 @@ const Reports = () => {
           {reports.map((report) => {
             const Icon = report.icon;
             const isGenerating = generating === report.id;
+            const isDownloaded = downloadedReports.includes(report.id);
             
             return (
               <div
@@ -232,16 +271,22 @@ const Reports = () => {
                       disabled={isGenerating}
                       className="mt-3 px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all disabled:opacity-50"
                       style={{ backgroundColor: `${report.color}15`, color: report.color }}
+                      data-testid={`generate-${report.id}-btn`}
                     >
                       {isGenerating ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin" />
                           Generating...
                         </>
+                      ) : isDownloaded ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4" />
+                          Downloaded!
+                        </>
                       ) : (
                         <>
                           <Download className="h-4 w-4" />
-                          Generate {exportFormat.toUpperCase()}
+                          Download {exportFormat.toUpperCase()}
                         </>
                       )}
                     </button>
@@ -250,6 +295,13 @@ const Reports = () => {
               </div>
             );
           })}
+        </div>
+
+        {/* Info Note */}
+        <div className="rounded-xl p-4" style={{ backgroundColor: "var(--brand-primary-soft)" }}>
+          <p className="text-sm text-center" style={{ color: "var(--brand-primary)" }}>
+            Reports include all your financial data within the selected date range
+          </p>
         </div>
       </div>
 
