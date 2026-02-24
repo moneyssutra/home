@@ -75,9 +75,14 @@ export default function ShareScoreCard({ isOpen, onClose }) {
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.origin + "/insights");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      navigator.clipboard.writeText(window.location.origin + "/insights");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const grade = data ? getGrade(data.controlScore) : "C";
