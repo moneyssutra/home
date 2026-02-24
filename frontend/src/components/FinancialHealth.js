@@ -125,6 +125,7 @@ const FinancialHealth = () => {
   const [expandedCards, setExpandedCards] = useState({});
   const [overallScore, setOverallScore] = useState(0);
   const [activeTooltip, setActiveTooltip] = useState(null);
+  const [allExpanded, setAllExpanded] = useState(false);
 
   useEffect(() => {
     fetchHealthData();
