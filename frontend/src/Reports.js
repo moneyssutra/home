@@ -112,33 +112,92 @@ const Reports = () => {
     try {
       const report = reports.find(r => r.id === reportId);
       const fileExt = exportFormat === 'excel' ? 'xlsx' : 'pdf';
+      const filename = `${reportId}_report_${new Date().toISOString().split('T')[0]}.${fileExt}`;
       
       // Build the URL with query parameters
       const url = `${backendUrl}/api/reports/generate/${reportId}?format=${exportFormat}&from_date=${dateRange.from}&to_date=${dateRange.to}`;
       
-      // Method 1: Try direct navigation to URL (most reliable for ad-blocked browsers)
-      // This opens the file directly which triggers browser's native download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${reportId}_report_${new Date().toISOString().split('T')[0]}.${fileExt}`;
-      link.style.display = 'none';
+      // Use fetch with blob and create object URL
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': exportFormat === 'excel' 
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : 'application/pdf'
+        }
+      });
       
-      // For browsers that support it, add the download attribute
-      document.body.appendChild(link);
-      
-      // Try programmatic click
-      try {
-        link.click();
-      } catch (clickError) {
-        // If click fails, try direct navigation
-        window.location.href = url;
+      if (!response.ok) {
+        throw new Error('Failed to generate report');
       }
       
-      document.body.removeChild(link);
+      const blob = await response.blob();
       
-      toast.success(`${report.title} downloading... Check your Downloads folder.`, {
-        description: "If download doesn't start, try right-clicking the button and select 'Save Link As'"
+      // Create a File object from the blob
+      const file = new File([blob], filename, { 
+        type: exportFormat === 'excel' 
+          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          : 'application/pdf'
       });
+      
+      // Use the File System Access API if available (Chrome 86+)
+      if ('showSaveFilePicker' in window) {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+              description: exportFormat === 'excel' ? 'Excel File' : 'PDF Document',
+              accept: exportFormat === 'excel' 
+                ? { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
+                : { 'application/pdf': ['.pdf'] }
+            }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(file);
+          await writable.close();
+          
+          toast.success(`${report.title} saved successfully!`);
+          setDownloadedReports(prev => [...prev, reportId]);
+          setTimeout(() => {
+            setDownloadedReports(prev => prev.filter(id => id !== reportId));
+          }, 5000);
+          return;
+        } catch (fsError) {
+          // User cancelled or API not supported, fall through to blob method
+          if (fsError.name === 'AbortError') {
+            setGenerating(null);
+            return;
+          }
+        }
+      }
+      
+      // Fallback: Create blob URL and trigger download
+      const blobUrl = URL.createObjectURL(blob);
+      
+      // Create invisible iframe for download (less likely to be blocked)
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+      
+      // Create link inside iframe
+      const iframeDoc = iframe.contentWindow.document;
+      iframeDoc.open();
+      iframeDoc.write(`
+        <html><body>
+          <a id="downloadLink" href="${blobUrl}" download="${filename}">Download</a>
+          <script>document.getElementById('downloadLink').click();</script>
+        </body></html>
+      `);
+      iframeDoc.close();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+        URL.revokeObjectURL(blobUrl);
+      }, 5000);
+      
+      toast.success(`${report.title} downloaded! Check your Downloads folder.`);
       setDownloadedReports(prev => [...prev, reportId]);
       
       setTimeout(() => {
