@@ -187,17 +187,17 @@ const FinancialHealth = () => {
     return { label: "At Risk", color: "#991B1B" };
   };
 
-  // Tooltip Component
+  // Tooltip Component - uses fixed positioning to avoid overflow clipping
   const Tooltip = ({ explanation, onClose }) => (
     <div 
-      className="absolute z-50 left-0 right-0 top-full mt-1 p-3 rounded-lg shadow-lg text-xs leading-relaxed"
-      style={{ backgroundColor: "#1F2937", color: "#F9FAFB" }}
+      className="absolute left-0 right-0 mt-1 p-3 rounded-lg shadow-lg text-xs leading-relaxed"
+      style={{ backgroundColor: "#1F2937", color: "#F9FAFB", zIndex: 60, top: "100%" }}
     >
       <button 
-        onClick={onClose}
+        onClick={(e) => { e.stopPropagation(); onClose(); }}
         className="absolute top-1 right-2 text-gray-400 hover:text-white"
       >
-        ×
+        &times;
       </button>
       <p>{explanation}</p>
     </div>
