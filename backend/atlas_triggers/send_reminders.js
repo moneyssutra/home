@@ -74,7 +74,7 @@ exports = async function() {
       
       if (subscriptions.length > 0) {
         // Call your backend API to send push notification
-        const backendUrl = context.environment.values.BACKEND_URL || "https://finance-health-check.preview.emergentagent.com";
+        const backendUrl = context.environment.values.BACKEND_URL || "https://code-reorganize-5.preview.emergentagent.com";
         
         try {
           const response = await context.http.post({
