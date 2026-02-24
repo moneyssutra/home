@@ -508,7 +508,7 @@ const Insights = () => {
 
       <div className="px-4 py-3 space-y-4 max-w-3xl mx-auto">
         <SurvivalWarning data={survivalClock} />
-        <LevelJourney data={gamification} />
+        <LevelJourney data={gamification} onShare={() => setShowShareCard(true)} />
         <EmergencyRunwayWidget data={survivalClock} />
         <FinancialScoreWidget data={controlScore} />
         <BehaviorAlertsWidget data={behaviorAlerts} />
