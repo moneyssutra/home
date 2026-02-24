@@ -77,7 +77,14 @@ import OtherIncomeForm from "@/OtherIncomeForm";
 
 // Insights & Settings Pages
 import Insights from "@/Insights";
+import Analytics from "@/Analytics";
+import Reports from "@/Reports";
 import Settings from "@/Settings";
+import ProfileSettings from "@/ProfileSettings";
+import SecuritySettings from "@/SecuritySettings";
+import NotificationSettings from "@/NotificationSettings";
+import PreferencesSettings from "@/PreferencesSettings";
+import DataPrivacySettings from "@/DataPrivacySettings";
 
 // App Router with session_id detection
 function AppRouter() {
