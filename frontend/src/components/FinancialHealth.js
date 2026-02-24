@@ -145,27 +145,18 @@ const FinancialHealth = () => {
   };
 
   const toggleCard = (key) => {
-    setExpandedCards(prev => {
-      const updated = { ...prev, [key]: !prev[key] };
-      // Update allExpanded based on whether all cards are expanded
-      const allKeys = healthModules.map(m => m.key);
-      const allOpen = allKeys.every(k => updated[k]);
-      setAllExpanded(allOpen);
-      return updated;
-    });
+    setExpandedCards(prev => ({ ...prev, [key]: !prev[key] }));
+    setActiveTooltip(null);
   };
 
-  const toggleAllCards = () => {
-    const keys = healthModules.map(m => m.key);
+  const toggleAllCards = (moduleKeys) => {
     if (allExpanded) {
-      // Collapse all
       setExpandedCards({});
       setAllExpanded(false);
       setActiveTooltip(null);
     } else {
-      // Expand all
       const expanded = {};
-      keys.forEach(k => expanded[k] = true);
+      moduleKeys.forEach(k => expanded[k] = true);
       setExpandedCards(expanded);
       setAllExpanded(true);
     }
