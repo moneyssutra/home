@@ -23,98 +23,89 @@ def _normalize_monthly(amount, frequency):
 
 
 async def _get_fund_breakdown(user_filter: dict) -> dict:
-    """Get detailed breakdown of all available funds by liquidity category."""
+    """Get detailed breakdown of all available funds by liquidity: Liquid / Semi-Liquid / Illiquid."""
     # 1. Bank accounts
     accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
-    savings_balance = 0
-    fd_account_balance = 0
-    other_account_balance = 0
-    account_details = []
+    liquid_total = 0
+    semi_liquid_total = 0
+    illiquid_total = 0
+    details = []
 
     for a in accounts:
         bal = a.get("currentBalance", 0)
+        if bal <= 0:
+            continue
         atype = a.get("accountType", "")
         name = a.get("accountName", atype)
         if atype in ("Savings", "Current", "Cash", "Wallet"):
-            savings_balance += bal
-            if bal > 0:
-                account_details.append({"name": name, "amount": bal, "category": "instant", "pct": 100})
-        elif atype in ("Fixed Deposit", "FD", "Recurring Deposit", "RD"):
-            fd_account_balance += bal
-            if bal > 0:
-                account_details.append({"name": name, "amount": bal, "category": "semi_liquid", "pct": 90})
+            liquid_total += bal
+            details.append({"name": name, "amount": bal, "category": "liquid", "pct": 100})
+        elif atype in ("Fixed Deposit", "FD"):
+            semi_liquid_total += bal
+            details.append({"name": name, "amount": bal, "category": "semi_liquid", "pct": 60})
+        elif atype in ("Recurring Deposit", "RD"):
+            semi_liquid_total += bal
+            details.append({"name": name, "amount": bal, "category": "semi_liquid", "pct": 60})
         else:
-            other_account_balance += bal
-            if bal > 0:
-                account_details.append({"name": name, "amount": bal, "category": "other", "pct": 0})
+            illiquid_total += bal
+            details.append({"name": name, "amount": bal, "category": "illiquid", "pct": 0})
 
-    # 2. Investments - categorize by name/type
+    # 2. Investments - classify by type
     investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
-    liquid_inv = 0
-    semi_liquid_inv = 0
-    locked_inv = 0
-    inv_details = []
 
     for inv in investments:
         val = inv.get("currentValue", 0)
+        if val <= 0:
+            continue
         name = inv.get("name", "")
-        name_lower = name.lower()
+        nl = name.lower()
         is_liquid = inv.get("isLiquidAsset", False)
 
         if is_liquid:
-            liquid_inv += val
-            if val > 0:
-                inv_details.append({"name": name, "amount": val, "category": "instant", "pct": 100})
-        elif re.search(r'\bfd\b|fixed deposit', name_lower):
-            semi_liquid_inv += val
-            if val > 0:
-                inv_details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 90})
-        elif re.search(r'\brd\b|recurring deposit', name_lower):
-            semi_liquid_inv += val
-            if val > 0:
-                inv_details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 90})
-        elif re.search(r'fund|shares|stock|etf|reit|gold|sgb|bitcoin|ethereum|crypto', name_lower):
-            liquid_inv += val
-            if val > 0:
-                inv_details.append({"name": name, "amount": val, "category": "marketable", "pct": 85})
-        elif re.search(r'bond|securities|govt', name_lower):
-            semi_liquid_inv += val
-            if val > 0:
-                inv_details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 70})
-        elif re.search(r'ppf|provident fund|pf account|epf|nps tier 1', name_lower):
-            locked_inv += val
-            if val > 0:
-                inv_details.append({"name": name, "amount": val, "category": "locked", "pct": 0})
-        elif re.search(r'nps tier 2', name_lower):
-            semi_liquid_inv += val
-            if val > 0:
-                inv_details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 50})
+            # Liquid funds (same-day redemption)
+            liquid_total += val
+            details.append({"name": name, "amount": val, "category": "liquid", "pct": 100})
+        elif re.search(r'\bfd\b|fixed deposit', nl):
+            semi_liquid_total += val
+            details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 60})
+        elif re.search(r'\brd\b|recurring deposit', nl):
+            semi_liquid_total += val
+            details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 60})
+        elif re.search(r'mutual fund|fund|mf|sip', nl) and not re.search(r'elss', nl):
+            semi_liquid_total += val
+            details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 60})
+        elif re.search(r'stock|shares|equity|demat', nl):
+            semi_liquid_total += val
+            details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 60})
+        elif re.search(r'etf|gold etf|index etf|bond etf', nl):
+            semi_liquid_total += val
+            details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 60})
+        elif re.search(r'digital gold|gold', nl) and not re.search(r'jewel', nl):
+            semi_liquid_total += val
+            details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 60})
+        elif re.search(r'esop', nl):
+            semi_liquid_total += val
+            details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 60})
+        elif re.search(r'nps tier 2', nl):
+            semi_liquid_total += val
+            details.append({"name": name, "amount": val, "category": "semi_liquid", "pct": 60})
         else:
-            locked_inv += val
-            if val > 0:
-                inv_details.append({"name": name, "amount": val, "category": "locked", "pct": 0})
+            # PPF, EPF, NPS Tier 1, ELSS, ULIPs, Insurance, Real Estate, Jewellery etc.
+            illiquid_total += val
+            details.append({"name": name, "amount": val, "category": "illiquid", "pct": 0})
 
-    # Calculate effective amounts
-    instant_total = savings_balance + liquid_inv
-    semi_liquid_total = fd_account_balance + semi_liquid_inv
-    marketable_total = sum(d["amount"] for d in inv_details if d["category"] == "marketable")
-    locked_total = locked_inv
-
-    # Effective survival fund = instant (100%) + semi-liquid (90%) + marketable (85%)
-    effective_total = (
-        instant_total
-        + fd_account_balance * 0.90
-        + sum(d["amount"] * d["pct"] / 100 for d in inv_details if d["category"] in ("semi_liquid", "marketable"))
-    )
+    # Effective survival fund = Liquid (100%) + Semi-Liquid (60%)
+    effective_total = liquid_total + (semi_liquid_total * 0.60)
 
     return {
-        "instant": {"total": instant_total, "label": "Instantly Available", "description": "Savings, Current, Cash accounts + Liquid investments"},
-        "semiLiquid": {"total": semi_liquid_total, "label": "Can Withdraw (with penalty)", "description": "FDs, RDs, Bonds - breakable with small penalty"},
-        "marketable": {"total": marketable_total, "label": "Can Sell (1-3 days)", "description": "Mutual Funds, Stocks, ETFs, Gold - sellable quickly"},
-        "locked": {"total": locked_total, "label": "Locked (can't use easily)", "description": "PPF, EPF, NPS Tier 1 - long-term locked"},
-        "effectiveTotal": round(effective_total, 2),
-        "grossTotal": round(instant_total + semi_liquid_total + marketable_total + locked_total, 2),
-        "details": sorted(account_details + inv_details, key=lambda x: -x["amount"])
+        "liquid": {"total": round(liquid_total, 0), "label": "Liquid", "description": "Savings, Current, Cash — instantly available"},
+        "semiLiquid": {"total": round(semi_liquid_total, 0), "label": "Semi-Liquid", "description": "FDs, Stocks, MFs, ETFs, Gold — 2-7 days, may have penalty"},
+        "illiquid": {"total": round(illiquid_total, 0), "label": "Illiquid", "description": "PPF, EPF, NPS, Insurance, Real Estate — locked or restricted"},
+        "effectiveTotal": round(effective_total, 0),
+        "liquidBuffer": round(liquid_total, 0),
+        "extendedBuffer": round(effective_total, 0),
+        "netWorth": round(liquid_total + semi_liquid_total + illiquid_total, 0),
+        "details": sorted(details, key=lambda x: -x["amount"])
     }
 
 
