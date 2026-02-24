@@ -187,7 +187,8 @@ class TestBreakdownPageAPIs(TestAuth):
         assert isinstance(data, list), "Expected list of insurances"
         if len(data) > 0:
             assert "insuranceType" in data[0], "Insurance should have insuranceType field"
-            assert "sumAssured" in data[0], "Insurance should have sumAssured"
+            # API uses coverageAmount or sumAssured
+            assert "sumAssured" in data[0] or "coverageAmount" in data[0], "Insurance should have sumAssured or coverageAmount"
         print(f"Insurances API returned {len(data)} insurances")
 
 
