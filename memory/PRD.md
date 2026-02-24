@@ -8,6 +8,41 @@ Build a comprehensive personal finance tracking application with multi-user work
 
 ## What Was Implemented (Latest Session - Feb 24, 2026)
 
+### 22. Security & Profile Settings (COMPLETED ✅ - Feb 24, 2026)
+
+**Security Settings Features:**
+1. **Change Password** - Works with current password verification
+   - Password strength validation (8+ chars, uppercase, lowercase, number, special char)
+   - Password strength meter with visual feedback
+   - Current password required for users with existing passwords
+2. **Two-Factor Authentication (2FA)** - Toggle to enable/disable OTP-based 2FA
+3. **Biometric Login** - Toggle (UI only, requires native app)
+4. **Active Sessions** - View and manage logged-in sessions
+   - See all active sessions with device and timestamp
+   - Logout individual sessions
+   - "Logout from all other devices" button
+
+**Profile Settings Features:**
+1. **View/Edit Personal Info**:
+   - Name, Mobile, Date of Birth
+   - Marital Status, Dependents, Employment Type
+2. **Financial Profile**:
+   - Monthly Income Range
+   - Risk Appetite (Conservative/Moderate/Aggressive)
+   - Retirement Age
+
+**Backend APIs Added:**
+- `POST /api/auth/change-password` - Change password with validation
+- `POST /api/auth/2fa/toggle` - Enable/disable 2FA
+- `GET /api/auth/2fa/status` - Get 2FA status
+- `GET /api/auth/sessions` - List active sessions
+- `POST /api/auth/sessions/logout` - Logout specific session
+- `POST /api/auth/sessions/logout-all` - Logout all other sessions
+- `PUT /api/basic-profile` - Update profile
+- `GET /api/basic-profile` - Get profile (with proper userId filtering)
+
+---
+
 ### 21. Financial Health Module & Bug Fixes (COMPLETED ✅ - Feb 24, 2026)
 
 **Bug Fixes:**
