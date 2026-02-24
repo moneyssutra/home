@@ -35,6 +35,14 @@ Core features + Financial Intelligence + Gamification (P0 complete, clarity impr
 - Challenge abandon/leave button
 - Fund breakdown shows Instant/Semi-Liquid/Marketable/Locked categories
 
+### Shareable Financial Score Card (DONE - Feb 24, 2026)
+- Premium dark gradient card with user name, level, score, grade
+- 4 stat tiles: Runway days, Badges, Streak, Health rating
+- Download as PNG (html2canvas), Share (Web Share API), Copy link
+- MoneySutra branding and generation date
+- Component: `frontend/src/components/ShareScoreCard.js`
+- Backend: `/api/gamification/share-card` (pre-existing)
+
 ### Backend Modularization (DONE - Session 4)
 - server.py: 286 lines (from 7,022)
 - 26 route modules under backend/routes/
