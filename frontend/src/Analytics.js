@@ -47,11 +47,18 @@ const Analytics = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
+      // Add timeout to prevent hanging
+      const timeout = 10000; // 10 seconds
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      
       const [networthRes, investmentRes, snapshotsRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/analytics/investment-performance`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/analytics/snapshots?months=${monthsMap[timeFilter]}`, { withCredentials: true })
+        axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true, signal: controller.signal }),
+        axios.get(`${backendUrl}/api/analytics/investment-performance`, { withCredentials: true, signal: controller.signal }),
+        axios.get(`${backendUrl}/api/analytics/snapshots?months=${monthsMap[timeFilter]}`, { withCredentials: true, signal: controller.signal })
       ]);
+      
+      clearTimeout(timeoutId);
       
       const monthlyIncome = networthRes.data.monthlyIncome || 0;
       const monthlyExpense = networthRes.data.monthlyExpense || 0;
@@ -91,10 +98,12 @@ const Analytics = () => {
       
       setSnapshots(snapshotData.reverse());
       
-      await axios.post(`${backendUrl}/api/analytics/snapshot`, {}, { withCredentials: true });
+      // Create snapshot silently in background
+      axios.post(`${backendUrl}/api/analytics/snapshot`, {}, { withCredentials: true }).catch(() => {});
       
     } catch (error) {
       console.error("Failed to fetch analytics:", error);
+      // Show page with default values even if API fails
     } finally {
       setLoading(false);
     }
