@@ -397,7 +397,7 @@ const FinancialHealth = () => {
         </div>
         {healthModules.length > 0 && (
           <button
-            onClick={toggleAllCards}
+            onClick={() => toggleAllCards(healthModules.map(m => m.key))}
             className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
             style={{ 
               backgroundColor: allExpanded ? "#F3F4F6" : "#ECFDF5", 
