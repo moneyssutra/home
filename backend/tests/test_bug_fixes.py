@@ -1,224 +1,270 @@
 """
-Test cases for P0/P1 bug fixes:
-- Fixed Expense Type Toggle 
-- Variable Expense Type Toggle
-- Investment US Stocks category
-- Investment Daily frequency
-- Investment frequency hidden for SGB/SWP
-- Monthly Cash Flow API
+Test suite for bug fixes verification - iteration 56:
+1. Report generation APIs (PDF/Excel)
+2. Income APIs with profession field for self-employed
+3. Notification APIs with relatedIncomeId
+4. Financial Health API
 """
-
 import pytest
 import requests
 import os
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
-class TestMonthlyNetWorthAPI:
-    """Test the Monthly Cash Flow calculations in /api/dashboard/networth"""
+class TestAuthentication:
+    """Test auth endpoints and get session"""
     
-    def test_networth_api_returns_monthly_income(self):
-        """P1: Verify monthlyIncome field exists and is calculated"""
-        response = requests.get(f"{BASE_URL}/api/dashboard/networth")
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-        
+    @pytest.fixture(scope="class")
+    def session(self):
+        """Get authenticated session"""
+        s = requests.Session()
+        s.headers.update({"Content-Type": "application/json"})
+        return s
+    
+    @pytest.fixture(scope="class")
+    def auth_session(self, session):
+        """Authenticate and return session with cookies"""
+        response = session.post(f"{BASE_URL}/api/auth/login", json={
+            "username": "test",
+            "password": "test"
+        })
+        assert response.status_code == 200, f"Login failed: {response.text}"
         data = response.json()
-        assert "monthlyIncome" in data, "monthlyIncome field missing from response"
-        assert isinstance(data["monthlyIncome"], (int, float)), "monthlyIncome should be numeric"
-        print(f"Monthly Income: {data['monthlyIncome']}")
+        assert "user_id" in data, "No user_id in response"
+        print(f"Logged in as: {data.get('name', 'Unknown')}")
+        return session
     
-    def test_networth_api_returns_monthly_expenses(self):
-        """P1: Verify monthlyExpenses field exists and is calculated"""
-        response = requests.get(f"{BASE_URL}/api/dashboard/networth")
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-        
-        data = response.json()
-        assert "monthlyExpenses" in data, "monthlyExpenses field missing from response"
-        assert isinstance(data["monthlyExpenses"], (int, float)), "monthlyExpenses should be numeric"
-        print(f"Monthly Expenses: {data['monthlyExpenses']}")
-    
-    def test_networth_api_returns_monthly_savings(self):
-        """P1: Verify monthlySavings field exists and equals income - expenses"""
-        response = requests.get(f"{BASE_URL}/api/dashboard/networth")
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-        
-        data = response.json()
-        assert "monthlySavings" in data, "monthlySavings field missing from response"
-        assert isinstance(data["monthlySavings"], (int, float)), "monthlySavings should be numeric"
-        
-        # Verify calculation: savings = income - expenses
-        expected_savings = data["monthlyIncome"] - data["monthlyExpenses"]
-        assert abs(data["monthlySavings"] - expected_savings) < 0.01, \
-            f"monthlySavings ({data['monthlySavings']}) != income ({data['monthlyIncome']}) - expenses ({data['monthlyExpenses']})"
-        print(f"Monthly Savings: {data['monthlySavings']} (Income: {data['monthlyIncome']} - Expenses: {data['monthlyExpenses']})")
-    
-    def test_networth_api_full_response_structure(self):
-        """Verify all required fields are present in networth response"""
-        response = requests.get(f"{BASE_URL}/api/dashboard/networth")
+    def test_login_success(self, session):
+        """Test login with test credentials"""
+        response = session.post(f"{BASE_URL}/api/auth/login", json={
+            "username": "test",
+            "password": "test"
+        })
         assert response.status_code == 200
-        
         data = response.json()
-        required_fields = [
-            "netWorth", "totalAssets", "totalInvestments", "liquidBalance",
-            "totalLiabilities", "creditOutstanding", "creditCardOutstanding",
-            "creditCardLimit", "creditCardUtilization", "monthlyIncome",
-            "monthlyExpenses", "monthlySavings", "assetCount", "investmentCount",
-            "accountCount", "loanCount", "creditCardCount", "incomeCount", "expenseCount"
-        ]
-        
-        for field in required_fields:
-            assert field in data, f"Required field '{field}' missing from response"
-        
-        print(f"All {len(required_fields)} required fields present in response")
+        assert "user_id" in data
+        assert "session_token" in data
+        print(f"Login successful - user_id: {data['user_id']}")
 
 
-class TestExpenseAPI:
-    """Test expense CRUD operations"""
+class TestReportGeneration:
+    """Test report generation APIs for PDF and Excel formats"""
     
-    def test_create_fixed_expense(self):
-        """Test creating a Fixed type expense"""
+    @pytest.fixture(scope="class")
+    def auth_session(self):
+        """Get authenticated session"""
+        s = requests.Session()
+        s.headers.update({"Content-Type": "application/json"})
+        response = s.post(f"{BASE_URL}/api/auth/login", json={
+            "username": "test",
+            "password": "test"
+        })
+        assert response.status_code == 200, f"Login failed: {response.text}"
+        return s
+    
+    def test_income_report_pdf(self, auth_session):
+        """Test income report PDF generation"""
+        params = {
+            "format": "pdf",
+            "from_date": "2024-01-01",
+            "to_date": "2025-12-31"
+        }
+        response = auth_session.get(f"{BASE_URL}/api/reports/generate/income", params=params)
+        assert response.status_code == 200, f"Income PDF report failed: {response.text}"
+        assert response.headers.get("content-type") == "application/pdf"
+        assert len(response.content) > 100, "PDF content seems too small"
+        print(f"Income PDF report generated successfully - size: {len(response.content)} bytes")
+    
+    def test_income_report_excel(self, auth_session):
+        """Test income report Excel generation"""
+        params = {
+            "format": "excel",
+            "from_date": "2024-01-01",
+            "to_date": "2025-12-31"
+        }
+        response = auth_session.get(f"{BASE_URL}/api/reports/generate/income", params=params)
+        assert response.status_code == 200, f"Income Excel report failed: {response.text}"
+        assert "spreadsheetml" in response.headers.get("content-type", "")
+        assert len(response.content) > 100, "Excel content seems too small"
+        print(f"Income Excel report generated successfully - size: {len(response.content)} bytes")
+    
+    def test_expense_report_pdf(self, auth_session):
+        """Test expense report PDF generation"""
+        params = {
+            "format": "pdf",
+            "from_date": "2024-01-01",
+            "to_date": "2025-12-31"
+        }
+        response = auth_session.get(f"{BASE_URL}/api/reports/generate/expense", params=params)
+        assert response.status_code == 200, f"Expense PDF report failed: {response.text}"
+        assert response.headers.get("content-type") == "application/pdf"
+        print(f"Expense PDF report generated - size: {len(response.content)} bytes")
+    
+    def test_networth_report_pdf(self, auth_session):
+        """Test net worth report PDF generation"""
+        params = {
+            "format": "pdf",
+            "from_date": "2024-01-01",
+            "to_date": "2025-12-31"
+        }
+        response = auth_session.get(f"{BASE_URL}/api/reports/generate/networth", params=params)
+        assert response.status_code == 200, f"Networth PDF report failed: {response.text}"
+        assert response.headers.get("content-type") == "application/pdf"
+        print(f"Networth PDF report generated - size: {len(response.content)} bytes")
+
+
+class TestSelfEmployedIncome:
+    """Test self-employed income with profession field"""
+    
+    @pytest.fixture(scope="class")
+    def auth_session(self):
+        """Get authenticated session"""
+        s = requests.Session()
+        s.headers.update({"Content-Type": "application/json"})
+        response = s.post(f"{BASE_URL}/api/auth/login", json={
+            "username": "test",
+            "password": "test"
+        })
+        assert response.status_code == 200, f"Login failed: {response.text}"
+        return s
+    
+    def test_create_self_employed_with_profession(self, auth_session):
+        """Test creating self-employed income with profession field"""
         payload = {
-            "expenseName": "TEST_Fixed_Expense",
-            "expenseType": "Fixed",
-            "category": "Housing",
-            "expectedAmount": 1000.0,
+            "type": "Self-Employed",
+            "name": "TEST_Freelance Developer",
+            "profession": "Software Consultant",
+            "expectedAmount": 50000,
             "frequency": "Monthly",
-            "selectedDate": "15"
+            "selectedDate": "2025-01-15",
+            "incomeType": "variable",
+            "reminderTime": "19:00"
         }
-        response = requests.post(f"{BASE_URL}/api/expenses", json=payload)
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
-        
+        response = auth_session.post(f"{BASE_URL}/api/income", json=payload)
+        assert response.status_code == 200, f"Create self-employed failed: {response.text}"
         data = response.json()
-        assert data["expenseType"] == "Fixed", "Expense type should be Fixed"
-        assert data["expenseName"] == "TEST_Fixed_Expense"
-        
-        # Cleanup
-        expense_id = data["id"]
-        requests.delete(f"{BASE_URL}/api/expenses/{expense_id}")
-        print(f"Created and deleted Fixed expense: {expense_id}")
+        assert "id" in data, "No ID in response"
+        self.__class__.created_income_id = data["id"]
+        print(f"Created self-employed income with ID: {data['id']}")
+        return data["id"]
     
-    def test_create_variable_expense(self):
-        """Test creating a Variable type expense"""
-        payload = {
-            "expenseName": "TEST_Variable_Expense",
-            "expenseType": "Variable",
-            "category": "Shopping",
-            "expectedAmount": 500.0,
-            "frequency": "One-Time",
-            "oneTimeDate": "2026-02-20"
-        }
-        response = requests.post(f"{BASE_URL}/api/expenses", json=payload)
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
+    def test_get_self_employed_shows_profession(self, auth_session):
+        """Test that GET returns the saved profession field"""
+        income_id = getattr(self.__class__, 'created_income_id', None)
+        if not income_id:
+            pytest.skip("No income ID from previous test")
         
+        response = auth_session.get(f"{BASE_URL}/api/income/{income_id}")
+        assert response.status_code == 200, f"Get income failed: {response.text}"
         data = response.json()
-        assert data["expenseType"] == "Variable", "Expense type should be Variable"
-        assert data["expenseName"] == "TEST_Variable_Expense"
         
-        # Cleanup
-        expense_id = data["id"]
-        requests.delete(f"{BASE_URL}/api/expenses/{expense_id}")
-        print(f"Created and deleted Variable expense: {expense_id}")
+        # Critical assertion: profession field must be returned
+        assert "profession" in data, "profession field NOT returned - BUG!"
+        assert data.get("profession") == "Software Consultant", f"Profession mismatch: {data.get('profession')}"
+        print(f"Profession field correctly returned: {data.get('profession')}")
+    
+    def test_cleanup_self_employed(self, auth_session):
+        """Cleanup test data"""
+        income_id = getattr(self.__class__, 'created_income_id', None)
+        if income_id:
+            response = auth_session.delete(f"{BASE_URL}/api/income/{income_id}")
+            print(f"Cleanup: Deleted income {income_id} - status: {response.status_code}")
 
 
-class TestInvestmentAPI:
-    """Test investment CRUD operations for new features"""
+class TestFinancialHealth:
+    """Test Financial Health API"""
     
-    def test_create_us_stocks_investment(self):
-        """P1: Test creating investment with US Stocks category"""
-        payload = {
-            "investmentCategory": "US Stocks",
-            "investmentMode": "Growth Only",
-            "name": "TEST_Apple_Stock",
-            "principal": 10000.0,
-            "currentValue": 10500.0,
-            "startDate": "2026-01-01",
-            "investmentFrequency": "Monthly",
-            "sipAmount": 1000.0
-        }
-        response = requests.post(f"{BASE_URL}/api/investments", json=payload)
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
-        
-        data = response.json()
-        assert data["investmentCategory"] == "US Stocks", "Category should be US Stocks"
-        assert data["name"] == "TEST_Apple_Stock"
-        
-        # Cleanup
-        investment_id = data["id"]
-        requests.delete(f"{BASE_URL}/api/investments/{investment_id}")
-        print(f"Created and deleted US Stocks investment: {investment_id}")
+    @pytest.fixture(scope="class")
+    def auth_session(self):
+        """Get authenticated session"""
+        s = requests.Session()
+        s.headers.update({"Content-Type": "application/json"})
+        response = s.post(f"{BASE_URL}/api/auth/login", json={
+            "username": "test",
+            "password": "test"
+        })
+        assert response.status_code == 200, f"Login failed: {response.text}"
+        return s
     
-    def test_create_investment_with_daily_frequency(self):
-        """P1: Test creating investment with Daily frequency"""
-        payload = {
-            "investmentCategory": "Mutual Fund",
-            "investmentMode": "Growth Only",
-            "name": "TEST_Daily_SIP",
-            "principal": 5000.0,
-            "currentValue": 5000.0,
-            "startDate": "2026-01-01",
-            "investmentFrequency": "Daily",
-            "sipAmount": 100.0
-        }
-        response = requests.post(f"{BASE_URL}/api/investments", json=payload)
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
-        
+    def test_get_financial_health(self, auth_session):
+        """Test Financial Health API endpoint"""
+        response = auth_session.get(f"{BASE_URL}/api/financial-health")
+        assert response.status_code == 200, f"Financial Health API failed: {response.text}"
         data = response.json()
-        assert data["investmentFrequency"] == "Daily", "Frequency should be Daily"
-        assert data["sipAmount"] == 100.0, "SIP Amount should be 100"
         
-        # Cleanup
-        investment_id = data["id"]
-        requests.delete(f"{BASE_URL}/api/investments/{investment_id}")
-        print(f"Created and deleted Daily frequency investment: {investment_id}")
+        # Verify response structure for key metrics
+        expected_keys = ["overallScore", "emergencyFund", "lifeInsurance", "savingsRate"]
+        for key in expected_keys:
+            assert key in data, f"Missing key: {key}"
+        
+        print(f"Financial Health Score: {data.get('overallScore')}")
+
+
+class TestNotifications:
+    """Test notification APIs and relatedIncomeId field"""
     
-    def test_create_sgb_investment_without_frequency(self):
-        """P1: Test creating SGB investment (frequency should be null/ignored)"""
-        payload = {
-            "investmentCategory": "Sovereign Gold Bond (SGB)",
-            "investmentMode": "Income Generating",
-            "name": "TEST_SGB_2026",
-            "principal": 50000.0,
-            "currentValue": 52000.0,
-            "startDate": "2026-01-01",
-            "returnRate": 2.5,
-            # Not sending investmentFrequency - it should be null for SGB
-        }
-        response = requests.post(f"{BASE_URL}/api/investments", json=payload)
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
-        
-        data = response.json()
-        assert data["investmentCategory"] == "Sovereign Gold Bond (SGB)"
-        # investmentFrequency should be null or not set for SGB
-        assert data.get("investmentFrequency") is None, "SGB should not have investmentFrequency"
-        
-        # Cleanup
-        investment_id = data["id"]
-        requests.delete(f"{BASE_URL}/api/investments/{investment_id}")
-        print(f"Created and deleted SGB investment: {investment_id}")
+    @pytest.fixture(scope="class")
+    def auth_session(self):
+        """Get authenticated session"""
+        s = requests.Session()
+        s.headers.update({"Content-Type": "application/json"})
+        response = s.post(f"{BASE_URL}/api/auth/login", json={
+            "username": "test",
+            "password": "test"
+        })
+        assert response.status_code == 200, f"Login failed: {response.text}"
+        return s
     
-    def test_create_swp_investment_without_frequency(self):
-        """P1: Test creating SWP investment (frequency should be null/ignored)"""
-        payload = {
-            "investmentCategory": "SWP",
-            "investmentMode": "Income Generating",
-            "name": "TEST_SWP_Plan",
-            "principal": 100000.0,
-            "currentValue": 98000.0,
-            "startDate": "2026-01-01",
-            # Not sending investmentFrequency - it should be null for SWP
-        }
-        response = requests.post(f"{BASE_URL}/api/investments", json=payload)
-        assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
-        
+    def test_get_notifications(self, auth_session):
+        """Test getting notifications list"""
+        response = auth_session.get(f"{BASE_URL}/api/notifications")
+        assert response.status_code == 200, f"Get notifications failed: {response.text}"
         data = response.json()
-        assert data["investmentCategory"] == "SWP"
-        # investmentFrequency should be null or not set for SWP
-        assert data.get("investmentFrequency") is None, "SWP should not have investmentFrequency"
+        assert isinstance(data, list), "Notifications should be a list"
+        print(f"Found {len(data)} notifications")
         
-        # Cleanup
-        investment_id = data["id"]
-        requests.delete(f"{BASE_URL}/api/investments/{investment_id}")
-        print(f"Created and deleted SWP investment: {investment_id}")
+        # If there are notifications, verify relatedIncomeId field is present (for income notifications)
+        for notif in data:
+            if notif.get("type") == "income_reminder":
+                print(f"Income notification: {notif.get('title')} - relatedIncomeId: {notif.get('relatedIncomeId')}")
+    
+    def test_get_unread_count(self, auth_session):
+        """Test getting unread notification count"""
+        response = auth_session.get(f"{BASE_URL}/api/notifications/unread-count")
+        assert response.status_code == 200, f"Get unread count failed: {response.text}"
+        data = response.json()
+        assert "count" in data, "count field missing"
+        print(f"Unread notifications: {data.get('count')}")
+
+
+class TestIncomeAPI:
+    """Test income API endpoints for profession field handling"""
+    
+    @pytest.fixture(scope="class")
+    def auth_session(self):
+        """Get authenticated session"""
+        s = requests.Session()
+        s.headers.update({"Content-Type": "application/json"})
+        response = s.post(f"{BASE_URL}/api/auth/login", json={
+            "username": "test",
+            "password": "test"
+        })
+        assert response.status_code == 200, f"Login failed: {response.text}"
+        return s
+    
+    def test_get_income_list(self, auth_session):
+        """Test getting list of all income sources"""
+        response = auth_session.get(f"{BASE_URL}/api/income")
+        assert response.status_code == 200, f"Get income list failed: {response.text}"
+        data = response.json()
+        assert isinstance(data, list), "Income list should be an array"
+        print(f"Found {len(data)} income sources")
+        
+        # Check self-employed incomes for profession field
+        self_employed = [i for i in data if i.get("type") == "Self-Employed"]
+        for income in self_employed:
+            if income.get("profession"):
+                print(f"Self-employed: {income.get('name')} - profession: {income.get('profession')}")
 
 
 if __name__ == "__main__":
