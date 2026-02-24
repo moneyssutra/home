@@ -319,8 +319,8 @@ const ControlScoreWidget = ({ data }) => {
 
         <div className="flex items-center gap-4 mb-4">
           <div className="w-20 h-20 rounded-full flex flex-col items-center justify-center" style={{ border: `3px solid ${gradeColor}`, boxShadow: `0 0 20px ${gradeColor}20` }}>
-            <span className="text-2xl font-black" style={{ color: gradeColor }}>{data.score}</span>
-            <span className="text-[9px] font-bold" style={{ color: gradeColor }}>GRADE {data.grade}</span>
+            <span className="text-2xl font-black" style={{ color: gradeColor }}>{score}</span>
+            <span className="text-[9px] font-bold" style={{ color: gradeColor }}>GRADE {grade}</span>
           </div>
           <div className="flex-1 space-y-2">
             {bars.map((b, i) => (
