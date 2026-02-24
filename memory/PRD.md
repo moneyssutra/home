@@ -43,6 +43,15 @@ Core features + Financial Intelligence + Gamification (P0 complete, clarity impr
 - Component: `frontend/src/components/ShareScoreCard.js`
 - Backend: `/api/gamification/share-card` (pre-existing)
 
+### Financial Runway Simulator (DONE - Feb 24, 2026)
+- Interactive "what-if" tool with 3 sliders: Income Change (-100% to +100%), Expense Change (-50% to +100%), One-Time Savings (₹0 to ₹10L)
+- Current vs Projected comparison card with level badges
+- 12-month runway projection bar chart with year-end delta badge
+- Dynamic insight text explaining the impact
+- 6 Quick Scenarios: Job Loss, 50% Pay Cut, Cut 20% Expenses, +2L Savings, Raise+Save, Reset
+- Component: `frontend/src/components/RunwaySimulator.js`
+- Backend: `GET /api/intelligence/runway-simulator` with query params
+
 ### Backend Modularization (DONE - Session 4)
 - server.py: 286 lines (from 7,022)
 - 26 route modules under backend/routes/
