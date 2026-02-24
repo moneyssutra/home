@@ -477,6 +477,7 @@ async def process_gamification(request: Request):
             "title": f"Level Up! {new_level_info['title']}",
             "message": f"You've reached Level {new_level_info['level']} - {new_level_info['title']}!",
             "type": "gamification", "isRead": False,
+            "badgeIcon": "star",
             "createdAt": datetime.now(timezone.utc).isoformat()
         })
     for ach in new_achievements:
@@ -484,7 +485,9 @@ async def process_gamification(request: Request):
             "id": str(uuid.uuid4()), "userId": user_id,
             "title": f"Badge Unlocked: {ach['title']}",
             "message": ach["description"], "type": "achievement",
-            "isRead": False, "createdAt": datetime.now(timezone.utc).isoformat()
+            "isRead": False,
+            "badgeIcon": ach.get("icon", "trophy"),
+            "createdAt": datetime.now(timezone.utc).isoformat()
         })
     if current_streak in STREAK_REWARDS:
         await create_notification_and_cleanup({
@@ -492,6 +495,7 @@ async def process_gamification(request: Request):
             "title": f"Streak: {current_streak} Weeks!",
             "message": f"+{STREAK_REWARDS[current_streak]} bonus XP!",
             "type": "streak", "isRead": False,
+            "badgeIcon": "flame",
             "createdAt": datetime.now(timezone.utc).isoformat()
         })
 
