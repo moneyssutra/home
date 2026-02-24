@@ -167,9 +167,9 @@ async def get_investment_performance(request: Request):
     by_category = {}
     
     for inv in investments:
-        invested = inv.get('amountInvested', 0)
-        current = inv.get('currentValue', 0)
-        cat = inv.get('category', 'Other')
+        invested = inv.get('principal', 0) or inv.get('amountInvested', 0) or 0
+        current = inv.get('currentValue', 0) or 0
+        cat = inv.get('investmentCategory', inv.get('category', 'Other'))
         
         total_invested += invested
         current_value += current
