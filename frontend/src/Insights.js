@@ -602,10 +602,10 @@ const Insights = () => {
       <div className="px-4 py-4 space-y-4 max-w-3xl mx-auto">
         <SurvivalWarning data={survivalClock} />
         <LevelAndStagesWidget gamData={gamification} clockData={survivalClock} onShare={() => setShowShareCard(true)} />
+        <FinancialScoreWidget data={controlScore} />
         <EmergencyRunwayWidget data={survivalClock} />
         <RunwaySimulator currentData={survivalClock} />
         <MoneyPatternWidget data={moneyPattern} />
-        <FinancialScoreWidget data={controlScore} />
         <BadgesWidget data={gamification} />
         <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
 
