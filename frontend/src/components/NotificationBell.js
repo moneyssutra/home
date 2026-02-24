@@ -19,7 +19,7 @@ const NotificationBell = () => {
   const [incomeModalOpen, setIncomeModalOpen] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState(null);
   
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -103,15 +103,26 @@ const NotificationBell = () => {
       }
     }
     
-    // Check if this is an income reminder notification - open Income Amount modal
-    if (notification.type === "income_reminder" && notification.relatedIncomeId) {
+    // Check if this notification has a related income source - open Income Amount modal
+    // Works for both income_reminder and auto_entry types
+    if (notification.relatedIncomeId) {
+      // Fetch latest expectedAmount from the income source
+      let expectedAmount = notification.expectedAmount || 0;
+      if (!expectedAmount) {
+        try {
+          const res = await axios.get(`${backendUrl}/api/income/${notification.relatedIncomeId}`, { withCredentials: true });
+          expectedAmount = res.data?.expectedAmount || 0;
+        } catch (e) {
+          // Ignore - use 0
+        }
+      }
       setSelectedIncome({
         id: notification.relatedIncomeId,
-        name: notification.relatedIncomeName || notification.title?.replace("Income Reminder: ", "") || "Income",
-        expectedAmount: notification.expectedAmount || 0
+        name: notification.relatedIncomeName || notification.title?.replace("Time to record ", "").replace("Income Reminder: ", "") || "Income",
+        expectedAmount
       });
       handleClose();
-      setIncomeModalOpen(true);
+      setTimeout(() => setIncomeModalOpen(true), 100);
       return;
     }
     
