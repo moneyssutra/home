@@ -565,7 +565,7 @@ async def runway_simulator(
             "effectiveFunds": round(sim_funds, 0),
             "monthlyExpense": round(sim_mandatory, 0),
             "monthlyIncome": round(sim_income, 0),
-            "monthlySavings": round(sim_monthly_savings, 0),
+            "monthlySavings": round(monthly_net, 0),
             "level": _get_runway_level(sim_survival)["level"],
             "levelColor": _get_runway_level(sim_survival)["color"],
         },
