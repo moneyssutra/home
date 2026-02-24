@@ -75,6 +75,10 @@ import GoalAchievements from "@/GoalAchievements";
 import MyOtherIncome from "@/MyOtherIncome";
 import OtherIncomeForm from "@/OtherIncomeForm";
 
+// Insights & Settings Pages
+import Insights from "@/Insights";
+import Settings from "@/Settings";
+
 // App Router with session_id detection
 function AppRouter() {
   const location = useLocation();
