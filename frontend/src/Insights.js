@@ -750,7 +750,6 @@ const Insights = () => {
         <MoneyPatternWidget data={moneyPattern} />
         <BadgesWidget data={gamification} />
         <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
-        <FinancialJourneyWidget clockData={survivalClock} />
         <ShockTestWidget clockData={survivalClock} />
 
         {/* Quick Links */}
