@@ -9,6 +9,7 @@ export function useIntelligenceData() {
   const [behaviorAlerts, setBehaviorAlerts] = useState(null);
   const [gamification, setGamification] = useState(null);
   const [challenges, setChallenges] = useState(null);
+  const [moneyPattern, setMoneyPattern] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -16,18 +17,20 @@ export function useIntelligenceData() {
     setLoading(true);
     setError(null);
     try {
-      const [survivalRes, scoreRes, alertsRes, profileRes, challengesRes] = await Promise.all([
+      const [survivalRes, scoreRes, alertsRes, profileRes, challengesRes, patternRes] = await Promise.all([
         axios.get(`${backendUrl}/api/intelligence/survival-clock`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/intelligence/control-score`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/intelligence/behavior-alerts`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/gamification/profile`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/gamification/challenges`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/intelligence/money-pattern`, { withCredentials: true }),
       ]);
       setSurvivalClock(survivalRes.data);
       setControlScore(scoreRes.data);
       setBehaviorAlerts(alertsRes.data);
       setGamification(profileRes.data);
       setChallenges(challengesRes.data);
+      setMoneyPattern(patternRes.data);
     } catch (err) {
       setError(err.message);
     } finally {
