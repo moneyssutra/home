@@ -99,33 +99,41 @@ const ProfileMenu = ({ userName, userPicture }) => {
       {isOpen && (
         <div 
           className="absolute right-0 top-full mt-2 w-56 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
-          style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+          style={{ 
+            backgroundColor: "#ffffff", 
+            border: "1px solid #e5e7eb",
+            boxShadow: "0 10px 40px rgba(0,0,0,0.15)"
+          }}
           data-testid="profile-menu-dropdown"
         >
           {/* User Info Header */}
           <div 
-            className="px-4 py-3 border-b"
-            style={{ borderColor: "var(--border-light)" }}
+            className="px-4 py-3"
+            style={{ 
+              borderBottom: "1px solid #e5e7eb",
+              backgroundColor: "#f9fafb"
+            }}
           >
-            <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>
+            <p className="font-semibold text-sm" style={{ color: "#111827" }}>
               {userName || "User"}
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+            <p className="text-xs mt-0.5" style={{ color: "#6b7280" }}>
               Manage your account
             </p>
           </div>
 
           {/* Menu Items */}
-          <div className="py-2">
+          <div className="py-2" style={{ backgroundColor: "#ffffff" }}>
             {menuItems.map((item) => {
               const Icon = item.icon;
               return (
                 <button
                   key={item.id}
                   onClick={item.onClick}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-gray-50"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-gray-100"
                   style={{ 
-                    color: item.danger ? "var(--status-error)" : "var(--text-primary)"
+                    color: item.danger ? "#ef4444" : "#111827",
+                    backgroundColor: "#ffffff"
                   }}
                   data-testid={`profile-menu-${item.id}`}
                 >
