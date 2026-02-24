@@ -4,26 +4,36 @@
 Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI. Evolving into a Financial Control Operating System.
 
 ## Current Status
-Core features + Financial Intelligence + Gamification (P0 complete). Backend modularized.
+Core features + Financial Intelligence + Gamification (P0 complete, clarity improvements verified). Backend modularized.
 
 ## Session 5 Work (Feb 24, 2026)
 
 ### Financial Intelligence Engine (DONE)
-- **Survival Clock**: liquid funds / daily mandatory burn = survival days + level
-- **Control Score**: 0-100 composite (Cash Control + Debt Pressure + Liquidity + Stability)
-- **Behavior Alerts**: Overspending, Debt Risk, EMI Stress, Repeating Mistakes, Lifestyle Inflation, Survival warnings
+- **Emergency Runway (Survival Clock)**: liquid funds / daily mandatory burn = survival days + level
+- **Financial Score (Control Score)**: 0-100 composite (Savings Rate + EMI Load + Safety Buffer + Income Consistency)
+- **Smart Alerts (Behavior Alerts)**: Overspending, Debt Risk, EMI Stress, Repeating Mistakes, Lifestyle Inflation, Survival warnings
 
 ### Gamification Engine P0 (DONE)
-- XP System (7 earning rules), 6 Levels (Survival Mode → Money Master)
-- 20 Achievements across 11 categories (survival, score, streak, debt, insurance, emergency, investment, goals, income, behavior, starter)
+- XP System (7 earning rules), **20 Levels** (Getting Started → Financial Freedom)
+- 24 gender-friendly achievements/badges across 11 categories
 - Streak System with rewards at 4/8/12/24/52 weeks
-- 6 Challenges with difficulty ratings, explainers, and leave/abandon option
-- Level journey visualization (all 6 levels with progression dots)
+- 6 Challenges with difficulty ratings (Easy/Medium/Hard), explainers, and leave/abandon option
+- Level journey visualization with 20-level progression dots
 - Max Badges Unlocked tracker ("Peak" counter)
 - Survival warning banner when < 90 days
 - "How to earn XP" toggle
-- Weekly cron job (Sunday 23:59) for auto score recalculation
-- Push notifications for level up, streak milestones, new achievements, weekly summary
+- Weekly cron job for auto score recalculation
+- Push notifications for level up, streak milestones, new achievements
+
+### Clarity Improvements (DONE - Feb 24, 2026)
+- FDs included in liquid funds at 90% effective value (semi-liquid category)
+- "Score" renamed to "Financial Score" throughout
+- Explanatory tooltips/help text on all 4 score pillars
+- 20-level system (from 6) with faster early progression
+- Gender-friendly badge names (24 total)
+- "Peak" max badges metric displayed
+- Challenge abandon/leave button
+- Fund breakdown shows Instant/Semi-Liquid/Marketable/Locked categories
 
 ### Backend Modularization (DONE - Session 4)
 - server.py: 286 lines (from 7,022)
