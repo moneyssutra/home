@@ -178,19 +178,21 @@ const FinancialHealth = () => {
     return { label: "At Risk", color: "#991B1B" };
   };
 
-  // Tooltip Component - uses fixed positioning to avoid overflow clipping
+  // Tooltip Component - inline display to avoid overlap with other cards
   const Tooltip = ({ explanation, onClose }) => (
     <div 
-      className="absolute left-0 right-0 mt-1 p-3 rounded-lg shadow-lg text-xs leading-relaxed"
-      style={{ backgroundColor: "#1F2937", color: "#F9FAFB", zIndex: 60, top: "100%" }}
+      className="mt-2 p-3 rounded-lg text-xs leading-relaxed"
+      style={{ backgroundColor: "#1F2937", color: "#F9FAFB" }}
     >
-      <button 
-        onClick={(e) => { e.stopPropagation(); onClose(); }}
-        className="absolute top-1 right-2 text-gray-400 hover:text-white"
-      >
-        &times;
-      </button>
-      <p>{explanation}</p>
+      <div className="flex justify-between items-start gap-2">
+        <p className="flex-1">{explanation}</p>
+        <button 
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          className="text-gray-400 hover:text-white flex-shrink-0 ml-2"
+        >
+          &times;
+        </button>
+      </div>
     </div>
   );
 
