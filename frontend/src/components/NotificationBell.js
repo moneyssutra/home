@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Bell, X, CheckCheck, ArrowRight, Coins, RefreshCw, BellRing, Inbox } from "lucide-react";
+import { Bell, X, CheckCheck, ArrowRight, Coins, RefreshCw, BellRing, Inbox,
+  Shield, ShieldCheck, Castle, Crown, Star, Trophy, Target, Flame, Award, Medal,
+  TrendingUp, TrendingDown, CheckCircle, Gauge, PiggyBank, LifeBuoy, Lock, Flag,
+  Swords, Rocket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import IncomeAmountModal from "@/components/IncomeAmountModal";
@@ -379,7 +382,7 @@ const NotificationBell = () => {
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                           !notification.isRead ? "bg-[#00D09C]/20" : "bg-gray-200"
                         }`}>
-                          {getNotificationIcon(notification.type)}
+                          {getNotificationIcon(notification)}
                         </div>
                         
                         {/* Content */}
