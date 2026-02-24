@@ -349,10 +349,19 @@ async def get_control_score(request: Request):
         consistency_score = 5
 
     final_score = savings_score + emi_score + buffer_score + consistency_score
+    
+    now = datetime.now(timezone.utc)
+    period_start = (now - timedelta(days=90)).strftime("%d %b %Y")
+    period_end = now.strftime("%d %b %Y")
 
     return {
         "finalScore": final_score,
         "grade": _get_control_grade(final_score),
+        "scorePeriod": {
+            "start": period_start,
+            "end": period_end,
+            "label": f"{period_start} — {period_end}"
+        },
         "breakdown": {
             "savingsRate": {
                 "score": savings_score, "max": 25,
