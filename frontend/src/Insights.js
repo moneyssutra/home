@@ -113,6 +113,11 @@ const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
             <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: pm.color }}>{pm.label} Zone</p>
             <p className="text-xl font-black leading-tight" style={{ color: "var(--text-primary)" }}>{stageName}</p>
             <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{survDays} days runway · Stage {stageNum} of 20</p>
+            {STAGE_EXPLAIN[stageName] && (
+              <p className="text-xs mt-1.5 leading-relaxed" style={{ color: "var(--text-secondary)" }} data-testid="stage-explanation">
+                {STAGE_EXPLAIN[stageName]}
+              </p>
+            )}
           </div>
         </div>
       </div>
