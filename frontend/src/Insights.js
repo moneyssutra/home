@@ -508,6 +508,7 @@ const Insights = () => {
         <SurvivalWarning data={survivalClock} />
         <LevelJourney data={gamification} onShare={() => setShowShareCard(true)} />
         <EmergencyRunwayWidget data={survivalClock} />
+        <RunwaySimulator currentData={survivalClock} />
         <FinancialScoreWidget data={controlScore} />
         <BehaviorAlertsWidget data={behaviorAlerts} />
         <AchievementsWidget data={gamification} />
