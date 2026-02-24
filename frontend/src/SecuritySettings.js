@@ -205,6 +205,32 @@ const SecuritySettings = () => {
               {hasPassword ? "Change Password" : "Set Password"}
             </p>
 
+            {/* Current Password - only show if user has password */}
+            {hasPassword && (
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
+                <input
+                  type={showCurrentPassword ? "text" : "password"}
+                  value={passwords.current}
+                  onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
+                  placeholder="Current password"
+                  className="w-full pl-11 pr-12 py-3 rounded-xl outline-none"
+                  style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                >
+                  {showCurrentPassword ? (
+                    <EyeOff className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
+                  ) : (
+                    <Eye className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
+                  )}
+                </button>
+              </div>
+            )}
+
             {/* New Password */}
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
