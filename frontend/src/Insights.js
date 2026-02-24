@@ -411,27 +411,6 @@ const FinancialScoreWidget = ({ data }) => {
         </div>
       </div>
 
-      {/* Score breakdown: how each pillar adds up */}
-      <div className="mt-3 p-2.5 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }} data-testid="score-contribution">
-        <div className="flex items-center justify-center gap-1 text-xs">
-          {bars.map((b, i) => (
-            <span key={i} className="flex items-center gap-1">
-              <span className="font-black" style={{ color: b.color }}>{b.score}</span>
-              {i < bars.length - 1 && <span style={{ color: "var(--text-muted)" }}>+</span>}
-            </span>
-          ))}
-          <span className="mx-1" style={{ color: "var(--text-muted)" }}>=</span>
-          <span className="font-black text-sm" style={{ color: gc }}>{score}/100</span>
-        </div>
-        <div className="flex items-center justify-center gap-1.5 mt-1 flex-wrap">
-          {bars.map((b, i) => (
-            <span key={i} className="text-[9px] px-1.5 py-0.5 rounded" style={{ backgroundColor: `${b.color}10`, color: b.color }}>
-              {b.label?.split(" ")[0]}: {b.score}pts
-            </span>
-          ))}
-        </div>
-      </div>
-
       {/* Monthly metrics */}
       <div className="grid grid-cols-4 gap-2 mt-3">
         {[
