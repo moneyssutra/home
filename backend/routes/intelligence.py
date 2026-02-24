@@ -484,6 +484,156 @@ def fmt_py(n):
     return str(round(n))
 
 
+@router.get("/future-you")
+async def future_you_score(request: Request):
+    """12-month projection of financial metrics based on current trends."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_filter = get_user_filter(user)
+    monthly_income = await _get_monthly_income(user_filter)
+    monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
+    monthly_discretionary = await _get_monthly_discretionary_spending(user_filter)
+    total_emi = await _get_total_emi(user_filter)
+    fund_breakdown = await _get_fund_breakdown(user_filter)
+    effective_funds = fund_breakdown["effectiveTotal"]
+    net_worth = fund_breakdown.get("netWorth", effective_funds) or effective_funds
+
+    monthly_savings = monthly_income - monthly_mandatory - monthly_discretionary
+    daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
+    current_survival = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+    current_score = 0
+    savings_rate = (monthly_savings / monthly_income) if monthly_income > 0 else 0
+    debt_ratio = (total_emi / monthly_income) if monthly_income > 0 else 0
+    current_score = min(int(savings_rate * 100), 25) + max(25 - int(debt_ratio * 50), 0) + min(int((effective_funds / monthly_mandatory * 4) if monthly_mandatory > 0 else 0), 25) + 18
+
+    projections = []
+    proj_funds = effective_funds
+    proj_net_worth = net_worth
+    for month in range(1, 13):
+        proj_funds += max(monthly_savings, 0)
+        proj_net_worth += max(monthly_savings, 0)
+        proj_survival = int(proj_funds / daily_expense) if daily_expense > 0 else 999
+        proj_buffer = proj_funds / monthly_mandatory if monthly_mandatory > 0 else 0
+        proj_score = min(int(savings_rate * 100), 25) + max(25 - int(debt_ratio * 50), 0) + min(int(proj_buffer * 4), 25) + 18
+
+        # Find stage
+        proj_stage = "Exposed"
+        for s in reversed(SURVIVAL_STAGES):
+            if proj_survival >= s["min"]:
+                proj_stage = s["name"]
+                break
+
+        projections.append({
+            "month": month,
+            "label": (datetime.now(timezone.utc) + timedelta(days=30 * month)).strftime("%b %Y"),
+            "survivalDays": min(proj_survival, 9999),
+            "score": min(proj_score, 100),
+            "netWorth": round(proj_net_worth),
+            "stage": proj_stage,
+        })
+
+    final = projections[-1]
+    current_stage = "Exposed"
+    for s in reversed(SURVIVAL_STAGES):
+        if current_survival >= s["min"]:
+            current_stage = s["name"]
+            break
+
+    return {
+        "current": {
+            "survivalDays": current_survival, "score": current_score,
+            "netWorth": round(net_worth), "stage": current_stage,
+            "monthlySavings": round(monthly_savings),
+        },
+        "projected": final,
+        "projections": projections,
+        "improvement": {
+            "survivalDaysGain": final["survivalDays"] - current_survival,
+            "scoreGain": final["score"] - current_score,
+            "netWorthGain": final["netWorth"] - round(net_worth),
+        },
+        "tip": f"At your current savings of ₹{fmt_py(max(monthly_savings, 0))}/month, in 12 months you'll reach {final['stage']} with {final['survivalDays']} days runway."
+    }
+
+
+@router.get("/personality-history")
+async def personality_history(request: Request):
+    """Get personality evolution timeline."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = user.get("user_id")
+
+    history = await db.user_personality_history.find(
+        {"userId": user_id}, {"_id": 0}
+    ).sort("date", -1).to_list(12)
+
+    return {"history": history}
+
+
+@router.post("/weekly-digest")
+async def generate_weekly_digest(request: Request):
+    """Generate and store weekly health digest notification."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = user.get("user_id")
+    user_filter = get_user_filter(user)
+
+    # Current metrics
+    monthly_income = await _get_monthly_income(user_filter)
+    monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
+    monthly_discretionary = await _get_monthly_discretionary_spending(user_filter)
+    fund_breakdown = await _get_fund_breakdown(user_filter)
+    effective_funds = fund_breakdown["effectiveTotal"]
+    daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
+    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+    savings_rate = ((monthly_income - monthly_mandatory - monthly_discretionary) / monthly_income * 100) if monthly_income > 0 else 0
+
+    # Get last digest for comparison
+    last_digest = await db.weekly_digests.find_one(
+        {"userId": user_id}, {"_id": 0}, sort=[("createdAt", -1)]
+    )
+
+    changes = []
+    if last_digest:
+        prev_days = last_digest.get("survivalDays", 0)
+        prev_rate = last_digest.get("savingsRate", 0)
+        day_diff = survival_days - prev_days
+        rate_diff = savings_rate - prev_rate
+        if day_diff > 0: changes.append(f"Runway +{day_diff} days")
+        elif day_diff < 0: changes.append(f"Runway {day_diff} days")
+        if rate_diff > 2: changes.append(f"Savings rate +{rate_diff:.1f}%")
+        elif rate_diff < -2: changes.append(f"Savings rate {rate_diff:.1f}%")
+
+    summary = " | ".join(changes) if changes else "Metrics stable this week"
+
+    # Store current snapshot
+    now = datetime.now(timezone.utc)
+    digest_doc = {
+        "userId": user_id, "survivalDays": survival_days,
+        "savingsRate": round(savings_rate, 1),
+        "effectiveFunds": round(effective_funds),
+        "createdAt": now.isoformat()
+    }
+    await db.weekly_digests.insert_one(digest_doc)
+
+    # Create notification
+    from routes.gamification import create_notification_and_cleanup
+    import uuid
+    await create_notification_and_cleanup({
+        "id": str(uuid.uuid4()), "userId": user_id,
+        "title": "Weekly Health Digest",
+        "message": f"Runway: {survival_days}d | Savings: {savings_rate:.1f}% | {summary}",
+        "type": "digest", "isRead": False, "badgeIcon": "bar-chart",
+        "createdAt": now.isoformat()
+    })
+
+    return {"summary": summary, "survivalDays": survival_days, "savingsRate": round(savings_rate, 1), "changes": changes}
+
+
 
 @router.get("/behavior-alerts")
 async def get_behavior_alerts(request: Request):
