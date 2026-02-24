@@ -203,6 +203,17 @@ function AppRouter() {
       <Route path="/other-income" element={<ProtectedRoute><OtherIncomeForm /></ProtectedRoute>} />
       <Route path="/other-income/:id" element={<ProtectedRoute><OtherIncomeForm /></ProtectedRoute>} />
       
+      {/* Insights & Analytics */}
+      <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
+      
+      {/* Settings */}
+      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/settings/profile" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/settings/security" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/settings/notifications" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/settings/preferences" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/settings/data-privacy" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      
       {/* Workspace Settings */}
       <Route path="/workspace-settings" element={<ProtectedRoute><WorkspaceSettings /></ProtectedRoute>} />
     </Routes>
