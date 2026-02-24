@@ -1,150 +1,117 @@
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft, BarChart3, FileText, ChevronRight, RefreshCw,
-  Shield, Target, AlertTriangle, Flame, Trophy, Star,
-  TrendingUp, TrendingDown, Clock, Zap, Award, ChevronDown, ChevronUp,
-  AlertCircle, Repeat, ArrowUpRight, ShieldAlert, ShieldCheck,
-  Crown, Rocket, CheckCircle, Medal, Swords, Info, X, Share2,
-  HeartPulse, LifeBuoy, PieChart, ListChecks, Flag, GitBranch, CircleCheckBig, Gauge,
-  Lock, BarChart3 as BarChart3Icon, XCircle, PiggyBank
-} from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import ShareScoreCard from "@/components/ShareScoreCard";
 import RunwaySimulator from "@/components/RunwaySimulator";
-import { useState, useEffect } from "react";
+import MoneyPatternWidget from "@/components/MoneyPatternWidget";
+import { useState } from "react";
 import { useIntelligenceData } from "@/hooks/useIntelligenceData";
+import {
+  ArrowLeft, BarChart3, FileText, ChevronRight, RefreshCw,
+  Shield, Target, AlertTriangle, Flame, Trophy, Star,
+  TrendingUp, TrendingDown, Clock, Zap, Award, ChevronDown, ChevronUp,
+  AlertCircle, Info, X, Share2,
+  HeartPulse, LifeBuoy, PieChart, ListChecks, Flag,
+  Lock, XCircle, PiggyBank, CheckCircle, Rocket, Medal, Crown,
+  Gauge, Swords, ShieldCheck, Castle
+} from "lucide-react";
 
-// ─── CONSTANTS ───
-const GRADE_COLORS = { "A": "#10B981", "B": "#3B82F6", "C": "#F59E0B", "D": "#F97316", "E": "#EF4444" };
-const SEVERITY_STYLES = {
-  "HIGH": { bg: "#FEE2E2", border: "#FECACA", text: "#991B1B", icon: "#EF4444" },
-  "MEDIUM": { bg: "#FEF3C7", border: "#FDE68A", text: "#92400E", icon: "#F59E0B" },
-  "LOW": { bg: "#F0FDF4", border: "#BBF7D0", text: "#166534", icon: "#22C55E" }
+// ─── HELPERS ───
+const fmt = (n) => { if (!n && n !== 0) return "0"; const a = Math.abs(n); if (a >= 10000000) return `₹${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `₹${(n/100000).toFixed(1)}L`; if (a >= 1000) return `₹${(n/1000).toFixed(0)}K`; return `₹${n.toFixed(0)}`; };
+const fmtNum = (n) => { if (!n && n !== 0) return "0"; const a = Math.abs(n); if (a >= 10000000) return `${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `${(n/100000).toFixed(1)}L`; if (a >= 1000) return `${(n/1000).toFixed(0)}K`; return n.toFixed(0); };
+
+// Icon map for achievements
+const ACH_ICONS = {
+  "rocket": Rocket, "shield": Shield, "shield-check": ShieldCheck, "castle": Castle, "crown": Crown,
+  "star": Star, "life-buoy": LifeBuoy, "gauge": Gauge, "target": Target, "award": Award,
+  "trending-up": TrendingUp, "trending-down": TrendingDown, "check-circle": CheckCircle,
+  "flame": Flame, "trophy": Trophy, "medal": Medal, "bar-chart-3": BarChart3,
+  "pie-chart": PieChart, "piggy-bank": PiggyBank, "x-circle": XCircle, "list-checks": ListChecks,
+  "heart-pulse": HeartPulse, "alert-circle": AlertCircle, "flag": Flag, "lock": Lock,
+  "swords": Swords, "info": Info,
 };
-const ALERT_ICONS = { "alert-circle": AlertCircle, "alert-triangle": AlertTriangle, "trending-up": TrendingUp, "repeat": Repeat, "arrow-up-right": ArrowUpRight, "shield-alert": ShieldAlert, "shield": Shield, "shield-check": ShieldCheck };
-const ACH_ICONS = { "shield": Shield, "shield-check": ShieldCheck, "castle": Crown, "crown": Crown, "target": Target, "award": Award, "flame": Flame, "trophy": Trophy, "medal": Medal, "trending-down": TrendingDown, "rocket": Rocket, "check-circle": CheckCircle, "heart-pulse": HeartPulse, "life-buoy": LifeBuoy, "pie-chart": PieChart, "list-checks": ListChecks, "flag": Flag, "git-branch": GitBranch, "circle-check-big": CircleCheckBig, "gauge": Gauge, "lock": Lock, "bar-chart-3": BarChart3Icon, "x-circle": XCircle, "piggy-bank": PiggyBank, "star": Star };
-const CAT_COLORS = { "starter": "#6366F1", "behavior": "#10B981", "emergency": "#14B8A6", "survival": "#3B82F6", "score": "#F59E0B", "streak": "#EF4444", "debt": "#F97316", "insurance": "#EC4899", "investment": "#8B5CF6", "goals": "#06B6D4", "income": "#84CC16", "savings": "#0EA5E9" };
-const LVL_COLORS = [null, "#94A3B8", "#A78BFA", "#818CF8", "#60A5FA", "#38BDF8", "#34D399", "#4ADE80", "#A3E635", "#FACC15", "#FB923C", "#F87171", "#E879F9", "#C084FC", "#818CF8", "#38BDF8", "#2DD4BF", "#4ADE80", "#FCD34D", "#FB923C", "#F43F5E"];
-const DIFF_COLORS = { Easy: "#10B981", Medium: "#F59E0B", Hard: "#EF4444" };
+const TIER_COLORS = { bronze: "#CD7F32", silver: "#94A3B8", gold: "#F59E0B", platinum: "#8B5CF6" };
+const TIER_BG = { bronze: "#CD7F3215", silver: "#94A3B815", gold: "#F59E0B15", platinum: "#8B5CF615" };
+const CAT_LABELS = {
+  survival: "Survival & Liquidity", score: "Financial Score", behavior: "Behavior",
+  savings: "Savings & Cash", debt: "Debt Control", investment: "Investment",
+  streak: "Streak & Consistency", elite: "Power & Elite"
+};
+const PHASE_META = {
+  1: { label: "Critical", color: "#EF4444", emoji: "PHASE 1" },
+  2: { label: "Stabilizing", color: "#F97316", emoji: "PHASE 2" },
+  3: { label: "Control", color: "#EAB308", emoji: "PHASE 3" },
+  4: { label: "Growth", color: "#22C55E", emoji: "PHASE 4" },
+  5: { label: "Power", color: "#3B82F6", emoji: "PHASE 5" },
+};
 
-const fmt = (n) => { if (!n && n !== 0) return "0"; const a = Math.abs(n); if (a >= 10000000) return `${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `${(n/100000).toFixed(1)}L`; if (a >= 1000) return `${(n/1000).toFixed(0)}K`; return n.toFixed(0); };
-
-// ─── SURVIVAL WARNING ───
+// ─── SURVIVAL WARNING BANNER ───
 const SurvivalWarning = ({ data }) => {
   if (!data || data.survivalDays > 90) return null;
-  const critical = data.survivalDays <= 30;
+  const color = data.survivalDays < 30 ? "#DC2626" : "#F59E0B";
   return (
-    <div className="rounded-2xl p-4 flex items-start gap-3" data-testid="survival-warning-banner"
-      style={{ background: critical ? "linear-gradient(135deg, #991B1B, #DC2626)" : "linear-gradient(135deg, #92400E, #D97706)", color: "#fff" }}>
-      <ShieldAlert className="h-7 w-7 flex-shrink-0 mt-0.5" />
+    <div className="rounded-xl p-3 flex items-start gap-2.5" style={{ backgroundColor: `${color}10`, border: `1px solid ${color}30` }} data-testid="survival-warning">
+      <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color }} />
       <div>
-        <p className="text-sm font-black leading-snug">
-          {data.survivalDays === 0
-            ? "If your income stops today, you have zero backup funds."
-            : `If your income stops today, your savings will last only ${data.survivalDays} days.`}
-        </p>
-        <p className="text-xs opacity-80 mt-1">{data.tip || (critical ? "Start small - even ₹500/month builds your safety net." : "Target 6+ months of expenses as your safety net.")}</p>
+        <p className="text-xs font-bold" style={{ color }}>{data.survivalDays < 30 ? "CRITICAL" : "Warning"}: Only {data.survivalDays} days of runway</p>
+        <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{data.explanation}</p>
       </div>
     </div>
   );
 };
 
-// ─── LEVEL JOURNEY ───
-const LevelJourney = ({ data, onShare }) => {
-  const [showXP, setShowXP] = useState(false);
-  if (!data?.allLevels) return null;
-  const color = LVL_COLORS[data.level] || "#10B981";
-  const xpPct = data.nextLevelXP ? Math.min(((data.currentXP - data.levelMinXP) / (data.nextLevelXP - data.levelMinXP)) * 100, 100) : 100;
-  // Show subset of levels around current
-  const allLevels = data.allLevels || [];
-  const maxShow = 7;
-  let startIdx = Math.max(0, data.level - 3);
-  let endIdx = Math.min(allLevels.length, startIdx + maxShow);
-  if (endIdx - startIdx < maxShow) startIdx = Math.max(0, endIdx - maxShow);
-  const visibleLevels = allLevels.slice(startIdx, endIdx);
+// ─── 20-STAGE JOURNEY (Show ~10 around current) ───
+const StageJourney = ({ data, onShare }) => {
+  const [showXpRules, setShowXpRules] = useState(false);
+  if (!data) return null;
 
+  const level = data.level || 1;
+  const title = data.title || "Getting Started";
+  const xp = data.xp || 0;
+  const nextXp = data.nextLevelXp || 100;
+  const xpPct = Math.min((xp / nextXp) * 100, 100);
+
+  // Get visible stages from survival clock (will be passed as prop)
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border-light)" }} data-testid="gamification-widget">
-      <div className="p-5" style={{ background: `linear-gradient(135deg, ${color}18 0%, ${color}05 100%)`, backgroundColor: "var(--bg-card)" }}>
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center relative" style={{ backgroundColor: `${color}20`, border: `2px solid ${color}40` }}>
-              <Zap className="h-7 w-7" style={{ color }} />
-              <span className="absolute -bottom-1 -right-1 text-[10px] font-black px-1.5 rounded-full text-white" style={{ backgroundColor: color }}>{data.level}</span>
-            </div>
-            <div>
-              {data.prevLevelTitle && <p className="text-[10px] line-through opacity-40" style={{ color: "var(--text-muted)" }}>{data.prevLevelTitle}</p>}
-              <p className="text-lg font-black" style={{ color: "var(--text-primary)" }}>{data.title}</p>
-            </div>
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="stage-journey">
+      {/* Header */}
+      <div className="p-5">
+        <div className="flex items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center" style={{ background: `linear-gradient(135deg, ${data.color || "#059669"}30, ${data.color || "#059669"}10)`, border: `2px solid ${data.color || "#059669"}50` }}>
+            <span className="text-xl font-black" style={{ color: data.color || "#059669" }}>{level}</span>
           </div>
-          <div className="flex flex-col items-end gap-1">
-            {data.streak > 0 && (
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FEF3C7" }}>
-                <Flame className="h-3.5 w-3.5" style={{ color: "#F59E0B" }} />
-                <span className="text-[11px] font-bold" style={{ color: "#92400E" }}>{data.streak}W streak</span>
-              </div>
-            )}
-            <button onClick={() => setShowXP(!showXP)} className="flex items-center gap-1 text-[10px] font-medium" style={{ color }} data-testid="how-to-earn-xp-btn">
-              <Info className="h-3 w-3" /> How to earn XP?
-            </button>
-          </div>
-        </div>
-
-        {/* XP Bar */}
-        <div className="mt-3">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-xs font-bold" style={{ color }}>{data.currentXP} XP</span>
-            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-              {data.nextLevelXP ? `${data.xpToNextLevel} XP to Level ${data.level + 1} "${data.nextLevelTitle}"` : "MAX LEVEL"}
-            </span>
-          </div>
-          <div className="h-3.5 rounded-full overflow-hidden relative" style={{ backgroundColor: `${color}12` }}>
-            <div className="h-full rounded-full transition-all duration-1000 relative overflow-hidden" style={{ width: `${xpPct}%`, background: `linear-gradient(90deg, ${color}, ${color}BB)` }}>
-              <div className="absolute inset-0 opacity-30" style={{ background: "repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(255,255,255,0.3) 8px, rgba(255,255,255,0.3) 16px)" }} />
+          <div className="flex-1">
+            <p className="text-lg font-black" style={{ color: "var(--text-primary)" }}>{title}</p>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>{fmtNum(xp)} XP · Level {level} of 20</p>
+            <div className="mt-1.5 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+              <div className="h-full rounded-full transition-all" style={{ width: `${xpPct}%`, backgroundColor: data.color || "#059669" }} />
             </div>
           </div>
         </div>
 
-        {/* Level dots */}
-        <div className="flex items-center justify-between mt-3 px-1">
-          {visibleLevels.map((lvl) => (
-            <div key={lvl.level} className="flex flex-col items-center" style={{ flex: 1 }}>
-              <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold"
-                style={{
-                  backgroundColor: lvl.reached ? (LVL_COLORS[lvl.level] || "#10B981") : "var(--bg-subtle)",
-                  color: lvl.reached ? "#fff" : "var(--text-muted)",
-                  boxShadow: data.level === lvl.level ? `0 0 8px ${LVL_COLORS[lvl.level]}60` : "none",
-                  border: data.level === lvl.level ? `2px solid ${LVL_COLORS[lvl.level]}` : "1px solid transparent"
-                }}>
-                {lvl.level}
+        {/* XP Rules */}
+        <button onClick={() => setShowXpRules(!showXpRules)} className="mt-3 text-[10px] font-bold flex items-center gap-1" style={{ color: "var(--brand-primary)" }} data-testid="xp-rules-toggle">
+          {showXpRules ? <ChevronUp className="h-3 w-3" /> : <Info className="h-3 w-3" />}
+          {showXpRules ? "Hide XP rules" : "How to earn XP?"}
+        </button>
+        {showXpRules && data.xpRules && (
+          <div className="mt-2 space-y-1">
+            {data.xpRules.map((r, i) => (
+              <div key={i} className="flex items-center justify-between text-[10px] px-2 py-1 rounded" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                <span style={{ color: "var(--text-secondary)" }}>{r.rule}</span>
+                <span className="font-bold" style={{ color: "var(--brand-primary)" }}>+{r.xp} XP</span>
               </div>
-              <span className="text-[7px] mt-0.5 text-center leading-tight truncate w-12" style={{ color: lvl.reached ? "var(--text-secondary)" : "var(--text-muted)" }}>
-                {lvl.title.split(" ").slice(0, 2).join(" ")}
-              </span>
-            </div>
-          ))}
-        </div>
-        {allLevels.length > maxShow && <p className="text-[9px] text-center mt-1" style={{ color: "var(--text-muted)" }}>{allLevels.length} levels total</p>}
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* XP Rules */}
-      {showXP && data.xpRules && (
-        <div className="px-5 py-3 space-y-2" style={{ backgroundColor: "var(--bg-subtle)", borderTop: "1px solid var(--border-light)" }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>How to Earn XP</p>
-          {data.xpRules.map((r, i) => {
-            const I = ACH_ICONS[r.icon] || Star;
-            return (<div key={i} className="flex items-center gap-2"><I className="h-3.5 w-3.5 flex-shrink-0" style={{ color }} /><span className="text-xs flex-1" style={{ color: "var(--text-secondary)" }}>{r.action}</span><span className="text-xs font-bold" style={{ color }}>{r.xp}</span></div>);
-          })}
-        </div>
-      )}
 
       {/* Stats */}
       <div className="grid grid-cols-4 divide-x" style={{ backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border-light)", borderColor: "var(--border-light)" }}>
         {[
           { val: data.lastScore || 0, label: "FIN. SCORE" },
           { val: data.lastSurvivalDays || 0, label: "RUNWAY" },
-          { val: `${data.achievementCount || 0}/${data.totalAchievements || 24}`, label: "BADGES" },
+          { val: `${data.achievementCount || 0}/${data.totalAchievements || 100}`, label: "BADGES" },
           { val: data.maxBadgesUnlocked || data.achievementCount || 0, label: "PEAK" },
         ].map((s, i) => (
           <div key={i} className="py-3 text-center">
@@ -154,324 +121,409 @@ const LevelJourney = ({ data, onShare }) => {
         ))}
       </div>
 
-      {/* Share Score Card Button */}
+      {/* Share button */}
       {onShare && (
         <button onClick={onShare} className="w-full flex items-center justify-center gap-2 py-3 text-xs font-bold transition-all active:scale-[0.98]"
           style={{ backgroundColor: "var(--bg-subtle)", borderTop: "1px solid var(--border-light)", color: "var(--brand-primary)" }}
           data-testid="share-card-btn">
-          <Share2 className="h-3.5 w-3.5" />
-          Share Your Financial Score Card
+          <Share2 className="h-3.5 w-3.5" /> Share Your Financial Score Card
         </button>
       )}
     </div>
   );
 };
 
-// ─── EMERGENCY RUNWAY (was Survival Clock) ───
+// ─── SURVIVAL STAGES (20 stages, show ~10) ───
+const SurvivalStages = ({ data }) => {
+  if (!data?.visibleStages) return null;
+  const stages = data.visibleStages;
+  const pm = PHASE_META[data.phaseNum] || PHASE_META[1];
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="survival-stages-widget">
+      <div className="p-4 pb-2">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${pm.color}15` }}>
+              <Shield className="h-4 w-4" style={{ color: pm.color }} />
+            </div>
+            <div>
+              <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Survival Stage {data.stage}/20</p>
+              <p className="text-sm font-bold" style={{ color: pm.color }}>{pm.emoji}: {pm.label} Zone</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-lg font-black" style={{ color: data.levelColor }}>{data.level}</p>
+            <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>{data.survivalDays} days</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Stage dots - show ~10 around current */}
+      <div className="px-4 pb-4">
+        <div className="flex items-center gap-1">
+          {stages.map((s) => (
+            <div key={s.stage} className="flex-1 flex flex-col items-center gap-1">
+              <div className="w-full rounded-sm transition-all" style={{
+                height: s.current ? "20px" : s.reached ? "12px" : "6px",
+                backgroundColor: s.reached ? s.color : "var(--bg-subtle)",
+                border: s.current ? `2px solid ${s.color}` : "none",
+                boxShadow: s.current ? `0 0 8px ${s.color}40` : "none",
+              }} />
+              <span className="text-[7px] font-bold" style={{ color: s.current ? s.color : s.reached ? "var(--text-muted)" : "var(--text-muted)" }}>
+                {s.current ? s.stage : (s.stage === stages[0].stage || s.stage === stages[stages.length-1].stage) ? s.stage : ""}
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="flex items-center justify-between mt-1">
+          <span className="text-[8px]" style={{ color: "var(--text-muted)" }}>{stages[0].name}</span>
+          <span className="text-[8px]" style={{ color: "var(--text-muted)" }}>{stages[stages.length-1].name}</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── EMERGENCY RUNWAY with 3-Buffer Display ───
 const EmergencyRunwayWidget = ({ data }) => {
   const [showBreakdown, setShowBreakdown] = useState(false);
   if (!data) return null;
-  const levelColor = data.levelColor || "#EF4444";
-  const maxDays = 365;
-  const pct = Math.min((data.survivalDays / maxDays) * 100, 100);
-  const circ = 2 * Math.PI * 58;
-  const offset = circ - (pct / 100) * circ;
+
   const fb = data.fundBreakdown || {};
 
   return (
-    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="survival-clock-widget">
-      <div className="flex items-center gap-2 mb-1">
-        <Shield className="h-5 w-5" style={{ color: levelColor }} />
-        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Emergency Runway</h3>
-        <button onClick={() => setShowBreakdown(!showBreakdown)} className="ml-auto"><Info className="h-4 w-4" style={{ color: "var(--text-muted)" }} /></button>
-      </div>
-      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>How long your accessible savings last if income stops today</p>
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="emergency-runway">
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5" style={{ color: data.levelColor }} />
+            <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Emergency Runway</h3>
+          </div>
+          <button onClick={() => setShowBreakdown(!showBreakdown)} className="p-1.5 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }} data-testid="runway-breakdown-btn">
+            <Info className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
+          </button>
+        </div>
 
-      <div className="flex items-center gap-6">
-        <div className="relative flex-shrink-0">
-          <svg width="130" height="130" viewBox="0 0 130 130">
-            <circle cx="65" cy="65" r="58" fill="none" stroke="var(--border-light)" strokeWidth="8" />
-            <circle cx="65" cy="65" r="58" fill="none" stroke={levelColor} strokeWidth="8"
-              strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
-              transform="rotate(-90 65 65)" style={{ transition: "stroke-dashoffset 1s ease" }} />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-3xl font-black" style={{ color: "var(--text-primary)" }}>{data.survivalDays}</span>
-            <span className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>DAYS</span>
+        {/* Main metric */}
+        <div className="flex items-end gap-2 mb-3">
+          <span className="text-4xl font-black" style={{ color: data.levelColor }}>{data.survivalDays}</span>
+          <span className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>days</span>
+          <div className="ml-auto px-2.5 py-1 rounded-full text-[10px] font-bold" style={{ backgroundColor: `${data.levelColor}15`, color: data.levelColor }}>
+            Stage {data.stage}: {data.level}
           </div>
         </div>
-        <div className="flex-1 space-y-2.5">
-          <div className="inline-flex px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: `${levelColor}15`, color: levelColor, border: `1px solid ${levelColor}30` }}>
-            {data.level}
-          </div>
-          <div>
-            <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Accessible Funds</p>
-            <p className="text-base font-bold" style={{ color: "var(--text-primary)" }}>&#8377;{fmt(data.effectiveFunds)}</p>
-          </div>
-          <div>
-            <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Monthly Essential Expenses</p>
-            <p className="text-base font-bold" style={{ color: "var(--text-primary)" }}>&#8377;{fmt(data.monthlyMandatoryExpense)}</p>
-          </div>
-          <div>
-            <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Daily Burn Rate</p>
-            <p className="text-sm font-semibold" style={{ color: levelColor }}>&#8377;{fmt(data.dailyBurnRate)}/day</p>
-          </div>
-        </div>
-      </div>
 
-      {/* Tip */}
-      {data.tip && (
-        <p className="text-xs mt-3 p-2.5 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-secondary)" }}>{data.tip}</p>
-      )}
-
-      {/* Fund breakdown */}
-      {showBreakdown && fb.details && (
-        <div className="mt-3 pt-3 space-y-2" style={{ borderTop: "1px solid var(--border-light)" }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Where your funds are</p>
+        {/* 3 Buffer Numbers */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
           {[
-            { key: "instant", label: fb.instant?.label, amt: fb.instant?.total, desc: fb.instant?.description, color: "#10B981" },
-            { key: "semi", label: fb.semiLiquid?.label, amt: fb.semiLiquid?.total, desc: fb.semiLiquid?.description, color: "#F59E0B" },
-            { key: "mkt", label: fb.marketable?.label, amt: fb.marketable?.total, desc: fb.marketable?.description, color: "#3B82F6" },
-            { key: "lock", label: fb.locked?.label, amt: fb.locked?.total, desc: fb.locked?.description, color: "#94A3B8" },
-          ].filter(b => b.amt > 0 || b.key === "instant").map(b => (
-            <div key={b.key} className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: b.color }} />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>{b.label}</p>
-                <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{b.desc}</p>
-              </div>
-              <span className="text-xs font-bold" style={{ color: b.color }}>&#8377;{fmt(b.amt || 0)}</span>
+            { label: "Liquid Buffer", val: fb.liquidBuffer, desc: "Instant access", color: "#10B981" },
+            { label: "Extended Buffer", val: fb.extendedBuffer, desc: "Including 60% semi-liquid", color: "#3B82F6" },
+            { label: "Total Net Worth", val: fb.netWorth, desc: "All assets", color: "#8B5CF6" },
+          ].map((b, i) => (
+            <div key={i} className="p-2.5 rounded-xl text-center" style={{ backgroundColor: `${b.color}08`, border: `1px solid ${b.color}15` }}>
+              <p className="text-xs font-black" style={{ color: b.color }}>{fmt(b.val || 0)}</p>
+              <p className="text-[8px] font-medium" style={{ color: "var(--text-muted)" }}>{b.label}</p>
             </div>
           ))}
-          <div className="flex justify-between pt-2" style={{ borderTop: "1px dashed var(--border-light)" }}>
-            <span className="text-xs font-bold" style={{ color: "var(--text-secondary)" }}>Effective for Runway</span>
-            <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>&#8377;{fmt(fb.effectiveTotal || 0)}</span>
-          </div>
-          <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Note: FDs/RDs counted at 90% (early withdrawal penalty). Mutual Funds/Stocks at 85% (market risk). PPF/EPF not counted (locked).</p>
         </div>
-      )}
+
+        <div className="grid grid-cols-2 gap-2 text-center">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>Monthly Essential</p>
+            <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{fmt(data.monthlyMandatoryExpense)}</p>
+          </div>
+          <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>Daily Burn Rate</p>
+            <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{fmt(data.dailyBurnRate)}/day</p>
+          </div>
+        </div>
+
+        {/* Fund Breakdown */}
+        {showBreakdown && fb && (
+          <div className="mt-3 space-y-2" style={{ borderTop: "1px solid var(--border-light)", paddingTop: "12px" }}>
+            <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Fund Breakdown by Liquidity</p>
+            {/* Category summaries */}
+            {[
+              { ...fb.liquid, badge: "100%", badgeColor: "#10B981" },
+              { ...fb.semiLiquid, badge: "60%", badgeColor: "#3B82F6" },
+              { ...fb.illiquid, badge: "0%", badgeColor: "#6B7280" },
+            ].filter(c => c.total > 0).map((cat, i) => (
+              <div key={i} className="flex items-center justify-between p-2 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                <div>
+                  <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{cat.label}</p>
+                  <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>{cat.description}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{fmt(cat.total)}</p>
+                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `${cat.badgeColor}15`, color: cat.badgeColor }}>
+                    {cat.badge} in survival
+                  </span>
+                </div>
+              </div>
+            ))}
+            {/* Individual assets */}
+            {fb.details?.slice(0, 8).map((d, i) => (
+              <div key={i} className="flex items-center justify-between text-[10px] px-2">
+                <span style={{ color: "var(--text-secondary)" }}>{d.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium" style={{ color: "var(--text-primary)" }}>{fmt(d.amount)}</span>
+                  <span className="px-1 py-0.5 rounded text-[8px] font-bold" style={{
+                    backgroundColor: d.category === "liquid" ? "#10B98115" : d.category === "semi_liquid" ? "#3B82F615" : "#6B728015",
+                    color: d.category === "liquid" ? "#10B981" : d.category === "semi_liquid" ? "#3B82F6" : "#6B7280"
+                  }}>{d.pct}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <p className="text-[10px] mt-3 p-2 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-muted)" }}>
+          <Info className="h-3 w-3 inline mr-1" />{data.tip}
+        </p>
+      </div>
     </div>
   );
 };
 
-// ─── FINANCIAL SCORE (was Control Score) ───
-const FinancialScoreWidget = ({ data }) => {
+// ─── FINANCIAL SCORE ───
+const ControlScoreWidget = ({ data }) => {
+  const [showHelp, setShowHelp] = useState(false);
   if (!data) return null;
-  const gc = GRADE_COLORS[data.grade] || "#6B7280";
+
   const bd = data.breakdown || {};
   const bars = [
-    { ...bd.savingsRate, color: "#10B981", key: "sr" },
-    { ...bd.emiLoad, color: "#3B82F6", key: "el" },
-    { ...bd.safetyBuffer, color: "#8B5CF6", key: "sb" },
-    { ...bd.incomeConsistency, color: "#F59E0B", key: "ic" },
-  ].filter(b => b.label);
+    { ...bd.savingsRate, label: "Savings Rate", help: "How much you save vs earn" },
+    { ...bd.emiLoad, label: "EMI Load", help: "How much EMI eats your income" },
+    { ...bd.safetyBuffer, label: "Safety Buffer", help: "Emergency fund coverage" },
+    { ...bd.incomeConsistency, label: "Income Consistency", help: "Income stability" },
+  ].filter(b => b.score !== undefined);
+
+  const gradeColor = data.score >= 85 ? "#10B981" : data.score >= 70 ? "#3B82F6" : data.score >= 55 ? "#F59E0B" : data.score >= 40 ? "#F97316" : "#EF4444";
 
   return (
-    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="control-score-widget">
-      <div className="flex items-center gap-2 mb-1">
-        <Target className="h-5 w-5" style={{ color: gc }} />
-        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Score</h3>
-      </div>
-      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Your overall financial health rating based on 4 pillars</p>
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-score">
+      <div className="p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Gauge className="h-5 w-5" style={{ color: gradeColor }} />
+            <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Score</h3>
+          </div>
+          <button onClick={() => setShowHelp(!showHelp)} className="p-1.5 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <Info className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
+          </button>
+        </div>
 
-      <div className="flex items-start gap-5">
-        <div className="flex-shrink-0">
-          <div className="w-24 h-24 rounded-full flex flex-col items-center justify-center" style={{ border: `4px solid ${gc}`, backgroundColor: `${gc}10` }}>
-            <span className="text-3xl font-black" style={{ color: gc }}>{data.finalScore}</span>
-            <span className="text-xs font-bold" style={{ color: gc }}>Grade {data.grade}</span>
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-20 h-20 rounded-full flex flex-col items-center justify-center" style={{ border: `3px solid ${gradeColor}`, boxShadow: `0 0 20px ${gradeColor}20` }}>
+            <span className="text-2xl font-black" style={{ color: gradeColor }}>{data.score}</span>
+            <span className="text-[9px] font-bold" style={{ color: gradeColor }}>GRADE {data.grade}</span>
+          </div>
+          <div className="flex-1 space-y-2">
+            {bars.map((b, i) => (
+              <div key={i}>
+                <div className="flex justify-between text-[10px] mb-0.5">
+                  <span style={{ color: "var(--text-muted)" }}>{b.label}</span>
+                  <span className="font-bold" style={{ color: "var(--text-primary)" }}>{b.score}/{b.max}</span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${(b.score / b.max) * 100}%`, backgroundColor: gradeColor }} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        <div className="flex-1 space-y-2.5">
-          {bars.map((bar) => (
-            <div key={bar.key}>
-              <div className="flex justify-between items-center mb-0.5">
-                <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{bar.label}</span>
-                <span className="text-xs font-bold" style={{ color: bar.color }}>{bar.score}/{bar.max}</span>
-              </div>
-              <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
-                <div className="h-full rounded-full transition-all duration-700" style={{ width: `${(bar.score / bar.max) * 100}%`, backgroundColor: bar.color }} />
-              </div>
-              {bar.help && <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{bar.help}</p>}
-            </div>
-          ))}
-        </div>
-      </div>
-      {data.metrics && (
-        <div className="grid grid-cols-2 gap-2 mt-4 pt-3" style={{ borderTop: "1px solid var(--border-light)" }}>
+
+        {showHelp && (
+          <div className="p-3 rounded-lg text-[10px] space-y-1" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-secondary)" }}>
+            {bars.map((b, i) => (
+              <p key={i}><strong>{b.label} ({b.score}/{b.max})</strong>: {b.help}</p>
+            ))}
+            <p className="mt-1" style={{ color: "var(--text-muted)" }}>Score = sum of all 4 pillars (out of 100)</p>
+          </div>
+        )}
+
+        {/* Monthly metrics */}
+        <div className="grid grid-cols-4 gap-2 mt-3">
           {[
-            { label: "Monthly Income", val: data.metrics.monthlyIncome },
-            { label: "Monthly Expenses", val: data.metrics.monthlyExpenses },
-            { label: "Total EMI", val: data.metrics.totalEMI },
-            { label: "Accessible Funds", val: data.metrics.availableFunds },
-          ].map((m) => (
-            <div key={m.label}>
-              <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{m.label}</p>
-              <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>&#8377;{fmt(m.val)}</p>
+            { label: "Income", val: data.monthlyIncome },
+            { label: "Expenses", val: data.monthlyExpenses },
+            { label: "Total EMI", val: data.totalEmi },
+            { label: "Liquid Funds", val: data.accessibleFunds },
+          ].map((m, i) => (
+            <div key={i} className="text-center p-1.5 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
+              <p className="text-[8px]" style={{ color: "var(--text-muted)" }}>{m.label}</p>
+              <p className="text-[10px] font-bold" style={{ color: "var(--text-primary)" }}>{fmt(m.val || 0)}</p>
             </div>
           ))}
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
-// ─── BEHAVIOR ALERTS ───
-const BehaviorAlertsWidget = ({ data }) => {
+// ─── BADGES GRID (100 badges, grouped by category, tier-colored) ───
+const BadgesWidget = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
-  if (!data || !data.alerts?.length) {
-    return (
-      <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="behavior-alerts-widget">
-        <div className="flex items-center gap-2"><CheckCircle className="h-5 w-5" style={{ color: "#10B981" }} /><h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Smart Alerts</h3></div>
-        <p className="text-sm text-center py-3" style={{ color: "#10B981" }}>All clear! No financial alerts right now.</p>
-      </div>
-    );
-  }
-  const alerts = expanded ? data.alerts : data.alerts.slice(0, 3);
-  return (
-    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="behavior-alerts-widget">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5" style={{ color: "#F59E0B" }} />
-          <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Smart Alerts</h3>
-        </div>
-        {data.highCount > 0 && <span className="px-2 py-0.5 rounded-full text-xs font-bold" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>{data.highCount} Critical</span>}
-      </div>
-      <div className="space-y-2.5">
-        {alerts.map((al, i) => {
-          const s = SEVERITY_STYLES[al.severity] || SEVERITY_STYLES["LOW"];
-          const I = ALERT_ICONS[al.icon] || AlertCircle;
-          return (<div key={i} className="rounded-xl p-3.5" style={{ backgroundColor: s.bg, border: `1px solid ${s.border}` }}><div className="flex gap-3"><I className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: s.icon }} /><div className="flex-1 min-w-0"><p className="text-sm font-semibold" style={{ color: s.text }}>{al.message}</p>{al.detail && <p className="text-xs mt-1 opacity-80" style={{ color: s.text }}>{al.detail}</p>}</div></div></div>);
-        })}
-      </div>
-      {data.alerts.length > 3 && (
-        <button onClick={() => setExpanded(!expanded)} className="mt-3 text-xs font-medium flex items-center gap-1 mx-auto" style={{ color: "var(--brand-primary)" }}>
-          {expanded ? <><ChevronUp className="h-3 w-3" /> Show Less</> : <><ChevronDown className="h-3 w-3" /> Show All ({data.alerts.length})</>}
-        </button>
-      )}
-    </div>
-  );
-};
-
-// ─── ACHIEVEMENTS ───
-const AchievementsWidget = ({ data }) => {
-  const [showAll, setShowAll] = useState(false);
-  const [sel, setSel] = useState(null);
+  const [activeCategory, setActiveCategory] = useState("all");
   if (!data?.allAchievements) return null;
-  const sorted = [...data.allAchievements].sort((a, b) => (b.unlocked ? 1 : 0) - (a.unlocked ? 1 : 0));
-  const items = showAll ? sorted : sorted.slice(0, 8);
+
+  const all = data.allAchievements;
+  const unlocked = all.filter(a => a.unlocked);
+  const filtered = activeCategory === "all" ? all : all.filter(a => a.category === activeCategory);
+  const showList = expanded ? filtered : filtered.filter(a => a.unlocked).slice(0, 8);
+
+  const categories = [...new Set(all.map(a => a.category))];
 
   return (
-    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="achievements-widget">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2"><Trophy className="h-5 w-5" style={{ color: "#F59E0B" }} /><h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Badges</h3></div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>Peak: {data.maxBadgesUnlocked || data.achievementCount}</span>
-          <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>{data.achievementCount}/{data.totalAchievements}</span>
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="badges-widget">
+      <div className="p-5 pb-3">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Trophy className="h-5 w-5" style={{ color: "#F59E0B" }} />
+            <h3 className="text-sm font-bold" style={{ color: "var(--text-secondary)" }}>Badges</h3>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <span className="font-black" style={{ color: "var(--text-primary)" }}>{unlocked.length}</span>
+            <span style={{ color: "var(--text-muted)" }}>/ {all.length}</span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded font-bold" style={{ backgroundColor: "#F59E0B15", color: "#F59E0B" }}>
+              Peak: {data.maxBadgesUnlocked || unlocked.length}
+            </span>
+          </div>
+        </div>
+
+        {/* Category filter */}
+        <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
+          <button onClick={() => setActiveCategory("all")}
+            className="px-2.5 py-1 rounded-full text-[9px] font-bold whitespace-nowrap flex-shrink-0"
+            style={{
+              backgroundColor: activeCategory === "all" ? "var(--brand-primary)" : "var(--bg-subtle)",
+              color: activeCategory === "all" ? "#fff" : "var(--text-muted)"
+            }} data-testid="badge-filter-all">All</button>
+          {categories.map(c => (
+            <button key={c} onClick={() => setActiveCategory(c)}
+              className="px-2.5 py-1 rounded-full text-[9px] font-bold whitespace-nowrap flex-shrink-0"
+              style={{
+                backgroundColor: activeCategory === c ? "var(--brand-primary)" : "var(--bg-subtle)",
+                color: activeCategory === c ? "#fff" : "var(--text-muted)"
+              }} data-testid={`badge-filter-${c}`}>{CAT_LABELS[c] || c}</button>
+          ))}
         </div>
       </div>
-      <div className="grid grid-cols-4 gap-2.5">
-        {items.map((a) => {
-          const I = ACH_ICONS[a.icon] || Star;
-          const cc = CAT_COLORS[a.category] || "#6B7280";
+
+      {/* Badges grid */}
+      <div className="px-5 pb-3 grid grid-cols-4 gap-2">
+        {showList.map((a) => {
+          const Icon = ACH_ICONS[a.icon] || Star;
+          const tierColor = a.unlocked ? (TIER_COLORS[a.tier] || "#6B7280") : "var(--text-muted)";
+          const tierBg = a.unlocked ? (TIER_BG[a.tier] || "#6B728010") : "var(--bg-subtle)";
           return (
-            <button key={a.code} onClick={() => setSel(sel?.code === a.code ? null : a)}
-              className="flex flex-col items-center p-2 rounded-xl text-center transition-all relative"
-              style={{ backgroundColor: a.unlocked ? `${cc}10` : "var(--bg-app)", border: a.unlocked ? `2px solid ${cc}` : "1px solid var(--border-light)", opacity: a.unlocked ? 1 : 0.30 }}>
-              {a.unlocked && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full flex items-center justify-center" style={{ backgroundColor: cc }}><CheckCircle className="h-2 w-2 text-white" /></div>}
-              <div className="w-8 h-8 rounded-full flex items-center justify-center mb-1" style={{ backgroundColor: a.unlocked ? `${cc}20` : "#F1F5F9" }}>
-                <I className="h-4 w-4" style={{ color: a.unlocked ? cc : "#94A3B8" }} />
+            <div key={a.code} className="flex flex-col items-center p-2 rounded-xl text-center transition-all"
+              style={{
+                backgroundColor: tierBg,
+                border: a.unlocked ? `1.5px solid ${tierColor}40` : "1.5px solid transparent",
+                opacity: a.unlocked ? 1 : 0.4,
+                filter: a.unlocked ? "none" : "grayscale(1)",
+              }} data-testid={`badge-${a.code}`}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-1" style={{
+                backgroundColor: a.unlocked ? `${tierColor}20` : "transparent",
+              }}>
+                <Icon className="h-4 w-4" style={{ color: tierColor }} />
               </div>
-              <p className="text-[8px] font-bold leading-tight" style={{ color: a.unlocked ? "var(--text-primary)" : "var(--text-muted)" }}>{a.title}</p>
-              <span className="text-[7px] mt-0.5 font-medium" style={{ color: cc }}>+{a.xp_bonus} XP</span>
-            </button>
+              <p className="text-[8px] font-bold leading-tight" style={{ color: a.unlocked ? tierColor : "var(--text-muted)" }}>{a.title}</p>
+              {a.unlocked && (
+                <span className="text-[7px] font-bold mt-0.5 px-1 rounded uppercase" style={{ backgroundColor: `${tierColor}15`, color: tierColor }}>
+                  {a.tier}
+                </span>
+              )}
+            </div>
           );
         })}
       </div>
-      {sel && (
-        <div className="mt-3 p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
-          <div className="flex items-center gap-2">
-            {(() => { const I = ACH_ICONS[sel.icon] || Star; return <I className="h-4 w-4" style={{ color: CAT_COLORS[sel.category] }} />; })()}
-            <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{sel.title}</span>
-            <button onClick={() => setSel(null)} className="ml-auto"><X className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} /></button>
+
+      {/* Tier legend */}
+      <div className="px-5 pb-2 flex gap-3 justify-center">
+        {["bronze", "silver", "gold", "platinum"].map(t => (
+          <div key={t} className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: TIER_COLORS[t] }} />
+            <span className="text-[8px] font-medium capitalize" style={{ color: "var(--text-muted)" }}>{t}</span>
           </div>
-          <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{sel.description}</p>
-          {sel.achieved_at && <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>Unlocked: {new Date(sel.achieved_at).toLocaleDateString()}</p>}
-        </div>
-      )}
-      {data.allAchievements.length > 8 && (
-        <button onClick={() => setShowAll(!showAll)} className="mt-3 text-xs font-medium flex items-center gap-1 mx-auto" style={{ color: "var(--brand-primary)" }}>
-          {showAll ? "Show Less" : `View All ${data.allAchievements.length} Badges`}
-        </button>
-      )}
+        ))}
+      </div>
+
+      <button onClick={() => setExpanded(!expanded)}
+        className="w-full py-2.5 text-[10px] font-bold flex items-center justify-center gap-1"
+        style={{ borderTop: "1px solid var(--border-light)", color: "var(--brand-primary)" }}
+        data-testid="badges-expand-btn">
+        {expanded ? "Show Less" : `View All ${filtered.length} Badges`}
+        {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+      </button>
     </div>
   );
 };
 
 // ─── CHALLENGES ───
-const ChallengesWidget = ({ data, onJoin, onLeave }) => {
+const DIFF_COLORS = { Easy: "#10B981", Medium: "#F59E0B", Hard: "#EF4444" };
+
+const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
   const [expCh, setExpCh] = useState(null);
-  if (!data) return null;
-  const { available = [], active = [], completed = [] } = data;
+  if (!challenges) return null;
+
+  const active = challenges.active || [];
+  const available = challenges.available || [];
+  const completed = challenges.completed || [];
 
   return (
-    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="challenges-widget">
-      <div className="flex items-center gap-2 mb-2">
-        <Swords className="h-5 w-5" style={{ color: "#8B5CF6" }} />
-        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Challenges</h3>
-      </div>
-      <div className="rounded-xl p-3 mb-4" style={{ backgroundColor: "var(--bg-subtle)", border: "1px dashed var(--border-light)" }}>
-        <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-          Challenges are time-bound financial goals you set for yourself. Join one, take real action with your money, and earn bonus XP when you achieve the target!
-        </p>
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="challenges-widget">
+      <div className="p-5 pb-3">
+        <div className="flex items-center gap-2">
+          <Swords className="h-5 w-5" style={{ color: "#8B5CF6" }} />
+          <h3 className="text-sm font-bold" style={{ color: "var(--text-secondary)" }}>Challenges</h3>
+          <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#8B5CF615", color: "#8B5CF6" }}>
+            {active.length} active
+          </span>
+        </div>
       </div>
 
       {active.length > 0 && (
-        <div className="space-y-2.5 mb-4">
-          <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: "var(--text-muted)" }}>Your Active Challenges</p>
-          {active.map((c) => {
-            const dl = Math.max(0, Math.ceil((new Date(c.end_date) - new Date()) / 86400000));
-            return (
-              <div key={c.id} className="rounded-xl p-3.5" style={{ backgroundColor: "#EDE9FE", border: "1px solid #DDD6FE" }}>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2"><p className="text-sm font-bold" style={{ color: "#5B21B6" }}>{c.title}</p>{c.difficulty && <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${DIFF_COLORS[c.difficulty]}20`, color: DIFF_COLORS[c.difficulty] }}>{c.difficulty}</span>}</div>
-                    <p className="text-xs mt-0.5" style={{ color: "#7C3AED" }}>{c.description}</p>
-                    <p className="text-[10px] mt-1" style={{ color: "#8B5CF6" }}>{dl} days left &middot; +{c.xp_reward} XP reward</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 ml-2">
-                    <p className="text-lg font-black" style={{ color: "#5B21B6" }}>{c.progress || 0}%</p>
-                    <button onClick={() => onLeave(c.id)} className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#FEE2E280", color: "#991B1B" }} data-testid={`leave-challenge-${c.id}`}>Abandon</button>
-                  </div>
-                </div>
-                <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "#DDD6FE" }}>
-                  <div className="h-full rounded-full" style={{ width: `${c.progress || 0}%`, backgroundColor: "#8B5CF6" }} />
-                </div>
+        <div className="px-5 pb-3 space-y-2">
+          <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "#10B981" }}>Active</p>
+          {active.map((c) => (
+            <div key={c.id} className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{c.title}</p>
+                <button onClick={() => onLeave(c.id)} className="text-[9px] font-bold px-2 py-1 rounded" style={{ color: "#EF4444", backgroundColor: "#EF444410" }} data-testid={`leave-challenge-${c.id}`}>Abandon</button>
               </div>
-            );
-          })}
-        </div>
-      )}
-
-      {available.length > 0 && (
-        <div className="space-y-2.5">
-          <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: "var(--text-muted)" }}>Available to Join</p>
-          {available.map((c) => (
-            <div key={c.code} className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-light)" }}>
-              <div className="p-3.5 flex items-center gap-3" style={{ backgroundColor: "var(--bg-subtle)" }}>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2"><p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{c.title}</p>{c.difficulty && <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${DIFF_COLORS[c.difficulty]}20`, color: DIFF_COLORS[c.difficulty] }}>{c.difficulty}</span>}</div>
-                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{c.duration_days} days &middot; +{c.xp_reward} XP</p>
-                </div>
-                <button onClick={() => setExpCh(expCh === c.code ? null : c.code)} className="p-1.5 rounded-lg" style={{ color: "var(--text-muted)" }}>{expCh === c.code ? <ChevronUp className="h-4 w-4" /> : <Info className="h-4 w-4" />}</button>
-                <button onClick={() => onJoin(c.code)} className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: "var(--brand-primary)" }} data-testid={`join-challenge-${c.code}`}>Join</button>
+              <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                <div className="h-full rounded-full" style={{ width: `${(c.progress / c.target) * 100}%`, backgroundColor: "#10B981" }} />
               </div>
-              {expCh === c.code && c.explainer && (
-                <div className="px-3.5 py-3 text-xs" style={{ color: "var(--text-secondary)", backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border-light)" }}>{c.explainer}</div>
-              )}
+              <p className="text-[9px] mt-1" style={{ color: "var(--text-muted)" }}>{c.progress}/{c.target} · {c.daysLeft}d left</p>
             </div>
           ))}
         </div>
       )}
+
+      <div className="px-5 pb-4 space-y-2">
+        <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Available ({available.length})</p>
+        {available.slice(0, 6).map((c) => (
+          <div key={c.code} className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{c.title}</p>
+                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${DIFF_COLORS[c.difficulty]}15`, color: DIFF_COLORS[c.difficulty] }}>{c.difficulty}</span>
+                </div>
+                <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{c.description}</p>
+              </div>
+              <button onClick={() => onJoin(c.code)} className="ml-2 text-[9px] font-bold px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: "var(--brand-primary)" }} data-testid={`join-challenge-${c.code}`}>Join</button>
+            </div>
+            <div className="flex items-center gap-3 mt-1.5 text-[9px]" style={{ color: "var(--text-muted)" }}>
+              <span>{c.duration_days}d</span>
+              <span>+{c.xp_reward} XP</span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
@@ -481,52 +533,68 @@ const Insights = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
-  const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, loading, refresh, processWeekly, joinChallenge, leaveChallenge } = useIntelligenceData();
+  const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, loading, refresh, processWeekly, joinChallenge, leaveChallenge } = useIntelligenceData();
   const [processing, setProcessing] = useState(false);
 
-  useEffect(() => { window.scrollTo(0, 0); }, []);
-  const handleProcess = async () => { setProcessing(true); await processWeekly(); setProcessing(false); };
+  const handleProcess = async () => {
+    setProcessing(true);
+    await processWeekly();
+    setProcessing(false);
+  };
 
   if (loading) {
-    return (<div className="min-h-screen pb-24 flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}><div className="flex flex-col items-center gap-3"><RefreshCw className="h-8 w-8 animate-spin" style={{ color: "var(--brand-primary)" }} /><p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>Loading your financial intelligence...</p></div></div>);
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}>
+        <div className="animate-spin h-8 w-8 border-3 border-t-transparent rounded-full" style={{ borderColor: "var(--brand-primary)", borderTopColor: "transparent" }} />
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="insights-page">
-      <header className="sticky top-0 z-40 px-4 py-3 flex items-center gap-3" style={{ backgroundColor: "var(--bg-app)", borderBottom: "1px solid var(--border-light)" }}>
-        <button onClick={() => navigate("/home", { replace: true })} className="flex items-center justify-center w-9 h-9 rounded-full" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="back-button"><ArrowLeft className="h-4 w-4" /></button>
-        <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Insights</h1>
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }}>
+      <header className="sticky top-0 z-30 px-4 py-3 flex items-center gap-3" style={{ backgroundColor: "var(--bg-app)", borderBottom: "1px solid var(--border-light)" }}>
+        <button onClick={() => navigate(-1)} data-testid="insights-back-btn"><ArrowLeft className="h-5 w-5" style={{ color: "var(--text-primary)" }} /></button>
+        <h1 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>Insights</h1>
         <div className="ml-auto flex gap-2">
           <button onClick={handleProcess} disabled={processing} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95" style={{ backgroundColor: "var(--brand-primary)", opacity: processing ? 0.6 : 1 }} data-testid="process-weekly-btn">
-            <Zap className="h-3.5 w-3.5" />{processing ? "..." : "Update"}
+            <Zap className="h-3.5 w-3.5" />{processing ? "Updating..." : "Update"}
           </button>
-          <button onClick={refresh} className="flex items-center justify-center w-9 h-9 rounded-xl" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-secondary)" }} data-testid="refresh-btn"><RefreshCw className="h-4 w-4" /></button>
+          <button onClick={refresh} className="p-2 rounded-xl" style={{ backgroundColor: "var(--bg-card)" }} data-testid="refresh-btn"><RefreshCw className="h-4 w-4" style={{ color: "var(--text-muted)" }} /></button>
         </div>
       </header>
 
-      <div className="px-4 py-3 space-y-4 max-w-3xl mx-auto">
+      <div className="px-4 py-4 space-y-4 max-w-3xl mx-auto">
         <SurvivalWarning data={survivalClock} />
-        <LevelJourney data={gamification} onShare={() => setShowShareCard(true)} />
+        <StageJourney data={gamification} onShare={() => setShowShareCard(true)} />
+        <SurvivalStages data={survivalClock} />
         <EmergencyRunwayWidget data={survivalClock} />
         <RunwaySimulator currentData={survivalClock} />
-        <FinancialScoreWidget data={controlScore} />
-        <BehaviorAlertsWidget data={behaviorAlerts} />
-        <AchievementsWidget data={gamification} />
-        <ChallengesWidget data={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
-        <div className="space-y-2.5 pt-2">
-          <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: "var(--text-muted)" }}>Explore</p>
+        <MoneyPatternWidget data={moneyPattern} />
+        <ControlScoreWidget data={controlScore} />
+        <BadgesWidget data={gamification} />
+        <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
+
+        {/* Quick Links */}
+        <div className="grid grid-cols-2 gap-3">
           {[
-            { id: "analytics", title: "Analytics", desc: "Charts & trends", icon: BarChart3, color: "#8B5CF6", path: "/insights/analytics" },
-            { id: "reports", title: "Reports", desc: "PDF & Excel export", icon: FileText, color: "#059669", path: "/insights/reports" },
-          ].map((c) => { const I = c.icon; return (
-            <button key={c.id} onClick={() => navigate(c.path)} className="w-full rounded-xl p-4 text-left flex items-center gap-4 active:scale-[0.98]" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid={`insights-${c.id}-card`}>
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${c.color}15` }}><I className="h-5 w-5" style={{ color: c.color }} /></div>
-              <div className="flex-1"><p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{c.title}</p><p className="text-xs" style={{ color: "var(--text-muted)" }}>{c.desc}</p></div>
-              <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
-            </button>
-          ); })}
+            { label: "Analytics", desc: "Charts & trends", icon: BarChart3, route: "/analytics" },
+            { label: "Reports", desc: "Download PDF", icon: FileText, route: "/reports" },
+          ].map((l) => {
+            const I = l.icon;
+            return (
+              <button key={l.label} onClick={() => navigate(l.route)} className="p-4 rounded-2xl flex items-center gap-3 text-left active:scale-[0.98] transition-all" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+                <I className="h-5 w-5" style={{ color: "var(--brand-primary)" }} />
+                <div>
+                  <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{l.label}</p>
+                  <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{l.desc}</p>
+                </div>
+                <ChevronRight className="h-4 w-4 ml-auto" style={{ color: "var(--text-muted)" }} />
+              </button>
+            );
+          })}
         </div>
       </div>
+
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
       <ShareScoreCard isOpen={showShareCard} onClose={() => setShowShareCard(false)} />
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
