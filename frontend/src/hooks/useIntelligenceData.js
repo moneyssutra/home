@@ -55,9 +55,19 @@ export function useIntelligenceData() {
     }
   };
 
+  const leaveChallenge = async (id) => {
+    try {
+      await axios.delete(`${backendUrl}/api/gamification/challenges/${id}/leave`, { withCredentials: true });
+      await fetchAll();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchAll();
   }, []);
 
-  return { survivalClock, controlScore, behaviorAlerts, gamification, challenges, loading, error, refresh: fetchAll, processWeekly, joinChallenge };
+  return { survivalClock, controlScore, behaviorAlerts, gamification, challenges, loading, error, refresh: fetchAll, processWeekly, joinChallenge, leaveChallenge };
 }
