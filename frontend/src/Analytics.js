@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  ArrowLeft, TrendingUp, TrendingDown, PieChart, BarChart3, 
-  Wallet, CreditCard, Building2, PiggyBank, RefreshCw,
-  DollarSign, Home, Briefcase, Target
+  ArrowLeft, TrendingUp, TrendingDown, PieChart, 
+  Wallet, CreditCard, PiggyBank, RefreshCw,
+  DollarSign, Home, Target, BarChart3
 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
@@ -16,9 +16,9 @@ const Analytics = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState("6M");
+  const [selectedBar, setSelectedBar] = useState(null);
   const [data, setData] = useState({
     netWorth: 0,
-    netWorthChange: 0,
     totalAssets: 0,
     totalInvestments: 0,
     totalLoans: 0,
@@ -37,7 +37,6 @@ const Analytics = () => {
   });
 
   const timeFilters = ["1M", "3M", "6M", "1Y", "All"];
-  const monthsMap = { "1M": 1, "3M": 3, "6M": 6, "1Y": 12, "All": 24 };
 
   useEffect(() => {
     fetchAllData();
@@ -64,7 +63,6 @@ const Analytics = () => {
       
       setData({
         netWorth: networthRes.data.netWorth || 0,
-        netWorthChange: 5.2,
         totalAssets: networthRes.data.totalAssets || 0,
         totalInvestments: networthRes.data.totalInvestments || 0,
         totalLoans: networthRes.data.totalLiabilities || 0,
@@ -92,115 +90,207 @@ const Analytics = () => {
     }
   };
 
-  const formatAmount = (amount) => {
-    if (!amount) return "0";
-    if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
-    if (amount >= 100000) return `${(amount / 100000).toFixed(2)} L`;
-    if (amount >= 1000) return `${(amount / 1000).toFixed(1)} K`;
+  const formatAmount = (amount, short = false) => {
+    if (!amount && amount !== 0) return "0";
+    const absAmount = Math.abs(amount);
+    if (short) {
+      if (absAmount >= 10000000) return `${(amount / 10000000).toFixed(1)}Cr`;
+      if (absAmount >= 100000) return `${(amount / 100000).toFixed(1)}L`;
+      if (absAmount >= 1000) return `${(amount / 1000).toFixed(0)}K`;
+      return amount.toFixed(0);
+    }
+    if (absAmount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
+    if (absAmount >= 100000) return `${(amount / 100000).toFixed(2)} L`;
+    if (absAmount >= 1000) return `${(amount / 1000).toFixed(1)} K`;
     return amount.toFixed(0);
   };
 
-  // Generate date labels based on time filter
-  const getDateLabels = () => {
+  // Generate historical data with dates and amounts
+  const generateHistoricalData = (currentValue, trend = "up") => {
     const today = new Date();
-    const labels = [];
+    const dataPoints = [];
+    
+    let numPoints, getLabel;
     
     if (timeFilter === "1M") {
-      // Last 31 days - show day numbers
-      for (let i = 30; i >= 0; i -= 3) { // Show every 3rd day for readability
+      numPoints = 10;
+      getLabel = (i) => {
         const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        labels.push(date.getDate().toString());
-      }
+        date.setDate(date.getDate() - (numPoints - 1 - i) * 3);
+        return `${date.getDate()}/${date.getMonth() + 1}`;
+      };
     } else if (timeFilter === "3M") {
-      // Last 3 months - show M1, M2, M3
-      for (let i = 2; i >= 0; i--) {
+      numPoints = 3;
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      getLabel = (i) => {
         const date = new Date(today);
-        date.setMonth(date.getMonth() - i);
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        labels.push(monthNames[date.getMonth()]);
-      }
+        date.setMonth(date.getMonth() - (numPoints - 1 - i));
+        return monthNames[date.getMonth()];
+      };
     } else if (timeFilter === "6M") {
-      // Last 6 months
-      for (let i = 5; i >= 0; i--) {
+      numPoints = 6;
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      getLabel = (i) => {
         const date = new Date(today);
-        date.setMonth(date.getMonth() - i);
-        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        labels.push(monthNames[date.getMonth()]);
-      }
+        date.setMonth(date.getMonth() - (numPoints - 1 - i));
+        return monthNames[date.getMonth()];
+      };
     } else if (timeFilter === "1Y") {
-      // Last 12 months
-      for (let i = 11; i >= 0; i--) {
+      numPoints = 12;
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      getLabel = (i) => {
         const date = new Date(today);
-        date.setMonth(date.getMonth() - i);
-        const monthNames = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
-        labels.push(monthNames[date.getMonth()]);
-      }
-    } else {
-      // All - Last 24 months (show as quarters)
-      for (let i = 7; i >= 0; i--) {
+        date.setMonth(date.getMonth() - (numPoints - 1 - i));
+        return monthNames[date.getMonth()];
+      };
+    } else { // All
+      numPoints = 8;
+      getLabel = (i) => {
         const date = new Date(today);
-        date.setMonth(date.getMonth() - (i * 3));
+        date.setMonth(date.getMonth() - (numPoints - 1 - i) * 3);
         const q = Math.floor(date.getMonth() / 3) + 1;
-        labels.push(`Q${q}'${date.getFullYear().toString().slice(-2)}`);
-      }
+        return `Q${q}'${date.getFullYear().toString().slice(-2)}`;
+      };
     }
     
-    return labels;
-  };
-
-  // Generate sample bar data matching the number of labels
-  const generateBars = (currentValue, trend = "up") => {
-    const labels = getDateLabels();
-    const bars = [];
+    // Generate realistic historical values
     const baseValue = currentValue * 0.7;
-    for (let i = 0; i < labels.length; i++) {
-      const variance = Math.random() * 0.3;
-      const trendFactor = trend === "up" ? (i / labels.length) * 0.3 : (1 - i / labels.length) * 0.3;
-      bars.push(baseValue * (1 + variance + trendFactor));
+    const growth = trend === "up" ? 0.3 : -0.2;
+    
+    for (let i = 0; i < numPoints; i++) {
+      const progressFactor = i / (numPoints - 1);
+      const randomVariance = (Math.random() - 0.5) * 0.1;
+      const value = baseValue * (1 + (growth * progressFactor) + randomVariance);
+      
+      dataPoints.push({
+        label: getLabel(i),
+        value: Math.max(0, value),
+        isCurrent: i === numPoints - 1
+      });
     }
-    return bars;
+    
+    // Ensure last point is current value
+    if (dataPoints.length > 0) {
+      dataPoints[dataPoints.length - 1].value = currentValue;
+    }
+    
+    return dataPoints;
   };
 
-  const renderBarsChart = (bars, color, height = 80) => {
-    const maxBar = Math.max(...bars, 1);
-    const labels = getDateLabels();
+  // Enhanced bar chart with amounts shown
+  const MetricCard = ({ title, value, color, icon: Icon, trend }) => {
+    const [hoveredIndex, setHoveredIndex] = useState(null);
+    const historicalData = generateHistoricalData(value, trend);
+    const maxValue = Math.max(...historicalData.map(d => d.value), 1);
+    const minValue = Math.min(...historicalData.map(d => d.value));
+    
+    // Calculate change from first to last
+    const firstValue = historicalData[0]?.value || 0;
+    const changePercent = firstValue > 0 
+      ? (((value - firstValue) / firstValue) * 100).toFixed(1) 
+      : 0;
+    const isPositive = changePercent >= 0;
     
     return (
-      <div>
-        <div className="flex items-end gap-1 p-2 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", height: `${height}px` }}>
-          {bars.map((value, i) => (
-            <div 
-              key={i}
-              className="flex-1 rounded-t transition-all"
-              style={{ 
-                height: `${Math.max((value / maxBar) * 100, 5)}%`,
-                backgroundColor: i === bars.length - 1 ? color : `${color}50`
-              }}
-            />
-          ))}
+      <div 
+        className="rounded-2xl p-4" 
+        style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${color}15` }}>
+              <Icon className="h-4 w-4" style={{ color }} />
+            </div>
+            <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{title}</span>
+          </div>
+          <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${isPositive ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+            {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {isPositive ? "+" : ""}{changePercent}%
+          </div>
         </div>
-        <div className="flex justify-between mt-1 px-1">
-          {labels.map((label, i) => (
-            <span key={i} className="text-[8px]" style={{ color: "var(--text-muted)" }}>
-              {label}
-            </span>
-          ))}
+        
+        {/* Current Value */}
+        <p className="text-2xl font-bold mb-3" style={{ color: "var(--text-primary)" }}>
+          ₹{formatAmount(value)}
+        </p>
+        
+        {/* Chart with hover values */}
+        <div className="relative">
+          {/* Hovered value tooltip */}
+          {hoveredIndex !== null && (
+            <div 
+              className="absolute -top-8 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-lg text-xs font-medium z-10 whitespace-nowrap"
+              style={{ 
+                backgroundColor: color, 
+                color: "white",
+                left: `${(hoveredIndex / (historicalData.length - 1)) * 100}%`
+              }}
+            >
+              ₹{formatAmount(historicalData[hoveredIndex]?.value, true)}
+            </div>
+          )}
+          
+          {/* Bars */}
+          <div className="flex items-end gap-1 h-16 mb-1">
+            {historicalData.map((point, i) => {
+              const height = maxValue > minValue 
+                ? ((point.value - minValue) / (maxValue - minValue)) * 100 
+                : 50;
+              
+              return (
+                <div 
+                  key={i}
+                  className="flex-1 rounded-t cursor-pointer transition-all hover:opacity-80"
+                  style={{ 
+                    height: `${Math.max(height, 10)}%`,
+                    backgroundColor: point.isCurrent ? color : `${color}40`,
+                    transform: hoveredIndex === i ? 'scaleY(1.05)' : 'scaleY(1)'
+                  }}
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  onClick={() => setHoveredIndex(hoveredIndex === i ? null : i)}
+                />
+              );
+            })}
+          </div>
+          
+          {/* Labels */}
+          <div className="flex justify-between">
+            {historicalData.map((point, i) => (
+              <span 
+                key={i} 
+                className="text-[9px] text-center flex-1"
+                style={{ 
+                  color: hoveredIndex === i ? color : "var(--text-muted)",
+                  fontWeight: hoveredIndex === i || point.isCurrent ? "600" : "400"
+                }}
+              >
+                {point.label}
+              </span>
+            ))}
+          </div>
+          
+          {/* Min/Max indicators */}
+          <div className="flex justify-between mt-2 text-[10px]" style={{ color: "var(--text-muted)" }}>
+            <span>Start: ₹{formatAmount(firstValue, true)}</span>
+            <span>Now: ₹{formatAmount(value, true)}</span>
+          </div>
         </div>
       </div>
     );
   };
 
-  // Metric cards with bars
-  const metricCards = [
-    { title: "Net Worth", value: data.netWorth, change: data.netWorthChange, color: "#10B981", icon: Wallet, trend: "up" },
-    { title: "Total Assets", value: data.totalAssets, change: 5.2, color: "#3B82F6", icon: Home, trend: "up" },
-    { title: "Investments", value: data.totalInvestments, change: investmentPerf.gainPercent, color: "#8B5CF6", icon: PiggyBank, trend: investmentPerf.gainPercent >= 0 ? "up" : "down" },
-    { title: "Monthly Income", value: data.monthlyIncome, change: 3.5, color: "#059669", icon: TrendingUp, trend: "up" },
-    { title: "Monthly Expense", value: data.monthlyExpense, change: -2.1, color: "#EF4444", icon: TrendingDown, trend: "down" },
-    { title: "Total Loans", value: data.totalLoans + data.totalCreditCards, change: -4.5, color: "#F59E0B", icon: CreditCard, trend: "down" },
-    { title: "Cash Flow", value: data.monthlyIncome - data.monthlyExpense, change: parseFloat(data.savingsRate) || 0, color: "#06B6D4", icon: BarChart3, trend: (data.monthlyIncome - data.monthlyExpense) >= 0 ? "up" : "down" },
-    { title: "Liquid Balance", value: data.liquidBalance, change: 1.2, color: "#EC4899", icon: DollarSign, trend: "up" }
+  // Metric definitions
+  const metrics = [
+    { title: "Net Worth", value: data.netWorth, color: "#10B981", icon: Wallet, trend: "up" },
+    { title: "Total Assets", value: data.totalAssets, color: "#3B82F6", icon: Home, trend: "up" },
+    { title: "Investments", value: data.totalInvestments, color: "#8B5CF6", icon: PiggyBank, trend: investmentPerf.gainPercent >= 0 ? "up" : "down" },
+    { title: "Monthly Income", value: data.monthlyIncome, color: "#059669", icon: TrendingUp, trend: "up" },
+    { title: "Monthly Expense", value: data.monthlyExpense, color: "#EF4444", icon: TrendingDown, trend: "down" },
+    { title: "Total Loans", value: data.totalLoans + data.totalCreditCards, color: "#F59E0B", icon: CreditCard, trend: "down" },
+    { title: "Cash Flow", value: data.monthlyIncome - data.monthlyExpense, color: "#06B6D4", icon: BarChart3, trend: (data.monthlyIncome - data.monthlyExpense) >= 0 ? "up" : "down" },
+    { title: "Liquid Balance", value: data.liquidBalance, color: "#EC4899", icon: DollarSign, trend: "up" }
   ];
 
   if (loading) {
@@ -214,6 +304,7 @@ const Analytics = () => {
     );
   }
 
+  // Wealth breakdown percentages
   const totalWealth = data.totalAssets + data.totalInvestments + data.liquidBalance;
   const assetPercent = totalWealth > 0 ? ((data.totalAssets / totalWealth) * 100).toFixed(0) : 33;
   const investmentPercent = totalWealth > 0 ? ((data.totalInvestments / totalWealth) * 100).toFixed(0) : 33;
@@ -241,7 +332,7 @@ const Analytics = () => {
             <button
               key={filter}
               onClick={() => setTimeFilter(filter)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all`}
+              className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all"
               style={{
                 backgroundColor: timeFilter === filter ? "var(--brand-primary)" : "var(--bg-card)",
                 color: timeFilter === filter ? "white" : "var(--text-secondary)",
@@ -252,53 +343,43 @@ const Analytics = () => {
             </button>
           ))}
         </div>
+        
+        {/* Info Banner */}
+        <div className="px-3 py-2 rounded-xl text-xs" style={{ backgroundColor: "var(--brand-primary-soft)", color: "var(--brand-primary)" }}>
+          💡 Hover or tap on any bar to see the value for that period
+        </div>
 
         {/* Metric Cards Grid */}
-        <div className="grid grid-cols-2 gap-3">
-          {metricCards.map((metric) => {
-            const Icon = metric.icon;
-            const bars = generateBars(metric.value, metric.trend);
-            const isPositive = metric.change >= 0;
-            
-            return (
-              <div key={metric.title} className="rounded-2xl p-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-1.5">
-                    <Icon className="h-3.5 w-3.5" style={{ color: metric.color }} />
-                    <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>{metric.title}</span>
-                  </div>
-                  <div className={`flex items-center gap-0.5 text-xs font-medium ${isPositive ? "text-green-500" : "text-red-500"}`}>
-                    {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                    {isPositive ? "+" : ""}{metric.change.toFixed(1)}%
-                  </div>
-                </div>
-                <p className="text-base font-bold mb-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(metric.value)}</p>
-                {renderBarsChart(bars, metric.color, 45)}
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {metrics.map((metric) => (
+            <MetricCard key={metric.title} {...metric} />
+          ))}
         </div>
 
         {/* Wealth Breakdown */}
         <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
           <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Wealth Breakdown</h3>
-          <div className="h-8 rounded-full overflow-hidden flex mb-4" style={{ backgroundColor: "var(--bg-subtle)" }}>
-            <div className="h-full transition-all" style={{ width: `${assetPercent}%`, backgroundColor: "#3B82F6" }} />
-            <div className="h-full transition-all" style={{ width: `${investmentPercent}%`, backgroundColor: "#8B5CF6" }} />
-            <div className="h-full transition-all" style={{ width: `${liquidPercent}%`, backgroundColor: "#EC4899" }} />
+          <div className="h-10 rounded-full overflow-hidden flex mb-4" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <div className="h-full transition-all flex items-center justify-center text-xs font-medium text-white" style={{ width: `${assetPercent}%`, backgroundColor: "#3B82F6", minWidth: "40px" }}>
+              {assetPercent}%
+            </div>
+            <div className="h-full transition-all flex items-center justify-center text-xs font-medium text-white" style={{ width: `${investmentPercent}%`, backgroundColor: "#8B5CF6", minWidth: "40px" }}>
+              {investmentPercent}%
+            </div>
+            <div className="h-full transition-all flex items-center justify-center text-xs font-medium text-white" style={{ width: `${liquidPercent}%`, backgroundColor: "#EC4899", minWidth: "40px" }}>
+              {liquidPercent}%
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: "Assets", value: data.totalAssets, color: "#3B82F6", percent: assetPercent },
-              { label: "Investments", value: data.totalInvestments, color: "#8B5CF6", percent: investmentPercent },
-              { label: "Liquid", value: data.liquidBalance, color: "#EC4899", percent: liquidPercent }
+              { label: "Assets", value: data.totalAssets, color: "#3B82F6" },
+              { label: "Investments", value: data.totalInvestments, color: "#8B5CF6" },
+              { label: "Liquid", value: data.liquidBalance, color: "#EC4899" }
             ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
-                <div>
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{item.label} ({item.percent}%)</p>
-                  <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(item.value)}</p>
-                </div>
+              <div key={item.label} className="text-center p-3 rounded-xl" style={{ backgroundColor: `${item.color}10` }}>
+                <div className="w-3 h-3 rounded mx-auto mb-2" style={{ backgroundColor: item.color }} />
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{item.label}</p>
+                <p className="text-sm font-bold mt-1" style={{ color: "var(--text-primary)" }}>₹{formatAmount(item.value)}</p>
               </div>
             ))}
           </div>
@@ -314,25 +395,25 @@ const Analytics = () => {
           </div>
           
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <div className="p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>Total Invested</p>
-              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(investmentPerf.totalInvested)}</p>
+              <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(investmentPerf.totalInvested)}</p>
             </div>
-            <div className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <div className="p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>Current Value</p>
-              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(investmentPerf.currentValue)}</p>
+              <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(investmentPerf.currentValue)}</p>
             </div>
           </div>
           
-          <div className="p-3 rounded-xl" style={{ backgroundColor: investmentPerf.totalGains >= 0 ? "rgba(5, 150, 105, 0.1)" : "rgba(239, 68, 68, 0.1)" }}>
+          <div className="p-4 rounded-xl" style={{ backgroundColor: investmentPerf.totalGains >= 0 ? "rgba(5, 150, 105, 0.1)" : "rgba(239, 68, 68, 0.1)" }}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>Total Returns</p>
-                <p className="text-xl font-bold" style={{ color: investmentPerf.totalGains >= 0 ? "#059669" : "#EF4444" }}>
+                <p className="text-2xl font-bold" style={{ color: investmentPerf.totalGains >= 0 ? "#059669" : "#EF4444" }}>
                   {investmentPerf.totalGains >= 0 ? "+" : ""}₹{formatAmount(Math.abs(investmentPerf.totalGains))}
                 </p>
               </div>
-              <div className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${investmentPerf.gainPercent >= 0 ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
+              <div className={`flex items-center gap-1 px-4 py-2 rounded-full text-sm font-semibold ${investmentPerf.gainPercent >= 0 ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}>
                 {investmentPerf.gainPercent >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                 {investmentPerf.gainPercent >= 0 ? "+" : ""}{investmentPerf.gainPercent}%
               </div>
@@ -342,21 +423,27 @@ const Analytics = () => {
           {Object.keys(investmentPerf.byCategory || {}).length > 0 && (
             <div className="mt-4">
               <p className="text-xs font-medium mb-3" style={{ color: "var(--text-muted)" }}>By Category</p>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {Object.entries(investmentPerf.byCategory).slice(0, 6).map(([cat, vals], idx) => {
                   const colors = ["#8B5CF6", "#3B82F6", "#059669", "#F59E0B", "#EF4444", "#EC4899"];
                   const total = Object.values(investmentPerf.byCategory).reduce((sum, v) => sum + v.current, 0);
                   const percent = total > 0 ? ((vals.current / total) * 100).toFixed(0) : 0;
+                  const gain = vals.current - vals.invested;
                   return (
                     <div key={cat} className="flex items-center gap-3">
                       <div className="w-3 h-3 rounded" style={{ backgroundColor: colors[idx % colors.length] }} />
                       <div className="flex-1">
                         <div className="flex justify-between text-sm">
                           <span style={{ color: "var(--text-secondary)" }}>{cat}</span>
-                          <span className="font-medium" style={{ color: "var(--text-primary)" }}>{percent}%</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium" style={{ color: "var(--text-primary)" }}>₹{formatAmount(vals.current, true)}</span>
+                            <span className={`text-xs ${gain >= 0 ? "text-green-500" : "text-red-500"}`}>
+                              {gain >= 0 ? "+" : ""}{formatAmount(gain, true)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="h-1.5 rounded-full mt-1" style={{ backgroundColor: "var(--bg-subtle)" }}>
-                          <div className="h-full rounded-full" style={{ width: `${percent}%`, backgroundColor: colors[idx % colors.length] }} />
+                        <div className="h-2 rounded-full mt-1" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                          <div className="h-full rounded-full transition-all" style={{ width: `${percent}%`, backgroundColor: colors[idx % colors.length] }} />
                         </div>
                       </div>
                     </div>
@@ -386,50 +473,52 @@ const Analytics = () => {
                 <circle cx="50" cy="50" r="40" fill="none" stroke="#8B5CF6" strokeWidth="12" strokeDasharray="30 220" strokeDashoffset="-170" />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(data.monthlyExpense)}</p>
+                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(data.monthlyExpense, true)}</p>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>Total</p>
               </div>
             </div>
             <div className="flex-1 space-y-2">
               {[
-                { name: "Bills & EMIs", percent: 32, color: "#EF4444" },
-                { name: "Food & Dining", percent: 20, color: "#F59E0B" },
-                { name: "Shopping", percent: 16, color: "#3B82F6" },
-                { name: "Others", percent: 32, color: "#8B5CF6" }
+                { name: "Bills & EMIs", percent: 32, color: "#EF4444", amount: data.monthlyExpense * 0.32 },
+                { name: "Food & Dining", percent: 20, color: "#F59E0B", amount: data.monthlyExpense * 0.20 },
+                { name: "Shopping", percent: 16, color: "#3B82F6", amount: data.monthlyExpense * 0.16 },
+                { name: "Others", percent: 32, color: "#8B5CF6", amount: data.monthlyExpense * 0.32 }
               ].map((item) => (
                 <div key={item.name} className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className="text-xs flex-1" style={{ color: "var(--text-secondary)" }}>{item.name}</span>
-                  <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>{item.percent}%</span>
+                  <span className="text-xs font-medium" style={{ color: "var(--text-primary)" }}>₹{formatAmount(item.amount, true)}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Savings Rate */}
+        {/* Savings Summary */}
         <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(5, 150, 105, 0.1)" }}>
               <Target className="h-5 w-5" style={{ color: "#059669" }} />
             </div>
-            <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Savings Rate</h3>
+            <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Savings Summary</h3>
           </div>
           
-          <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
-            <div>
-              <p className="text-3xl font-bold" style={{ color: parseFloat(data.savingsRate) >= 20 ? "#059669" : "#F59E0B" }}>
-                {data.savingsRate}%
-              </p>
-              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-                {parseFloat(data.savingsRate) >= 30 ? "Excellent!" : parseFloat(data.savingsRate) >= 20 ? "Good" : "Needs work"}
-              </p>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-4 rounded-xl" style={{ backgroundColor: "rgba(5, 150, 105, 0.1)" }}>
+              <p className="text-2xl font-bold" style={{ color: "#059669" }}>{data.savingsRate}%</p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Savings Rate</p>
             </div>
-            <div className="text-right">
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>Monthly Surplus</p>
+            <div className="text-center p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
               <p className="text-lg font-bold" style={{ color: (data.monthlyIncome - data.monthlyExpense) >= 0 ? "#059669" : "#EF4444" }}>
-                ₹{formatAmount(data.monthlyIncome - data.monthlyExpense)}
+                ₹{formatAmount(data.monthlyIncome - data.monthlyExpense, true)}
               </p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Monthly Surplus</p>
+            </div>
+            <div className="text-center p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
+              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>
+                ₹{formatAmount((data.monthlyIncome - data.monthlyExpense) * 12, true)}
+              </p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Yearly Potential</p>
             </div>
           </div>
         </div>
