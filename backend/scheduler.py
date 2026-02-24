@@ -314,6 +314,11 @@ async def check_and_send_reminders():
         # Weekly gamification processing - Sunday at 23:59
         if now.weekday() == 6 and current_time == "23:59":
             await run_weekly_gamification()
+            await run_weekly_health_digest()
+
+        # Monthly personality evaluation - 1st of month at 00:05
+        if now.day == 1 and current_time == "00:05":
+            await run_monthly_personality_evaluation()
 
         await asyncio.sleep(60)
 
