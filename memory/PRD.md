@@ -1,93 +1,79 @@
 # Moneyssutra - Personal Finance Tracker PRD
 
 ## Original Problem Statement
-Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI. Evolving into a Financial Control Operating System.
+Full-stack personal finance manager (React/FastAPI/MongoDB) with a "Financial Control Operating System" on the Insights page. Features include survival clock, financial score, gamification engine (100 badges, 20 stages), money pattern recognition, emergency runway, and shareable score cards.
 
-## Current Status
-Core features + Financial Intelligence + Gamification (P0 complete, clarity improvements verified). Backend modularized.
+## Core Architecture
+- **Frontend**: React + Tailwind + Shadcn UI (port 3000)
+- **Backend**: FastAPI (port 8001, prefixed /api)
+- **Database**: MongoDB Atlas via MONGO_URL
+- **Auth**: Session-based (session_token cookie)
+- **3rd Party**: OpenAI GPT-5.2 (emergentintegrations), Resend, html2canvas, reportlab
 
-## Session 5 Work (Feb 24, 2026)
+## What's Been Implemented
 
-### Financial Intelligence Engine (DONE)
-- **Emergency Runway (Survival Clock)**: liquid funds / daily mandatory burn = survival days + level
-- **Financial Score (Control Score)**: 0-100 composite (Savings Rate + EMI Load + Safety Buffer + Income Consistency)
-- **Smart Alerts (Behavior Alerts)**: Overspending, Debt Risk, EMI Stress, Repeating Mistakes, Lifestyle Inflation, Survival warnings
+### Feb 24, 2026 Session
+- **Financial Health Contributions**: Each module card shows score/max badge (e.g., 8.8/17.5). Debt to Asset Ratio added to scoring (10% weight). Removed "HOW YOUR SCORE ADDS UP" verbose section.
+- **Financial Score Period**: Shows "Rolling 3-month window: start — end" based on 3-month data window
+- **XP Rules Bug Fix**: Fixed invisible labels (was "None" due to action vs rule key mismatch) and double text ("++20 XP XP" → "+20 XP")
+- **Badge Icons in Notifications**: Trophy for badge unlocks, Star for level-ups, Flame for streaks. Backend stores badgeIcon field in notifications.
+- **Stage Journey Redesign**: All 20 levels shown in visual bar + info (i) icon expands scrollable detail list with checkmarks/locks/YOU badge
+- **Fund Breakdown Detail**: Semi-Liquid & Illiquid sections show individual asset names with amounts
+- **Stage Explanation**: Kid-friendly one-liner under each stage name (STAGE_EXPLAIN mapping)
+- **ObjectId Fix**: Fixed _unlock_achievement to remove _id after MongoDB insert
 
-### Gamification Engine P0 (DONE)
-- XP System (7 earning rules), **20 Levels** (Getting Started → Financial Freedom)
-- 24 gender-friendly achievements/badges across 11 categories
-- Streak System with rewards at 4/8/12/24/52 weeks
-- 6 Challenges with difficulty ratings (Easy/Medium/Hard), explainers, and leave/abandon option
-- Level journey visualization with 20-level progression dots
-- Max Badges Unlocked tracker ("Peak" counter)
-- Survival warning banner when < 90 days
-- "How to earn XP" toggle
-- Weekly cron job for auto score recalculation
-- Push notifications for level up, streak milestones, new achievements
+### Previous Sessions
+- Shareable Financial Score Card (html2canvas)
+- Financial Runway Simulator (what-if sliders)
+- Money Pattern Recognition endpoint
+- 100-badge gamification system (8 categories, 4 tiers)
+- 20 survival stages (5 phases: Critical/Stabilizing/Control/Growth/Power)
+- 3-tier liquidity classification (Liquid 100%, Semi-Liquid 60%, Illiquid 0%)
+- Backend modularization (routes split from monolithic server.py)
+- Emergency Runway widget, Control Score widget
+- Google Auth integration, Push notifications
 
-### Clarity Improvements (DONE - Feb 24, 2026)
-- FDs included in liquid funds at 90% effective value (semi-liquid category)
-- "Score" renamed to "Financial Score" throughout
-- Explanatory tooltips/help text on all 4 score pillars
-- 20-level system (from 6) with faster early progression
-- Gender-friendly badge names (24 total)
-- "Peak" max badges metric displayed
-- Challenge abandon/leave button
-- Fund breakdown shows Instant/Semi-Liquid/Marketable/Locked categories
+## Key Files
+- `backend/routes/intelligence.py` — survival-clock, control-score, money-pattern, runway-simulator
+- `backend/routes/gamification.py` — 100 badges, XP, levels, challenges
+- `backend/routes/financial_health.py` — 9-module health score with weighted contributions
+- `frontend/src/Insights.js` — Main insights dashboard (all widgets)
+- `frontend/src/components/FinancialHealth.js` — Health score with per-module contribution badges
+- `frontend/src/components/NotificationBell.js` — Badge-specific notification icons
 
-### Shareable Financial Score Card (DONE - Feb 24, 2026)
-- Premium dark gradient card with user name, level, score, grade
-- 4 stat tiles: Runway days, Badges, Streak, Health rating
-- Download as PNG (html2canvas), Share (Web Share API), Copy link
-- MoneySutra branding and generation date
-- Component: `frontend/src/components/ShareScoreCard.js`
-- Backend: `/api/gamification/share-card` (pre-existing)
+## Financial Health Weights
+| Module | Weight |
+|--------|--------|
+| Emergency Fund | 17.5% |
+| Life Insurance | 7.5% |
+| Health Insurance | 7.5% |
+| Savings Rate | 12.5% |
+| Loan Burden | 12.5% |
+| Credit Utilization | 10% |
+| Investment Allocation | 12.5% |
+| Retirement Readiness | 10% |
+| Debt to Asset | 10% |
 
-### Financial Runway Simulator (DONE - Feb 24, 2026)
-- Interactive "what-if" tool with 3 sliders: Income Change (-100% to +100%), Expense Change (-50% to +100%), One-Time Savings (₹0 to ₹10L)
-- Current vs Projected comparison card with level badges
-- 12-month runway projection bar chart with year-end delta badge
-- Dynamic insight text explaining the impact
-- 6 Quick Scenarios: Job Loss, 50% Pay Cut, Cut 20% Expenses, +2L Savings, Raise+Save, Reset
-- Component: `frontend/src/components/RunwaySimulator.js`
-- Backend: `GET /api/intelligence/runway-simulator` with query params
+## Prioritized Backlog
 
-### Backend Modularization (DONE - Session 4)
-- server.py: 286 lines (from 7,022)
-- 26 route modules under backend/routes/
+### P1 - Upcoming
+- Financial Command Center (Control/Pressure/Risk cockpit with trend arrows)
+- Financial Journey (multi-stage progression: Survival → Freedom)
+- Financial Shock Test (monthly simulated emergencies)
 
-## Architecture
-```
-/app/backend/routes/
-├── intelligence.py    (Survival Clock, Control Score, Behavior Alerts)
-├── gamification.py    (XP, Levels, Streaks, 20 Achievements, 6 Challenges)
-├── [24 other modules]
-/app/backend/scheduler.py  (Background tasks + weekly gamification cron)
-/app/frontend/src/
-├── Insights.js        (Intelligence dashboard - all widgets)
-├── hooks/useIntelligenceData.js
-```
+### P2 - Future
+- "Future You" Score (12-month projection)
+- Decision Impact Engine (large purchase impact)
+- Red Zone Mode (urgency theme for critical metrics)
+- Weekly Health Digest notification
+
+### Refactoring
+- Break Insights.js (600+ lines) into smaller components
+- Simplify state management in useData hook
 
 ## Test Credentials
-- Username: test, Password: test
+- Username: `test`, Password: `test`
+- Email: `test@moneyssutra.com`
 
-## Testing
-- Iteration 58: 100% (36/36 backend - base refactoring)
-- Iteration 59: 100% (16/16 backend + 9/9 frontend - initial intelligence)
-- Iteration 60: 100% (18/18 backend + all frontend - P0 polish)
-- Iteration 61: 100% (24/24 backend + all frontend - clarity improvements verified)
-- Iteration 62: 100% (15/15 backend + all frontend - Runway Simulator)
-
-## Upcoming Tasks (P1 - Core Upgrades)
-1. **Financial Runway Engine** - Interactive slider simulation (income/expense changes → survival recalculation)
-2. **Financial Command Center** - Control/Pressure/Risk cockpit with trend arrows
-3. **Money Pattern Recognition** - Personality labels ("High Earning, High Leakage")
-4. **Financial Journey** - Stage progression (Survival → Freedom) with unlockable features
-5. **Red Zone Mode** - Visual urgency theme when critical
-
-## Future Tasks (P2 - Advanced Intelligence)
-- Financial Shock Test (monthly simulated emergencies)
-- Future You Score (12-month projection)
-- Decision Impact Engine ("Buy X → survival drops Y days")
-- Control Recovery Plan (auto-generated action steps)
-- Feature Flag System, sync_source fields, 2FA, PWA
+## Mocked Features
+- 2FA and Biometric Login toggles (UI only, non-functional)
