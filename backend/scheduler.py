@@ -417,3 +417,161 @@ async def run_weekly_gamification():
         logger.info("Weekly gamification processing complete")
     except Exception as e:
         logger.error(f"Error in weekly gamification: {str(e)}")
+
+
+
+async def run_weekly_health_digest():
+    """Run weekly health digest for all users — stores snapshot and creates notification."""
+    try:
+        logger.info("Running weekly health digest for all users...")
+        users = await db.users.find({}, {"_id": 0, "user_id": 1}).to_list(10000)
+        from routes.intelligence import (
+            _get_fund_breakdown, _get_monthly_mandatory_expense,
+            _get_monthly_income, _get_monthly_discretionary_spending
+        )
+
+        for user_doc in users:
+            user_id = user_doc.get("user_id")
+            if not user_id:
+                continue
+            try:
+                user_filter = {"userId": user_id}
+                monthly_income = await _get_monthly_income(user_filter)
+                monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
+                monthly_discretionary = await _get_monthly_discretionary_spending(user_filter)
+                fund_breakdown = await _get_fund_breakdown(user_filter)
+                effective_funds = fund_breakdown["effectiveTotal"]
+                daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
+                survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+                savings_rate = ((monthly_income - monthly_mandatory - monthly_discretionary) / monthly_income * 100) if monthly_income > 0 else 0
+
+                last_digest = await db.weekly_digests.find_one(
+                    {"userId": user_id}, {"_id": 0}, sort=[("createdAt", -1)]
+                )
+
+                changes = []
+                if last_digest:
+                    prev_days = last_digest.get("survivalDays", 0)
+                    prev_rate = last_digest.get("savingsRate", 0)
+                    day_diff = survival_days - prev_days
+                    rate_diff = savings_rate - prev_rate
+                    if day_diff > 0: changes.append(f"Runway +{day_diff} days")
+                    elif day_diff < 0: changes.append(f"Runway {day_diff} days")
+                    if rate_diff > 2: changes.append(f"Savings rate +{rate_diff:.1f}%")
+                    elif rate_diff < -2: changes.append(f"Savings rate {rate_diff:.1f}%")
+
+                summary = " | ".join(changes) if changes else "Metrics stable this week"
+                now = datetime.now(timezone.utc)
+                await db.weekly_digests.insert_one({
+                    "userId": user_id, "survivalDays": survival_days,
+                    "savingsRate": round(savings_rate, 1),
+                    "effectiveFunds": round(effective_funds),
+                    "createdAt": now.isoformat()
+                })
+
+                notification = {
+                    "id": str(uuid.uuid4()), "userId": user_id,
+                    "title": "Weekly Health Digest",
+                    "message": f"Runway: {survival_days}d | Savings: {savings_rate:.1f}% | {summary}",
+                    "type": "digest", "isRead": False, "badgeIcon": "bar-chart",
+                    "createdAt": now.isoformat()
+                }
+                await create_notification_and_cleanup(notification)
+                logger.info(f"Weekly digest sent for user {user_id}")
+            except Exception as e:
+                logger.error(f"Error processing weekly digest for user {user_id}: {str(e)}")
+
+        logger.info("Weekly health digest complete")
+    except Exception as e:
+        logger.error(f"Error in weekly health digest: {str(e)}")
+
+
+async def run_monthly_personality_evaluation():
+    """Run monthly personality evaluation for all users — triggers money-pattern analysis."""
+    try:
+        logger.info("Running monthly personality evaluation for all users...")
+        users = await db.users.find({}, {"_id": 0, "user_id": 1}).to_list(10000)
+        from routes.intelligence import (
+            _get_fund_breakdown, _get_monthly_mandatory_expense,
+            _get_monthly_income, _get_monthly_discretionary_spending, _get_total_emi
+        )
+
+        now = datetime.now(timezone.utc)
+        current_month = now.strftime("%Y-%m")
+
+        for user_doc in users:
+            user_id = user_doc.get("user_id")
+            if not user_id:
+                continue
+            try:
+                # Check if already evaluated this month
+                existing = await db.user_personality_history.find_one(
+                    {"userId": user_id, "month": current_month}
+                )
+                if existing:
+                    continue
+
+                user_filter = {"userId": user_id}
+                monthly_income = await _get_monthly_income(user_filter)
+                monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
+                monthly_discretionary = await _get_monthly_discretionary_spending(user_filter)
+                total_emi = await _get_total_emi(user_filter)
+                fund_breakdown = await _get_fund_breakdown(user_filter)
+                effective_funds = fund_breakdown["effectiveTotal"]
+                daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
+                survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+
+                savings_rate = ((monthly_income - monthly_mandatory - monthly_discretionary) / monthly_income) if monthly_income > 0 else 0
+                debt_to_income = (total_emi / monthly_income) if monthly_income > 0 else 0
+                buffer_months = effective_funds / monthly_mandatory if monthly_mandatory > 0 else 0
+                sav_score = min(int(savings_rate * 100), 25)
+                emi_score = max(25 - int(debt_to_income * 50), 0)
+                buf_score = min(int(buffer_months * 4), 25)
+                control_score = sav_score + emi_score + buf_score + 18
+
+                # Simplified personality match (top-level: use survival + control)
+                personality_name = "Drifter"
+                personality_id = 2
+                zone = "Survival"
+                confidence = 50
+                if survival_days > 720 and control_score >= 85:
+                    personality_name, personality_id, zone, confidence = "Sovereign", 20, "Advanced", 90
+                elif survival_days > 365 and control_score >= 75:
+                    personality_name, personality_id, zone, confidence = "Capital Guardian", 17, "Advanced", 80
+                elif survival_days > 180 and control_score >= 70:
+                    personality_name, personality_id, zone, confidence = "Wealth Builder", 13, "Growth", 75
+                elif survival_days > 120 and control_score >= 65:
+                    personality_name, personality_id, zone, confidence = "Structured Controller", 9, "Control", 70
+                elif survival_days > 60 and savings_rate >= 0.20:
+                    personality_name, personality_id, zone, confidence = "Buffer Builder", 6, "Stabilizing", 65
+                elif survival_days > 30:
+                    personality_name, personality_id, zone, confidence = "Recovering Planner", 5, "Stabilizing", 60
+                elif debt_to_income >= 0.60:
+                    personality_name, personality_id, zone, confidence = "EMI Trapped", 3, "Survival", 70
+
+                await db.user_personality_history.update_one(
+                    {"userId": user_id, "month": current_month},
+                    {"$set": {
+                        "userId": user_id, "month": current_month,
+                        "date": now.isoformat(),
+                        "personality": personality_name, "personalityId": personality_id,
+                        "zone": zone, "confidence": confidence,
+                        "survivalDays": survival_days, "controlScore": control_score,
+                    }}, upsert=True
+                )
+
+                notification = {
+                    "id": str(uuid.uuid4()), "userId": user_id,
+                    "title": "Monthly Personality Update",
+                    "message": f"Your financial personality for {now.strftime('%B %Y')}: {personality_name} ({zone} zone, {confidence}% match)",
+                    "type": "personality_update", "isRead": False,
+                    "createdAt": now.isoformat()
+                }
+                await create_notification_and_cleanup(notification)
+                logger.info(f"Monthly personality evaluated for user {user_id}: {personality_name}")
+            except Exception as e:
+                logger.error(f"Error evaluating personality for user {user_id}: {str(e)}")
+
+        logger.info("Monthly personality evaluation complete")
+    except Exception as e:
+        logger.error(f"Error in monthly personality evaluation: {str(e)}")
