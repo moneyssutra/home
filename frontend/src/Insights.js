@@ -10,17 +10,15 @@ import {
   ArrowLeft, BarChart3, FileText, ChevronRight, RefreshCw,
   Shield, Target, AlertTriangle, Flame, Trophy, Star,
   TrendingUp, TrendingDown, Clock, Zap, Award, ChevronDown, ChevronUp,
-  AlertCircle, Info, X, Share2,
+  AlertCircle, Info, Share2,
   HeartPulse, LifeBuoy, PieChart, ListChecks, Flag,
   Lock, XCircle, PiggyBank, CheckCircle, Rocket, Medal, Crown,
   Gauge, Swords, ShieldCheck, Castle
 } from "lucide-react";
 
 // ─── HELPERS ───
-const fmt = (n) => { if (!n && n !== 0) return "0"; const a = Math.abs(n); if (a >= 10000000) return `₹${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `₹${(n/100000).toFixed(1)}L`; if (a >= 1000) return `₹${(n/1000).toFixed(0)}K`; return `₹${n.toFixed(0)}`; };
-const fmtNum = (n) => { if (!n && n !== 0) return "0"; const a = Math.abs(n); if (a >= 10000000) return `${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `${(n/100000).toFixed(1)}L`; if (a >= 1000) return `${(n/1000).toFixed(0)}K`; return n.toFixed(0); };
+const fmt = (n) => { if (!n && n !== 0) return "0"; const a = Math.abs(n); if (a >= 10000000) return `${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `${(n/100000).toFixed(1)}L`; if (a >= 1000) return `${(n/1000).toFixed(0)}K`; return n.toFixed(0); };
 
-// Icon map for achievements
 const ACH_ICONS = {
   "rocket": Rocket, "shield": Shield, "shield-check": ShieldCheck, "castle": Castle, "crown": Crown,
   "star": Star, "life-buoy": LifeBuoy, "gauge": Gauge, "target": Target, "award": Award,
@@ -33,19 +31,19 @@ const ACH_ICONS = {
 const TIER_COLORS = { bronze: "#CD7F32", silver: "#94A3B8", gold: "#F59E0B", platinum: "#8B5CF6" };
 const TIER_BG = { bronze: "#CD7F3215", silver: "#94A3B815", gold: "#F59E0B15", platinum: "#8B5CF615" };
 const CAT_LABELS = {
-  survival: "Survival & Liquidity", score: "Financial Score", behavior: "Behavior",
-  savings: "Savings & Cash", debt: "Debt Control", investment: "Investment",
-  streak: "Streak & Consistency", elite: "Power & Elite"
+  survival: "Survival", score: "Score", behavior: "Behavior", savings: "Savings",
+  debt: "Debt", investment: "Investment", streak: "Streak", elite: "Elite"
 };
 const PHASE_META = {
-  1: { label: "Critical", color: "#EF4444", emoji: "PHASE 1" },
-  2: { label: "Stabilizing", color: "#F97316", emoji: "PHASE 2" },
-  3: { label: "Control", color: "#EAB308", emoji: "PHASE 3" },
-  4: { label: "Growth", color: "#22C55E", emoji: "PHASE 4" },
-  5: { label: "Power", color: "#3B82F6", emoji: "PHASE 5" },
+  1: { label: "Critical", color: "#EF4444" },
+  2: { label: "Stabilizing", color: "#F97316" },
+  3: { label: "Control", color: "#EAB308" },
+  4: { label: "Growth", color: "#22C55E" },
+  5: { label: "Power", color: "#3B82F6" },
 };
+const DIFF_COLORS = { Easy: "#10B981", Medium: "#F59E0B", Hard: "#EF4444" };
 
-// ─── SURVIVAL WARNING BANNER ───
+// ─── SURVIVAL WARNING ───
 const SurvivalWarning = ({ data }) => {
   if (!data || data.survivalDays > 90) return null;
   const color = data.survivalDays < 30 ? "#DC2626" : "#F59E0B";
@@ -60,43 +58,44 @@ const SurvivalWarning = ({ data }) => {
   );
 };
 
-// ─── 20-STAGE JOURNEY (Show ~10 around current) ───
-const StageJourney = ({ data, onShare }) => {
+// ─── COMBINED: LEVEL + SURVIVAL STAGES ───
+const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
   const [showXpRules, setShowXpRules] = useState(false);
-  if (!data) return null;
+  if (!gamData) return null;
 
-  const level = data.level || 1;
-  const title = data.title || "Getting Started";
-  const xp = data.currentXP || data.xp || 0;
-  const nextXp = data.nextLevelXP || data.nextLevelXp || 100;
+  const level = gamData.level || 1;
+  const title = gamData.title || "Getting Started";
+  const xp = gamData.currentXP || gamData.xp || 0;
+  const nextXp = gamData.nextLevelXP || gamData.nextLevelXp || 100;
   const xpPct = Math.min((xp / nextXp) * 100, 100);
 
-  // Get visible stages from survival clock (will be passed as prop)
+  const stages = clockData?.visibleStages || [];
+  const pm = PHASE_META[clockData?.phaseNum] || PHASE_META[1];
+  const stageColor = clockData?.levelColor || "#059669";
+
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="stage-journey">
-      {/* Header */}
-      <div className="p-5">
+      {/* Level header */}
+      <div className="p-5 pb-3">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center" style={{ background: `linear-gradient(135deg, ${data.color || "#059669"}30, ${data.color || "#059669"}10)`, border: `2px solid ${data.color || "#059669"}50` }}>
-            <span className="text-xl font-black" style={{ color: data.color || "#059669" }}>{level}</span>
+          <div className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center" style={{ background: `linear-gradient(135deg, ${gamData.color || "#059669"}30, ${gamData.color || "#059669"}10)`, border: `2px solid ${gamData.color || "#059669"}50` }}>
+            <span className="text-xl font-black" style={{ color: gamData.color || "#059669" }}>{level}</span>
           </div>
           <div className="flex-1">
             <p className="text-lg font-black" style={{ color: "var(--text-primary)" }}>{title}</p>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>{fmtNum(xp)} XP · Level {level} of 20</p>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>{fmt(xp)} XP · Level {level} of 20</p>
             <div className="mt-1.5 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
-              <div className="h-full rounded-full transition-all" style={{ width: `${xpPct}%`, backgroundColor: data.color || "#059669" }} />
+              <div className="h-full rounded-full transition-all" style={{ width: `${xpPct}%`, backgroundColor: gamData.color || "#059669" }} />
             </div>
           </div>
         </div>
-
-        {/* XP Rules */}
-        <button onClick={() => setShowXpRules(!showXpRules)} className="mt-3 text-[10px] font-bold flex items-center gap-1" style={{ color: "var(--brand-primary)" }} data-testid="xp-rules-toggle">
+        <button onClick={() => setShowXpRules(!showXpRules)} className="mt-2 text-[10px] font-bold flex items-center gap-1" style={{ color: "var(--brand-primary)" }} data-testid="xp-rules-toggle">
           {showXpRules ? <ChevronUp className="h-3 w-3" /> : <Info className="h-3 w-3" />}
           {showXpRules ? "Hide XP rules" : "How to earn XP?"}
         </button>
-        {showXpRules && data.xpRules && (
+        {showXpRules && gamData.xpRules && (
           <div className="mt-2 space-y-1">
-            {data.xpRules.map((r, i) => (
+            {gamData.xpRules.map((r, i) => (
               <div key={i} className="flex items-center justify-between text-[10px] px-2 py-1 rounded" style={{ backgroundColor: "var(--bg-subtle)" }}>
                 <span style={{ color: "var(--text-secondary)" }}>{r.rule}</span>
                 <span className="font-bold" style={{ color: "var(--brand-primary)" }}>+{r.xp} XP</span>
@@ -106,13 +105,41 @@ const StageJourney = ({ data, onShare }) => {
         )}
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 divide-x" style={{ backgroundColor: "var(--bg-card)", borderTop: "1px solid var(--border-light)", borderColor: "var(--border-light)" }}>
+      {/* Survival Stage bar - seamlessly connected */}
+      {stages.length > 0 && (
+        <div className="px-5 pb-3" style={{ borderTop: "1px solid var(--border-light)" }}>
+          <div className="flex items-center justify-between pt-3 mb-2">
+            <div className="flex items-center gap-1.5">
+              <Shield className="h-3.5 w-3.5" style={{ color: pm.color }} />
+              <p className="text-[10px] font-bold" style={{ color: pm.color }}>Stage {clockData?.stage}/20 · {pm.label} Zone</p>
+            </div>
+            <p className="text-[10px] font-black" style={{ color: stageColor }}>{clockData?.level} · {clockData?.survivalDays}d</p>
+          </div>
+          <div className="flex items-end gap-0.5">
+            {stages.map((s) => (
+              <div key={s.stage} className="flex-1 flex flex-col items-center">
+                <div className="w-full rounded-sm transition-all" style={{
+                  height: s.current ? "18px" : s.reached ? "10px" : "5px",
+                  backgroundColor: s.reached ? s.color : "var(--bg-subtle)",
+                  border: s.current ? `2px solid ${s.color}` : "none",
+                  boxShadow: s.current ? `0 0 6px ${s.color}40` : "none",
+                }} />
+                {(s.current || s.stage === stages[0].stage || s.stage === stages[stages.length - 1].stage) && (
+                  <span className="text-[7px] font-bold mt-0.5" style={{ color: s.current ? s.color : "var(--text-muted)" }}>{s.stage}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Stats row */}
+      <div className="grid grid-cols-4 divide-x" style={{ borderTop: "1px solid var(--border-light)", borderColor: "var(--border-light)" }}>
         {[
-          { val: data.lastScore || 0, label: "FIN. SCORE" },
-          { val: data.lastSurvivalDays || 0, label: "RUNWAY" },
-          { val: `${data.achievementCount || 0}/${data.totalAchievements || 100}`, label: "BADGES" },
-          { val: data.maxBadgesUnlocked || data.achievementCount || 0, label: "PEAK" },
+          { val: gamData.lastScore || 0, label: "FIN. SCORE" },
+          { val: gamData.lastSurvivalDays || 0, label: "RUNWAY" },
+          { val: `${gamData.achievementCount || 0}/${gamData.totalAchievements || 100}`, label: "BADGES" },
+          { val: gamData.maxBadgesUnlocked || gamData.achievementCount || 0, label: "PEAK" },
         ].map((s, i) => (
           <div key={i} className="py-3 text-center">
             <p className="text-base font-black" style={{ color: "var(--text-primary)" }}>{s.val}</p>
@@ -133,254 +160,192 @@ const StageJourney = ({ data, onShare }) => {
   );
 };
 
-// ─── SURVIVAL STAGES (20 stages, show ~10) ───
-const SurvivalStages = ({ data }) => {
-  if (!data?.visibleStages) return null;
-  const stages = data.visibleStages;
-  const pm = PHASE_META[data.phaseNum] || PHASE_META[1];
-
-  return (
-    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="survival-stages-widget">
-      <div className="p-4 pb-2">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${pm.color}15` }}>
-              <Shield className="h-4 w-4" style={{ color: pm.color }} />
-            </div>
-            <div>
-              <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Survival Stage {data.stage}/20</p>
-              <p className="text-sm font-bold" style={{ color: pm.color }}>{pm.emoji}: {pm.label} Zone</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-lg font-black" style={{ color: data.levelColor }}>{data.level}</p>
-            <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>{data.survivalDays} days</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Stage dots - show ~10 around current */}
-      <div className="px-4 pb-4">
-        <div className="flex items-center gap-1">
-          {stages.map((s) => (
-            <div key={s.stage} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full rounded-sm transition-all" style={{
-                height: s.current ? "20px" : s.reached ? "12px" : "6px",
-                backgroundColor: s.reached ? s.color : "var(--bg-subtle)",
-                border: s.current ? `2px solid ${s.color}` : "none",
-                boxShadow: s.current ? `0 0 8px ${s.color}40` : "none",
-              }} />
-              <span className="text-[7px] font-bold" style={{ color: s.current ? s.color : s.reached ? "var(--text-muted)" : "var(--text-muted)" }}>
-                {s.current ? s.stage : (s.stage === stages[0].stage || s.stage === stages[stages.length-1].stage) ? s.stage : ""}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center justify-between mt-1">
-          <span className="text-[8px]" style={{ color: "var(--text-muted)" }}>{stages[0].name}</span>
-          <span className="text-[8px]" style={{ color: "var(--text-muted)" }}>{stages[stages.length-1].name}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─── EMERGENCY RUNWAY with 3-Buffer Display ───
+// ─── EMERGENCY RUNWAY (Original ring design + 3-buffer) ───
 const EmergencyRunwayWidget = ({ data }) => {
   const [showBreakdown, setShowBreakdown] = useState(false);
   if (!data) return null;
-
+  const levelColor = data.levelColor || "#EF4444";
+  const maxDays = 365;
+  const pct = Math.min((data.survivalDays / maxDays) * 100, 100);
+  const circ = 2 * Math.PI * 58;
+  const offset = circ - (pct / 100) * circ;
   const fb = data.fundBreakdown || {};
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="emergency-runway">
-      <div className="p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5" style={{ color: data.levelColor }} />
-            <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Emergency Runway</h3>
-          </div>
-          <button onClick={() => setShowBreakdown(!showBreakdown)} className="p-1.5 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }} data-testid="runway-breakdown-btn">
-            <Info className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
-          </button>
-        </div>
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="emergency-runway">
+      <div className="flex items-center gap-2 mb-1">
+        <Shield className="h-5 w-5" style={{ color: levelColor }} />
+        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Emergency Runway</h3>
+        <button onClick={() => setShowBreakdown(!showBreakdown)} className="ml-auto" data-testid="runway-breakdown-btn">
+          <Info className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
+        </button>
+      </div>
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>How long your accessible savings last if income stops today</p>
 
-        {/* Main metric */}
-        <div className="flex items-end gap-2 mb-3">
-          <span className="text-4xl font-black" style={{ color: data.levelColor }}>{data.survivalDays}</span>
-          <span className="text-sm font-medium mb-1" style={{ color: "var(--text-muted)" }}>days</span>
-          <div className="ml-auto px-2.5 py-1 rounded-full text-[10px] font-bold" style={{ backgroundColor: `${data.levelColor}15`, color: data.levelColor }}>
+      <div className="flex items-center gap-6">
+        <div className="relative flex-shrink-0">
+          <svg width="130" height="130" viewBox="0 0 130 130">
+            <circle cx="65" cy="65" r="58" fill="none" stroke="var(--border-light)" strokeWidth="8" />
+            <circle cx="65" cy="65" r="58" fill="none" stroke={levelColor} strokeWidth="8"
+              strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
+              transform="rotate(-90 65 65)" style={{ transition: "stroke-dashoffset 1s ease" }} />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-3xl font-black" style={{ color: "var(--text-primary)" }}>{data.survivalDays}</span>
+            <span className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>DAYS</span>
+          </div>
+        </div>
+        <div className="flex-1 space-y-2.5">
+          <div className="inline-flex px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: `${levelColor}15`, color: levelColor, border: `1px solid ${levelColor}30` }}>
             Stage {data.stage}: {data.level}
           </div>
+          <div>
+            <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Accessible Funds</p>
+            <p className="text-base font-bold" style={{ color: "var(--text-primary)" }}>&#8377;{fmt(data.effectiveFunds)}</p>
+          </div>
+          <div>
+            <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Monthly Essential</p>
+            <p className="text-base font-bold" style={{ color: "var(--text-primary)" }}>&#8377;{fmt(data.monthlyMandatoryExpense)}</p>
+          </div>
+          <div>
+            <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Daily Burn Rate</p>
+            <p className="text-sm font-semibold" style={{ color: levelColor }}>&#8377;{fmt(data.dailyBurnRate)}/day</p>
+          </div>
         </div>
+      </div>
 
-        {/* 3 Buffer Numbers */}
-        <div className="grid grid-cols-3 gap-2 mb-3">
+      {/* 3 Buffer Numbers */}
+      <div className="grid grid-cols-3 gap-2 mt-4">
+        {[
+          { label: "Liquid Buffer", val: fb.liquidBuffer, color: "#10B981" },
+          { label: "Extended Buffer", val: fb.extendedBuffer, color: "#3B82F6" },
+          { label: "Total Net Worth", val: fb.netWorth, color: "#8B5CF6" },
+        ].map((b, i) => (
+          <div key={i} className="p-2 rounded-xl text-center" style={{ backgroundColor: `${b.color}08`, border: `1px solid ${b.color}15` }}>
+            <p className="text-xs font-black" style={{ color: b.color }}>&#8377;{fmt(b.val || 0)}</p>
+            <p className="text-[8px] font-medium" style={{ color: "var(--text-muted)" }}>{b.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {data.tip && <p className="text-xs mt-3 p-2.5 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-secondary)" }}>{data.tip}</p>}
+
+      {/* Fund breakdown */}
+      {showBreakdown && fb && (
+        <div className="mt-3 pt-3 space-y-2" style={{ borderTop: "1px solid var(--border-light)" }}>
+          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Where your funds are</p>
           {[
-            { label: "Liquid Buffer", val: fb.liquidBuffer, desc: "Instant access", color: "#10B981" },
-            { label: "Extended Buffer", val: fb.extendedBuffer, desc: "Including 60% semi-liquid", color: "#3B82F6" },
-            { label: "Total Net Worth", val: fb.netWorth, desc: "All assets", color: "#8B5CF6" },
-          ].map((b, i) => (
-            <div key={i} className="p-2.5 rounded-xl text-center" style={{ backgroundColor: `${b.color}08`, border: `1px solid ${b.color}15` }}>
-              <p className="text-xs font-black" style={{ color: b.color }}>{fmt(b.val || 0)}</p>
-              <p className="text-[8px] font-medium" style={{ color: "var(--text-muted)" }}>{b.label}</p>
+            { label: fb.liquid?.label, amt: fb.liquid?.total, desc: fb.liquid?.description, color: "#10B981", badge: "100%" },
+            { label: fb.semiLiquid?.label, amt: fb.semiLiquid?.total, desc: fb.semiLiquid?.description, color: "#3B82F6", badge: "60%" },
+            { label: fb.illiquid?.label, amt: fb.illiquid?.total, desc: fb.illiquid?.description, color: "#94A3B8", badge: "0%" },
+          ].filter(b => b.amt > 0).map((b, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: b.color }} />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>{b.label}</p>
+                <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{b.desc}</p>
+              </div>
+              <div className="text-right flex items-center gap-1.5">
+                <span className="text-xs font-bold" style={{ color: b.color }}>&#8377;{fmt(b.amt)}</span>
+                <span className="text-[8px] font-bold px-1 py-0.5 rounded" style={{ backgroundColor: `${b.color}15`, color: b.color }}>{b.badge}</span>
+              </div>
             </div>
           ))}
+          <div className="flex justify-between pt-2" style={{ borderTop: "1px dashed var(--border-light)" }}>
+            <span className="text-xs font-bold" style={{ color: "var(--text-secondary)" }}>Effective for Runway</span>
+            <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>&#8377;{fmt(fb.effectiveTotal || 0)}</span>
+          </div>
+          <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Semi-liquid counted at 60% (withdrawal delay + market risk). Illiquid not counted (locked).</p>
         </div>
-
-        <div className="grid grid-cols-2 gap-2 text-center">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
-            <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>Monthly Essential</p>
-            <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{fmt(data.monthlyMandatoryExpense)}</p>
-          </div>
-          <div className="p-2 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
-            <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>Daily Burn Rate</p>
-            <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{fmt(data.dailyBurnRate)}/day</p>
-          </div>
-        </div>
-
-        {/* Fund Breakdown */}
-        {showBreakdown && fb && (
-          <div className="mt-3 space-y-2" style={{ borderTop: "1px solid var(--border-light)", paddingTop: "12px" }}>
-            <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Fund Breakdown by Liquidity</p>
-            {/* Category summaries */}
-            {[
-              { ...fb.liquid, badge: "100%", badgeColor: "#10B981" },
-              { ...fb.semiLiquid, badge: "60%", badgeColor: "#3B82F6" },
-              { ...fb.illiquid, badge: "0%", badgeColor: "#6B7280" },
-            ].filter(c => c.total > 0).map((cat, i) => (
-              <div key={i} className="flex items-center justify-between p-2 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
-                <div>
-                  <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{cat.label}</p>
-                  <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>{cat.description}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{fmt(cat.total)}</p>
-                  <span className="text-[8px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `${cat.badgeColor}15`, color: cat.badgeColor }}>
-                    {cat.badge} in survival
-                  </span>
-                </div>
-              </div>
-            ))}
-            {/* Individual assets */}
-            {fb.details?.slice(0, 8).map((d, i) => (
-              <div key={i} className="flex items-center justify-between text-[10px] px-2">
-                <span style={{ color: "var(--text-secondary)" }}>{d.name}</span>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium" style={{ color: "var(--text-primary)" }}>{fmt(d.amount)}</span>
-                  <span className="px-1 py-0.5 rounded text-[8px] font-bold" style={{
-                    backgroundColor: d.category === "liquid" ? "#10B98115" : d.category === "semi_liquid" ? "#3B82F615" : "#6B728015",
-                    color: d.category === "liquid" ? "#10B981" : d.category === "semi_liquid" ? "#3B82F6" : "#6B7280"
-                  }}>{d.pct}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <p className="text-[10px] mt-3 p-2 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-muted)" }}>
-          <Info className="h-3 w-3 inline mr-1" />{data.tip}
-        </p>
-      </div>
+      )}
     </div>
   );
 };
 
-// ─── FINANCIAL SCORE ───
-const ControlScoreWidget = ({ data }) => {
-  const [showHelp, setShowHelp] = useState(false);
+// ─── FINANCIAL SCORE (Original design with individual colors per pillar) ───
+const FinancialScoreWidget = ({ data }) => {
   if (!data) return null;
-
-  const bd = data.breakdown || {};
-  const bars = [
-    { ...bd.savingsRate, label: "Savings Rate", help: "How much you save vs earn" },
-    { ...bd.emiLoad, label: "EMI Load", help: "How much EMI eats your income" },
-    { ...bd.safetyBuffer, label: "Safety Buffer", help: "Emergency fund coverage" },
-    { ...bd.incomeConsistency, label: "Income Consistency", help: "Income stability" },
-  ].filter(b => b.score !== undefined);
-
   const score = data.finalScore || data.score || 0;
   const grade = data.grade || "C";
-  const gradeColor = score >= 85 ? "#10B981" : score >= 70 ? "#3B82F6" : score >= 55 ? "#F59E0B" : score >= 40 ? "#F97316" : "#EF4444";
+  const gc = score >= 85 ? "#10B981" : score >= 70 ? "#3B82F6" : score >= 55 ? "#F59E0B" : score >= 40 ? "#F97316" : "#EF4444";
   const m = data.metrics || {};
+  const bd = data.breakdown || {};
+  const bars = [
+    { ...bd.savingsRate, color: "#10B981", help: "How much you save vs earn" },
+    { ...bd.emiLoad, color: "#3B82F6", help: "How much EMI eats your income" },
+    { ...bd.safetyBuffer, color: "#8B5CF6", help: "Emergency fund coverage" },
+    { ...bd.incomeConsistency, color: "#F59E0B", help: "Income stability & consistency" },
+  ].filter(b => b.label);
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-score">
-      <div className="p-5">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Gauge className="h-5 w-5" style={{ color: gradeColor }} />
-            <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Score</h3>
-          </div>
-          <button onClick={() => setShowHelp(!showHelp)} className="p-1.5 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
-            <Info className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
-          </button>
-        </div>
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-score">
+      <div className="flex items-center gap-2 mb-1">
+        <Target className="h-5 w-5" style={{ color: gc }} />
+        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Score</h3>
+      </div>
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Your overall financial health out of 100 (4 pillars x 25 each)</p>
 
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-20 h-20 rounded-full flex flex-col items-center justify-center" style={{ border: `3px solid ${gradeColor}`, boxShadow: `0 0 20px ${gradeColor}20` }}>
-            <span className="text-2xl font-black" style={{ color: gradeColor }}>{score}</span>
-            <span className="text-[9px] font-bold" style={{ color: gradeColor }}>GRADE {grade}</span>
-          </div>
-          <div className="flex-1 space-y-2">
-            {bars.map((b, i) => (
-              <div key={i}>
-                <div className="flex justify-between text-[10px] mb-0.5">
-                  <span style={{ color: "var(--text-muted)" }}>{b.label}</span>
-                  <span className="font-bold" style={{ color: "var(--text-primary)" }}>{b.score}/{b.max}</span>
-                </div>
-                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
-                  <div className="h-full rounded-full" style={{ width: `${(b.score / b.max) * 100}%`, backgroundColor: gradeColor }} />
-                </div>
+      <div className="flex items-center gap-5">
+        <div className="flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center" style={{ background: `linear-gradient(135deg, ${gc}20, ${gc}05)`, border: `2px solid ${gc}40` }}>
+          <span className="text-3xl font-black" style={{ color: gc }}>{score}</span>
+          <span className="text-[9px] font-bold" style={{ color: gc }}>GRADE {grade}</span>
+        </div>
+        <div className="flex-1 space-y-2">
+          {bars.map((b, i) => (
+            <div key={i}>
+              <div className="flex justify-between text-[10px] mb-0.5">
+                <span style={{ color: "var(--text-secondary)" }}>{b.label}</span>
+                <span className="font-bold" style={{ color: b.color }}>{b.score}/{b.max}</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {showHelp && (
-          <div className="p-3 rounded-lg text-[10px] space-y-1" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-secondary)" }}>
-            {bars.map((b, i) => (
-              <p key={i}><strong>{b.label} ({b.score}/{b.max})</strong>: {b.help}</p>
-            ))}
-            <p className="mt-1" style={{ color: "var(--text-muted)" }}>Score = sum of all 4 pillars (out of 100)</p>
-          </div>
-        )}
-
-        {/* Monthly metrics */}
-        <div className="grid grid-cols-4 gap-2 mt-3">
-          {[
-            { label: "Income", val: m.monthlyIncome },
-            { label: "Expenses", val: m.monthlyExpenses },
-            { label: "Total EMI", val: m.totalEMI },
-            { label: "Liquid Funds", val: m.availableFunds },
-          ].map((mt, i) => (
-            <div key={i} className="text-center p-1.5 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
-              <p className="text-[8px]" style={{ color: "var(--text-muted)" }}>{mt.label}</p>
-              <p className="text-[10px] font-bold" style={{ color: "var(--text-primary)" }}>{fmt(mt.val || 0)}</p>
+              <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                <div className="h-full rounded-full transition-all" style={{ width: `${(b.score / b.max) * 100}%`, backgroundColor: b.color }} />
+              </div>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Pillar contributions explainer */}
+      <div className="flex gap-2 mt-3 flex-wrap">
+        {bars.map((b, i) => (
+          <div key={i} className="px-2 py-1 rounded-lg text-[9px]" style={{ backgroundColor: `${b.color}08`, border: `1px solid ${b.color}15` }}>
+            <span className="font-bold" style={{ color: b.color }}>{b.score}/{b.max}</span>
+            <span style={{ color: "var(--text-muted)" }}> {b.help}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Monthly metrics */}
+      <div className="grid grid-cols-4 gap-2 mt-3">
+        {[
+          { label: "Income", val: m.monthlyIncome, color: "#10B981" },
+          { label: "Expenses", val: m.monthlyExpenses, color: "#EF4444" },
+          { label: "Total EMI", val: m.totalEMI, color: "#F59E0B" },
+          { label: "Ext. Buffer", val: m.availableFunds, color: "#3B82F6" },
+        ].map((mt, i) => (
+          <div key={i} className="text-center p-1.5 rounded-lg" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <p className="text-[8px]" style={{ color: "var(--text-muted)" }}>{mt.label}</p>
+            <p className="text-[10px] font-bold" style={{ color: mt.color }}>&#8377;{fmt(mt.val || 0)}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-// ─── BADGES GRID (100 badges, grouped by category, tier-colored) ───
+// ─── BADGES (Scrollable, max 4 rows visible) ───
 const BadgesWidget = ({ data }) => {
-  const [expanded, setExpanded] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
   if (!data?.allAchievements) return null;
 
   const all = data.allAchievements;
   const unlocked = all.filter(a => a.unlocked);
   const filtered = activeCategory === "all" ? all : all.filter(a => a.category === activeCategory);
-  const showList = expanded ? filtered : filtered.filter(a => a.unlocked).slice(0, 8);
-
   const categories = [...new Set(all.map(a => a.category))];
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="badges-widget">
-      <div className="p-5 pb-3">
+      <div className="p-4 pb-2">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <Trophy className="h-5 w-5" style={{ color: "#F59E0B" }} />
@@ -395,86 +360,65 @@ const BadgesWidget = ({ data }) => {
           </div>
         </div>
 
-        {/* Category filter */}
-        <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
-          <button onClick={() => setActiveCategory("all")}
-            className="px-2.5 py-1 rounded-full text-[9px] font-bold whitespace-nowrap flex-shrink-0"
-            style={{
-              backgroundColor: activeCategory === "all" ? "var(--brand-primary)" : "var(--bg-subtle)",
-              color: activeCategory === "all" ? "#fff" : "var(--text-muted)"
-            }} data-testid="badge-filter-all">All</button>
+        {/* Category filter - horizontal scroll */}
+        <div className="flex gap-1.5 overflow-x-auto pb-2" style={{ scrollbarWidth: "none" }}>
+          <button onClick={() => setActiveCategory("all")} className="px-2.5 py-1 rounded-full text-[9px] font-bold whitespace-nowrap flex-shrink-0"
+            style={{ backgroundColor: activeCategory === "all" ? "var(--brand-primary)" : "var(--bg-subtle)", color: activeCategory === "all" ? "#fff" : "var(--text-muted)" }} data-testid="badge-filter-all">All</button>
           {categories.map(c => (
-            <button key={c} onClick={() => setActiveCategory(c)}
-              className="px-2.5 py-1 rounded-full text-[9px] font-bold whitespace-nowrap flex-shrink-0"
-              style={{
-                backgroundColor: activeCategory === c ? "var(--brand-primary)" : "var(--bg-subtle)",
-                color: activeCategory === c ? "#fff" : "var(--text-muted)"
-              }} data-testid={`badge-filter-${c}`}>{CAT_LABELS[c] || c}</button>
+            <button key={c} onClick={() => setActiveCategory(c)} className="px-2.5 py-1 rounded-full text-[9px] font-bold whitespace-nowrap flex-shrink-0"
+              style={{ backgroundColor: activeCategory === c ? "var(--brand-primary)" : "var(--bg-subtle)", color: activeCategory === c ? "#fff" : "var(--text-muted)" }} data-testid={`badge-filter-${c}`}>{CAT_LABELS[c] || c}</button>
+          ))}
+        </div>
+
+        {/* Tier legend */}
+        <div className="flex gap-3 mb-1">
+          {["bronze", "silver", "gold", "platinum"].map(t => (
+            <div key={t} className="flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: TIER_COLORS[t] }} />
+              <span className="text-[8px] font-medium capitalize" style={{ color: "var(--text-muted)" }}>{t}</span>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Badges grid */}
-      <div className="px-5 pb-3 grid grid-cols-4 gap-2">
-        {showList.map((a) => {
-          const Icon = ACH_ICONS[a.icon] || Star;
-          const tierColor = a.unlocked ? (TIER_COLORS[a.tier] || "#6B7280") : "var(--text-muted)";
-          const tierBg = a.unlocked ? (TIER_BG[a.tier] || "#6B728010") : "var(--bg-subtle)";
-          return (
-            <div key={a.code} className="flex flex-col items-center p-2 rounded-xl text-center transition-all"
-              style={{
-                backgroundColor: tierBg,
-                border: a.unlocked ? `1.5px solid ${tierColor}40` : "1.5px solid transparent",
-                opacity: a.unlocked ? 1 : 0.4,
-                filter: a.unlocked ? "none" : "grayscale(1)",
-              }} data-testid={`badge-${a.code}`}>
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-1" style={{
-                backgroundColor: a.unlocked ? `${tierColor}20` : "transparent",
-              }}>
-                <Icon className="h-4 w-4" style={{ color: tierColor }} />
+      {/* Scrollable badge grid - fixed height, 4 rows visible */}
+      <div className="px-4 pb-3 overflow-y-auto" style={{ maxHeight: "280px", scrollbarWidth: "thin" }}>
+        <div className="grid grid-cols-4 gap-2">
+          {filtered.map((a) => {
+            const Icon = ACH_ICONS[a.icon] || Star;
+            const tierColor = a.unlocked ? (TIER_COLORS[a.tier] || "#6B7280") : "#9CA3AF";
+            const tierBg = a.unlocked ? (TIER_BG[a.tier] || "#6B728010") : "var(--bg-subtle)";
+            return (
+              <div key={a.code} className="flex flex-col items-center p-2 rounded-xl text-center transition-all"
+                style={{
+                  backgroundColor: tierBg,
+                  border: a.unlocked ? `1.5px solid ${tierColor}40` : "1.5px solid transparent",
+                  opacity: a.unlocked ? 1 : 0.35,
+                  filter: a.unlocked ? "none" : "grayscale(1)",
+                }} data-testid={`badge-${a.code}`}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-1" style={{
+                  backgroundColor: a.unlocked ? `${tierColor}20` : "transparent",
+                }}>
+                  <Icon className="h-4 w-4" style={{ color: tierColor }} />
+                </div>
+                <p className="text-[8px] font-bold leading-tight" style={{ color: a.unlocked ? tierColor : "var(--text-muted)" }}>{a.title}</p>
+                {a.unlocked && (
+                  <span className="text-[7px] font-bold mt-0.5 px-1 rounded uppercase" style={{ backgroundColor: `${tierColor}15`, color: tierColor }}>{a.tier}</span>
+                )}
               </div>
-              <p className="text-[8px] font-bold leading-tight" style={{ color: a.unlocked ? tierColor : "var(--text-muted)" }}>{a.title}</p>
-              {a.unlocked && (
-                <span className="text-[7px] font-bold mt-0.5 px-1 rounded uppercase" style={{ backgroundColor: `${tierColor}15`, color: tierColor }}>
-                  {a.tier}
-                </span>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-
-      {/* Tier legend */}
-      <div className="px-5 pb-2 flex gap-3 justify-center">
-        {["bronze", "silver", "gold", "platinum"].map(t => (
-          <div key={t} className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: TIER_COLORS[t] }} />
-            <span className="text-[8px] font-medium capitalize" style={{ color: "var(--text-muted)" }}>{t}</span>
-          </div>
-        ))}
-      </div>
-
-      <button onClick={() => setExpanded(!expanded)}
-        className="w-full py-2.5 text-[10px] font-bold flex items-center justify-center gap-1"
-        style={{ borderTop: "1px solid var(--border-light)", color: "var(--brand-primary)" }}
-        data-testid="badges-expand-btn">
-        {expanded ? "Show Less" : `View All ${filtered.length} Badges`}
-        {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-      </button>
     </div>
   );
 };
 
 // ─── CHALLENGES ───
-const DIFF_COLORS = { Easy: "#10B981", Medium: "#F59E0B", Hard: "#EF4444" };
-
 const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
-  const [expCh, setExpCh] = useState(null);
   if (!challenges) return null;
-
   const active = challenges.active || [];
   const available = challenges.available || [];
-  const completed = challenges.completed || [];
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="challenges-widget">
@@ -521,8 +465,7 @@ const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
               <button onClick={() => onJoin(c.code)} className="ml-2 text-[9px] font-bold px-3 py-1.5 rounded-lg text-white" style={{ backgroundColor: "var(--brand-primary)" }} data-testid={`join-challenge-${c.code}`}>Join</button>
             </div>
             <div className="flex items-center gap-3 mt-1.5 text-[9px]" style={{ color: "var(--text-muted)" }}>
-              <span>{c.duration_days}d</span>
-              <span>+{c.xp_reward} XP</span>
+              <span>{c.duration_days}d</span><span>+{c.xp_reward} XP</span>
             </div>
           </div>
         ))}
@@ -539,19 +482,13 @@ const Insights = () => {
   const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, loading, refresh, processWeekly, joinChallenge, leaveChallenge } = useIntelligenceData();
   const [processing, setProcessing] = useState(false);
 
-  const handleProcess = async () => {
-    setProcessing(true);
-    await processWeekly();
-    setProcessing(false);
-  };
+  const handleProcess = async () => { setProcessing(true); await processWeekly(); setProcessing(false); };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}>
-        <div className="animate-spin h-8 w-8 border-3 border-t-transparent rounded-full" style={{ borderColor: "var(--brand-primary)", borderTopColor: "transparent" }} />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}>
+      <div className="animate-spin h-8 w-8 border-3 border-t-transparent rounded-full" style={{ borderColor: "var(--brand-primary)", borderTopColor: "transparent" }} />
+    </div>
+  );
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }}>
@@ -568,33 +505,27 @@ const Insights = () => {
 
       <div className="px-4 py-4 space-y-4 max-w-3xl mx-auto">
         <SurvivalWarning data={survivalClock} />
-        <StageJourney data={gamification} onShare={() => setShowShareCard(true)} />
-        <SurvivalStages data={survivalClock} />
+        <LevelAndStagesWidget gamData={gamification} clockData={survivalClock} onShare={() => setShowShareCard(true)} />
         <EmergencyRunwayWidget data={survivalClock} />
         <RunwaySimulator currentData={survivalClock} />
         <MoneyPatternWidget data={moneyPattern} />
-        <ControlScoreWidget data={controlScore} />
+        <FinancialScoreWidget data={controlScore} />
         <BadgesWidget data={gamification} />
         <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
 
         {/* Quick Links */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2.5 pt-2">
+          <p className="text-[10px] font-bold tracking-wider uppercase" style={{ color: "var(--text-muted)" }}>Explore</p>
           {[
-            { label: "Analytics", desc: "Charts & trends", icon: BarChart3, route: "/analytics" },
-            { label: "Reports", desc: "Download PDF", icon: FileText, route: "/reports" },
-          ].map((l) => {
-            const I = l.icon;
-            return (
-              <button key={l.label} onClick={() => navigate(l.route)} className="p-4 rounded-2xl flex items-center gap-3 text-left active:scale-[0.98] transition-all" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-                <I className="h-5 w-5" style={{ color: "var(--brand-primary)" }} />
-                <div>
-                  <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{l.label}</p>
-                  <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{l.desc}</p>
-                </div>
-                <ChevronRight className="h-4 w-4 ml-auto" style={{ color: "var(--text-muted)" }} />
-              </button>
-            );
-          })}
+            { id: "analytics", title: "Analytics", desc: "Charts & trends", icon: BarChart3, color: "#8B5CF6", path: "/insights/analytics" },
+            { id: "reports", title: "Reports", desc: "PDF & Excel export", icon: FileText, color: "#059669", path: "/insights/reports" },
+          ].map((c) => { const I = c.icon; return (
+            <button key={c.id} onClick={() => navigate(c.path)} className="w-full rounded-xl p-4 text-left flex items-center gap-4 active:scale-[0.98]" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid={`insights-${c.id}-card`}>
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${c.color}15` }}><I className="h-5 w-5" style={{ color: c.color }} /></div>
+              <div className="flex-1"><p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{c.title}</p><p className="text-xs" style={{ color: "var(--text-muted)" }}>{c.desc}</p></div>
+              <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
+            </button>
+          ); })}
         </div>
       </div>
 
