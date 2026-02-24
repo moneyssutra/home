@@ -1,89 +1,64 @@
 # Moneyssutra - Personal Finance Tracker PRD
 
 ## Original Problem Statement
-Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI.
+Build a comprehensive personal finance tracking application with multi-user workspace support, complete financial management features (income, expenses, assets, investments, loans, insurance, goals), and a modern, professional UI. Evolving into a Financial Control Operating System.
 
 ## Current Status
-All core features + Financial Intelligence + Gamification implemented. Backend fully modularized.
+Core features + Financial Intelligence + Gamification (P0 complete). Backend modularized.
 
-## Latest Session Work (Feb 24, 2026 - Session 5)
+## Session 5 Work (Feb 24, 2026)
 
 ### Financial Intelligence Engine (DONE)
-1. **Financial Survival Clock** - Calculates how many days user can survive without income
-   - API: `GET /api/intelligence/survival-clock`
-   - Returns: liquidFunds, monthlyMandatoryExpense, dailyBurnRate, survivalDays, level
-   - Levels: CRITICAL (0-30), VULNERABLE (31-90), STABLE (91-180), SECURE (181-365), FINANCIAL WARRIOR (365+)
+- **Survival Clock**: liquid funds / daily mandatory burn = survival days + level
+- **Control Score**: 0-100 composite (Cash Control + Debt Pressure + Liquidity + Stability)
+- **Behavior Alerts**: Overspending, Debt Risk, EMI Stress, Repeating Mistakes, Lifestyle Inflation, Survival warnings
 
-2. **Financial Control Score Engine** - Weekly composite score 0-100
-   - API: `GET /api/intelligence/control-score`
-   - Components: Cash Control (25%), Debt Pressure (25%), Liquidity (25%), Stability (25%)
-   - Grades: A (85+), B (70-84), C (55-69), D (40-54), E (<40)
-
-3. **Behavioral Intelligence Engine** - Smart financial alerts
-   - API: `GET /api/intelligence/behavior-alerts`
-   - Alerts: Overspending, Debt Risk, EMI Stress, Repeating Mistakes, Lifestyle Inflation, Survival warnings
-
-### Gamification Engine (DONE)
-- XP System with weekly earning (score bonus, survival increase, debt reduction, clean alerts)
-- 6 Levels: Survival Mode → Stabilizing → In Control → Wealth Builder → Financial Commander → Money Master
-- Streak System: Consecutive weeks with score ≥ 70 and no high-risk alerts
-- 12 Achievements: Survival milestones, score milestones, streak milestones, debt reduction
-- Challenge Mode: 4 challenge types (Survival Boost, Debt Sprint, No Inflation, Score Climber)
-- Share Card API for social sharing
-- APIs: profile, process, challenges, join, share-card, leaderboard
-
-### Frontend Insights Page (DONE)
-- Gamification profile widget (level, XP bar, streak, stats)
-- Survival Clock widget (circular gauge, level badge, metrics)
-- Control Score widget (score circle, grade, 4 breakdown bars)
-- Behavior Alerts widget (severity-colored cards with icons)
-- Achievements grid (unlocked/locked with icons)
-- Challenges widget (active progress, available with Join buttons)
-- Navigation cards to Analytics and Reports
+### Gamification Engine P0 (DONE)
+- XP System (7 earning rules), 6 Levels (Survival Mode → Money Master)
+- 20 Achievements across 11 categories (survival, score, streak, debt, insurance, emergency, investment, goals, income, behavior, starter)
+- Streak System with rewards at 4/8/12/24/52 weeks
+- 6 Challenges with difficulty ratings, explainers, and leave/abandon option
+- Level journey visualization (all 6 levels with progression dots)
+- Max Badges Unlocked tracker ("Peak" counter)
+- Survival warning banner when < 90 days
+- "How to earn XP" toggle
+- Weekly cron job (Sunday 23:59) for auto score recalculation
+- Push notifications for level up, streak milestones, new achievements, weekly summary
 
 ### Backend Modularization (DONE - Session 4)
-- Reduced `server.py` from 7,022 → 282 lines (96% reduction)
-- Created `scheduler.py` for background tasks
-- 26 route modules under `backend/routes/`
+- server.py: 286 lines (from 7,022)
+- 26 route modules under backend/routes/
 
 ## Architecture
 ```
-/app/backend/
-├── server.py              (286 lines - app setup, CORS, router includes, lifecycle)
-├── scheduler.py           (314 lines - background tasks)
-├── database.py            (MongoDB connection)
-├── server_models.py       (716 lines - all Pydantic models)
-├── routes/
-│   ├── intelligence.py    (NEW - Survival Clock, Control Score, Behavior Alerts)
-│   ├── gamification.py    (NEW - XP, Levels, Streaks, Achievements, Challenges)
-│   └── [24 other route modules]
+/app/backend/routes/
+├── intelligence.py    (Survival Clock, Control Score, Behavior Alerts)
+├── gamification.py    (XP, Levels, Streaks, 20 Achievements, 6 Challenges)
+├── [24 other modules]
+/app/backend/scheduler.py  (Background tasks + weekly gamification cron)
 /app/frontend/src/
-├── Insights.js            (REWRITTEN - Intelligence dashboard)
-├── hooks/useIntelligenceData.js (NEW - data fetching hook)
+├── Insights.js        (Intelligence dashboard - all widgets)
+├── hooks/useIntelligenceData.js
 ```
-
-## New MongoDB Collections
-- `alerts` - Financial behavior alerts
-- `user_gamification_profile` - XP, level, streak, scores
-- `user_achievements` - Unlocked achievement badges
-- `user_challenges` - Active/completed challenges
-- `user_financial_snapshots` - Weekly financial snapshots for trend tracking
 
 ## Test Credentials
 - Username: test, Password: test
 
 ## Testing
-- Iteration 58: 100% (36/36 backend endpoints - base refactoring)
-- Iteration 59: 100% (16/16 backend + 9/9 frontend - intelligence & gamification)
+- Iteration 58: 100% (36/36 backend - base refactoring)
+- Iteration 59: 100% (16/16 backend + 9/9 frontend - initial intelligence)
+- Iteration 60: 100% (18/18 backend + all frontend - P0 polish)
 
-## Upcoming Tasks (Priority Order)
-- P1: Weekly cron job (Sunday) for auto score recalculation
-- P1: Push notification integration for gamification events (level up, streak, challenges)
-- P1: Feature Flag System
-- P1: Add `sync_source` fields for Smart Sync prep
-- P2: Full 2FA Implementation (MOCKED UI toggles)
-- P2: PWA features
-- P3: Mobile OTP/PIN login, Loan amortization, Smart Sync
+## Upcoming Tasks (P1 - Core Upgrades)
+1. **Financial Runway Engine** - Interactive slider simulation (income/expense changes → survival recalculation)
+2. **Financial Command Center** - Control/Pressure/Risk cockpit with trend arrows
+3. **Money Pattern Recognition** - Personality labels ("High Earning, High Leakage")
+4. **Financial Journey** - Stage progression (Survival → Freedom) with unlockable features
+5. **Red Zone Mode** - Visual urgency theme when critical
 
-## 3rd Party Integrations
-- OpenAI GPT-5.2 (via emergentintegrations), MongoDB Atlas, Resend, Recharts, reportlab, FPDF, pywebpush, apscheduler, Emergent Google Auth
+## Future Tasks (P2 - Advanced Intelligence)
+- Financial Shock Test (monthly simulated emergencies)
+- Future You Score (12-month projection)
+- Decision Impact Engine ("Buy X → survival drops Y days")
+- Control Recovery Plan (auto-generated action steps)
+- Feature Flag System, sync_source fields, 2FA, PWA
