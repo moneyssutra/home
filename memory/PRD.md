@@ -50,6 +50,32 @@ Build a comprehensive personal finance tracking application with multi-user work
 
 ---
 
+### 15. Profile Menu & My Income Page Fixes (COMPLETED ✅ - Feb 24, 2026)
+**Features**:
+1. **Profile Menu Changed to Navigate to Settings Page**: Instead of opening a sidebar, clicking on the "T" profile icon now navigates directly to the `/settings` page
+2. **My Income Page - Income Sources Now Clickable**: Fixed the Income Sources section to be clickable and navigate to the respective income type list pages (`/my-job`, `/my-business`, etc.)
+3. **Added Comprehensive Sample Data**: Added more data across all categories
+
+**Issue Fixed - Income Sources Not Clickable**:
+- Root cause: The API returns income types in lowercase (`job`, `business`) but the UI mappings used capitalized types (`Job`, `Business`)
+- Solution: Added `capitalizeType()` function to normalize the type names
+- Result: Income Sources section now shows all types with correct icons, colors, and clickable navigation
+
+**Sample Data Added**:
+- 18 Income Sources (Business, Job, Self-Employed, Rental, Commission, Interest, Dividend)
+- 28 Expenses (all categories: Food, Housing, Transportation, Utilities, Healthcare, etc.)
+- 6 Credit Cards
+- 12 Insurance Policies (Life, Health, Motor, Home, Travel, PA, Critical Illness)
+- 22 Assets (Properties, Land, Vehicles, Gold, Electronics, Furniture, Art)
+- 24 Investments (Mutual Funds, Stocks, NPS, EPF, Gold, REITs, Bonds, FD, Crypto)
+- 6 Loans
+
+**Files Modified**:
+- `ProfileMenu.js` - Simplified to just navigate to `/settings` instead of showing sidebar
+- `MyIncome.js` - Added `capitalizeType()` function, added data-testid, improved button styling
+
+---
+
 ## What Was Implemented (Previous Session - Feb 23, 2026)
 
 ### 12. Clickable Allocation Redesign for Loans, Assets & Investments (COMPLETED ✅ - Feb 23, 2026)
