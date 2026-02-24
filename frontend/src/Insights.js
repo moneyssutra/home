@@ -575,57 +575,6 @@ const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
   );
 };
 
-// ─── FINANCIAL JOURNEY (5 phases) ───
-const FinancialJourneyWidget = ({ clockData }) => {
-  if (!clockData) return null;
-  const phaseNum = clockData.phaseNum || 1;
-  const phases = [
-    { num: 1, name: "Survival", icon: Shield, color: "#EF4444", range: "0-30 days", desc: "Building your first safety net" },
-    { num: 2, name: "Stability", icon: ShieldCheck, color: "#F97316", range: "30-90 days", desc: "Establishing financial footing" },
-    { num: 3, name: "Control", icon: Target, color: "#EAB308", range: "90-180 days", desc: "Taking charge of your money" },
-    { num: 4, name: "Growth", icon: TrendingUp, color: "#22C55E", range: "180-365 days", desc: "Building wealth actively" },
-    { num: 5, name: "Freedom", icon: Crown, color: "#3B82F6", range: "365+ days", desc: "Financial independence achieved" },
-  ];
-  return (
-    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-journey">
-      <div className="flex items-center gap-2 mb-3">
-        <Rocket className="h-5 w-5" style={{ color: "#8B5CF6" }} />
-        <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Journey</h3>
-      </div>
-      <div className="relative">
-        {/* Connection line */}
-        <div className="absolute left-5 top-5 bottom-5 w-0.5" style={{ backgroundColor: "var(--border-light)" }} />
-        <div className="space-y-1">
-          {phases.map((p) => {
-            const done = phaseNum > p.num;
-            const current = phaseNum === p.num;
-            const Icon = p.icon;
-            return (
-              <div key={p.num} className="flex items-center gap-3 relative p-2 rounded-xl" style={{ backgroundColor: current ? `${p.color}08` : "transparent" }}>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10" style={{
-                  backgroundColor: done || current ? p.color : "var(--bg-subtle)",
-                  border: current ? `2px solid ${p.color}` : "none",
-                  boxShadow: current ? `0 0 8px ${p.color}30` : "none",
-                }}>
-                  <Icon className="h-4 w-4" style={{ color: done || current ? "#fff" : "var(--text-muted)" }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold" style={{ color: current ? p.color : done ? "var(--text-primary)" : "var(--text-muted)" }}>{p.name}</span>
-                    {current && <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: `${p.color}20`, color: p.color }}>NOW</span>}
-                    {done && <CheckCircle className="h-3 w-3" style={{ color: p.color }} />}
-                  </div>
-                  <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{p.range} · {p.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // ─── FINANCIAL SHOCK TEST ───
 const ShockTestWidget = ({ clockData }) => {
   const [result, setResult] = useState(null);
