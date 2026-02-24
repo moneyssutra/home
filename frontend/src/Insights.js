@@ -850,6 +850,18 @@ const PersonalityEvolutionWidget = ({ data, currentPersonality }) => {
 
 
 
+// ─── RED ZONE THEME STYLES ───
+const RED_ZONE_STYLES = {
+  "--bg-app": "#0D0A0A",
+  "--bg-card": "#1A1111",
+  "--bg-subtle": "#231515",
+  "--text-primary": "#F5E6E6",
+  "--text-secondary": "#C9A3A3",
+  "--text-muted": "#8B5555",
+  "--border-light": "#3D1F1F",
+  "--brand-primary": "#EF4444",
+};
+
 // ─── MAIN INSIGHTS PAGE ───
 const Insights = () => {
   const navigate = useNavigate();
@@ -860,6 +872,8 @@ const Insights = () => {
 
   const handleProcess = async () => { setProcessing(true); await processWeekly(); setProcessing(false); };
 
+  const isRedZone = survivalClock && survivalClock.survivalDays < 30;
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}>
       <div className="animate-spin h-8 w-8 border-3 border-t-transparent rounded-full" style={{ borderColor: "var(--brand-primary)", borderTopColor: "transparent" }} />
@@ -867,26 +881,31 @@ const Insights = () => {
   );
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }}>
-      <header className="sticky top-0 z-30 px-4 py-3 flex items-center gap-3" style={{ backgroundColor: "var(--bg-app)", borderBottom: "1px solid var(--border-light)" }}>
-        <button onClick={() => navigate(-1)} data-testid="insights-back-btn"><ArrowLeft className="h-5 w-5" style={{ color: "var(--text-primary)" }} /></button>
-        <h1 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>Insights</h1>
+    <div className="min-h-screen pb-24" style={isRedZone ? { ...RED_ZONE_STYLES, backgroundColor: RED_ZONE_STYLES["--bg-app"] } : { backgroundColor: "var(--bg-app)" }} data-testid={isRedZone ? "insights-red-zone" : "insights-page"}>
+      <header className="sticky top-0 z-30 px-4 py-3 flex items-center gap-3" style={isRedZone ? { backgroundColor: RED_ZONE_STYLES["--bg-app"], borderBottom: `1px solid ${RED_ZONE_STYLES["--border-light"]}` } : { backgroundColor: "var(--bg-app)", borderBottom: "1px solid var(--border-light)" }}>
+        <button onClick={() => navigate(-1)} data-testid="insights-back-btn"><ArrowLeft className="h-5 w-5" style={{ color: isRedZone ? "#F5E6E6" : "var(--text-primary)" }} /></button>
+        <h1 className="text-lg font-black" style={{ color: isRedZone ? "#EF4444" : "var(--text-primary)" }}>
+          {isRedZone ? "RED ZONE" : "Insights"}
+        </h1>
+        {isRedZone && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse" style={{ backgroundColor: "#EF444420", color: "#EF4444", border: "1px solid #EF444440" }}>CRITICAL</span>}
         <div className="ml-auto flex gap-2">
-          <button onClick={handleProcess} disabled={processing} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95" style={{ backgroundColor: "var(--brand-primary)", opacity: processing ? 0.6 : 1 }} data-testid="process-weekly-btn">
+          <button onClick={handleProcess} disabled={processing} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95" style={{ backgroundColor: isRedZone ? "#EF4444" : "var(--brand-primary)", opacity: processing ? 0.6 : 1 }} data-testid="process-weekly-btn">
             <Zap className="h-3.5 w-3.5" />{processing ? "Updating..." : "Update"}
           </button>
-          <button onClick={refresh} className="p-2 rounded-xl" style={{ backgroundColor: "var(--bg-card)" }} data-testid="refresh-btn"><RefreshCw className="h-4 w-4" style={{ color: "var(--text-muted)" }} /></button>
+          <button onClick={refresh} className="p-2 rounded-xl" style={{ backgroundColor: isRedZone ? RED_ZONE_STYLES["--bg-card"] : "var(--bg-card)" }} data-testid="refresh-btn"><RefreshCw className="h-4 w-4" style={{ color: isRedZone ? "#8B5555" : "var(--text-muted)" }} /></button>
         </div>
       </header>
 
       <div className="px-4 py-4 space-y-4 max-w-3xl mx-auto">
         {/* Red Zone Warning */}
-        {survivalClock && survivalClock.survivalDays < 30 && (
-          <div className="rounded-2xl p-4 flex items-center gap-3 animate-pulse" style={{ backgroundColor: "#EF444415", border: "2px solid #EF4444" }} data-testid="red-zone-alert">
-            <AlertTriangle className="h-6 w-6 flex-shrink-0" style={{ color: "#EF4444" }} />
+        {isRedZone && (
+          <div className="rounded-2xl p-4 flex items-center gap-3" style={{ backgroundColor: "#EF444418", border: "2px solid #EF4444", boxShadow: "0 0 30px #EF444420" }} data-testid="red-zone-alert">
+            <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center animate-pulse" style={{ backgroundColor: "#EF444430" }}>
+              <AlertTriangle className="h-6 w-6" style={{ color: "#EF4444" }} />
+            </div>
             <div>
-              <p className="text-sm font-black" style={{ color: "#EF4444" }}>RED ZONE</p>
-              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>Only {survivalClock.survivalDays} days of runway left. Take immediate action to build your emergency fund.</p>
+              <p className="text-sm font-black" style={{ color: "#EF4444" }}>RED ZONE ACTIVE</p>
+              <p className="text-xs" style={{ color: "#C9A3A3" }}>Only {survivalClock.survivalDays} days of runway left. Take immediate action to build your emergency fund.</p>
             </div>
           </div>
         )}
