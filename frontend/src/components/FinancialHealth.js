@@ -404,6 +404,19 @@ const FinancialHealth = () => {
             <p className="text-xs text-black/60">Rule-based financial assessment</p>
           </div>
         </div>
+        {healthModules.length > 0 && (
+          <button
+            onClick={toggleAllCards}
+            className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+            style={{ 
+              backgroundColor: allExpanded ? "#F3F4F6" : "#ECFDF5", 
+              color: allExpanded ? "#6B7280" : "#059669"
+            }}
+            data-testid="toggle-all-health-cards"
+          >
+            {allExpanded ? "Collapse All" : "Expand All"}
+          </button>
+        )}
       </div>
 
       {/* Overall Score */}
