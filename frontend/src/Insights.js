@@ -4,7 +4,7 @@ import {
   Shield, Target, AlertTriangle, Flame, Trophy, Star,
   TrendingUp, TrendingDown, Clock, Zap, Award, ChevronDown, ChevronUp,
   AlertCircle, Repeat, ArrowUpRight, ShieldAlert, ShieldCheck,
-  Crown, Rocket, CheckCircle, Medal, Swords, Info, X,
+  Crown, Rocket, CheckCircle, Medal, Swords, Info, X, Share2,
   HeartPulse, LifeBuoy, PieChart, ListChecks, Flag, GitBranch, CircleCheckBig, Gauge,
   Lock, BarChart3 as BarChart3Icon, XCircle, PiggyBank
 } from "lucide-react";
