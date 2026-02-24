@@ -65,6 +65,7 @@ const ProfileSettings = () => {
   const accountTypes = ["Individual", "Company", "HUF", "Trust"];
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     fetchProfile();
   }, []);
 
