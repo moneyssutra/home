@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { 
   User, 
   Shield, 
@@ -8,10 +9,12 @@ import {
   ChevronRight,
   ArrowLeft
 } from "lucide-react";
-import { useState } from "react";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const [showAddSheet, setShowAddSheet] = useState(false);
 
   const sections = [
     {
@@ -44,7 +47,7 @@ const Settings = () => {
     {
       id: "preferences",
       title: "Preferences",
-      description: "Currency, date format & display options",
+      description: "Theme, colors & display options",
       icon: Palette,
       color: "#8B5CF6",
       bgColor: "rgba(139, 92, 246, 0.1)",
@@ -62,7 +65,7 @@ const Settings = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="settings-page">
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="settings-page">
       {/* Header */}
       <header 
         className="sticky top-0 z-40 px-4 py-4 flex items-center gap-3"
@@ -143,6 +146,9 @@ const Settings = () => {
           </p>
         </div>
       </div>
+
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
     </div>
   );
 };
