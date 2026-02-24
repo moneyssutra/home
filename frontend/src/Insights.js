@@ -43,6 +43,30 @@ const PHASE_META = {
 };
 const DIFF_COLORS = { Easy: "#10B981", Medium: "#F59E0B", Hard: "#EF4444" };
 
+// Plain-language stage explanations a kid could understand
+const STAGE_EXPLAIN = {
+  "Exposed": "Almost no savings backup. If income stops, you'd struggle within days.",
+  "Unstable": "About 1-2 weeks of backup. One surprise expense could be a problem.",
+  "Vulnerable": "About 2-3 weeks of backup. Still risky — keep building your safety net.",
+  "Recovering": "About 1 month of backup. Good start, but keep going!",
+  "Balancing": "1-1.5 months without income. You're getting more stable.",
+  "Securing": "About 2 months of backup. A decent safety net is forming.",
+  "Shielded": "2-2.5 months covered. Protected against most short-term surprises.",
+  "Grounded": "3 months covered — the minimum experts recommend!",
+  "Structured": "3-4 months covered. Your finances have real structure now.",
+  "Disciplined": "4+ months covered. Your discipline is paying off.",
+  "In Control": "5 months of runway. You control your money, not the other way around.",
+  "Stabilized": "6 months covered. Half a year of safety — that's real stability!",
+  "Advancing": "6-7 months covered. Past safety net territory, into wealth-building.",
+  "Strategic": "8 months covered. Your money strategy is working well.",
+  "Expanding": "8-9 months covered. Your financial reach is growing steadily.",
+  "Wealth Builder": "9-12 months covered! Your savings can last nearly a year without income.",
+  "Fortified": "1-1.5 years of runway. Very few surprises can shake you.",
+  "Independent": "1.5-2 years covered. Approaching financial independence!",
+  "Financially Free": "2-3 years of runway. Almost nothing can shake your foundation.",
+  "Sovereign": "3+ years covered. Complete financial freedom achieved.",
+};
+
 // ─── SURVIVAL WARNING ───
 const SurvivalWarning = ({ data }) => {
   if (!data || data.survivalDays > 90) return null;
