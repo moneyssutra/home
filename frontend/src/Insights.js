@@ -271,25 +271,40 @@ const EmergencyRunwayWidget = ({ data }) => {
 
       {/* Fund breakdown */}
       {showBreakdown && fb && (
-        <div className="mt-3 pt-3 space-y-2" style={{ borderTop: "1px solid var(--border-light)" }}>
+        <div className="mt-3 pt-3 space-y-3" style={{ borderTop: "1px solid var(--border-light)" }}>
           <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Where your funds are</p>
           {[
-            { label: fb.liquid?.label, amt: fb.liquid?.total, desc: fb.liquid?.description, color: "#10B981", badge: "100%" },
-            { label: fb.semiLiquid?.label, amt: fb.semiLiquid?.total, desc: fb.semiLiquid?.description, color: "#3B82F6", badge: "60%" },
-            { label: fb.illiquid?.label, amt: fb.illiquid?.total, desc: fb.illiquid?.description, color: "#94A3B8", badge: "0%" },
-          ].filter(b => b.amt > 0).map((b, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: b.color }} />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium truncate" style={{ color: "var(--text-primary)" }}>{b.label}</p>
-                <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{b.desc}</p>
+            { key: "liquid", label: fb.liquid?.label, amt: fb.liquid?.total, desc: fb.liquid?.description, color: "#10B981", badge: "100%" },
+            { key: "semi_liquid", label: fb.semiLiquid?.label, amt: fb.semiLiquid?.total, desc: fb.semiLiquid?.description, color: "#3B82F6", badge: "60%" },
+            { key: "illiquid", label: fb.illiquid?.label, amt: fb.illiquid?.total, desc: fb.illiquid?.description, color: "#94A3B8", badge: "0%" },
+          ].filter(b => b.amt > 0).map((b, i) => {
+            const items = (fb.details || []).filter(d => d.category === b.key);
+            return (
+              <div key={i} className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: b.color }} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>{b.label}</p>
+                    <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{b.desc}</p>
+                  </div>
+                  <div className="text-right flex items-center gap-1.5">
+                    <span className="text-xs font-bold" style={{ color: b.color }}>&#8377;{fmt(b.amt)}</span>
+                    <span className="text-[8px] font-bold px-1 py-0.5 rounded" style={{ backgroundColor: `${b.color}15`, color: b.color }}>{b.badge}</span>
+                  </div>
+                </div>
+                {items.length > 0 && (
+                  <div className="ml-4 pl-2 space-y-1" style={{ borderLeft: `2px solid ${b.color}20` }}>
+                    {items.map((item, j) => (
+                      <div key={j} className="flex items-center justify-between">
+                        <span className="text-[11px]" style={{ color: "var(--text-secondary)" }}>{item.name}</span>
+                        <span className="text-[11px] font-semibold" style={{ color: "var(--text-primary)" }}>&#8377;{fmt(item.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div className="text-right flex items-center gap-1.5">
-                <span className="text-xs font-bold" style={{ color: b.color }}>&#8377;{fmt(b.amt)}</span>
-                <span className="text-[8px] font-bold px-1 py-0.5 rounded" style={{ backgroundColor: `${b.color}15`, color: b.color }}>{b.badge}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
           <div className="flex justify-between pt-2" style={{ borderTop: "1px dashed var(--border-light)" }}>
             <span className="text-xs font-bold" style={{ color: "var(--text-secondary)" }}>Effective for Runway</span>
             <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>&#8377;{fmt(fb.effectiveTotal || 0)}</span>
