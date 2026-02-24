@@ -58,71 +58,52 @@ const SurvivalWarning = ({ data }) => {
   );
 };
 
-// ─── COMBINED: LEVEL + SURVIVAL STAGES ───
+// ─── COMBINED: YOUR FINANCIAL STAGE + XP ───
 const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
   const [showXpRules, setShowXpRules] = useState(false);
   if (!gamData) return null;
 
-  const level = gamData.level || 1;
-  const title = gamData.title || "Getting Started";
+  // Primary: Survival Stage (based on survival days)
+  const stageName = clockData?.level || "—";
+  const stageNum = clockData?.stage || 0;
+  const stageColor = clockData?.levelColor || "#059669";
+  const pm = PHASE_META[clockData?.phaseNum] || PHASE_META[1];
+  const survDays = clockData?.survivalDays || 0;
+  const stages = clockData?.visibleStages || [];
+
+  // Secondary: XP (gamification)
   const xp = gamData.currentXP || gamData.xp || 0;
   const nextXp = gamData.nextLevelXP || gamData.nextLevelXp || 100;
   const xpPct = Math.min((xp / nextXp) * 100, 100);
 
-  const stages = clockData?.visibleStages || [];
-  const pm = PHASE_META[clockData?.phaseNum] || PHASE_META[1];
-  const stageColor = clockData?.levelColor || "#059669";
-
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="stage-journey">
-      {/* Level header */}
+      {/* Main identity: Survival Stage */}
       <div className="p-5 pb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center" style={{ background: `linear-gradient(135deg, ${gamData.color || "#059669"}30, ${gamData.color || "#059669"}10)`, border: `2px solid ${gamData.color || "#059669"}50` }}>
-            <span className="text-xl font-black" style={{ color: gamData.color || "#059669" }}>{level}</span>
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl flex flex-col items-center justify-center relative" style={{ background: `linear-gradient(135deg, ${stageColor}25, ${stageColor}08)`, border: `2px solid ${stageColor}50` }}>
+            <span className="text-2xl font-black leading-none" style={{ color: stageColor }}>{stageNum}</span>
+            <span className="text-[8px] font-bold tracking-wide" style={{ color: stageColor }}>STAGE</span>
           </div>
           <div className="flex-1">
-            <p className="text-lg font-black" style={{ color: "var(--text-primary)" }}>{title}</p>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>{fmt(xp)} XP · Level {level} of 20</p>
-            <div className="mt-1.5 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
-              <div className="h-full rounded-full transition-all" style={{ width: `${xpPct}%`, backgroundColor: gamData.color || "#059669" }} />
-            </div>
+            <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: pm.color }}>{pm.label} Zone</p>
+            <p className="text-xl font-black leading-tight" style={{ color: "var(--text-primary)" }}>{stageName}</p>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{survDays} days runway · Stage {stageNum} of 20</p>
           </div>
         </div>
-        <button onClick={() => setShowXpRules(!showXpRules)} className="mt-2 text-[10px] font-bold flex items-center gap-1" style={{ color: "var(--brand-primary)" }} data-testid="xp-rules-toggle">
-          {showXpRules ? <ChevronUp className="h-3 w-3" /> : <Info className="h-3 w-3" />}
-          {showXpRules ? "Hide XP rules" : "How to earn XP?"}
-        </button>
-        {showXpRules && gamData.xpRules && (
-          <div className="mt-2 space-y-1">
-            {gamData.xpRules.map((r, i) => (
-              <div key={i} className="flex items-center justify-between text-[10px] px-2 py-1 rounded" style={{ backgroundColor: "var(--bg-subtle)" }}>
-                <span style={{ color: "var(--text-secondary)" }}>{r.rule}</span>
-                <span className="font-bold" style={{ color: "var(--brand-primary)" }}>+{r.xp} XP</span>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Survival Stage bar - seamlessly connected */}
+      {/* Visual stage bar */}
       {stages.length > 0 && (
-        <div className="px-5 pb-3" style={{ borderTop: "1px solid var(--border-light)" }}>
-          <div className="flex items-center justify-between pt-3 mb-2">
-            <div className="flex items-center gap-1.5">
-              <Shield className="h-3.5 w-3.5" style={{ color: pm.color }} />
-              <p className="text-[10px] font-bold" style={{ color: pm.color }}>Stage {clockData?.stage}/20 · {pm.label} Zone</p>
-            </div>
-            <p className="text-[10px] font-black" style={{ color: stageColor }}>{clockData?.level} · {clockData?.survivalDays}d</p>
-          </div>
+        <div className="px-5 pb-3">
           <div className="flex items-end gap-0.5">
             {stages.map((s) => (
               <div key={s.stage} className="flex-1 flex flex-col items-center">
                 <div className="w-full rounded-sm transition-all" style={{
-                  height: s.current ? "18px" : s.reached ? "10px" : "5px",
+                  height: s.current ? "20px" : s.reached ? "12px" : "5px",
                   backgroundColor: s.reached ? s.color : "var(--bg-subtle)",
                   border: s.current ? `2px solid ${s.color}` : "none",
-                  boxShadow: s.current ? `0 0 6px ${s.color}40` : "none",
+                  boxShadow: s.current ? `0 0 8px ${s.color}40` : "none",
                 }} />
                 {(s.current || s.stage === stages[0].stage || s.stage === stages[stages.length - 1].stage) && (
                   <span className="text-[7px] font-bold mt-0.5" style={{ color: s.current ? s.color : "var(--text-muted)" }}>{s.stage}</span>
@@ -130,6 +111,35 @@ const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
               </div>
             ))}
           </div>
+          <div className="flex justify-between mt-0.5">
+            <span className="text-[8px]" style={{ color: "var(--text-muted)" }}>{stages[0]?.name}</span>
+            <span className="text-[8px]" style={{ color: "var(--text-muted)" }}>{stages[stages.length - 1]?.name}</span>
+          </div>
+        </div>
+      )}
+
+      {/* XP bar - secondary */}
+      <div className="px-5 pb-3 flex items-center gap-3">
+        <Zap className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "#F59E0B" }} />
+        <div className="flex-1">
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            <div className="h-full rounded-full" style={{ width: `${xpPct}%`, backgroundColor: "#F59E0B" }} />
+          </div>
+        </div>
+        <span className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>{fmt(xp)} XP</span>
+        <button onClick={() => setShowXpRules(!showXpRules)} className="text-[10px] font-bold" style={{ color: "var(--brand-primary)" }} data-testid="xp-rules-toggle">
+          {showXpRules ? "Hide" : "XP?"}
+        </button>
+      </div>
+
+      {showXpRules && gamData.xpRules && (
+        <div className="px-5 pb-3 space-y-1">
+          {gamData.xpRules.map((r, i) => (
+            <div key={i} className="flex items-center justify-between text-[10px] px-2 py-1 rounded" style={{ backgroundColor: "var(--bg-subtle)" }}>
+              <span style={{ color: "var(--text-secondary)" }}>{r.rule}</span>
+              <span className="font-bold" style={{ color: "#F59E0B" }}>+{r.xp} XP</span>
+            </div>
+          ))}
         </div>
       )}
 
@@ -137,12 +147,12 @@ const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
       <div className="grid grid-cols-4 divide-x" style={{ borderTop: "1px solid var(--border-light)", borderColor: "var(--border-light)" }}>
         {[
           { val: gamData.lastScore || 0, label: "FIN. SCORE" },
-          { val: gamData.lastSurvivalDays || 0, label: "RUNWAY" },
+          { val: survDays || gamData.lastSurvivalDays || 0, label: "RUNWAY" },
           { val: `${gamData.achievementCount || 0}/${gamData.totalAchievements || 100}`, label: "BADGES" },
           { val: gamData.maxBadgesUnlocked || gamData.achievementCount || 0, label: "PEAK" },
         ].map((s, i) => (
           <div key={i} className="py-3 text-center">
-            <p className="text-base font-black" style={{ color: "var(--text-primary)" }}>{s.val}</p>
+            <p className="text-sm font-black" style={{ color: "var(--text-primary)" }}>{s.val}</p>
             <p className="text-[8px] font-semibold tracking-wider" style={{ color: "var(--text-muted)" }}>{s.label}</p>
           </div>
         ))}
@@ -150,7 +160,7 @@ const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
 
       {/* Share button */}
       {onShare && (
-        <button onClick={onShare} className="w-full flex items-center justify-center gap-2 py-3 text-xs font-bold transition-all active:scale-[0.98]"
+        <button onClick={onShare} className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-bold transition-all active:scale-[0.98]"
           style={{ backgroundColor: "var(--bg-subtle)", borderTop: "1px solid var(--border-light)", color: "var(--brand-primary)" }}
           data-testid="share-card-btn">
           <Share2 className="h-3.5 w-3.5" /> Share Your Financial Score Card
