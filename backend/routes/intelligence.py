@@ -397,6 +397,88 @@ async def get_control_score(request: Request):
     }
 
 
+SHOCK_SCENARIOS = [
+    {"id": "job_loss", "title": "Job Loss", "icon": "alert-triangle", "description": "What if you lose your income for 3 months?", "impact_type": "income_loss", "months": 3},
+    {"id": "medical", "title": "Medical Emergency", "icon": "heart-pulse", "description": "Sudden ₹5L medical expense", "impact_type": "lump_sum", "amount": 500000},
+    {"id": "car_repair", "title": "Major Repair", "icon": "alert-circle", "description": "Unexpected ₹2L repair/replacement", "impact_type": "lump_sum", "amount": 200000},
+    {"id": "emi_hike", "title": "EMI Rate Hike", "icon": "trending-up", "description": "All EMIs increase by 20%", "impact_type": "emi_hike", "pct": 0.20},
+]
+
+
+@router.post("/shock-test")
+async def shock_test(request: Request):
+    """Financial Shock Test - Simulate emergency scenarios and show impact."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    body = await request.json()
+    scenario_id = body.get("scenarioId", "job_loss")
+    scenario = next((s for s in SHOCK_SCENARIOS if s["id"] == scenario_id), SHOCK_SCENARIOS[0])
+
+    user_filter = get_user_filter(user)
+    fund_breakdown = await _get_fund_breakdown(user_filter)
+    effective_funds = fund_breakdown["effectiveTotal"]
+    monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
+    monthly_income = await _get_monthly_income(user_filter)
+    total_emi = await _get_total_emi(user_filter)
+    daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
+
+    current_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+
+    # Calculate post-shock state
+    if scenario["impact_type"] == "income_loss":
+        months = scenario["months"]
+        lost_income = monthly_income * months
+        post_funds = max(effective_funds - lost_income, 0)
+        post_daily = daily_expense
+        impact_label = f"₹{fmt_py(lost_income)} income lost over {months} months"
+    elif scenario["impact_type"] == "lump_sum":
+        amt = scenario["amount"]
+        post_funds = max(effective_funds - amt, 0)
+        post_daily = daily_expense
+        impact_label = f"₹{fmt_py(amt)} sudden expense"
+    elif scenario["impact_type"] == "emi_hike":
+        pct = scenario["pct"]
+        extra_emi = total_emi * pct
+        post_funds = effective_funds
+        post_daily = (monthly_mandatory + extra_emi) / 30
+        impact_label = f"EMIs up ₹{fmt_py(extra_emi)}/month"
+    else:
+        post_funds = effective_funds
+        post_daily = daily_expense
+        impact_label = "Unknown scenario"
+
+    post_days = int(post_funds / post_daily) if post_daily > 0 else 999
+    days_lost = current_days - post_days
+    severity = "critical" if post_days < 30 else "warning" if post_days < 90 else "safe"
+
+    return {
+        "scenario": {k: v for k, v in scenario.items()},
+        "current": {"survivalDays": current_days, "effectiveFunds": round(effective_funds)},
+        "postShock": {"survivalDays": post_days, "effectiveFunds": round(post_funds)},
+        "impact": {"daysLost": days_lost, "label": impact_label, "severity": severity},
+        "tip": f"{'Build a bigger emergency fund urgently.' if severity == 'critical' else 'Consider increasing your liquid reserves.' if severity == 'warning' else 'Your finances can handle this shock well.'}"
+    }
+
+
+@router.get("/shock-scenarios")
+async def get_shock_scenarios(request: Request):
+    """Get available shock test scenarios."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return {"scenarios": SHOCK_SCENARIOS}
+
+
+def fmt_py(n):
+    if n >= 10000000: return f"{n/10000000:.1f}Cr"
+    if n >= 100000: return f"{n/100000:.1f}L"
+    if n >= 1000: return f"{n/1000:.0f}K"
+    return str(round(n))
+
+
+
 @router.get("/behavior-alerts")
 async def get_behavior_alerts(request: Request):
     """Smart Money Alerts - Personalized financial warnings and tips."""
