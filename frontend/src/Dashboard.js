@@ -370,84 +370,8 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* AI Smart Insights */}
-        <div 
-          className="rounded-2xl p-5 shadow-card"
-          style={{ backgroundColor: "#FFFFFF", border: "1px solid #E5E7EB" }}
-          data-testid="ai-insights-card"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%)" }}>
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-black">Smart Insights</h3>
-                <p className="text-xs text-black/60">AI-powered financial tips</p>
-              </div>
-            </div>
-            <button 
-              onClick={fetchInsights}
-              disabled={insightsLoading}
-              className="p-2 rounded-lg transition-all hover:bg-gray-100 active:scale-95"
-            >
-              <RefreshCw className={`h-4 w-4 text-black/50 ${insightsLoading ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
-          
-          {insightsLoading ? (
-            <div className="flex items-center justify-center py-6">
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-                <p className="text-xs text-black/60">Analyzing your finances...</p>
-              </div>
-            </div>
-          ) : insights.length > 0 ? (
-            <div className="space-y-4">
-              {insights.map((insight, index) => (
-                <div 
-                  key={index}
-                  className={`p-4 rounded-xl transition-all ${insight.actionable ? 'cursor-pointer hover:shadow-sm active:scale-[0.99]' : ''}`}
-                  style={{ 
-                    backgroundColor: insight.priority === 'high' 
-                      ? '#FEE2E2' 
-                      : insight.priority === 'medium'
-                        ? '#FEF3C7'
-                        : '#F8FAFC'
-                  }}
-                  onClick={() => insight.actionable && insight.action_link && navigate(insight.action_link)}
-                >
-                  <div className="flex items-start gap-3">
-                    <span className="text-xl flex-shrink-0 w-7 h-7 flex items-center justify-center">{insight.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm leading-tight text-black">
-                        {insight.title}
-                      </p>
-                      <p className="text-xs mt-1 leading-relaxed text-black/70">
-                        {insight.description}
-                      </p>
-                      {insight.actionable && insight.action_text && (
-                        <span 
-                          className="inline-flex items-center gap-1 text-xs font-medium mt-2"
-                          style={{ color: "#059669" }}
-                        >
-                          {insight.action_text}
-                          <ChevronRight className="h-3 w-3" />
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-4">
-              <p className="text-sm text-black/60">
-                Add more financial data for personalized insights
-              </p>
-            </div>
-          )}
-        </div>
+        {/* Financial Health */}
+        <FinancialHealth />
 
         {/* Empty State - When no data */}
         {data && data.assetCount === 0 && data.investmentCount === 0 && data.accountCount === 0 && (
