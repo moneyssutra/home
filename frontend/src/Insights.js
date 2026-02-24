@@ -67,8 +67,8 @@ const StageJourney = ({ data, onShare }) => {
 
   const level = data.level || 1;
   const title = data.title || "Getting Started";
-  const xp = data.xp || 0;
-  const nextXp = data.nextLevelXp || 100;
+  const xp = data.currentXP || data.xp || 0;
+  const nextXp = data.nextLevelXP || data.nextLevelXp || 100;
   const xpPct = Math.min((xp / nextXp) * 100, 100);
 
   // Get visible stages from survival clock (will be passed as prop)
