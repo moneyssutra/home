@@ -347,16 +347,38 @@ async def get_financial_health(request: Request):
         }
         return scores.get(status, 50)
     
-    overall_score = (
-        status_to_score(emergency_status) * 0.20 +
-        status_to_score(life_status) * 0.075 +
-        status_to_score(health_status) * 0.075 +
-        status_to_score(savings_status) * 0.15 +
-        status_to_score(loan_status) * 0.15 +
-        status_to_score(cc_status) * 0.10 +
-        status_to_score(allocation_status) * 0.15 +
-        status_to_score(retirement_status) * 0.10
-    )
+    weights = {
+        "emergencyFund": 0.20,
+        "lifeInsurance": 0.075,
+        "healthInsurance": 0.075,
+        "savingsRate": 0.15,
+        "loanBurden": 0.15,
+        "creditUtilization": 0.10,
+        "investmentAllocation": 0.15,
+        "retirementReadiness": 0.10
+    }
+    
+    module_scores = {
+        "emergencyFund": status_to_score(emergency_status),
+        "lifeInsurance": status_to_score(life_status),
+        "healthInsurance": status_to_score(health_status),
+        "savingsRate": status_to_score(savings_status),
+        "loanBurden": status_to_score(loan_status),
+        "creditUtilization": status_to_score(cc_status),
+        "investmentAllocation": status_to_score(allocation_status),
+        "retirementReadiness": status_to_score(retirement_status)
+    }
+    
+    contributions = {}
+    for key, raw_score in module_scores.items():
+        w = weights[key]
+        contributions[key] = {
+            "rawScore": raw_score,
+            "weight": round(w * 100),
+            "contribution": round(raw_score * w, 1)
+        }
+    
+    overall_score = sum(c["contribution"] for c in contributions.values())
     
     return {
         "overallScore": round(overall_score),
