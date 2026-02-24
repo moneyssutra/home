@@ -83,8 +83,8 @@ const SurvivalWarning = ({ data }) => {
 
 // ─── LEVEL JOURNEY (shows progression through all levels) ───
 const LevelJourney = ({ data }) => {
-  if (!data?.allLevels) return null;
   const [showXPRules, setShowXPRules] = useState(false);
+  if (!data?.allLevels) return null;
   const color = LEVEL_COLORS[data.level] || "#10B981";
   const xpPct = data.nextLevelXP ? Math.min(((data.currentXP - data.levelMinXP) / (data.nextLevelXP - data.levelMinXP)) * 100, 100) : 100;
 
