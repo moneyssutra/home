@@ -1,32 +1,104 @@
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User } from "lucide-react";
+import { Settings, LogOut, User, ChevronDown } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const ProfileMenu = ({ userName, userPicture }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const getInitials = (name) => {
     if (!name) return "U";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    setIsOpen(false);
+    await logout();
+    navigate("/login");
+  };
+
+  const handleSettings = () => {
+    setIsOpen(false);
+    navigate("/settings");
+  };
+
   return (
-    <button
-      onClick={() => navigate("/settings")}
-      className="flex items-center justify-center w-9 h-9 rounded-full overflow-hidden transition-all hover:ring-2 hover:ring-white/30 active:scale-95"
-      data-testid="profile-menu-button"
-    >
-      {userPicture ? (
-        <img 
-          src={userPicture} 
-          alt={userName || "User"} 
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <div className="w-full h-full bg-white/20 flex items-center justify-center text-white text-sm font-semibold">
-          {getInitials(userName)}
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-center w-9 h-9 rounded-full overflow-hidden transition-all hover:ring-2 hover:ring-white/30 active:scale-95"
+        data-testid="profile-menu-button"
+      >
+        {userPicture ? (
+          <img 
+            src={userPicture} 
+            alt={userName || "User"} 
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-white/20 flex items-center justify-center text-white text-sm font-semibold">
+            {getInitials(userName)}
+          </div>
+        )}
+      </button>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <div 
+          className="absolute right-0 top-12 w-48 rounded-xl shadow-lg overflow-hidden z-50"
+          style={{ 
+            backgroundColor: "var(--bg-card)", 
+            border: "1px solid var(--border-light)"
+          }}
+        >
+          {/* User Info Header */}
+          <div className="px-4 py-3 border-b" style={{ borderColor: "var(--border-light)" }}>
+            <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+              {userName || "User"}
+            </p>
+            <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
+              Manage your account
+            </p>
+          </div>
+
+          {/* Menu Items */}
+          <div className="py-1">
+            <button
+              onClick={handleSettings}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+              data-testid="settings-menu-item"
+            >
+              <Settings className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
+              <span className="text-sm" style={{ color: "var(--text-primary)" }}>Settings</span>
+            </button>
+
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors"
+              data-testid="logout-menu-item"
+            >
+              <LogOut className="h-4 w-4 text-red-500" />
+              <span className="text-sm text-red-500">Logout</span>
+            </button>
+          </div>
         </div>
       )}
-    </button>
+    </div>
   );
 };
 
