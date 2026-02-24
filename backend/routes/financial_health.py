@@ -372,10 +372,12 @@ async def get_financial_health(request: Request):
     contributions = {}
     for key, raw_score in module_scores.items():
         w = weights[key]
+        max_contribution = round(100 * w, 1)
         contributions[key] = {
             "rawScore": raw_score,
             "weight": round(w * 100),
-            "contribution": round(raw_score * w, 1)
+            "contribution": round(raw_score * w, 1),
+            "maxContribution": max_contribution
         }
     
     overall_score = sum(c["contribution"] for c in contributions.values())
