@@ -378,6 +378,7 @@ const FinancialScoreWidget = ({ data }) => {
     { ...bd.safetyBuffer, color: "#8B5CF6", help: "Emergency fund coverage" },
     { ...bd.incomeConsistency, color: "#F59E0B", help: "Income stability & consistency" },
   ].filter(b => b.label);
+  const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
   return (
     <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-score">
@@ -385,7 +386,7 @@ const FinancialScoreWidget = ({ data }) => {
         <Target className="h-5 w-5" style={{ color: gc }} />
         <h3 className="text-sm font-bold uppercase tracking-wide" style={{ color: "var(--text-secondary)" }}>Financial Score</h3>
       </div>
-      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Your overall financial health out of 100 (4 pillars x 25 each)</p>
+      <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>Your overall financial health · Updated {today}</p>
 
       <div className="flex items-center gap-5">
         <div className="flex-shrink-0 w-20 h-20 rounded-2xl flex flex-col items-center justify-center" style={{ background: `linear-gradient(135deg, ${gc}20, ${gc}05)`, border: `2px solid ${gc}40` }}>
@@ -407,14 +408,25 @@ const FinancialScoreWidget = ({ data }) => {
         </div>
       </div>
 
-      {/* Pillar contributions explainer */}
-      <div className="flex gap-2 mt-3 flex-wrap">
-        {bars.map((b, i) => (
-          <div key={i} className="px-2 py-1 rounded-lg text-[9px]" style={{ backgroundColor: `${b.color}08`, border: `1px solid ${b.color}15` }}>
-            <span className="font-bold" style={{ color: b.color }}>{b.score}/{b.max}</span>
-            <span style={{ color: "var(--text-muted)" }}> {b.help}</span>
-          </div>
-        ))}
+      {/* Score breakdown: how each pillar adds up */}
+      <div className="mt-3 p-2.5 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }} data-testid="score-contribution">
+        <div className="flex items-center justify-center gap-1 text-xs">
+          {bars.map((b, i) => (
+            <span key={i} className="flex items-center gap-1">
+              <span className="font-black" style={{ color: b.color }}>{b.score}</span>
+              {i < bars.length - 1 && <span style={{ color: "var(--text-muted)" }}>+</span>}
+            </span>
+          ))}
+          <span className="mx-1" style={{ color: "var(--text-muted)" }}>=</span>
+          <span className="font-black text-sm" style={{ color: gc }}>{score}/100</span>
+        </div>
+        <div className="flex items-center justify-center gap-1.5 mt-1 flex-wrap">
+          {bars.map((b, i) => (
+            <span key={i} className="text-[9px] px-1.5 py-0.5 rounded" style={{ backgroundColor: `${b.color}10`, color: b.color }}>
+              {b.label?.split(" ")[0]}: {b.score}pts
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Monthly metrics */}
