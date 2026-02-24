@@ -1,0 +1,103 @@
+{
+  "summary": "Comprehensive testing of Insights page with 20-level gamification system. All 24 backend API tests passed. Frontend widgets fully functional: Level Journey (20 levels), Emergency Runway (FDs in semi-liquid), Financial Score (4 pillars with help text), Smart Alerts, Badges (24 total with Max Badges metric), Challenges (Join/Abandon working).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_insights_gamification_20lvl.py",
+    "/app/test_reports/pytest/insights_20lvl_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend gamification.py correctly implements 20 levels with proper XP thresholds",
+    "ACHIEVEMENTS dict contains 24 gender-friendly badges across 11 categories",
+    "Survival clock correctly categorizes FDs in semi-liquid with 90% effective value",
+    "Control score returns 4 pillars with explanatory help text for each",
+    "Challenge join/leave endpoints working correctly with proper ID handling",
+    "Frontend Insights.js renders all widgets with proper data-testid attributes"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_insights_gamification_20lvl.py"
+  ],
+  "success_rate": {
+    "backend": "100% (24/24 tests passed)",
+    "frontend": "100% - All widgets visible and interactive"
+  },
+  "test_credentials": {
+    "username": "test",
+    "password": "test"
+  },
+  "seed_data_creation": "None - used existing test user data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "20-level gamification fully tested. Key API details: (1) GET /api/intelligence/survival-clock - returns effectiveFunds, monthlyMandatoryExpense, survivalDays, level (NEEDS ATTENTION/BUILDING/COMFORTABLE/SECURE/CHAMPION), fundBreakdown with instant/semiLiquid/marketable/locked categories. FDs counted at 90% in semi-liquid. (2) GET /api/intelligence/control-score - returns finalScore (0-100), grade (A-E), breakdown with 4 pillars (savingsRate, emiLoad, safetyBuffer, incomeConsistency) each having score, max, label, help text. (3) GET /api/intelligence/behavior-alerts - returns alerts array with type/severity/message. (4) GET /api/gamification/profile - returns 20 levels in allLevels array with stages (begin/learn/grow/control/expand/master/legend/freedom), 24 achievements with categories, xpRules array, maxBadgesUnlocked metric. (5) GET /api/gamification/challenges - returns available (with explainer, difficulty), active, completed arrays. (6) POST /api/gamification/challenges/{code}/join - joins challenge. (7) DELETE /api/gamification/challenges/{id}/leave - abandons challenge using UUID id not code. (8) POST /api/gamification/process - processes weekly gamification, returns xpEarned, totalXP, newLevel with allLevels.",
+  "backend_tests_summary": {
+    "intelligence_apis": {
+      "test_survival_clock_returns_all_expected_fields": "PASSED - effectiveFunds, survivalDays, fundBreakdown with FDs in semi-liquid",
+      "test_survival_clock_fund_breakdown_details": "PASSED - details array with name, amount, category, pct",
+      "test_control_score_returns_4_pillars": "PASSED - savingsRate, emiLoad, safetyBuffer, incomeConsistency with help text",
+      "test_control_score_grade_values": "PASSED - grade A-E, score 0-100",
+      "test_behavior_alerts_returns_array": "PASSED - alerts array with type, severity, message"
+    },
+    "gamification_20_levels": {
+      "test_profile_returns_20_levels": "PASSED - allLevels has 20 levels with proper structure",
+      "test_profile_has_gender_friendly_titles": "PASSED - no gendered terms in titles",
+      "test_profile_level_stages": "PASSED - 8 stages present",
+      "test_profile_current_level_fields": "PASSED - level, title, stage, currentXP, prevLevelTitle",
+      "test_profile_achievements_structure": "PASSED - 24 achievements with categories",
+      "test_profile_max_badges_unlocked": "PASSED - maxBadgesUnlocked >= achievementCount",
+      "test_profile_xp_rules": "PASSED - 7 XP rules with action, xp, icon"
+    },
+    "challenges": {
+      "test_challenges_returns_three_arrays": "PASSED - available, active, completed",
+      "test_available_challenges_have_explainer_and_difficulty": "PASSED - explainer text and Easy/Medium/Hard",
+      "test_join_challenge_works": "PASSED - returns challenge with id and difficulty",
+      "test_leave_challenge_works": "PASSED - returns success true",
+      "test_leave_invalid_challenge_returns_404": "PASSED - 404 for invalid ID"
+    },
+    "process_weekly": {
+      "test_process_returns_expected_fields": "PASSED - xpEarned, totalXP, newLevel with 20 levels"
+    },
+    "auth_required": {
+      "all_endpoints_require_auth": "PASSED - 6 endpoints return 401 without auth"
+    }
+  },
+  "frontend_tests_summary": {
+    "login": "PASSED - Login with test/test works, redirects to home",
+    "navigation_to_insights": "PASSED - Insights link in bottom nav works",
+    "level_journey_widget": "PASSED - Shows level 10 'Financially Fit', 1410 XP, 20 levels visible with progression dots",
+    "stats_row": "PASSED - FIN. SCORE: 93, RUNWAY: 920, BADGES: 23/24, PEAK: 23",
+    "emergency_runway_widget": "PASSED - 920 days CHAMPION, ₹63.2L effective funds, ₹2.1L monthly, ₹7K/day burn rate",
+    "fund_breakdown_info": "PASSED - Click info shows Instantly Available/Can Withdraw (FDs)/Can Sell/Locked breakdown",
+    "financial_score_widget": "PASSED - Score 93 Grade A with 4 pillars (25/25, 18/25, 25/25, 25/25) and help text",
+    "smart_alerts_widget": "PASSED - Shows 'All clear! No financial alerts right now.'",
+    "badges_widget": "PASSED - Shows 23/24 badges, 'Peak: 23', View All 24 Badges link",
+    "how_to_earn_xp": "PASSED - Click reveals 7 XP rules",
+    "challenges_widget": "PASSED - YOUR ACTIVE CHALLENGES with Abandon buttons, AVAILABLE TO JOIN with difficulty badges and Join buttons",
+    "join_challenge": "PASSED - Join button works, refreshes data",
+    "abandon_challenge": "PASSED - Abandon button works, refreshes data",
+    "update_button": "PASSED - Triggers POST /api/gamification/process",
+    "explore_cards": "PASSED - Analytics and Reports navigation cards visible"
+  },
+  "gamification_state": {
+    "current_level": 10,
+    "level_title": "Financially Fit",
+    "stage": "control",
+    "current_xp": 1410,
+    "xp_to_next_level": 190,
+    "next_level_title": "Budget Pro",
+    "badges_unlocked": 23,
+    "max_badges": 23,
+    "total_achievements": 24,
+    "financial_score": 93,
+    "grade": "A",
+    "survival_days": 920,
+    "streak": 0
+  }
+}
