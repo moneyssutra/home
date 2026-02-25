@@ -976,7 +976,7 @@ const Insights = () => {
             </div>
           </div>
         )}
-        <SurvivalWarning data={survivalClock} />
+        <SurvivalWarning data={survivalClock} isEmpty={isEmpty} />
         <LevelAndStagesWidget gamData={gamification} clockData={survivalClock} onShare={() => setShowShareCard(true)} />
         <FinancialScoreWidget data={controlScore} />
         <EmergencyRunwayWidget data={survivalClock} />
