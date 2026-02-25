@@ -100,8 +100,9 @@ async def get_financial_health(request: Request):
     # Liquid Funds
     liquid_funds = sum(acc.get('currentBalance', 0) or acc.get('balance', 0) for acc in accounts)
     for inv in investments:
-        cat = inv.get('category', '').lower()
-        if 'liquid' in cat or cat == 'fd' or cat == 'fixed deposit':
+        cat = (inv.get('investmentCategory', '') or inv.get('category', '') or '').lower()
+        name = (inv.get('name', '') or '').lower()
+        if 'liquid' in cat or 'liquid' in name or cat == 'fd' or cat == 'fixed deposit' or 'fd' in name.split():
             liquid_funds += inv.get('currentValue', 0)
     
     # Totals
