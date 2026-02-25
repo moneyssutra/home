@@ -253,6 +253,7 @@ async def generate_pdf_report(report_type, data, user_name, start_date, end_date
             elements.append(_make_table(rows, [1.6*w, 0.9*w, 0.9*w, 0.8*w, 1.3*w], '#10B981'))
             elements.append(Spacer(1, 12))
 
+        expenses = data.get("expenses", [])
         if expenses:
             elements.append(Paragraph("Expenses", h2_style))
             rows = [["Expense", "Category", "Amount", "Frequency", "Date Added"]]
