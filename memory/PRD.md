@@ -7,46 +7,49 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 - React + Tailwind + Shadcn UI (port 3000) / FastAPI (port 8001, /api) / MongoDB Atlas
 
 ## Key Features Implemented
-- 20-Personality Classification Engine (10 input variables, 5 zones, confidence scoring)
-- Financial Journey (20 stages, 5 phases, info icon with full list)
-- Financial Score (4 pillars, rolling 3-month window, pillar contributions)
-- Emergency Runway (3-tier liquidity, individual fund names)
-- Shock Test (4 presets + custom amount input)
-- Future You (12-month projection with mini chart)
-- Red Zone Mode (pulsing alert when survival < 30 days) + Full Dark Theme Override
-- Weekly Health Digest (weekly snapshot comparison notifications)
-- Personality Evolution Tracker (line chart via recharts + monthly history)
-- 100 Badges (8 categories, 4 tiers, scrollable)
-- Gamification Challenges (join/leave)
-- Financial Health (9-module weighted score with per-module contributions)
-- Shareable Score Card, Runway Simulator, Money Pattern with DNA bar
-- Cron Jobs: weekly health digest (Sundays) + monthly personality evaluation (1st of month)
-- Google Auth: auto-creates profile + redirects new users to complete profile (DOB, phone, etc.)
-- Reports: PDF + Excel for income, expense, cashflow, networth, investment, loan, goal, asset, insurance
+- 20-Personality Classification Engine
+- Financial Journey (20 stages, 5 phases)
+- Financial Score (4 pillars)
+- Emergency Runway (3-tier liquidity)
+- Shock Test (4 presets + custom)
+- Future You (12-month projection)
+- Red Zone Mode + Full Dark Theme Override
+- Weekly Health Digest + Monthly Personality Cron Jobs
+- Personality Evolution Tracker (recharts line chart)
+- 100 Badges, Gamification Challenges
+- Financial Health (9-module weighted score)
+- Shareable Score Card, Runway Simulator, Money Pattern DNA
+- Google Auth: auto-profile creation + profile completion flow
+- **Bank-Statement Style Reports**: PDF + Excel for all 9 report types
+
+## Report Design (Bank Statement Style)
+- **PDF**: Dark navy header bar with MONEYSSUTRA branding, account holder info, statement period, summary metric boxes (Total/Count/Top/Categories), category-wise grouped tables with subtotals, alternating row backgrounds, grand total, footer disclaimer with Statement ID
+- **Excel**: Merged header with branding, summary row with key metrics, navy header row, alternating row fills, bold totals, auto-fitted columns, footer disclaimer
+- **Report Types**: Income, Expense, Cashflow, Investment, Loan, Net Worth, Goal, Asset, Insurance
+- **Data Sources**: Both `income_sources` AND `other_income` collections included
 
 ## Recent Changes (Feb 25, 2026)
-- Fixed reports: income/cashflow PDF+Excel now include `other_income` collection (Qnet, etc.)
-- Fixed PDF font: installed DejaVu fonts for ₹ symbol rendering in PDF reports
-- Fixed income page "Received" amount visibility (green on green → white on green)
-- Fixed liquidity classification: FD/RD checked before bank-name regex
-- Added cron jobs to scheduler.py for weekly digest and monthly personality eval
-- Upgraded PersonalityEvolutionWidget to recharts LineChart
-- Implemented Red Zone dark theme override
-- Google Auth: auto-creates profile doc for new users, redirects to /settings/profile
+- Complete redesign of PDF/Excel reports to bank-statement style
+- Category-wise grouping with subtotals in income/expense reports
+- Summary boxes showing key metrics at a glance
+- Professional header/footer with branding and statement ID
+- Net Cash Flow and Savings Rate in cashflow report
+- Investment returns with +/- formatting
+- Net Worth as balance sheet (Assets vs Liabilities)
 
 ## Key API Endpoints
-- GET /api/reports/generate/{report_type}?format=pdf|excel — Report generation
-- GET /api/intelligence/future-you — 12-month projection
-- GET /api/intelligence/personality-history — Evolution timeline
-- POST /api/intelligence/weekly-digest — Weekly snapshot + notification
-- POST /api/intelligence/shock-test — Supports customAmount field
-- GET /api/intelligence/money-pattern — 20-personality engine
-- GET /api/intelligence/survival-clock — Stages + allStages
-- GET /api/intelligence/control-score — Score + scorePeriod
-- GET /api/financial-health — 9 modules + contributions
-- GET /api/income/list/summary — Income sources summary
-- GET /api/other-income — Other income sources
-- POST /api/auth/google/session — Google auth + auto-profile creation
+- GET /api/reports/generate/{report_type}?format=pdf|excel
+- GET /api/intelligence/future-you
+- GET /api/intelligence/personality-history
+- POST /api/intelligence/weekly-digest
+- POST /api/intelligence/shock-test
+- GET /api/intelligence/money-pattern
+- GET /api/intelligence/survival-clock
+- GET /api/intelligence/control-score
+- GET /api/financial-health
+- GET /api/income/list/summary
+- GET /api/other-income
+- POST /api/auth/google/session
 
 ## Prioritized Backlog
 ### P1
@@ -59,6 +62,3 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 
 ## Test Credentials
 - Username: `test`, Password: `test`
-
-## Test Reports
-- Latest: /app/test_reports/iteration_64.json (100% pass rate)
