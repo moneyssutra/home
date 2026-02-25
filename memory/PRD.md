@@ -61,8 +61,13 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Fixed Insights page for new users with no data: no more RED ZONE trigger, welcome banner instead
 - All widgets (Financial Journey, Score, Emergency Runway, Badges, Challenges, Future You, Personality Evolution) now show empty-state fallback UI instead of disappearing
 - `hasRealData()` helper distinguishes "no data" from "has data but low runway"
-- Test accounts: newempty@test.com / Test1234! (empty user), test@moneyssutra.com / test (data user)
-- Testing: 100% pass (6/6 scenarios) — verified both empty and existing users
+
+### Financial Health Smart Sort & Reorder (Feb 25, 2026)
+- Smart sort by rawScore descending (best-performing metrics at top)
+- Drag-to-reorder using @dnd-kit (same pattern as Goals page)
+- Custom order persisted in localStorage
+- Toggle between "Best First" (smart) and manual reorder modes
+- Reorder mode shows drag handles, Done button, and "Reset to Smart" option
 
 ## Prioritized Backlog
 
