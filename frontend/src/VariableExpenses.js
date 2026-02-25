@@ -130,7 +130,7 @@ const VariableExpenses = () => {
   });
 
   return (
-    <div className="min-h-screen honeycomb-bg pb-24" data-testid="variable-expenses-page">
+    <div className="min-h-screen honeycomb-bg pb-32" data-testid="variable-expenses-page">
       {/* Header */}
       <header className="bg-gradient-to-br from-amber-500 via-amber-400 to-amber-500 px-6 pt-8 pb-8">
         <div className="flex items-center gap-4 mb-6">

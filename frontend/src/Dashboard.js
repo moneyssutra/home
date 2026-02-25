@@ -103,7 +103,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="dashboard-page">
+    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="dashboard-page">
       {/* Minimal Header */}
       <header className="relative overflow-hidden" style={{ background: "#14B8A6" }}>
         <div className="relative px-5 pt-4 pb-6">

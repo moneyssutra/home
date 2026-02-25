@@ -156,7 +156,7 @@ const MyRental = () => {
   const variablePendingTotal = variableRentals.filter(r => getPaymentStatus(r) !== 'received').reduce((sum, r) => sum + (r.expectedAmount || 0), 0);
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-rental-page">
+    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-rental-page">
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)" }}>
         <div className="flex items-center gap-4 mb-6">
           <BackButton fallbackPath="/my-income" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />

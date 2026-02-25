@@ -96,7 +96,7 @@ const MyLoans = () => {
   const isLoanClosed = (loan) => loan.outstandingAmount <= 0 && loan.status !== "Active";
 
   return (
-    <div className="min-h-screen pb-24 honeycomb-bg" data-testid="my-loans-page">
+    <div className="min-h-screen pb-32 honeycomb-bg" data-testid="my-loans-page">
       {/* Header */}
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}>
         <div className="flex items-center gap-4 mb-6">

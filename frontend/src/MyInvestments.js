@@ -90,7 +90,7 @@ const MyInvestments = () => {
   const gainPercent = getTotalInvested() > 0 ? (totalGain / getTotalInvested()) * 100 : 0;
 
   return (
-    <div className="min-h-screen pb-24 honeycomb-bg" data-testid="my-investments-page">
+    <div className="min-h-screen pb-32 honeycomb-bg" data-testid="my-investments-page">
       {/* Header */}
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)" }}>
         <div className="flex items-center gap-4 mb-6">

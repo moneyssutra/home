@@ -117,7 +117,7 @@ const MyOtherIncome = () => {
   const pendingTotal = otherIncomes.filter(o => getPaymentStatus(o) !== 'received').reduce((sum, o) => sum + (o.expectedAmount || 0), 0);
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-other-income-page">
+    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-other-income-page">
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #EC4899 100%)" }}>
         <div className="flex items-center gap-4 mb-6">
           <BackButton fallbackPath="/my-income" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />

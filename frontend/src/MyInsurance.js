@@ -104,7 +104,7 @@ const MyInsurance = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24 honeycomb-bg" data-testid="my-insurance-page">
+    <div className="min-h-screen pb-32 honeycomb-bg" data-testid="my-insurance-page">
       {/* Header */}
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #06B6D4 0%, #0891B2 100%)" }}>
         <div className="flex items-center gap-4 mb-6">

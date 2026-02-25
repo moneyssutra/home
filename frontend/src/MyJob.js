@@ -151,7 +151,7 @@ const MyJob = () => {
   const variablePendingTotal = variableJobs.filter(j => getPaymentStatus(j) !== 'received').reduce((sum, j) => sum + (j.expectedAmount || 0), 0);
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-job-page">
+    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-job-page">
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #3B82F6 0%, #8B5CF6 100%)" }}>
         <div className="flex items-center gap-4 mb-6">
           <BackButton fallbackPath="/my-income" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />

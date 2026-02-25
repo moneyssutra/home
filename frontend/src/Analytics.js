@@ -364,7 +364,7 @@ const Analytics = () => {
   const liquidPercent = totalWealth > 0 ? ((data.liquidBalance / totalWealth) * 100).toFixed(0) : 34;
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="analytics-page">
+    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="analytics-page">
       {/* Header */}
       <header className="sticky top-0 z-40 px-4 py-4 flex items-center justify-between" style={{ backgroundColor: "var(--bg-app)" }}>
         <div className="flex items-center gap-3">

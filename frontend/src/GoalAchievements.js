@@ -214,7 +214,7 @@ const GoalAchievements = () => {
   };
 
   return (
-    <div className="min-h-screen honeycomb-bg pb-24" data-testid="goal-achievements-page">
+    <div className="min-h-screen honeycomb-bg pb-32" data-testid="goal-achievements-page">
       {/* Header */}
       <header className="bg-gradient-to-br from-[#F59E0B] via-[#D97706] to-[#B45309] px-6 pt-8 pb-8 relative overflow-hidden">
         {/* Decorative Elements */}

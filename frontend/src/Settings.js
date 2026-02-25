@@ -72,7 +72,7 @@ const Settings = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="settings-page">
+    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="settings-page">
       {/* Header */}
       <header 
         className="sticky top-0 z-40 px-4 py-4 flex items-center gap-3"

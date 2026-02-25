@@ -130,7 +130,7 @@ const FixedExpenses = () => {
   });
 
   return (
-    <div className="min-h-screen honeycomb-bg pb-24" data-testid="fixed-expenses-page">
+    <div className="min-h-screen honeycomb-bg pb-32" data-testid="fixed-expenses-page">
       {/* Header */}
       <header className="bg-gradient-to-br from-slate-600 via-slate-500 to-slate-600 px-6 pt-8 pb-8">
         <div className="flex items-center gap-4 mb-6">

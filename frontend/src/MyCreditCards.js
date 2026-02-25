@@ -63,7 +63,7 @@ const MyCreditCards = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24 honeycomb-bg" data-testid="my-credit-cards-page">
+    <div className="min-h-screen pb-32 honeycomb-bg" data-testid="my-credit-cards-page">
       {/* Header */}
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)" }}>
         <div className="flex items-center gap-4 mb-6">

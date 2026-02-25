@@ -224,7 +224,7 @@ const MyBusiness = () => {
   const variablePendingTotal = variablePendingList.reduce((sum, b) => sum + (b.expectedAmount || 0), 0);
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-business-page">
+    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-business-page">
       {/* Header */}
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #10B981 0%, #14B8A6 100%)" }}>
         <div className="flex items-center gap-4 mb-6">

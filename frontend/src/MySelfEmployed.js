@@ -222,7 +222,7 @@ const MySelfEmployed = () => {
   const variablePendingTotal = variablePendingList.reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-self-employed-page">
+    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-self-employed-page">
       {/* Header */}
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)" }}>
         <div className="flex items-center gap-4 mb-6">

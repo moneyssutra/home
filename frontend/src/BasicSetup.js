@@ -92,7 +92,7 @@ const BasicSetup = () => {
       </header>
 
       {/* Form */}
-      <div className="px-6 pb-24">
+      <div className="px-6 pb-32">
         <div className="max-w-md mx-auto space-y-6">
           {/* Full Name */}
           <div>

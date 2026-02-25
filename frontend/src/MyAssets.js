@@ -87,7 +87,7 @@ const MyAssets = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24 honeycomb-bg" data-testid="my-assets-page">
+    <div className="min-h-screen pb-32 honeycomb-bg" data-testid="my-assets-page">
       {/* Header */}
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)" }}>
         <div className="flex items-center gap-4 mb-6">

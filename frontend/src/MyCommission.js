@@ -133,7 +133,7 @@ const MyCommission = () => {
   const variablePendingTotal = variableCommissions.filter(c => getPaymentStatus(c) !== 'received').reduce((sum, c) => sum + (c.expectedAmount || 0), 0);
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-commission-page">
+    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-commission-page">
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%)" }}>
         <div className="flex items-center gap-4 mb-6">
           <BackButton fallbackPath="/my-income" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />

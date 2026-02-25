@@ -91,7 +91,7 @@ const MyLiabilities = () => {
   }
 
   return (
-    <div className="min-h-screen pb-24 honeycomb-bg" data-testid="my-liabilities-page">
+    <div className="min-h-screen pb-32 honeycomb-bg" data-testid="my-liabilities-page">
       {/* Header */}
       <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)" }}>
         <div className="flex items-center gap-4 mb-6">

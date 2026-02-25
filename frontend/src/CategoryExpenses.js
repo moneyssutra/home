@@ -239,7 +239,7 @@ const CategoryExpenses = () => {
   }
 
   return (
-    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-base)" }}>
+    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-base)" }}>
       {/* Header */}
       <div className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3 mb-4">
