@@ -435,6 +435,7 @@ const InsuranceForm = () => {
         expectedMaturityAmount: expectedMaturityAmount ? parseFloat(expectedMaturityAmount) : null,
         autoCreateExpense,
         premiumEndDate: premiumEndDate || null,
+        premiumPaymentTerm: premiumPaymentTerm || null,
         notes: notes || null,
       };
 
