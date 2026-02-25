@@ -278,49 +278,48 @@ async def get_control_score(request: Request):
     effective_funds = (await _get_fund_breakdown(user_filter))["effectiveTotal"]
     monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
 
-    # 1. Savings Rate (25%) - How much you save vs earn
+    # 1. Savings Rate (25pts) - Granular tier model
     if monthly_income > 0:
         savings_ratio = (monthly_income - monthly_discretionary - monthly_mandatory) / monthly_income
     else:
         savings_ratio = 0
     savings_ratio = max(savings_ratio, 0)
-    if savings_ratio > 0.30:
-        savings_score = 25
-    elif savings_ratio > 0.20:
-        savings_score = 20
-    elif savings_ratio > 0.10:
-        savings_score = 15
-    elif savings_ratio > 0.0:
-        savings_score = 10
-    else:
-        savings_score = 5
+    sr_pct = savings_ratio * 100
+    if sr_pct >= 35: savings_score = 25
+    elif sr_pct >= 30: savings_score = 22
+    elif sr_pct >= 25: savings_score = 20
+    elif sr_pct >= 20: savings_score = 17
+    elif sr_pct >= 15: savings_score = 14
+    elif sr_pct >= 10: savings_score = 10
+    elif sr_pct >= 5: savings_score = 6
+    elif sr_pct >= 1: savings_score = 3
+    else: savings_score = 0
 
-    # 2. EMI Load (25%) - How much EMI eats your income
+    # 2. EMI Load (25pts) - Granular tier model
     if monthly_income > 0:
         emi_ratio = total_emi / monthly_income
     else:
         emi_ratio = 1.0
-    if emi_ratio < 0.25:
-        emi_score = 25
-    elif emi_ratio < 0.40:
-        emi_score = 18
-    elif emi_ratio < 0.60:
-        emi_score = 10
-    else:
-        emi_score = 5
+    emi_pct = emi_ratio * 100
+    if emi_pct <= 20: emi_score = 25
+    elif emi_pct <= 25: emi_score = 22
+    elif emi_pct <= 30: emi_score = 20
+    elif emi_pct <= 40: emi_score = 15
+    elif emi_pct <= 50: emi_score = 10
+    elif emi_pct <= 60: emi_score = 5
+    else: emi_score = 0
 
-    # 3. Safety Buffer (25%) - Months of backup funds
-    daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 0
-    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
-    buffer_months = round(survival_days / 30, 1)
-    if buffer_months > 6:
-        buffer_score = 25
-    elif buffer_months > 3:
-        buffer_score = 18
-    elif buffer_months > 1:
-        buffer_score = 10
-    else:
-        buffer_score = 5
+    # 3. Safety Buffer (25pts) - (Liquid + 60% Semi-liquid) / Mandatory Expenses
+    fund_breakdown = await _get_fund_breakdown(user_filter)
+    effective_funds = fund_breakdown["effectiveTotal"]
+    buffer_months = round(effective_funds / monthly_mandatory, 2) if monthly_mandatory > 0 else 99
+    if buffer_months >= 8: buffer_score = 25
+    elif buffer_months >= 6: buffer_score = 22
+    elif buffer_months >= 4: buffer_score = 18
+    elif buffer_months >= 3: buffer_score = 14
+    elif buffer_months >= 2: buffer_score = 10
+    elif buffer_months >= 1: buffer_score = 5
+    else: buffer_score = 0
 
     # 4. Income Consistency (25%) - Stability of income
     three_months_ago = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
