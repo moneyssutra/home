@@ -269,7 +269,12 @@ const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
 // ─── EMERGENCY RUNWAY (Original ring design + 3-buffer) ───
 const EmergencyRunwayWidget = ({ data }) => {
   const [showBreakdown, setShowBreakdown] = useState(false);
-  if (!data) return null;
+  if (!data) return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="emergency-runway">
+      <div className="flex items-center gap-2 mb-2"><Shield className="h-5 w-5" style={{ color: "#94A3B8" }} /><h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Emergency Runway</h3></div>
+      <p className="text-xs" style={{ color: "var(--text-muted)" }}>Add your savings and expenses to calculate your emergency runway.</p>
+    </div>
+  );
   const levelColor = data.levelColor || "#EF4444";
   const maxDays = 365;
   const pct = Math.min((data.survivalDays / maxDays) * 100, 100);
