@@ -28,9 +28,11 @@ const AuthCallback = () => {
         if (result.success) {
           setUserData(result.user);
           
-          // Check if this is a Google user without a password set
-          if (result.user.auth_type === 'google' && !result.user.has_password) {
-            // Show the set password modal for first-time Google users
+          // New Google user → redirect to profile to complete DOB, phone, etc.
+          if (result.user.is_new_user) {
+            navigate("/profile-settings", { replace: true, state: { completeProfile: true } });
+          } else if (result.user.auth_type === 'google' && !result.user.has_password) {
+            // Show the set password modal for returning Google users without password
             setShowSetPasswordModal(true);
           } else {
             // Navigate to home with user data
