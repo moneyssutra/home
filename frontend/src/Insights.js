@@ -391,7 +391,12 @@ const EmergencyRunwayWidget = ({ data }) => {
 // ─── FINANCIAL SCORE (Original design with individual colors per pillar) ───
 const FinancialScoreWidget = ({ data }) => {
   const [showInfo, setShowInfo] = useState(false);
-  if (!data) return null;
+  if (!data) return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-score">
+      <div className="flex items-center gap-2 mb-2"><Target className="h-5 w-5" style={{ color: "#94A3B8" }} /><h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Financial Score</h3></div>
+      <p className="text-xs" style={{ color: "var(--text-muted)" }}>Add income and expenses to calculate your financial score.</p>
+    </div>
+  );
   const score = data.finalScore || data.score || 0;
   const grade = data.grade || "C";
   const gc = score >= 85 ? "#10B981" : score >= 70 ? "#3B82F6" : score >= 55 ? "#F59E0B" : score >= 40 ? "#F97316" : "#EF4444";
