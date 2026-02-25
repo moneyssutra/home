@@ -348,9 +348,9 @@ async def get_financial_health(request: Request):
             "Moderate": 60, "Average": 55, "Needs Improvement": 50, "Low Coverage": 45,
             "Underinsured": 40, "Underexposed": 40, "Overexposed": 40, "High": 35,
             "High Risk": 25, "High Leverage": 25, "Critical": 15, "Dangerous": 10, "Weak": 20, "At Risk": 15,
-            "Not Covered": 10, "N/A": 50
+            "Not Covered": 10, "N/A": 0
         }
-        return scores.get(status, 50)
+        return scores.get(status, 0)
     
     weights = {
         "emergencyFund": 0.175,
