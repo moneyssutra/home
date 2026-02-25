@@ -173,6 +173,7 @@ def _calc_monthly_income(incomes, other_incomes, current_month, current_year):
 
 
 def _calc_monthly_expenses(expenses, current_month, current_year):
+    """Calculate normalized monthly expense total."""
     monthly_expenses = 0
     for expense in expenses:
         amount = expense.get('expectedAmount', 0)
@@ -180,25 +181,9 @@ def _calc_monthly_expenses(expenses, current_month, current_year):
         if freq == 'Daily': monthly_expenses += amount * 30
         elif freq == 'Weekly': monthly_expenses += amount * 4
         elif freq == 'Monthly': monthly_expenses += amount
-        elif freq == 'Quarterly':
-            sq = expense.get('selectedQuarter') or ''
-            qm = {'Q1': [1,2,3], 'Q2': [4,5,6], 'Q3': [7,8,9], 'Q4': [10,11,12]}
-            matched = False
-            for qp, ms in qm.items():
-                if sq and sq.startswith(qp):
-                    if current_month == ms[0]: monthly_expenses += amount
-                    matched = True; break
-            if not matched and current_month in [1, 4, 7, 10]: monthly_expenses += amount
-        elif freq == 'Half-Yearly':
-            sh = expense.get('selectedHalf') or ''
-            if 'Jan' in sh:
-                if current_month in [1, 7]: monthly_expenses += amount
-            else:
-                if current_month in [7, 1]: monthly_expenses += amount
-        elif freq == 'Yearly':
-            sm = expense.get('selectedMonth') or ''
-            mm = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,"July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
-            if mm.get(sm) == current_month: monthly_expenses += amount
+        elif freq == 'Quarterly': monthly_expenses += amount / 3
+        elif freq == 'Half-Yearly': monthly_expenses += amount / 6
+        elif freq == 'Yearly': monthly_expenses += amount / 12
         elif freq == 'One-Time':
             otd = expense.get('oneTimeDate', '')
             if otd:
