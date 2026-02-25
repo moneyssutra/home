@@ -354,6 +354,34 @@ async def get_control_score(request: Request):
     period_start = (now - timedelta(days=90)).strftime("%d %b %Y")
     period_end = now.strftime("%d %b %Y")
 
+    # Savings rate help text
+    if sr_pct >= 35: sr_help = f"You save {sr_pct:.0f}% — outstanding discipline!"
+    elif sr_pct >= 20: sr_help = f"You save {sr_pct:.0f}% — solid. Push toward 35% for max score."
+    elif sr_pct >= 10: sr_help = f"You save {sr_pct:.0f}% — decent start. Target 20%+ for real progress."
+    elif sr_pct > 0: sr_help = f"You save {sr_pct:.0f}% — every bit counts, but aim for 10%+."
+    else: sr_help = "No savings detected. Review expenses and find areas to cut."
+
+    # EMI load help text
+    if emi_pct <= 20: emi_help = f"EMIs at {emi_pct:.0f}% — excellent, well within safe limits."
+    elif emi_pct <= 30: emi_help = f"EMIs at {emi_pct:.0f}% — manageable, but try to stay under 20%."
+    elif emi_pct <= 40: emi_help = f"EMIs at {emi_pct:.0f}% — getting heavy. Avoid new loans."
+    elif emi_pct <= 50: emi_help = f"EMIs at {emi_pct:.0f}% — stressful. Prioritize debt repayment."
+    else: emi_help = f"EMIs at {emi_pct:.0f}% — dangerously high! Consider debt consolidation."
+
+    # Buffer help text
+    if buffer_months >= 8: buf_help = f"{buffer_months:.1f} months — fortress-level safety net!"
+    elif buffer_months >= 6: buf_help = f"{buffer_months:.1f} months — strong buffer. Push for 8+ months."
+    elif buffer_months >= 3: buf_help = f"{buffer_months:.1f} months — decent. Standard advice is 6 months."
+    elif buffer_months >= 1: buf_help = f"{buffer_months:.1f} months — risky. Build toward 3 months ASAP."
+    else: buf_help = f"{buffer_months:.1f} months — critical! Any disruption could be damaging."
+
+    # Consistency help text
+    if variance_pct <= 5: con_help = f"Rock-steady income (±{variance_pct:.0f}% variance)."
+    elif variance_pct <= 10: con_help = f"Very stable (±{variance_pct:.0f}%). Minor fluctuations are normal."
+    elif variance_pct <= 20: con_help = f"Moderately stable (±{variance_pct:.0f}%). Consider building a larger buffer."
+    elif variance_pct <= 30: con_help = f"Notable variance (±{variance_pct:.0f}%). Budget conservatively."
+    else: con_help = f"Highly variable (±{variance_pct:.0f}%). Build a bigger safety net."
+
     return {
         "finalScore": final_score,
         "grade": _get_control_grade(final_score),
@@ -366,33 +394,37 @@ async def get_control_score(request: Request):
             "savingsRate": {
                 "score": savings_score, "max": 25,
                 "ratio": round(savings_ratio, 3),
+                "pct": round(sr_pct, 1),
                 "label": "Savings Rate",
-                "help": f"You save {savings_ratio*100:.0f}% of your income. {'Great!' if savings_ratio > 0.20 else 'Try to save at least 20%.'}"
+                "help": sr_help
             },
             "emiLoad": {
                 "score": emi_score, "max": 25,
                 "ratio": round(emi_ratio, 3),
+                "pct": round(emi_pct, 1),
                 "label": "EMI Load",
-                "help": f"EMIs take {emi_ratio*100:.0f}% of income. {'Healthy level.' if emi_ratio < 0.40 else 'Consider reducing debt.'}"
+                "help": emi_help
             },
             "safetyBuffer": {
                 "score": buffer_score, "max": 25,
-                "months": buffer_months,
+                "months": round(buffer_months, 1),
                 "label": "Safety Buffer",
-                "help": f"{buffer_months} months of backup. {'Excellent!' if buffer_months > 6 else 'Target 6 months.'}"
+                "help": buf_help
             },
             "incomeConsistency": {
                 "score": consistency_score, "max": 25,
                 "variancePct": round(variance_pct, 1),
                 "label": "Income Consistency",
-                "help": f"{'Stable income.' if variance_pct < 15 else 'Income varies - build a larger buffer.'}"
+                "help": con_help
             }
         },
         "metrics": {
             "monthlyIncome": round(monthly_income, 2),
             "monthlyExpenses": round(monthly_mandatory + monthly_discretionary, 2),
             "totalEMI": round(total_emi, 2),
-            "availableFunds": round(effective_funds, 2)
+            "availableFunds": round(effective_funds, 2),
+            "liquidFunds": fund_breakdown["liquid"]["total"],
+            "semiLiquidFunds": fund_breakdown["semiLiquid"]["total"]
         }
     }
 
