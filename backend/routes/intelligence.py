@@ -277,6 +277,9 @@ async def get_control_score(request: Request):
     total_emi = await _get_total_emi(user_filter)
     monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
 
+    # If user has no financial data at all, return 0
+    has_data = monthly_income > 0 or monthly_mandatory > 0 or monthly_discretionary > 0 or total_emi > 0
+
     # 1. Savings Rate (25pts) - Granular tier model
     if monthly_income > 0:
         savings_ratio = (monthly_income - monthly_discretionary - monthly_mandatory) / monthly_income
