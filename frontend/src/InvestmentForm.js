@@ -551,7 +551,7 @@ const InvestmentForm = () => {
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-white border border-gray-200" align="start">
-                  <Calendar
+                  <CalendarComponent
                     mode="single"
                     selected={startDate ? new Date(startDate) : undefined}
                     onSelect={(date) => {
