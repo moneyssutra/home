@@ -30,7 +30,7 @@ const AuthCallback = () => {
           
           // New Google user → redirect to profile to complete DOB, phone, etc.
           if (result.user.is_new_user) {
-            navigate("/profile-settings", { replace: true, state: { completeProfile: true } });
+            navigate("/settings/profile", { replace: true, state: { completeProfile: true } });
           } else if (result.user.auth_type === 'google' && !result.user.has_password) {
             // Show the set password modal for returning Google users without password
             setShowSetPasswordModal(true);
