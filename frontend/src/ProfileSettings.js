@@ -195,6 +195,16 @@ const ProfileSettings = () => {
 
       {/* Content */}
       <div className="px-4 py-2 space-y-6">
+        {/* Complete Profile Banner for new Google users */}
+        {isCompleteProfile && (
+          <div className="rounded-2xl p-4 flex items-start gap-3" style={{ backgroundColor: "#DBEAFE", border: "1px solid #93C5FD" }} data-testid="complete-profile-banner">
+            <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" style={{ color: "#2563EB" }} />
+            <div>
+              <p className="text-sm font-bold" style={{ color: "#1E40AF" }}>Complete Your Profile</p>
+              <p className="text-xs mt-0.5" style={{ color: "#3B82F6" }}>Add your Date of Birth, Phone Number, and other details for a personalized financial experience.</p>
+            </div>
+          </div>
+        )}
         {/* Top Section - Profile Card */}
         <div className="rounded-2xl p-5 relative" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
           <div className="flex flex-col items-center">
