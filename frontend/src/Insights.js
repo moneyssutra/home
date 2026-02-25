@@ -410,12 +410,12 @@ const FinancialScoreWidget = ({ data }) => {
         <div className="mb-3 p-3 rounded-xl text-xs leading-relaxed" style={{ backgroundColor: 'var(--bg-subtle)', color: 'var(--text-secondary)', border: '1px solid var(--border-light)' }}>
           <p className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>How is your score calculated?</p>
           <div className="space-y-1.5">
-            <p><span className="font-semibold" style={{color: "#10B981"}}>Savings Rate (25pts)</span> — % of income saved after all expenses. &gt;30% = full marks.</p>
-            <p><span className="font-semibold" style={{color: "#3B82F6"}}>EMI Load (25pts)</span> — EMI-to-income ratio from your loans. &lt;25% = full marks.</p>
-            <p><span className="font-semibold" style={{color: "#8B5CF6"}}>Safety Buffer (25pts)</span> — Months of expenses covered by liquid funds. &gt;6 months = full marks.</p>
-            <p><span className="font-semibold" style={{color: "#F59E0B"}}>Income Consistency (25pts)</span> — How stable your income has been over 3 months. Low variance = full marks.</p>
+            <p><span className="font-semibold" style={{color: "#10B981"}}>Savings Rate (25pts)</span> — Net Savings / Income. 35%+ = 25pts, 30% = 22, 25% = 20, 20% = 17, 15% = 14, 10% = 10, 5% = 6, &lt;1% = 0.</p>
+            <p><span className="font-semibold" style={{color: "#3B82F6"}}>EMI Load (25pts)</span> — Total EMI / Income. ≤20% = 25pts, 25% = 22, 30% = 20, 40% = 15, 50% = 10, 60% = 5, &gt;60% = 0.</p>
+            <p><span className="font-semibold" style={{color: "#8B5CF6"}}>Safety Buffer (25pts)</span> — (Liquid + 60% Semi-liquid) / Monthly Expenses. 8+ months = 25pts, 6 = 22, 4 = 18, 3 = 14, 2 = 10, 1 = 5, &lt;1 = 0.</p>
+            <p><span className="font-semibold" style={{color: "#F59E0B"}}>Income Consistency (25pts)</span> — Std Dev / Avg Income over 3 months. ≤5% = 25pts, 10% = 22, 20% = 18, 30% = 14, 40% = 8, 50% = 4, &gt;50% = 0.</p>
           </div>
-          <p className="mt-2 italic" style={{ color: 'var(--text-muted)' }}>Score is based on a rolling 3-month window of your financial data.</p>
+          <p className="mt-2 italic" style={{ color: 'var(--text-muted)' }}>Score is based on a rolling 3-month window. Every small improvement moves your score up.</p>
         </div>
       )}
 
