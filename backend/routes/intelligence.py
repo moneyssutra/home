@@ -209,6 +209,10 @@ async def get_survival_clock(request: Request):
     effective_funds = fund_breakdown["effectiveTotal"]
     daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 0
     survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 0
+
+    # If no data at all (no expenses and no funds), show clean zero state
+    if monthly_mandatory == 0 and effective_funds == 0:
+        survival_days = 0
     survival_months = round(survival_days / 30, 1)
 
     level_info = _get_runway_level(survival_days)
