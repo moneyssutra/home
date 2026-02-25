@@ -1,13 +1,13 @@
 /**
  * MoneySSutra Logo Component
  * Brand colors: Teal #3EEBC2, Navy #1A1F3D
- * Uses actual brand PNG assets
+ * Uses circular brand PNG assets
  */
 export const LogoIcon = ({ size = 32, className = "" }) => (
   <img
-    src="/assets/branding/logo-icon.png"
+    src="/assets/branding/logo-icon-round.png"
     alt="MoneySSutra"
-    style={{ height: size, width: "auto" }}
+    style={{ height: size, width: size, borderRadius: "50%" }}
     className={className}
     data-testid="logo-icon"
   />
@@ -15,9 +15,9 @@ export const LogoIcon = ({ size = 32, className = "" }) => (
 
 export const LogoFull = ({ height = 80, className = "" }) => (
   <img
-    src="/assets/branding/logo-full.png"
+    src="/assets/branding/logo-full-round.png"
     alt="MoneySSutra"
-    style={{ height, width: "auto" }}
+    style={{ height, width: height, borderRadius: "50%" }}
     className={className}
     data-testid="logo-full"
   />
