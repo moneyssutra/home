@@ -5,6 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
 import { useExpenseList } from "@/hooks/useApi";
+import { normalizeToMonthly } from "@/lib/formatters";
 
 const MyExpenses = () => {
   const navigate = useNavigate();
