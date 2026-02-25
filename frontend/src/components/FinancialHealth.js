@@ -183,6 +183,69 @@ const METRIC_EXPLANATIONS = {
   }
 };
 
+// Extracted card content for reuse in both normal and DnD modes
+const HealthCardContent = ({ module, Icon, statusColors, isExpanded, explanations, toggleCard, healthData, formatAmount, ValueBox, activeTooltip, setActiveTooltip }) => (
+  <div
+    className="rounded-xl overflow-hidden transition-all"
+    style={{ backgroundColor: statusColors.bg, border: `1px solid ${statusColors.border}` }}
+    data-testid={`health-card-${module.key}`}
+  >
+    <button onClick={() => toggleCard(module.key)} className="w-full p-3 flex items-center justify-between text-left">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${module.iconColor}20` }}>
+          <Icon className="h-4 w-4" style={{ color: module.iconColor }} />
+        </div>
+        <div>
+          <p className="text-sm font-medium" style={{ color: statusColors.text }}>{module.title}</p>
+          <div className="flex items-center gap-1 mt-0.5">
+            {getStatusIcon(module.status)}
+            <span className="text-xs font-medium" style={{ color: statusColors.text }}>{module.status}</span>
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {healthData?.contributions?.[module.key] && (
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: `${module.iconColor}15`, color: module.iconColor }}>
+            {healthData.contributions[module.key].contribution}/{healthData.contributions[module.key].maxContribution}
+          </span>
+        )}
+        {isExpanded ? <ChevronUp className="h-5 w-5" style={{ color: statusColors.text }} /> : <ChevronDown className="h-5 w-5" style={{ color: statusColors.text }} />}
+      </div>
+    </button>
+    {isExpanded && (
+      <div className="px-3 pb-3 pt-1 border-t" style={{ borderColor: statusColors.border, color: statusColors.text }}>
+        {module.key === "netWorthTrend" ? (
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <ValueBox label="Current" value={`₹${formatAmount(module.current)}`} explanation={explanations?.current} metricKey={module.key} boxType="current" />
+            <ValueBox label="Growth" value={`${module.growth >= 0 ? "+" : ""}${module.growth?.toFixed(1)}%`} explanation={explanations?.gap} metricKey={module.key} boxType="growth" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <ValueBox label="Current" value={module.format === "percent" ? `${module.current?.toFixed(1)}%` : `₹${formatAmount(module.current)}`} explanation={explanations?.current} metricKey={module.key} boxType="current" />
+            <ValueBox label="Benchmark" value={module.format === "percent" ? `${module.target}%` : `₹${formatAmount(module.target)}`} explanation={explanations?.benchmark} metricKey={module.key} boxType="benchmark" />
+          </div>
+        )}
+        {module.gap > 0 && module.key !== "netWorthTrend" && (
+          <div className="mb-3">
+            <ValueBox label="Gap" value={module.format === "percent" ? `${module.gap?.toFixed(1)}%` : `₹${formatAmount(module.gap)}`} explanation={explanations?.gap} metricKey={module.key} boxType="gap" />
+          </div>
+        )}
+        {module.extraInfo && (
+          <div className="p-2 rounded-lg bg-white/30 mb-3"><p className="text-[10px]" style={{ color: statusColors.text }}>{module.extraInfo}</p></div>
+        )}
+        {module.action && (
+          <div className="p-2 rounded-lg bg-white/70">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: statusColors.text }} />
+              <p className="text-xs leading-relaxed" style={{ color: statusColors.text }}>{module.action}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+);
+
 const FinancialHealth = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
