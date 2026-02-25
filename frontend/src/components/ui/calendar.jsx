@@ -127,7 +127,7 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       captionLayout="dropdown-buttons"
       fromYear={1950}
-      toYear={2050}
+      toYear={2200}
       month={displayMonth}
       onMonthChange={handleMonthChange}
       selected={selected}
