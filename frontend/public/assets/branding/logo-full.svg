@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#48E5E8"/>
+      <stop offset="50%" stop-color="#00D1CC"/>
+      <stop offset="100%" stop-color="#00BAC3"/>
+    </linearGradient>
+    <linearGradient id="shadowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00BAC3"/>
+      <stop offset="100%" stop-color="#008B8B"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="400" height="400" rx="80" fill="#1B263B"/>
+  <!-- M left stroke -->
+  <path d="M100 280 L100 160 L160 120 L160 200 Z" fill="url(#shadowGrad)" opacity="0.7"/>
+  <path d="M100 280 L100 155 L160 115 L160 195 Z" fill="url(#iconGrad)" filter="url(#glow)"/>
+  <!-- M right stroke -->
+  <path d="M160 115 L220 160 L220 280 L160 195 Z" fill="url(#shadowGrad)" opacity="0.7"/>
+  <path d="M160 115 L225 155 L225 275 L160 195 Z" fill="url(#iconGrad)" filter="url(#glow)"/>
+  <!-- S curve -->
+  <path d="M225 155 C280 130 320 160 300 200 C280 240 240 245 260 275 C270 295 310 290 320 270" 
+        fill="none" stroke="url(#iconGrad)" stroke-width="28" stroke-linecap="round" filter="url(#glow)"/>
+  <!-- Wordmark -->
+  <text x="200" y="345" text-anchor="middle" fill="white" font-family="Montserrat,Arial,sans-serif" font-weight="700" font-size="32" letter-spacing="6">MONEYSSUTRA</text>
+</svg>

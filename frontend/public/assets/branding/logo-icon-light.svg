@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="ig2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#48E5E8"/>
+      <stop offset="50%" stop-color="#00D1CC"/>
+      <stop offset="100%" stop-color="#00BAC3"/>
+    </linearGradient>
+    <linearGradient id="sg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00BAC3"/>
+      <stop offset="100%" stop-color="#008B8B"/>
+    </linearGradient>
+    <filter id="gl2"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="200" height="200" rx="44" fill="white"/>
+  <path d="M48 150 L48 78 L80 58 L80 100 Z" fill="url(#sg2)" opacity="0.5"/>
+  <path d="M48 150 L48 75 L80 55 L80 97 Z" fill="url(#ig2)" filter="url(#gl2)"/>
+  <path d="M80 55 L112 78 L112 150 L80 97 Z" fill="url(#sg2)" opacity="0.5"/>
+  <path d="M80 55 L114 75 L114 148 L80 97 Z" fill="url(#ig2)" filter="url(#gl2)"/>
+  <path d="M114 75 C142 62 162 78 152 100 C142 122 122 124 132 140 C137 150 158 148 162 138"
+        fill="none" stroke="url(#ig2)" stroke-width="14" stroke-linecap="round" filter="url(#gl2)"/>
+</svg>
