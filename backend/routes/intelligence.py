@@ -311,7 +311,7 @@ async def get_control_score(request: Request):
     # 3. Safety Buffer (25pts) - (Liquid + 60% Semi-liquid) / Mandatory Expenses
     fund_breakdown = await _get_fund_breakdown(user_filter)
     effective_funds = fund_breakdown["effectiveTotal"]
-    buffer_months = round(effective_funds / monthly_mandatory, 2) if monthly_mandatory > 0 else 99
+    buffer_months = round(effective_funds / monthly_mandatory, 2) if monthly_mandatory > 0 else 0
     if buffer_months >= 8: buffer_score = 25
     elif buffer_months >= 6: buffer_score = 22
     elif buffer_months >= 4: buffer_score = 18
