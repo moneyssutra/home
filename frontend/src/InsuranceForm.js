@@ -283,6 +283,7 @@ const InsuranceForm = () => {
       setExpectedMaturityAmount(data.expectedMaturityAmount?.toString() || "");
       setAutoCreateExpense(data.autoCreateExpense === true);
       setPremiumEndDate(data.premiumEndDate || "");
+      setPremiumPaymentTerm(data.premiumPaymentTerm || "");
       setNotes(data.notes || "");
     } catch (error) {
       console.error("Error fetching insurance data:", error);
