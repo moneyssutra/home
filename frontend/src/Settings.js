@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { LogoIcon, BRAND } from "@/components/Logo";
 
 const Settings = () => {
   const navigate = useNavigate();
