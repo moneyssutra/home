@@ -233,6 +233,27 @@ const InsuranceForm = () => {
     }
   }, [startDate]);
 
+  // Auto-populate Premium End Date based on Premium Payment Term + Start Date
+  useEffect(() => {
+    if (premiumPaymentTerm && startDate && autoCreateExpense) {
+      const start = new Date(startDate);
+      if (premiumPaymentTerm === "Till Maturity") {
+        // If "Till Maturity" selected, use the policy end date if available
+        if (endDate) {
+          setPremiumEndDate(endDate);
+        }
+      } else {
+        // Extract years from term like "10 Years"
+        const years = parseInt(premiumPaymentTerm);
+        if (!isNaN(years)) {
+          const premEnd = new Date(start);
+          premEnd.setFullYear(premEnd.getFullYear() + years);
+          setPremiumEndDate(format(premEnd, "yyyy-MM-dd"));
+        }
+      }
+    }
+  }, [premiumPaymentTerm, startDate, autoCreateExpense, endDate]);
+
   // Auto-clear premium payment date if it's outside the policy dates
   useEffect(() => {
     if (premiumPaymentDate && startDate) {
