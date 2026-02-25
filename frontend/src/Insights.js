@@ -964,6 +964,18 @@ const Insights = () => {
       </header>
 
       <div className="px-4 py-4 space-y-4 max-w-3xl mx-auto">
+        {/* Welcome banner for new users */}
+        {isEmpty && (
+          <div className="rounded-2xl p-4 flex items-center gap-3" style={{ backgroundColor: "var(--brand-primary)", background: "linear-gradient(135deg, #059669, #10B981)" }} data-testid="welcome-banner">
+            <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.2)" }}>
+              <Rocket className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <p className="text-sm font-black text-white">Welcome to Your Financial Journey!</p>
+              <p className="text-xs text-white/80">Start by adding your income, expenses, and savings to unlock all insights.</p>
+            </div>
+          </div>
+        )}
         {/* Red Zone Warning */}
         {isRedZone && (
           <div className="rounded-2xl p-4 flex items-center gap-3" style={{ backgroundColor: "#EF444418", border: "2px solid #EF4444", boxShadow: "0 0 30px #EF444420" }} data-testid="red-zone-alert">
