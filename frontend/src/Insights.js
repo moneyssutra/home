@@ -941,7 +941,8 @@ const Insights = () => {
   const [showShareCard, setShowShareCard] = useState(false);
   const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, refresh, joinChallenge, leaveChallenge } = useIntelligenceData();
 
-  const isRedZone = survivalClock && survivalClock.survivalDays < 30;
+  const isEmpty = !hasRealData(survivalClock, controlScore);
+  const isRedZone = !isEmpty && survivalClock && survivalClock.survivalDays < 30;
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}>
