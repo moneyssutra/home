@@ -177,9 +177,9 @@ const CategoryExpenses = () => {
       categoryExpenses: filtered,
       fixedExpenses: fixed,
       variableExpenses: variable,
-      totalAmount: filtered.reduce((sum, e) => sum + (e.expectedAmount || 0), 0),
-      fixedTotal: fixed.reduce((sum, e) => sum + (e.expectedAmount || 0), 0),
-      variableTotal: variable.reduce((sum, e) => sum + (e.expectedAmount || 0), 0)
+      totalAmount: filtered.reduce((sum, e) => sum + normalizeToMonthly(e.expectedAmount || 0, e.frequency || 'Monthly'), 0),
+      fixedTotal: fixed.reduce((sum, e) => sum + normalizeToMonthly(e.expectedAmount || 0, e.frequency || 'Monthly'), 0),
+      variableTotal: variable.reduce((sum, e) => sum + normalizeToMonthly(e.expectedAmount || 0, e.frequency || 'Monthly'), 0)
     };
   }, [allExpenses, category, config.name]);
 
