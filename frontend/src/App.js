@@ -86,6 +86,9 @@ import SecuritySettings from "@/SecuritySettings";
 import NotificationSettings from "@/NotificationSettings";
 import PreferencesSettings from "@/PreferencesSettings";
 import DataPrivacySettings from "@/DataPrivacySettings";
+import TermsOfService from "@/pages/TermsOfService";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import DataDeletion from "@/pages/DataDeletion";
 
 // App Router with session_id detection
 function AppRouter() {
