@@ -191,8 +191,26 @@ const FinancialHealth = () => {
   const [overallScore, setOverallScore] = useState(0);
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [allExpanded, setAllExpanded] = useState(false);
+  const [sortMode, setSortMode] = useState("smart"); // "smart" | "custom"
+  const [isReorderMode, setIsReorderMode] = useState(false);
+  const [customOrder, setCustomOrder] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCustomOrder(parsed);
+          setSortMode("custom");
+        }
+      } catch {}
+    }
     fetchHealthData();
   }, []);
 
