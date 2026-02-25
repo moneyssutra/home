@@ -64,6 +64,12 @@ const Settings = () => {
     }
   ];
 
+  const legalLinks = [
+    { label: "Terms of Service", path: "/terms-of-service" },
+    { label: "Privacy Policy", path: "/privacy-policy" },
+    { label: "Data Deletion", path: "/data-deletion" },
+  ];
+
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="settings-page">
       {/* Header */}
