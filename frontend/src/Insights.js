@@ -575,7 +575,12 @@ const BadgesWidget = ({ data }) => {
 
 // ─── CHALLENGES ───
 const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
-  if (!challenges) return null;
+  if (!challenges) return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="challenges-widget">
+      <div className="flex items-center gap-2 mb-2"><Swords className="h-5 w-5" style={{ color: "#8B5CF6" }} /><h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Challenges</h3></div>
+      <p className="text-xs" style={{ color: "var(--text-muted)" }}>Challenges will appear here once your data loads.</p>
+    </div>
+  );
   const active = challenges.active || [];
   const available = challenges.available || [];
 
