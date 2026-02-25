@@ -149,6 +149,10 @@ const ProfileSettings = () => {
       toast.success("Profile updated successfully");
       setIsEditing(false);
       checkAuth();
+      // Redirect to home if coming from Google signup flow
+      if (isCompleteProfile) {
+        navigate("/home", { replace: true });
+      }
     } catch (error) {
       toast.error("Failed to update profile");
     } finally {
