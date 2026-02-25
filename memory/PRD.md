@@ -21,13 +21,16 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 - Financial Health (9-module weighted score with per-module contributions)
 - Shareable Score Card, Runway Simulator, Money Pattern with DNA bar
 - Cron Jobs: weekly health digest (Sundays) + monthly personality evaluation (1st of month)
+- Google Auth: auto-creates profile + redirects new users to complete profile (DOB, phone, etc.)
 
 ## Recent Changes (Feb 25, 2026)
-- Fixed income page "Received" amount visibility (color contrast bug)
-- Fixed liquidity classification: FD/RD now checked before bank-name regex
+- Fixed income page "Received" amount visibility (color contrast: green on green → white on green)
+- Fixed liquidity classification: FD/RD checked before bank-name regex (ICICI FD → semi_liquid)
 - Added cron jobs to scheduler.py for weekly digest and monthly personality eval
 - Upgraded PersonalityEvolutionWidget to recharts LineChart
 - Implemented Red Zone dark theme override (CSS variables swap when survivalDays < 30)
+- Google Auth: auto-creates profile doc in profiles collection for new users
+- New Google users redirected to /settings/profile with "Complete Your Profile" banner
 
 ## Insights Page Widget Order
 1. Red Zone Alert (conditional, with dark theme)
@@ -53,6 +56,9 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 - GET /api/intelligence/control-score — Score + scorePeriod
 - GET /api/financial-health — 9 modules + contributions
 - GET /api/income/list/summary — Income sources summary
+- POST /api/auth/google/session — Google auth + auto-profile creation
+- GET /api/basic-profile — Profile data
+- PUT /api/basic-profile — Update profile
 
 ## Prioritized Backlog
 ### P1
@@ -65,3 +71,6 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 
 ## Test Credentials
 - Username: `test`, Password: `test`
+
+## Test Reports
+- Latest: /app/test_reports/iteration_64.json (100% pass rate)
