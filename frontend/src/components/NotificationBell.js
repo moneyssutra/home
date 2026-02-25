@@ -16,6 +16,7 @@ const NotificationBell = () => {
   const [loading, setLoading] = useState(false);
   const [swipingId, setSwipingId] = useState(null);
   const [swipeX, setSwipeX] = useState(0);
+  const [dismissingId, setDismissingId] = useState(null);
   const touchStartX = useRef(0);
   
   // Income Amount Modal state
