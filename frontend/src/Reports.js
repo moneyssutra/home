@@ -212,26 +212,31 @@ const Reports = () => {
           </h3>
           
           {/* Date Range */}
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>From Date</label>
-              <input
-                type="date"
-                value={dateRange.from}
-                onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-                className="w-full p-3 rounded-xl text-sm"
-                style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium mb-1" style={{ color: "var(--text-muted)" }}>To Date</label>
-              <input
-                type="date"
-                value={dateRange.to}
-                onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-                className="w-full p-3 rounded-xl text-sm"
-                style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
-              />
+          <div className="space-y-3 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>From</label>
+                <input
+                  type="date"
+                  value={dateRange.from}
+                  onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm font-medium"
+                  style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+                  data-testid="report-from-date"
+                />
+              </div>
+              <span className="text-xs font-bold mt-5" style={{ color: "var(--text-muted)" }}>to</span>
+              <div className="flex-1">
+                <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>To</label>
+                <input
+                  type="date"
+                  value={dateRange.to}
+                  onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl text-sm font-medium"
+                  style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+                  data-testid="report-to-date"
+                />
+              </div>
             </div>
           </div>
           
