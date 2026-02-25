@@ -71,7 +71,7 @@
     }
   },
   "cleanup_performed": [
-    "Deleted orphaned expense with id=1e8ea614-9404-4ab2-bc22-2d7a647af8b3 (had userId=null - created before fix)",
+    "Deleted orphaned expense with id=finance-insights-73 (had userId=null - created before fix)",
     "All test insurance policies and expenses cleaned up after tests"
   ],
   "pytest_summary": {
