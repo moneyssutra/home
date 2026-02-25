@@ -168,8 +168,7 @@ const Login = () => {
       <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
         {/* Logo & Title */}
         <div className="flex flex-col items-center mb-8">
-          <LogoIcon size={80} className="mb-4" />
-          <LogoWordmark className="text-2xl mb-2" />
+          <LogoFull height={120} className="mb-3" />
           <p className="text-white/70 text-sm">Your Financial Analytics Platform</p>
         </div>
 
