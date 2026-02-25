@@ -1,0 +1,95 @@
+{
+  "summary": "Iteration 64 - Comprehensive E2E testing of Insights page widgets, Profile Settings, My Income page, and cron job endpoints. All 24 backend tests passed (100%). Frontend UI verified with all widgets rendering correctly. Key fix verified: ICICI FD Account correctly classified as semi_liquid (not liquid).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_insights_widgets_iter64.py",
+    "/app/test_reports/pytest/insights_widgets_iter64_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ICICI FD Account is correctly classified as semi_liquid (line 44-47 in intelligence.py checks for FD/RD patterns)",
+    "Personality Evolution widget shows chart after 2+ monthly evaluations, otherwise shows single entry",
+    "Red Zone theme only activates when survivalDays < 30 (test user has 329 days, so not active)",
+    "My Income page - 'Received' amount is visible in white text on green background (not invisible)",
+    "Profile Settings at /settings/profile shows DOB, Phone, Marital Status, Employment Type correctly",
+    "Weekly digest cron endpoint (POST /api/intelligence/weekly-digest) working correctly",
+    "Personality history cron endpoint (GET /api/intelligence/personality-history) working correctly"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_insights_widgets_iter64.py"
+  ],
+  "success_rate": {
+    "backend": "100% (24/24 tests passed)",
+    "frontend": "100% - All widgets rendering correctly"
+  },
+  "test_credentials": {
+    "username": "test",
+    "password": "test"
+  },
+  "seed_data_creation": "None - used existing test user data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All Insights page widgets tested and working. Key APIs: (1) GET /api/intelligence/survival-clock - returns 20 stages, fundBreakdown with liquid/semiLiquid/illiquid, ICICI FD is semi_liquid. (2) GET /api/intelligence/control-score - returns finalScore, grade, 4-pillar breakdown. (3) GET /api/intelligence/money-pattern - returns personality, zone, confidence, spendingDNA. (4) GET /api/intelligence/future-you - returns 12-month projections. (5) POST /api/intelligence/shock-test - accepts scenarioId or customAmount. (6) GET /api/intelligence/personality-history - returns evolution history. (7) POST /api/intelligence/weekly-digest - creates weekly snapshot. Profile Settings at /settings/profile (not /profile-settings). My Income at /my-income shows Received/Yet to Receive visible.",
+  "features_verified": {
+    "login_with_test_credentials": "PASS - username: test, password: test works",
+    "insights_page_navigation": "PASS - /insights loads correctly",
+    "financial_journey_widget": "PASS - Shows Stage 16 'Wealth Builder', Growth Zone, 329 days, 15 crossed / 4 to go",
+    "financial_score_widget": "PASS - Shows 93 Grade A, 4 pillars (Savings 25/25, EMI 18/25, Buffer 25/25, Consistency 25/25)",
+    "emergency_runway_widget": "PASS - Shows 329 days, ₹22.6L accessible, 3-buffer display (₹0 Liquid, ₹22.6L Extended, ₹69.8L Net Worth)",
+    "icici_fd_classification": "PASS - ICICI FD Account classified as semi_liquid (not liquid)",
+    "shock_test_widget": "PASS - Job Loss scenario shows 329 → 99 days, -230 days lost, SAFE severity",
+    "future_you_widget": "PASS - Shows 329d Today → 766d 12 Months, +437d runway gain",
+    "personality_evolution_widget": "PASS - Shows current month entry, chart message for 2nd evaluation",
+    "badges_widget": "PASS - Shows 34/100 badges, Peak: 53, category filters (All, Survival, Score, etc.)",
+    "challenges_widget": "PASS - Shows 0 active, available challenges with Join buttons",
+    "money_pattern_widget": "PASS - Shows Level 13 'Wealth Builder' Growth Zone 100% match, Spending DNA bar",
+    "red_zone_not_active": "PASS - survivalDays=329 > 30, so Red Zone theme NOT active",
+    "survival_warning_not_active": "PASS - survivalDays=329 > 90, so survival warning NOT visible",
+    "profile_settings_page": "PASS - /settings/profile shows DOB, Phone, Marital Status, Employment Type, Risk Appetite, Retirement Age",
+    "my_income_page": "PASS - /my-income shows Received ₹5.03L (visible white on green), Yet to Receive ₹2.0K (yellow)",
+    "cron_personality_history": "PASS - GET /api/intelligence/personality-history returns history array",
+    "cron_weekly_digest": "PASS - POST /api/intelligence/weekly-digest returns summary, survivalDays, savingsRate"
+  },
+  "api_response_snapshots": {
+    "survival_clock": {
+      "survivalDays": 329,
+      "level": "Wealth Builder",
+      "stage": 16,
+      "phase": "Growth",
+      "fundBreakdown.liquid.total": 0,
+      "fundBreakdown.semiLiquid.total": 3767000,
+      "fundBreakdown.illiquid.total": 3211000,
+      "icici_fd_category": "semi_liquid"
+    },
+    "control_score": {
+      "finalScore": 93,
+      "grade": "A",
+      "breakdown": {
+        "savingsRate": "25/25",
+        "emiLoad": "18/25",
+        "safetyBuffer": "25/25",
+        "incomeConsistency": "25/25"
+      }
+    },
+    "money_pattern": {
+      "personality": "Wealth Builder",
+      "personalityId": 13,
+      "zone": "Growth",
+      "confidence": 100
+    },
+    "future_you": {
+      "current.survivalDays": 329,
+      "projected.survivalDays": 766,
+      "projections_count": 12,
+      "improvement.survivalDaysGain": 437
+    }
+  }
+}
