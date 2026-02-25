@@ -19,27 +19,32 @@ export function useIntelligenceData() {
     setLoading(true);
     setError(null);
     try {
-      const [survivalRes, scoreRes, alertsRes, profileRes, challengesRes, patternRes, futureRes, historyRes] = await Promise.all([
+      // Phase 1: Critical data (shown above the fold) — load first
+      const [survivalRes, scoreRes, profileRes] = await Promise.all([
         axios.get(`${backendUrl}/api/intelligence/survival-clock`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/intelligence/control-score`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/intelligence/behavior-alerts`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/gamification/profile`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/gamification/challenges`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/intelligence/money-pattern`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/intelligence/future-you`, { withCredentials: true }).catch(() => ({ data: null })),
-        axios.get(`${backendUrl}/api/intelligence/personality-history`, { withCredentials: true }).catch(() => ({ data: null })),
       ]);
       setSurvivalClock(survivalRes.data);
       setControlScore(scoreRes.data);
-      setBehaviorAlerts(alertsRes.data);
       setGamification(profileRes.data);
+      setLoading(false);
+
+      // Phase 2: Secondary data — load in background after UI renders
+      const [alertsRes, challengesRes, patternRes, futureRes, historyRes] = await Promise.all([
+        axios.get(`${backendUrl}/api/intelligence/behavior-alerts`, { withCredentials: true }).catch(() => ({ data: null })),
+        axios.get(`${backendUrl}/api/gamification/challenges`, { withCredentials: true }).catch(() => ({ data: null })),
+        axios.get(`${backendUrl}/api/intelligence/money-pattern`, { withCredentials: true }).catch(() => ({ data: null })),
+        axios.get(`${backendUrl}/api/intelligence/future-you`, { withCredentials: true }).catch(() => ({ data: null })),
+        axios.get(`${backendUrl}/api/intelligence/personality-history`, { withCredentials: true }).catch(() => ({ data: null })),
+      ]);
+      setBehaviorAlerts(alertsRes.data);
       setChallenges(challengesRes.data);
       setMoneyPattern(patternRes.data);
       setFutureYou(futureRes.data);
       setPersonalityHistory(historyRes.data);
     } catch (err) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
