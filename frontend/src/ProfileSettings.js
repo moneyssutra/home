@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { 
   ArrowLeft, 
   User, 
@@ -17,7 +17,8 @@ import {
   TrendingUp,
   Target,
   CheckCircle2,
-  Building2
+  Building2,
+  AlertCircle
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
