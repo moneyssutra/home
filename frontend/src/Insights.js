@@ -917,10 +917,7 @@ const Insights = () => {
           {isRedZone ? "RED ZONE" : "Insights"}
         </h1>
         {isRedZone && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse" style={{ backgroundColor: "#EF444420", color: "#EF4444", border: "1px solid #EF444440" }}>CRITICAL</span>}
-        <div className="ml-auto flex gap-2">
-          <button onClick={handleProcess} disabled={processing} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95" style={{ backgroundColor: isRedZone ? "#EF4444" : "var(--brand-primary)", opacity: processing ? 0.6 : 1 }} data-testid="process-weekly-btn">
-            <Zap className="h-3.5 w-3.5" />{processing ? "Updating..." : "Update"}
-          </button>
+        <div className="ml-auto">
           <button onClick={refresh} className="p-2 rounded-xl" style={{ backgroundColor: isRedZone ? RED_ZONE_STYLES["--bg-card"] : "var(--bg-card)" }} data-testid="refresh-btn"><RefreshCw className="h-4 w-4" style={{ color: isRedZone ? "#8B5555" : "var(--text-muted)" }} /></button>
         </div>
       </header>
