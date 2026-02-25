@@ -532,20 +532,79 @@ const FinancialHealth = () => {
             <p className="text-xs text-black/60">Rule-based financial assessment</p>
           </div>
         </div>
-        {healthModules.length > 0 && (
-          <button
-            onClick={() => toggleAllCards(healthModules.map(m => m.key))}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
-            style={{ 
-              backgroundColor: allExpanded ? "#F3F4F6" : "#ECFDF5", 
-              color: allExpanded ? "#6B7280" : "#059669"
-            }}
-            data-testid="toggle-all-health-cards"
-          >
-            {allExpanded ? "Collapse All" : "Expand All"}
-          </button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {healthModules.length > 0 && !isReorderMode && (
+            <>
+              <button
+                onClick={sortMode === "smart" ? enterReorder : switchToSmart}
+                className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors"
+                style={{
+                  backgroundColor: sortMode === "smart" ? "#ECFDF5" : "#F3E8FF",
+                  color: sortMode === "smart" ? "#059669" : "#7C3AED"
+                }}
+                data-testid="sort-mode-btn"
+              >
+                {sortMode === "smart" ? (
+                  <><ArrowDownUp className="h-3.5 w-3.5" />Best First</>
+                ) : (
+                  <><ArrowDownUp className="h-3.5 w-3.5" />Smart Sort</>
+                )}
+              </button>
+              {sortMode === "custom" && (
+                <button
+                  onClick={enterReorder}
+                  className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors"
+                  style={{ backgroundColor: "#F3E8FF", color: "#7C3AED" }}
+                  data-testid="reorder-health-btn"
+                >
+                  <GripVertical className="h-3.5 w-3.5" />Reorder
+                </button>
+              )}
+            </>
+          )}
+          {isReorderMode && (
+            <button
+              onClick={doneReorder}
+              className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-colors"
+              style={{ backgroundColor: "#059669" }}
+              data-testid="done-reorder-btn"
+            >
+              <Check className="h-3.5 w-3.5" />Done
+            </button>
+          )}
+          {healthModules.length > 0 && !isReorderMode && (
+            <button
+              onClick={() => toggleAllCards(healthModules.map(m => m.key))}
+              className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors"
+              style={{ 
+                backgroundColor: allExpanded ? "#F3F4F6" : "#ECFDF5", 
+                color: allExpanded ? "#6B7280" : "#059669"
+              }}
+              data-testid="toggle-all-health-cards"
+            >
+              {allExpanded ? "Collapse" : "Expand"}
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Reorder mode banner */}
+      {isReorderMode && (
+        <div className="mb-4 rounded-xl p-3 flex items-center justify-between" style={{ backgroundColor: "#F3E8FF", border: "1px solid #DDD6FE" }} data-testid="reorder-mode-banner">
+          <div className="flex items-center gap-2">
+            <GripVertical className="h-4 w-4" style={{ color: "#7C3AED" }} />
+            <span className="text-xs font-medium" style={{ color: "#6D28D9" }}>Drag to reorder metrics</span>
+          </div>
+          <button
+            onClick={switchToSmart}
+            className="text-xs font-medium px-2 py-1 rounded-lg"
+            style={{ color: "#7C3AED", backgroundColor: "#EDE9FE" }}
+            data-testid="reset-order-btn"
+          >
+            Reset to Smart
+          </button>
+        </div>
+      )}
 
       {/* Overall Score */}
       <div className="mb-5 p-4 rounded-xl" style={{ backgroundColor: "#F8FAFC" }}>
