@@ -321,7 +321,7 @@ async def get_control_score(request: Request):
     elif buffer_months >= 1: buffer_score = 5
     else: buffer_score = 0
 
-    # 4. Income Consistency (25%) - Stability of income
+    # 4. Income Consistency (25pts) - Granular tier model
     three_months_ago = (datetime.now(timezone.utc) - timedelta(days=90)).isoformat()
     income_txns = await db.income_transactions.find(
         {**user_filter, "transactionDate": {"$gte": three_months_ago[:10]}},
@@ -341,14 +341,13 @@ async def get_control_score(request: Request):
                 variance = sum((v - mean_val) ** 2 for v in values) / len(values)
                 variance_pct = (math.sqrt(variance) / mean_val) * 100
 
-    if variance_pct < 10:
-        consistency_score = 25
-    elif variance_pct < 25:
-        consistency_score = 18
-    elif variance_pct < 40:
-        consistency_score = 10
-    else:
-        consistency_score = 5
+    if variance_pct <= 5: consistency_score = 25
+    elif variance_pct <= 10: consistency_score = 22
+    elif variance_pct <= 20: consistency_score = 18
+    elif variance_pct <= 30: consistency_score = 14
+    elif variance_pct <= 40: consistency_score = 8
+    elif variance_pct <= 50: consistency_score = 4
+    else: consistency_score = 0
 
     final_score = savings_score + emi_score + buffer_score + consistency_score
     
