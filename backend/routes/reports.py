@@ -18,14 +18,14 @@ FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_BOLD_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
 # Brand colors
-NAVY = '#0F172A'
+NAVY = '#1B263B'
 DARK_GRAY = '#1E293B'
 MED_GRAY = '#475569'
 LIGHT_GRAY = '#F1F5F9'
 BORDER_GRAY = '#CBD5E1'
 ACCENT_GREEN = '#059669'
 ACCENT_RED = '#DC2626'
-ACCENT_BLUE = '#2563EB'
+ACCENT_BLUE = '#00D1CC'
 WHITE = '#FFFFFF'
 
 REPORT_META = {
