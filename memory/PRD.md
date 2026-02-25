@@ -11,70 +11,70 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - **PDF**: reportlab for report generation
 - **Scheduling**: apscheduler for cron jobs
 
+## Test Credentials
+- Username: `test`, Password: `test`
+- User: Rahul Sharma (test@moneyssutra.com)
+
 ## What's Been Implemented
 
-### Branding & UI
-- Official MoneySSutra logo, turquoise color scheme (#14B8A6), Montserrat font
-- Consistent branding across Login, Dashboard, Headers, Settings, Legal Pages, Favicon, PDF Reports
+### Full System Reset & E2E Validation (Feb 25, 2026)
+- Complete database reset and fresh realistic test data seeded
+- 6 income sources, 27 expenses (12 categories), 16 investments, 5 assets, 4 loans, 5 insurances, 3 credit cards, 3 bank accounts
+- Full E2E testing: 100% backend (19/19), 100% frontend
+- All calculations verified: Net Worth ₹87.8L, Financial Score 95/100, Survival Days 433
 
-### Legal & Compliance
-- Terms of Service, Privacy Policy, Data Deletion pages (publicly accessible)
-
-### PWA & Play Store
-- Service worker, manifest, icons for installability
-- PWABuilder guidance for Google Play Store submission
-
-### Financial Health Module (Feb 2026)
+### Financial Health Module
 - 10-metric financial health scoring system
-- **Fixed (Feb 25, 2026)**: Life Insurance calculation now includes both "Term Insurance" and "Life Insurance" (ULIP) types
-- **Fixed (Feb 25, 2026)**: Field name bug — `coverAmount` corrected to `coverageAmount` for insurance calculations
-- **Fixed (Feb 25, 2026)**: Investment Allocation was showing 0% because code used wrong field `category` instead of `investmentCategory`
-- **Fixed (Feb 25, 2026)**: Retirement Readiness now correctly identifies NPS/PF/PPF from both `investmentCategory` and investment `name` fields
-- **Fixed (Feb 25, 2026)**: Liquid funds classification now uses correct `investmentCategory` field
+- Life Insurance includes Term + ULIP combined
+- Investment Allocation uses `investmentCategory` field correctly
+- Retirement Readiness identifies NPS/PF/PPF
+- Correct field mapping: `coverageAmount` for insurance, `principal` for investments
 
-### Expense Normalization Fix (Feb 2026)
-- **Fixed (Feb 25, 2026)**: Expense totals were inconsistent across pages — My Expenses summed raw amounts (₹2.94L) instead of monthly-normalized (₹2.77L). Dashboard used month-specific logic.
-- Created shared `normalizeToMonthly` utility in `formatters.js` (Daily*30, Weekly*4, Monthly*1, Quarterly/3, Half-Yearly/6, Yearly/12)
-- Applied to: Dashboard backend, MyExpenses, ExpenseBreakdown, FixedExpenses, VariableExpenses, CategoryExpenses
-- Individual expense items still display original amounts with frequency labels
-- Term Insurance shows Covered Person and Maturity Type fields
-- **Added (Feb 25, 2026)**: Premium Payment Term dropdown for Term Insurance and Life Insurance (1-30 years + Till Maturity)
-- **Fixed (Feb 25, 2026)**: Auto-created expense from insurance was missing `userId` — expenses never appeared in user's list. Fixed for both expenses and assets.
-- **Added (Feb 25, 2026)**: Premium End Date auto-populates from Premium Payment Term when Auto Add to Expense is ON (e.g., start date + 10 years)
+### Financial Score - Granular Tier Model
+- 7-9 granular tiers per pillar for nuanced scoring
+- Savings Rate, EMI Load, Safety Buffer, Income Consistency (25pts each)
+- Info (i) icon with full tier criteria explanation
+- Contextual help text per metric
 
-### Insights & Intelligence
-- 20-stage Survival Clock, Financial Score, Shock Test
-- Money Pattern personality classification (20 types)
-- Behavior Alerts, Runway Simulator, Future You projections
-- Personality Evolution chart, Red Zone dark theme
+### Expense Normalization
+- Shared `normalizeToMonthly` utility across all pages
+- Dashboard, MyExpenses, ExpenseBreakdown, FixedExpenses, VariableExpenses, CategoryExpenses all show consistent monthly totals
 
-### Reports
-- Professional bank-statement-style PDF reports
-- Excel export support
+### Insurance Form
+- Term Insurance + Life Insurance show Covered Person, Maturity Type, Premium Payment Term
+- Auto-created expenses include userId correctly
+- Premium End Date auto-populates from term
 
-### Other Features
-- Google Auth with auto profile creation
-- Backend cron jobs for weekly/monthly tasks
-- Calendar range extended to 2200
+### Branding, PWA, Legal, Reports
+- MoneySSutra branding, turquoise theme, Montserrat font
+- PWA with service worker + manifest
+- Terms, Privacy, Data Deletion pages
+- Professional PDF/Excel report generation with font fallback
+
+### UI/UX
+- Bottom nav overlap fixed (pb-32 across 34 pages)
+- Report Settings date pickers redesigned (flex layout)
+- Notification swipe-to-dismiss with smooth animation
+- Update button removed from Insights (only refresh remains)
 
 ## Prioritized Backlog
 
-### P0 (Critical)
-- All critical bugs fixed as of Feb 25, 2026
-
 ### P1 (Upcoming)
-- **Financial Command Center**: Enhance Financial Score widget into cockpit dashboard with Control/Pressure/Risk indicators
-- **Decision Impact Engine**: Tool to simulate financial impact of large purchases
+- **Financial Command Center**: Cockpit dashboard with Control/Pressure/Risk indicators
+- **Decision Impact Engine**: Simulate financial impact of large purchases
 
 ### P2 (Future)
 - **Refactor Insights.js**: Break monolithic component into smaller reusable components
 - **Security Settings**: 2FA and Biometric toggles are non-functional placeholders
 
 ## Key DB Collections
-- `users`, `profiles`, `user_sessions`
-- `income_sources`, `expenses`, `insurances`, `investments`, `assets`, `loans`, `credit_cards`, `accounts`
-- `user_personality`, `user_personality_history`, `weekly_digests`, `alerts`, `notifications`
-- `analytics_snapshots`, `income_transactions`, `expense_transactions`
+- users, profiles, user_sessions
+- income_sources, expenses, insurances, investments, assets, loans, credit_cards, accounts
+- income_transactions, expense_transactions
+- user_gamification_profile, user_personality, user_personality_history
+- weekly_digests, alerts, notifications, analytics_snapshots
 
-## Test Credentials
-- Username: `test`, Password: `test`
+## Data Model Notes
+- Investment: requires `investmentMode` (str) and `principal` (float) fields
+- IncomeSource: uses `type` and `name` (not incomeType/incomeName)
+- Insurance: uses `coverageAmount` (not coverAmount/sumAssured)
