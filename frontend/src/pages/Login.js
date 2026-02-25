@@ -169,13 +169,9 @@ const Login = () => {
       <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
         {/* Logo & Title */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 shadow-lg border border-white/30">
-            <Wallet className="h-10 w-10 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "'Manrope', sans-serif" }}>
-            Moneyssutra
-          </h1>
-          <p className="text-white/70 text-sm">Your Personal Finance Tracker</p>
+          <LogoIcon size={80} className="mb-4" />
+          <LogoWordmark className="text-2xl mb-2" />
+          <p className="text-white/70 text-sm">Your Financial Analytics Platform</p>
         </div>
 
         {/* Login Card */}
