@@ -18,6 +18,7 @@ import {
   TrendingUp as TrendIcon,
 } from "lucide-react";
 import axios from "axios";
+import { LogoIcon } from "@/components/Logo";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import NotificationBell from "@/components/NotificationBell";
