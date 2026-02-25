@@ -145,7 +145,7 @@ async def get_financial_health(request: Request):
     
     # ============ 2. LIFE INSURANCE ADEQUACY ============
     life_cover = sum(i.get('coverAmount', 0) or i.get('sumAssured', 0) for i in insurances 
-                     if i.get('type', '').lower() in ['term life', 'term', 'life', 'whole life'])
+                     if (i.get('insuranceType', '') or i.get('type', '')).lower() in ['term life', 'term', 'life', 'whole life', 'life insurance'])
     life_target = annual_income * 12
     life_gap = max(0, life_target - life_cover)
     
