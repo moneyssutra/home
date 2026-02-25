@@ -177,7 +177,7 @@ const ProfileSettings = () => {
       <header className="sticky top-0 z-40 px-4 py-4 flex items-center justify-between" style={{ backgroundColor: "var(--bg-app)" }}>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate("/settings", { replace: true })}
+            onClick={() => navigate(isCompleteProfile ? "/home" : "/settings", { replace: true })}
             className="flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-gray-100"
             data-testid="back-button"
           >
