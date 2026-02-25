@@ -1148,8 +1148,8 @@ const InsuranceForm = () => {
               </div>
             )}
 
-            {/* Maturity Type (for Life Insurance) */}
-            {insuranceType === "Life Insurance" && (
+            {/* Maturity Type (for Life Insurance and Term Insurance) */}
+            {(insuranceType === "Life Insurance" || insuranceType === "Term Insurance") && (
               <div className="w-full">
                 <label htmlFor="maturityType" className="block text-sm font-medium text-[#334155] mb-2">
                   Maturity Type <span className="text-[#94A3B8] font-normal">(Optional)</span>
