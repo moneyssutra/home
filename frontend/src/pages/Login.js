@@ -126,7 +126,7 @@ const Login = () => {
   // Show Register Form
   if (isRegisterMode) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, #14B8A6 0%, #0EA5E9 100%)" }} data-testid="register-page">
+      <div className="min-h-screen flex flex-col" style={{ background: "#14B8A6" }} data-testid="register-page">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
@@ -157,7 +157,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, #14B8A6 0%, #0EA5E9 100%)" }} data-testid="login-page">
+    <div className="min-h-screen flex flex-col" style={{ background: "#14B8A6" }} data-testid="login-page">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
