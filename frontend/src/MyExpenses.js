@@ -21,20 +21,6 @@ const MyExpenses = () => {
     return new Intl.NumberFormat("en-IN").format(amount);
   };
 
-  // Normalize amount to monthly based on frequency
-  const normalizeToMonthly = (amount, frequency) => {
-    if (!amount) return 0;
-    switch (frequency) {
-      case 'Daily': return amount * 30;
-      case 'Weekly': return amount * 4;
-      case 'Monthly': return amount;
-      case 'Quarterly': return amount / 3;
-      case 'Half-Yearly': return amount / 6;
-      case 'Yearly': return amount / 12;
-      default: return amount;
-    }
-  };
-
   // Memoize calculations to avoid unnecessary re-computation
   const { totalExpenses, fixedExpenses, variableExpenses, fixedTotal, variableTotal } = useMemo(() => {
     const total = expenses.reduce((sum, exp) => sum + normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || 'Monthly'), 0);
