@@ -169,7 +169,7 @@ const Login = () => {
         {/* Logo & Title */}
         <div className="flex flex-col items-center mb-8">
           <LogoFull height={120} className="mb-3" />
-          <p className="text-sm font-medium" style={{ color: "#0F4F47" }}>Your Financial Analytics Platform</p>
+          <p className="text-sm font-medium" style={{ color: "#333333" }}>Your Financial Analytics Platform</p>
         </div>
 
         {/* Login Card */}
