@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Shield, Eye, Lock, Server, Trash2, Mail, Building2 } from "lucide-react";
+import { LogoIcon, BRAND } from "@/components/Logo";
 
 const PrivacyPolicy = () => {
   const navigate = useNavigate();

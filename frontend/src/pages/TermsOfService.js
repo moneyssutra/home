@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Shield, Building2, Mail, Globe, Scale } from "lucide-react";
+import { LogoIcon, BRAND } from "@/components/Logo";
 
 const TermsOfService = () => {
   const navigate = useNavigate();

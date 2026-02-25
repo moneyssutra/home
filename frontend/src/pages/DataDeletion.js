@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Trash2, Mail, Smartphone, Clock, ShieldCheck, AlertTriangle, Building2 } from "lucide-react";
+import { LogoIcon, BRAND } from "@/components/Logo";
 
 const DataDeletion = () => {
   const navigate = useNavigate();
