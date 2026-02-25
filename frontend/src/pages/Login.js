@@ -137,12 +137,8 @@ const Login = () => {
         <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10 py-8">
           {/* Logo */}
           <div className="flex flex-col items-center mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3 shadow-lg border border-white/30">
-              <Wallet className="h-8 w-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
-              Moneyssutra
-            </h1>
+            <LogoIcon size={64} className="mb-3" />
+            <LogoWordmark className="text-xl" />
           </div>
           
           <RegisterForm onBackToLogin={() => setIsRegisterMode(false)} />
