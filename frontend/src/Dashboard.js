@@ -105,7 +105,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="dashboard-page">
       {/* Minimal Header */}
-      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
+      <header className="relative overflow-hidden" style={{ background: "#14B8A6" }}>
         <div className="relative px-5 pt-4 pb-6">
           {/* Header Row - Profile left, Notification right */}
           <div className="flex items-center justify-between mb-4">
