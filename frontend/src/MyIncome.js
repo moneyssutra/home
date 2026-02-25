@@ -290,7 +290,7 @@ const MyIncome = () => {
           <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-white/70 mb-1">Received</p>
-              <p className="font-semibold" style={{ color: "var(--brand-primary-soft)" }}>₹ {formatAmount(receivedIncome)}</p>
+              <p className="font-semibold text-white">₹ {formatAmount(receivedIncome)}</p>
             </div>
             <div>
               <p className="text-white/70 mb-1">Yet to Receive</p>
