@@ -137,8 +137,7 @@ const Login = () => {
         <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10 py-8">
           {/* Logo */}
           <div className="flex flex-col items-center mb-6">
-            <LogoIcon size={64} className="mb-3" />
-            <LogoWordmark className="text-xl" />
+            <LogoFull height={100} className="mb-2" />
           </div>
           
           <RegisterForm onBackToLogin={() => setIsRegisterMode(false)} />
