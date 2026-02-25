@@ -275,7 +275,6 @@ async def get_control_score(request: Request):
     monthly_income = await _get_monthly_income(user_filter)
     monthly_discretionary = await _get_monthly_discretionary_spending(user_filter)
     total_emi = await _get_total_emi(user_filter)
-    effective_funds = (await _get_fund_breakdown(user_filter))["effectiveTotal"]
     monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
 
     # 1. Savings Rate (25pts) - Granular tier model
