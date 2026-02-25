@@ -149,9 +149,9 @@ const MyExpenses = () => {
 
         {/* Total Expenses Card */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="total-expenses-card">
-          <p className="text-white/70 text-sm font-medium mb-1">Total Expenses</p>
+          <p className="text-white/70 text-sm font-medium mb-1">Total Monthly Expenses</p>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalExpenses)}</h2>
-          <p className="text-white/50 text-xs mt-1">{expenses.length} expense sources</p>
+          <p className="text-white/50 text-xs mt-1">{expenses.length} expense sources (normalized to monthly)</p>
           
           <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
             <div>
