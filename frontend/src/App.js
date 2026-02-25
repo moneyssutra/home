@@ -226,6 +226,11 @@ function AppRouter() {
       <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
       <Route path="/settings/preferences" element={<ProtectedRoute><PreferencesSettings /></ProtectedRoute>} />
       <Route path="/settings/data-privacy" element={<ProtectedRoute><DataPrivacySettings /></ProtectedRoute>} />
+
+      {/* Legal Pages (public, no auth required) */}
+      <Route path="/terms-of-service" element={<TermsOfService />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      <Route path="/data-deletion" element={<DataDeletion />} />
       
       {/* Workspace Settings */}
       <Route path="/workspace-settings" element={<ProtectedRoute><WorkspaceSettings /></ProtectedRoute>} />
