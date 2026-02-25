@@ -58,6 +58,7 @@ const InsuranceForm = () => {
   const [autoCreateExpense, setAutoCreateExpense] = useState(false);
   const [premiumEndDate, setPremiumEndDate] = useState("");
   const [notes, setNotes] = useState("");
+  const [premiumPaymentTerm, setPremiumPaymentTerm] = useState("");
   
   // Premium frequency conditional fields (like Business Income)
   const [selectedDay, setSelectedDay] = useState("");
