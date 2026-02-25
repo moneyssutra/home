@@ -896,10 +896,7 @@ const Insights = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
-  const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, refresh, processWeekly, joinChallenge, leaveChallenge } = useIntelligenceData();
-  const [processing, setProcessing] = useState(false);
-
-  const handleProcess = async () => { setProcessing(true); await processWeekly(); setProcessing(false); };
+  const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, refresh, joinChallenge, leaveChallenge } = useIntelligenceData();
 
   const isRedZone = survivalClock && survivalClock.survivalDays < 30;
 
