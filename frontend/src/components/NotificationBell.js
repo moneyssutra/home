@@ -364,33 +364,53 @@ const NotificationBell = () => {
               </div>
             ) : (
               <div className="py-2">
-                {notifications.map((notification) => (
+                {notifications.map((notification) => {
+                  const isDismissing = dismissingId === notification.id;
+                  const isSwiping = swipingId === notification.id;
+                  return (
                   <div
                     key={notification.id}
                     className="relative overflow-hidden"
+                    style={{
+                      maxHeight: isDismissing ? '0px' : '200px',
+                      opacity: isDismissing ? 0 : 1,
+                      marginBottom: isDismissing ? '0px' : undefined,
+                      padding: isDismissing ? '0px' : undefined,
+                      transition: isDismissing ? 'max-height 0.35s ease-out, opacity 0.25s ease-out, margin 0.35s ease-out, padding 0.35s ease-out' : 'none',
+                    }}
                     onTouchStart={(e) => handleTouchStart(e, notification.id)}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
                   >
                     {/* Swipe delete background */}
                     <div 
-                      className="absolute inset-y-0 left-0 bg-red-500 flex items-center justify-start pl-4"
-                      style={{ width: swipingId === notification.id ? `${swipeX}px` : 0 }}
+                      className="absolute inset-y-0 left-0 flex items-center justify-start pl-4 rounded-xl"
+                      style={{ 
+                        width: isSwiping ? `${Math.max(swipeX, 0)}px` : '0px',
+                        background: isSwiping ? `linear-gradient(90deg, #EF4444 0%, #F87171 100%)` : 'transparent',
+                        opacity: isSwiping ? Math.min(swipeX / 60, 1) : 0,
+                        transition: isSwiping ? 'none' : 'width 0.2s ease-out, opacity 0.2s ease-out'
+                      }}
                     >
                       <X className="h-5 w-5 text-white" />
+                      {swipeX > 50 && <span className="text-white text-xs font-medium ml-1">Dismiss</span>}
                     </div>
                     
                     {/* Notification Card */}
                     <div
-                      onClick={() => handleNotificationClick(notification)}
+                      onClick={() => !isDismissing && handleNotificationClick(notification)}
                       className={`mx-3 my-2 p-4 rounded-xl cursor-pointer transition-all ${
                         !notification.isRead 
                           ? "bg-[#00D09C]/5 border border-[#00D09C]/20" 
                           : "bg-gray-50 border border-gray-100"
                       }`}
                       style={{
-                        transform: swipingId === notification.id ? `translateX(${swipeX}px)` : 'translateX(0)',
-                        transition: swipingId === notification.id ? 'none' : 'transform 0.2s ease-out'
+                        transform: isSwiping 
+                          ? `translateX(${swipeX}px)` 
+                          : isDismissing 
+                            ? 'translateX(100%)' 
+                            : 'translateX(0)',
+                        transition: isSwiping ? 'none' : 'transform 0.3s ease-out',
                       }}
                       data-testid={`notification-card-${notification.id}`}
                     >
