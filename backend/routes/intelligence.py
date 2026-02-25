@@ -236,6 +236,7 @@ async def get_survival_clock(request: Request):
         "dailyBurnRate": round(daily_expense, 0),
         "survivalDays": survival_days,
         "survivalMonths": survival_months,
+        "label": level_info["level"],
         "level": level_info["level"],
         "levelColor": level_info["color"],
         "stage": level_info["stage"],
