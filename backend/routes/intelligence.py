@@ -280,6 +280,21 @@ async def get_control_score(request: Request):
     # If user has no financial data at all, return 0
     has_data = monthly_income > 0 or monthly_mandatory > 0 or monthly_discretionary > 0 or total_emi > 0
 
+    if not has_data:
+        now = datetime.now(timezone.utc)
+        empty_breakdown = lambda label: {"score": 0, "max": 25, "label": label, "help": "Add financial data to calculate this metric."}
+        return {
+            "finalScore": 0, "grade": "N/A",
+            "scorePeriod": {"start": "", "end": "", "label": "No data available"},
+            "breakdown": {
+                "savingsRate": {**empty_breakdown("Savings Rate"), "ratio": 0, "pct": 0},
+                "emiLoad": {**empty_breakdown("EMI Load"), "ratio": 0, "pct": 0},
+                "safetyBuffer": {**empty_breakdown("Safety Buffer"), "months": 0},
+                "incomeConsistency": {**empty_breakdown("Income Consistency"), "variancePct": 0}
+            },
+            "metrics": {"monthlyIncome": 0, "monthlyExpenses": 0, "totalEMI": 0, "availableFunds": 0, "liquidFunds": 0, "semiLiquidFunds": 0}
+        }
+
     # 1. Savings Rate (25pts) - Granular tier model
     if monthly_income > 0:
         savings_ratio = (monthly_income - monthly_discretionary - monthly_mandatory) / monthly_income
