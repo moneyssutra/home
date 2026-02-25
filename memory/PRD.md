@@ -57,6 +57,13 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Notification swipe-to-dismiss with smooth animation
 - Update button removed from Insights (only refresh remains)
 
+### Insights Empty-State Fix (Feb 25, 2026)
+- Fixed Insights page for new users with no data: no more RED ZONE trigger, welcome banner instead
+- All widgets (Financial Journey, Score, Emergency Runway, Badges, Challenges, Future You, Personality Evolution) now show empty-state fallback UI instead of disappearing
+- `hasRealData()` helper distinguishes "no data" from "has data but low runway"
+- Test accounts: newempty@test.com / Test1234! (empty user), test@moneyssutra.com / test (data user)
+- Testing: 100% pass (6/6 scenarios) — verified both empty and existing users
+
 ## Prioritized Backlog
 
 ### P1 (Upcoming)
