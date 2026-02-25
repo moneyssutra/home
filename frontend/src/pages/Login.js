@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Wallet, Lock, Eye, EyeOff, AlertCircle, Mail, Loader2, ArrowLeft, Check } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertCircle, Mail, Loader2, ArrowLeft, Check } from "lucide-react";
 import RegisterForm from "@/components/RegisterForm";
+import { LogoIcon, LogoWordmark } from "@/components/Logo";
 import axios from "axios";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
