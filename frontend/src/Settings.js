@@ -146,12 +146,9 @@ const Settings = () => {
         {/* App Info */}
         <div className="mt-8 text-center">
           <div className="flex justify-center mb-2">
-            <LogoIcon size={36} />
+            <LogoFull height={48} />
           </div>
-          <p className="text-sm font-bold" style={{ color: "var(--text-primary)", fontFamily: "'Montserrat', sans-serif", letterSpacing: "0.15em" }}>
-            MONEYSSUTRA
-          </p>
-          <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+          <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
             v1.0.0
           </p>
           <div className="flex items-center justify-center gap-3 mt-3">
