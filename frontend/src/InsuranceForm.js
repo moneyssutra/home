@@ -118,6 +118,19 @@ const InsuranceForm = () => {
     { value: "Market Linked", label: "Market Linked (ULIP)" }
   ];
 
+  const premiumPaymentTermOptions = [
+    "1 Year",
+    "2 Years",
+    "3 Years",
+    "5 Years",
+    "10 Years",
+    "15 Years",
+    "20 Years",
+    "25 Years",
+    "30 Years",
+    "Till Maturity"
+  ];
+
   // Premium frequency helper data (like Business Income)
   const quarters = [
     { id: "Q1", label: "Q1 (Jan–Mar)", months: ["January", "February", "March"] },
