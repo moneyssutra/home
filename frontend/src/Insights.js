@@ -68,9 +68,17 @@ const STAGE_EXPLAIN = {
   "Sovereign": "3+ years covered. Complete financial freedom achieved.",
 };
 
+// ─── Helper: detect if user has real financial data ───
+const hasRealData = (clockData, scoreData) => {
+  const hasExpenses = clockData?.monthlyMandatoryExpense > 0;
+  const hasFunds = clockData?.effectiveFunds > 0;
+  const hasIncome = scoreData?.metrics?.monthlyIncome > 0;
+  return hasExpenses || hasFunds || hasIncome;
+};
+
 // ─── SURVIVAL WARNING ───
-const SurvivalWarning = ({ data }) => {
-  if (!data || data.survivalDays > 90) return null;
+const SurvivalWarning = ({ data, isEmpty }) => {
+  if (!data || isEmpty || data.survivalDays > 90) return null;
   const color = data.survivalDays < 30 ? "#DC2626" : "#F59E0B";
   return (
     <div className="rounded-xl p-3 flex items-start gap-2.5" style={{ backgroundColor: `${color}10`, border: `1px solid ${color}30` }} data-testid="survival-warning">
