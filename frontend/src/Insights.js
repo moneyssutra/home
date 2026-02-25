@@ -372,6 +372,7 @@ const EmergencyRunwayWidget = ({ data }) => {
 
 // ─── FINANCIAL SCORE (Original design with individual colors per pillar) ───
 const FinancialScoreWidget = ({ data }) => {
+  const [showInfo, setShowInfo] = useState(false);
   if (!data) return null;
   const score = data.finalScore || data.score || 0;
   const grade = data.grade || "C";
@@ -389,10 +390,35 @@ const FinancialScoreWidget = ({ data }) => {
 
   return (
     <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="financial-score">
-      <div className="flex items-center gap-2 mb-1">
-        <Target className="h-5 w-5" style={{ color: gc }} />
-        <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Financial Score</h3>
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <Target className="h-5 w-5" style={{ color: gc }} />
+          <h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Financial Score</h3>
+        </div>
+        <button 
+          onClick={() => setShowInfo(!showInfo)} 
+          className="p-1.5 rounded-full transition-colors"
+          style={{ backgroundColor: showInfo ? `${gc}20` : 'var(--bg-subtle)' }}
+          data-testid="financial-score-info-btn"
+        >
+          <Info className="h-4 w-4" style={{ color: showInfo ? gc : 'var(--text-muted)' }} />
+        </button>
       </div>
+
+      {/* Info tooltip */}
+      {showInfo && (
+        <div className="mb-3 p-3 rounded-xl text-xs leading-relaxed" style={{ backgroundColor: 'var(--bg-subtle)', color: 'var(--text-secondary)', border: '1px solid var(--border-light)' }}>
+          <p className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>How is your score calculated?</p>
+          <div className="space-y-1.5">
+            <p><span className="font-semibold" style={{color: "#10B981"}}>Savings Rate (25pts)</span> — % of income saved after all expenses. &gt;30% = full marks.</p>
+            <p><span className="font-semibold" style={{color: "#3B82F6"}}>EMI Load (25pts)</span> — EMI-to-income ratio from your loans. &lt;25% = full marks.</p>
+            <p><span className="font-semibold" style={{color: "#8B5CF6"}}>Safety Buffer (25pts)</span> — Months of expenses covered by liquid funds. &gt;6 months = full marks.</p>
+            <p><span className="font-semibold" style={{color: "#F59E0B"}}>Income Consistency (25pts)</span> — How stable your income has been over 3 months. Low variance = full marks.</p>
+          </div>
+          <p className="mt-2 italic" style={{ color: 'var(--text-muted)' }}>Score is based on a rolling 3-month window of your financial data.</p>
+        </div>
+      )}
+
       <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
         {period ? `Rolling 3-month window: ${period}` : `Updated ${today}`}
       </p>
