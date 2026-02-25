@@ -164,7 +164,7 @@ async def get_financial_health(request: Request):
         life_action = "Your life insurance coverage is adequate for your income level."
     
     # ============ 3. HEALTH INSURANCE ADEQUACY ============
-    health_cover = sum(i.get('coverAmount', 0) or i.get('sumAssured', 0) for i in insurances 
+    health_cover = sum(i.get('coverageAmount', 0) or i.get('coverAmount', 0) or i.get('sumAssured', 0) for i in insurances 
                        if (i.get('insuranceType', '') or i.get('type', '')).lower() in ['health', 'medical', 'mediclaim', 'health insurance'])
     health_target = 1000000
     health_gap = max(0, health_target - health_cover)
