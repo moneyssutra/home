@@ -6,55 +6,55 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 ## Core Architecture
 - React + Tailwind + Shadcn UI (port 3000) / FastAPI (port 8001, /api) / MongoDB Atlas
 
+## Brand Identity
+- **Company**: NEXT GENERATION LEADERSHIP PRIVATE LIMITED
+- **CIN**: U80903JH2021PTC017467
+- **Primary Color**: Teal #00D1CC
+- **Navy Background**: #1B263B
+- **Highlight**: #48E5E8
+- **Font**: Montserrat (brand), Inter (body)
+- **Logo Files**: `/frontend/public/assets/branding/`
+  - `logo-full.svg` (icon + wordmark)
+  - `logo-icon.svg` (dark bg, square with rounded corners)
+  - `logo-icon-light.svg` (white bg version)
+  - `favicon.svg` (16x16)
+- **Logo Component**: `/frontend/src/components/Logo.js`
+
+## Logo Implementation Checklist
+- [x] Favicon (SVG)
+- [x] Login page (icon + wordmark)
+- [x] Dashboard header (icon, top-left)
+- [x] Settings page (icon + wordmark + version + company)
+- [x] Terms of Service header
+- [x] Privacy Policy header
+- [x] Data Deletion header
+- [x] PDF reports (navy branding)
+- [x] Open Graph meta tags
+- [x] Page title: "MoneySSutra"
+- [x] Montserrat font loaded
+
+## Legal & Compliance Pages (Public Routes)
+- `/terms-of-service` — Full ToS
+- `/privacy-policy` — Privacy Policy
+- `/data-deletion` — Data Deletion (Play Store compliant)
+
 ## Key Features Implemented
 - 20-Personality Classification Engine
-- Financial Journey (20 stages, 5 phases)
-- Financial Score (4 pillars)
-- Emergency Runway (3-tier liquidity)
-- Shock Test (4 presets + custom)
-- Future You (12-month projection)
-- Red Zone Mode + Full Dark Theme Override
-- Weekly Health Digest + Monthly Personality Cron Jobs
-- Personality Evolution Tracker (recharts line chart)
+- Financial Journey, Score, Runway, Shock Test
+- Future You, Personality Evolution (recharts)
+- Red Zone Dark Theme, Cron Jobs
+- Bank-Statement Style Reports (PDF + Excel)
+- Google Auth + auto-profile creation
 - 100 Badges, Gamification Challenges
-- Financial Health (9-module weighted score)
-- Shareable Score Card, Runway Simulator, Money Pattern DNA
-- Google Auth: auto-profile creation + profile completion flow
-- Bank-Statement Style Reports (PDF + Excel, 9 types)
-- Legal Pages: Terms of Service, Privacy Policy, Data Deletion Policy
-
-## Legal & Compliance Pages
-- `/terms-of-service` — Full ToS with company details (NEXT GENERATION LEADERSHIP PVT LTD)
-- `/privacy-policy` — Privacy policy with data collection categories, future permissions
-- `/data-deletion` — Google Play compliant deletion page with in-app + email options
-- All pages are public (no auth required) for Play Store / app store compliance
-- Links added to: Login footer, Settings footer
-- Company: CIN U80903JH2021PTC017467, PAN AAHCN8903F, TAN RCHN01417D
-
-## Recent Changes (Feb 25, 2026)
-- Created Terms of Service, Privacy Policy, Data Deletion pages
-- Added legal links to Settings page footer and Login page footer
-- Routes: /terms-of-service, /privacy-policy, /data-deletion (public)
-- Bank-statement style reports redesign
-- Reports now include other_income collection
-- Google Auth auto-profile creation
-
-## Key Routes
-- /terms-of-service (public)
-- /privacy-policy (public)
-- /data-deletion (public)
-- /settings (auth)
-- /insights (auth)
-- /insights/reports (auth)
 
 ## Prioritized Backlog
 ### P1
-- Financial Command Center (Control/Pressure/Risk cockpit)
-- Decision Impact Engine (large purchase impact)
+- Financial Command Center (cockpit dashboard)
+- Decision Impact Engine
 
 ### P2
-- Goal Tracker integration with Future You
-- Refactor Insights.js into smaller component files
+- Goal Tracker + Future You
+- Refactor Insights.js into components
 
 ## Test Credentials
 - Username: `test`, Password: `test`
