@@ -1,60 +1,74 @@
-# Moneyssutra - Personal Finance Tracker PRD
+# MoneySSutra - Product Requirements Document
 
 ## Original Problem Statement
-Full-stack personal finance manager with "Financial Control Operating System" on Insights page.
+MoneySSutra is a sophisticated personal finance application — a "Financial Control Operating System" with gamified insights, advanced analytics, and forecasting tools. Built as a React/FastAPI/MongoDB full-stack app with PWA support.
 
 ## Core Architecture
-- React + Tailwind + Shadcn UI (port 3000) / FastAPI (port 8001, /api) / MongoDB Atlas
+- **Frontend**: React + TailwindCSS + Shadcn/UI
+- **Backend**: FastAPI + MongoDB
+- **Auth**: JWT + Google OAuth (Emergent-managed)
+- **AI**: OpenAI GPT-5.2 via emergentintegrations
+- **PDF**: reportlab for report generation
+- **Scheduling**: apscheduler for cron jobs
 
-## Brand Identity
-- **Company**: NEXT GENERATION LEADERSHIP PRIVATE LIMITED
-- **CIN**: U80903JH2021PTC017467
-- **Primary Color**: Teal #00D1CC
-- **Navy Background**: #1B263B
-- **Highlight**: #48E5E8
-- **Font**: Montserrat (brand), Inter (body)
-- **Logo Files**: `/frontend/public/assets/branding/`
-  - `logo-full.svg` (icon + wordmark)
-  - `logo-icon.svg` (dark bg, square with rounded corners)
-  - `logo-icon-light.svg` (white bg version)
-  - `favicon.svg` (16x16)
-- **Logo Component**: `/frontend/src/components/Logo.js`
+## What's Been Implemented
 
-## Logo Implementation Checklist
-- [x] Favicon (SVG)
-- [x] Login page (icon + wordmark)
-- [x] Dashboard header (icon, top-left)
-- [x] Settings page (icon + wordmark + version + company)
-- [x] Terms of Service header
-- [x] Privacy Policy header
-- [x] Data Deletion header
-- [x] PDF reports (navy branding)
-- [x] Open Graph meta tags
-- [x] Page title: "MoneySSutra"
-- [x] Montserrat font loaded
+### Branding & UI
+- Official MoneySSutra logo, turquoise color scheme (#14B8A6), Montserrat font
+- Consistent branding across Login, Dashboard, Headers, Settings, Legal Pages, Favicon, PDF Reports
 
-## Legal & Compliance Pages (Public Routes)
-- `/terms-of-service` — Full ToS
-- `/privacy-policy` — Privacy Policy
-- `/data-deletion` — Data Deletion (Play Store compliant)
+### Legal & Compliance
+- Terms of Service, Privacy Policy, Data Deletion pages (publicly accessible)
 
-## Key Features Implemented
-- 20-Personality Classification Engine
-- Financial Journey, Score, Runway, Shock Test
-- Future You, Personality Evolution (recharts)
-- Red Zone Dark Theme, Cron Jobs
-- Bank-Statement Style Reports (PDF + Excel)
-- Google Auth + auto-profile creation
-- 100 Badges, Gamification Challenges
+### PWA & Play Store
+- Service worker, manifest, icons for installability
+- PWABuilder guidance for Google Play Store submission
+
+### Financial Health Module (Feb 2026)
+- 10-metric financial health scoring system
+- **Fixed (Feb 25, 2026)**: Life Insurance calculation now includes both "Term Insurance" and "Life Insurance" (ULIP) types
+- **Fixed (Feb 25, 2026)**: Field name bug — `coverAmount` corrected to `coverageAmount` for insurance calculations
+- **Fixed (Feb 25, 2026)**: Investment Allocation was showing 0% because code used wrong field `category` instead of `investmentCategory`
+- **Fixed (Feb 25, 2026)**: Retirement Readiness now correctly identifies NPS/PF/PPF from both `investmentCategory` and investment `name` fields
+- **Fixed (Feb 25, 2026)**: Liquid funds classification now uses correct `investmentCategory` field
+
+### Insurance Form Enhancement (Feb 2026)
+- Term Insurance shows Covered Person and Maturity Type fields
+- **Added (Feb 25, 2026)**: Premium Payment Term dropdown for Term Insurance and Life Insurance (1-30 years + Till Maturity)
+
+### Insights & Intelligence
+- 20-stage Survival Clock, Financial Score, Shock Test
+- Money Pattern personality classification (20 types)
+- Behavior Alerts, Runway Simulator, Future You projections
+- Personality Evolution chart, Red Zone dark theme
+
+### Reports
+- Professional bank-statement-style PDF reports
+- Excel export support
+
+### Other Features
+- Google Auth with auto profile creation
+- Backend cron jobs for weekly/monthly tasks
+- Calendar range extended to 2200
 
 ## Prioritized Backlog
-### P1
-- Financial Command Center (cockpit dashboard)
-- Decision Impact Engine
 
-### P2
-- Goal Tracker + Future You
-- Refactor Insights.js into components
+### P0 (Critical)
+- All critical bugs fixed as of Feb 25, 2026
+
+### P1 (Upcoming)
+- **Financial Command Center**: Enhance Financial Score widget into cockpit dashboard with Control/Pressure/Risk indicators
+- **Decision Impact Engine**: Tool to simulate financial impact of large purchases
+
+### P2 (Future)
+- **Refactor Insights.js**: Break monolithic component into smaller reusable components
+- **Security Settings**: 2FA and Biometric toggles are non-functional placeholders
+
+## Key DB Collections
+- `users`, `profiles`, `user_sessions`
+- `income_sources`, `expenses`, `insurances`, `investments`, `assets`, `loans`, `credit_cards`, `accounts`
+- `user_personality`, `user_personality_history`, `weekly_digests`, `alerts`, `notifications`
+- `analytics_snapshots`, `income_transactions`, `expense_transactions`
 
 ## Test Credentials
 - Username: `test`, Password: `test`
