@@ -274,6 +274,7 @@ class Insurance(BaseModel):
     expectedMaturityAmount: Optional[float] = None
     autoCreateExpense: bool = False
     premiumEndDate: Optional[str] = None
+    premiumPaymentTerm: Optional[str] = None
     notes: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -292,6 +293,7 @@ class InsuranceCreate(BaseModel):
     expectedMaturityAmount: Optional[float] = None
     autoCreateExpense: bool = False
     premiumEndDate: Optional[str] = None
+    premiumPaymentTerm: Optional[str] = None
     notes: Optional[str] = None
 
 
