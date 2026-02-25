@@ -65,6 +65,7 @@ async def generate_report(
     data = {}
     if report_type in ["income", "cashflow", "networth"]:
         data["incomes"] = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
+        data["other_incomes"] = await db.other_income.find(user_filter, {"_id": 0}).to_list(1000)
     if report_type in ["expense", "cashflow", "networth"]:
         data["expenses"] = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
     if report_type in ["loan", "networth"]:
