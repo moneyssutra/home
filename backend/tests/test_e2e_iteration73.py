@@ -118,8 +118,8 @@ class TestDataModules:
         data = response.json()
         assert len(data) == 4, f"Expected 4 loans, got {len(data)}"
         
-        # Verify loan types
-        loan_names = [l["name"] for l in data]
+        # Verify loan types (field is loanName)
+        loan_names = [l["loanName"] for l in data]
         print(f"✓ Loans: 4 loans - {loan_names}")
     
     def test_insurances_api(self, session):
@@ -129,8 +129,8 @@ class TestDataModules:
         data = response.json()
         assert len(data) == 5, f"Expected 5 insurances, got {len(data)}"
         
-        # Verify policy types
-        types = [i["policyType"] for i in data]
+        # Verify policy types (field is insuranceType)
+        types = [i["insuranceType"] for i in data]
         print(f"✓ Insurance: 5 policies - {types}")
     
     def test_credit_cards_api(self, session):
@@ -262,11 +262,19 @@ class TestCRUDOperations:
         expense_id = grocery_expense["id"]
         original_amount = grocery_expense["expectedAmount"]
         
-        # Update amount
+        # Update amount - need to send all required fields
         new_amount = original_amount + 1000
+        update_payload = {
+            "expenseName": grocery_expense["expenseName"],
+            "expenseType": grocery_expense["expenseType"],
+            "category": grocery_expense["category"],
+            "frequency": grocery_expense["frequency"],
+            "expectedAmount": new_amount,
+            "selectedDate": grocery_expense.get("selectedDate")
+        }
         update_response = session.put(
             f"{BASE_URL}/api/expenses/{expense_id}",
-            json={"expectedAmount": new_amount}
+            json=update_payload
         )
         assert update_response.status_code == 200, f"Update failed: {update_response.text}"
         
@@ -277,9 +285,10 @@ class TestCRUDOperations:
         assert updated_expense["expectedAmount"] == new_amount, f"Amount not updated"
         
         # Revert to original
+        update_payload["expectedAmount"] = original_amount
         revert_response = session.put(
             f"{BASE_URL}/api/expenses/{expense_id}",
-            json={"expectedAmount": original_amount}
+            json=update_payload
         )
         assert revert_response.status_code == 200
         
