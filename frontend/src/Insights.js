@@ -95,7 +95,12 @@ const SurvivalWarning = ({ data, isEmpty }) => {
 const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
   const [showXpRules, setShowXpRules] = useState(false);
   const [showAllStages, setShowAllStages] = useState(false);
-  if (!gamData) return null;
+  if (!gamData) return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="stage-journey">
+      <div className="flex items-center gap-2 mb-2"><Rocket className="h-4 w-4" style={{ color: "#8B5CF6" }} /><h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Financial Journey</h3></div>
+      <p className="text-xs" style={{ color: "var(--text-muted)" }}>Add income or expenses to start your financial journey.</p>
+    </div>
+  );
 
   const stageName = clockData?.level || "—";
   const stageNum = clockData?.stage || 0;
