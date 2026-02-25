@@ -799,7 +799,7 @@ const InvestmentForm = () => {
                       {calculateHalfYearlyDate && (
                         <div className="w-full rounded-xl bg-[#E8F8F4] border border-[#14B8A6]/30 p-4">
                           <div className="flex items-start gap-2">
-                            <Calendar className="h-5 w-5 text-[#14B8A6] mt-0.5 flex-shrink-0" />
+                            <CalendarIcon className="h-5 w-5 text-[#14B8A6] mt-0.5 flex-shrink-0" />
                             <div>
                               <p className="text-sm font-medium text-[#334155] mb-1">
                                 Next Recurring Date:
