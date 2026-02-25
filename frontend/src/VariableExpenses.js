@@ -62,12 +62,12 @@ const VariableExpenses = () => {
     return 'upcoming';
   };
 
-  // Calculate totals
-  const totalExpenses = expenses.reduce((sum, exp) => sum + (exp.expectedAmount || 0), 0);
+  // Calculate totals (normalized to monthly)
+  const totalExpenses = expenses.reduce((sum, exp) => sum + normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || 'Monthly'), 0);
   const paidExpenses = expenses.filter(e => getPaymentStatus(e) === 'paid');
   const pendingExpenses = expenses.filter(e => getPaymentStatus(e) !== 'paid');
-  const paidTotal = paidExpenses.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
-  const pendingTotal = pendingExpenses.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
+  const paidTotal = paidExpenses.reduce((sum, e) => sum + normalizeToMonthly(e.expectedAmount || 0, e.frequency || 'Monthly'), 0);
+  const pendingTotal = pendingExpenses.reduce((sum, e) => sum + normalizeToMonthly(e.expectedAmount || 0, e.frequency || 'Monthly'), 0);
 
   const getCategoryIcon = (category) => {
     const icons = {
