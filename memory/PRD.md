@@ -35,6 +35,8 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 ### Insurance Form Enhancement (Feb 2026)
 - Term Insurance shows Covered Person and Maturity Type fields
 - **Added (Feb 25, 2026)**: Premium Payment Term dropdown for Term Insurance and Life Insurance (1-30 years + Till Maturity)
+- **Fixed (Feb 25, 2026)**: Auto-created expense from insurance was missing `userId` — expenses never appeared in user's list. Fixed for both expenses and assets.
+- **Added (Feb 25, 2026)**: Premium End Date auto-populates from Premium Payment Term when Auto Add to Expense is ON (e.g., start date + 10 years)
 
 ### Insights & Intelligence
 - 20-stage Survival Clock, Financial Score, Shock Test
