@@ -150,6 +150,24 @@ const Settings = () => {
           <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
             Your Personal Finance Tracker
           </p>
+          <div className="flex items-center justify-center gap-3 mt-3">
+            {legalLinks.map((link, i) => (
+              <span key={link.path} className="flex items-center gap-3">
+                {i > 0 && <span className="text-xs" style={{ color: "var(--border-light)" }}>|</span>}
+                <button
+                  onClick={() => navigate(link.path)}
+                  className="text-xs underline"
+                  style={{ color: "var(--text-muted)" }}
+                  data-testid={`legal-${link.label.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {link.label}
+                </button>
+              </span>
+            ))}
+          </div>
+          <p className="text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>
+            Next Generation Leadership Pvt. Ltd.
+          </p>
         </div>
       </div>
 
