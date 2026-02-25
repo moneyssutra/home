@@ -22,31 +22,20 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 - Shareable Score Card, Runway Simulator, Money Pattern with DNA bar
 - Cron Jobs: weekly health digest (Sundays) + monthly personality evaluation (1st of month)
 - Google Auth: auto-creates profile + redirects new users to complete profile (DOB, phone, etc.)
+- Reports: PDF + Excel for income, expense, cashflow, networth, investment, loan, goal, asset, insurance
 
 ## Recent Changes (Feb 25, 2026)
-- Fixed income page "Received" amount visibility (color contrast: green on green → white on green)
-- Fixed liquidity classification: FD/RD checked before bank-name regex (ICICI FD → semi_liquid)
+- Fixed reports: income/cashflow PDF+Excel now include `other_income` collection (Qnet, etc.)
+- Fixed PDF font: installed DejaVu fonts for ₹ symbol rendering in PDF reports
+- Fixed income page "Received" amount visibility (green on green → white on green)
+- Fixed liquidity classification: FD/RD checked before bank-name regex
 - Added cron jobs to scheduler.py for weekly digest and monthly personality eval
 - Upgraded PersonalityEvolutionWidget to recharts LineChart
-- Implemented Red Zone dark theme override (CSS variables swap when survivalDays < 30)
-- Google Auth: auto-creates profile doc in profiles collection for new users
-- New Google users redirected to /settings/profile with "Complete Your Profile" banner
-
-## Insights Page Widget Order
-1. Red Zone Alert (conditional, with dark theme)
-2. Financial Journey (Wealth Builder + 20 stages)
-3. Financial Score (4 pillars)
-4. Emergency Runway (fund names)
-5. Shock Test (4 presets + custom)
-6. Runway Simulator
-7. Money Personality (20-type engine)
-8. Badges (100)
-9. Challenges
-10. Future You (12-month projection)
-11. Personality Evolution (line chart + history)
-12. Explore (Analytics, Reports)
+- Implemented Red Zone dark theme override
+- Google Auth: auto-creates profile doc for new users, redirects to /settings/profile
 
 ## Key API Endpoints
+- GET /api/reports/generate/{report_type}?format=pdf|excel — Report generation
 - GET /api/intelligence/future-you — 12-month projection
 - GET /api/intelligence/personality-history — Evolution timeline
 - POST /api/intelligence/weekly-digest — Weekly snapshot + notification
@@ -56,9 +45,8 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 - GET /api/intelligence/control-score — Score + scorePeriod
 - GET /api/financial-health — 9 modules + contributions
 - GET /api/income/list/summary — Income sources summary
+- GET /api/other-income — Other income sources
 - POST /api/auth/google/session — Google auth + auto-profile creation
-- GET /api/basic-profile — Profile data
-- PUT /api/basic-profile — Update profile
 
 ## Prioritized Backlog
 ### P1
