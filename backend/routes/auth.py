@@ -274,6 +274,23 @@ async def google_session(request: GoogleSessionRequest, response: Response):
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.users.insert_one(user)
+        # Auto-create basic profile for new Google users
+        await db.profiles.insert_one({
+            "userId": user_id,
+            "name": session_data.get("name", ""),
+            "email": email,
+            "mobile": "",
+            "accountType": "Individual",
+            "dateOfBirth": None,
+            "maritalStatus": "",
+            "dependents": 0,
+            "employmentType": "",
+            "monthlyIncomeRange": "",
+            "riskAppetite": "Moderate",
+            "retirementAge": 60,
+            "profileComplete": False,
+            "updatedAt": datetime.now(timezone.utc).isoformat()
+        })
     else:
         user_id = user["user_id"]
         has_password = user.get("has_password", False) or (user.get("password_hash") is not None)
