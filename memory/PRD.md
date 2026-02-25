@@ -20,36 +20,32 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 - Financial Health (9-module weighted score)
 - Shareable Score Card, Runway Simulator, Money Pattern DNA
 - Google Auth: auto-profile creation + profile completion flow
-- **Bank-Statement Style Reports**: PDF + Excel for all 9 report types
+- Bank-Statement Style Reports (PDF + Excel, 9 types)
+- Legal Pages: Terms of Service, Privacy Policy, Data Deletion Policy
 
-## Report Design (Bank Statement Style)
-- **PDF**: Dark navy header bar with MONEYSSUTRA branding, account holder info, statement period, summary metric boxes (Total/Count/Top/Categories), category-wise grouped tables with subtotals, alternating row backgrounds, grand total, footer disclaimer with Statement ID
-- **Excel**: Merged header with branding, summary row with key metrics, navy header row, alternating row fills, bold totals, auto-fitted columns, footer disclaimer
-- **Report Types**: Income, Expense, Cashflow, Investment, Loan, Net Worth, Goal, Asset, Insurance
-- **Data Sources**: Both `income_sources` AND `other_income` collections included
+## Legal & Compliance Pages
+- `/terms-of-service` — Full ToS with company details (NEXT GENERATION LEADERSHIP PVT LTD)
+- `/privacy-policy` — Privacy policy with data collection categories, future permissions
+- `/data-deletion` — Google Play compliant deletion page with in-app + email options
+- All pages are public (no auth required) for Play Store / app store compliance
+- Links added to: Login footer, Settings footer
+- Company: CIN U80903JH2021PTC017467, PAN AAHCN8903F, TAN RCHN01417D
 
 ## Recent Changes (Feb 25, 2026)
-- Complete redesign of PDF/Excel reports to bank-statement style
-- Category-wise grouping with subtotals in income/expense reports
-- Summary boxes showing key metrics at a glance
-- Professional header/footer with branding and statement ID
-- Net Cash Flow and Savings Rate in cashflow report
-- Investment returns with +/- formatting
-- Net Worth as balance sheet (Assets vs Liabilities)
+- Created Terms of Service, Privacy Policy, Data Deletion pages
+- Added legal links to Settings page footer and Login page footer
+- Routes: /terms-of-service, /privacy-policy, /data-deletion (public)
+- Bank-statement style reports redesign
+- Reports now include other_income collection
+- Google Auth auto-profile creation
 
-## Key API Endpoints
-- GET /api/reports/generate/{report_type}?format=pdf|excel
-- GET /api/intelligence/future-you
-- GET /api/intelligence/personality-history
-- POST /api/intelligence/weekly-digest
-- POST /api/intelligence/shock-test
-- GET /api/intelligence/money-pattern
-- GET /api/intelligence/survival-clock
-- GET /api/intelligence/control-score
-- GET /api/financial-health
-- GET /api/income/list/summary
-- GET /api/other-income
-- POST /api/auth/google/session
+## Key Routes
+- /terms-of-service (public)
+- /privacy-policy (public)
+- /data-deletion (public)
+- /settings (auth)
+- /insights (auth)
+- /insights/reports (auth)
 
 ## Prioritized Backlog
 ### P1
