@@ -291,8 +291,9 @@ async def get_financial_health(request: Request):
     
     retirement_corpus = 0
     for inv in investments:
-        cat = inv.get('category', '').lower()
-        if any(x in cat for x in ['nps', 'epf', 'ppf', 'pension', 'retirement']):
+        cat = (inv.get('investmentCategory', '') or inv.get('category', '') or '').lower()
+        name = (inv.get('name', '') or '').lower()
+        if any(x in cat for x in ['nps', 'epf', 'ppf', 'pension', 'retirement']) or any(x in name for x in ['nps', 'epf', 'ppf', 'pf', 'pension', 'retirement']):
             retirement_corpus += inv.get('currentValue', 0)
     
     if retirement_corpus == 0:
