@@ -101,3 +101,17 @@ export const formatDate = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 };
+
+// Normalize expense amount to monthly based on frequency
+export const normalizeToMonthly = (amount, frequency) => {
+  if (!amount) return 0;
+  switch (frequency) {
+    case 'Daily': return amount * 30;
+    case 'Weekly': return amount * 4;
+    case 'Monthly': return amount;
+    case 'Quarterly': return amount / 3;
+    case 'Half-Yearly': return amount / 6;
+    case 'Yearly': return amount / 12;
+    default: return amount;
+  }
+};
