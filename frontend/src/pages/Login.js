@@ -449,9 +449,9 @@ const Login = () => {
       <div className="relative z-10 pb-6">
         <p className="text-center text-white/50 text-xs">
           By signing in, you agree to our{" "}
-          <span className="text-white/70 hover:text-white cursor-pointer">Terms of Service</span>
+          <a href="/terms-of-service" className="text-white/70 hover:text-white underline" data-testid="login-terms-link">Terms of Service</a>
           {" "}and{" "}
-          <span className="text-white/70 hover:text-white cursor-pointer">Privacy Policy</span>
+          <a href="/privacy-policy" className="text-white/70 hover:text-white underline" data-testid="login-privacy-link">Privacy Policy</a>
         </p>
       </div>
     </div>
