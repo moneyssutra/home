@@ -157,7 +157,7 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }} data-testid="login-page">
+    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, #1A1F3D 0%, #0D2B3E 40%, #1A3A4A 70%, #2A4A5A 100%)" }} data-testid="login-page">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
