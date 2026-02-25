@@ -68,7 +68,7 @@ const MyExpenses = () => {
   const expenseByCategory = expenses.reduce((acc, exp) => {
     const cat = exp.category || "Other";
     if (!acc[cat]) acc[cat] = { total: 0, count: 0 };
-    acc[cat].total += exp.expectedAmount || 0;
+    acc[cat].total += normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || 'Monthly');
     acc[cat].count += 1;
     return acc;
   }, {});
