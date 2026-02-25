@@ -21,14 +21,14 @@ const ExpenseBreakdown = () => {
 
   // Calculate totals and categorize expenses
   const { totalExpenses, expenseByCategory, fixedTotal, variableTotal } = useMemo(() => {
-    const total = expenses.reduce((sum, exp) => sum + (exp.expectedAmount || 0), 0);
+    const total = expenses.reduce((sum, exp) => sum + normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || 'Monthly'), 0);
     const fixed = expenses.filter(e => e.expenseType === "Fixed");
     const variable = expenses.filter(e => e.expenseType === "Variable");
     
     const byCategory = expenses.reduce((acc, exp) => {
       const cat = exp.category || "Other";
       if (!acc[cat]) acc[cat] = { total: 0, count: 0, expenses: [] };
-      acc[cat].total += exp.expectedAmount || 0;
+      acc[cat].total += normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || 'Monthly');
       acc[cat].count += 1;
       acc[cat].expenses.push(exp);
       return acc;
@@ -37,8 +37,8 @@ const ExpenseBreakdown = () => {
     return {
       totalExpenses: total,
       expenseByCategory: byCategory,
-      fixedTotal: fixed.reduce((sum, e) => sum + (e.expectedAmount || 0), 0),
-      variableTotal: variable.reduce((sum, e) => sum + (e.expectedAmount || 0), 0)
+      fixedTotal: fixed.reduce((sum, e) => sum + normalizeToMonthly(e.expectedAmount || 0, e.frequency || 'Monthly'), 0),
+      variableTotal: variable.reduce((sum, e) => sum + normalizeToMonthly(e.expectedAmount || 0, e.frequency || 'Monthly'), 0)
     };
   }, [expenses]);
 
