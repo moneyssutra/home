@@ -4,6 +4,7 @@ import { ChevronRight, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, 
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { useExpenseList } from "@/hooks/useApi";
+import { normalizeToMonthly } from "@/lib/formatters";
 
 // Category configurations
 const categoryConfig = {
