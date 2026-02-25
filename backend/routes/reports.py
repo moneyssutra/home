@@ -235,8 +235,8 @@ async def generate_pdf_report(report_type, data, user_name, start_date, end_date
 
     elif report_type == "cashflow":
         incomes = data.get("incomes", [])
-        expenses = data.get("expenses", [])
-        if incomes:
+        other_incomes = data.get("other_incomes", [])
+        if incomes or other_incomes:
             elements.append(Paragraph("Income Sources", h2_style))
             rows = [["Source", "Type", "Amount", "Frequency", "Date Added"]]
             inc_total = 0
@@ -244,6 +244,11 @@ async def generate_pdf_report(report_type, data, user_name, start_date, end_date
                 amt = inc.get('expectedAmount', 0) or 0
                 inc_total += amt
                 rows.append([inc.get('name', 'N/A')[:22], inc.get('type', 'N/A').title(), fmt_amount(amt), inc.get('frequency', 'Monthly'), fmt_date(inc.get('createdAt'))])
+            for oi in other_incomes:
+                amt = oi.get('amount', 0) or 0
+                inc_total += amt
+                cat = oi.get('customCategory') or oi.get('category', 'Other')
+                rows.append([oi.get('incomeName', 'N/A')[:22], cat.title(), fmt_amount(amt), oi.get('frequency', 'One-time'), fmt_date(oi.get('createdAt') or oi.get('dateReceived'))])
             rows.append(["Total Income", "", fmt_amount(inc_total), "", ""])
             elements.append(_make_table(rows, [1.6*w, 0.9*w, 0.9*w, 0.8*w, 1.3*w], '#10B981'))
             elements.append(Spacer(1, 12))
