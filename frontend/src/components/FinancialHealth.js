@@ -644,7 +644,46 @@ const FinancialHealth = () => {
 
       {/* Health Modules */}
       <div className="space-y-3">
-        {healthModules.map((module) => {
+        {isReorderMode ? (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={sortedModules.map(m => m.key)} strategy={verticalListSortingStrategy}>
+              {sortedModules.map((module) => {
+                const Icon = module.icon;
+                const statusColors = getStatusColor(module.status);
+                const isExpanded = expandedCards[module.key];
+                const explanations = METRIC_EXPLANATIONS[module.key];
+                return (
+                  <SortableHealthCard key={module.key} id={module.key} isReorderMode={isReorderMode}>
+                    <HealthCardContent
+                      module={module} Icon={Icon} statusColors={statusColors}
+                      isExpanded={isExpanded} explanations={explanations}
+                      toggleCard={toggleCard} healthData={healthData}
+                      formatAmount={formatAmount} ValueBox={ValueBox}
+                      activeTooltip={activeTooltip} setActiveTooltip={setActiveTooltip}
+                    />
+                  </SortableHealthCard>
+                );
+              })}
+            </SortableContext>
+          </DndContext>
+        ) : (
+          sortedModules.map((module) => {
+            const Icon = module.icon;
+            const statusColors = getStatusColor(module.status);
+            const isExpanded = expandedCards[module.key];
+            const explanations = METRIC_EXPLANATIONS[module.key];
+            return (
+              <HealthCardContent
+                key={module.key}
+                module={module} Icon={Icon} statusColors={statusColors}
+                isExpanded={isExpanded} explanations={explanations}
+                toggleCard={toggleCard} healthData={healthData}
+                formatAmount={formatAmount} ValueBox={ValueBox}
+                activeTooltip={activeTooltip} setActiveTooltip={setActiveTooltip}
+              />
+            );
+          })
+        )}
           const Icon = module.icon;
           const statusColors = getStatusColor(module.status);
           const isExpanded = expandedCards[module.key];
