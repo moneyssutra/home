@@ -13,16 +13,24 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 - Emergency Runway (3-tier liquidity, individual fund names)
 - Shock Test (4 presets + custom amount input)
 - Future You (12-month projection with mini chart)
-- Red Zone Mode (pulsing alert when survival < 30 days)
+- Red Zone Mode (pulsing alert when survival < 30 days) + Full Dark Theme Override
 - Weekly Health Digest (weekly snapshot comparison notifications)
-- Personality Evolution Tracker (monthly history timeline)
+- Personality Evolution Tracker (line chart via recharts + monthly history)
 - 100 Badges (8 categories, 4 tiers, scrollable)
 - Gamification Challenges (join/leave)
 - Financial Health (9-module weighted score with per-module contributions)
 - Shareable Score Card, Runway Simulator, Money Pattern with DNA bar
+- Cron Jobs: weekly health digest (Sundays) + monthly personality evaluation (1st of month)
+
+## Recent Changes (Feb 25, 2026)
+- Fixed income page "Received" amount visibility (color contrast bug)
+- Fixed liquidity classification: FD/RD now checked before bank-name regex
+- Added cron jobs to scheduler.py for weekly digest and monthly personality eval
+- Upgraded PersonalityEvolutionWidget to recharts LineChart
+- Implemented Red Zone dark theme override (CSS variables swap when survivalDays < 30)
 
 ## Insights Page Widget Order
-1. Red Zone Alert (conditional)
+1. Red Zone Alert (conditional, with dark theme)
 2. Financial Journey (Wealth Builder + 20 stages)
 3. Financial Score (4 pillars)
 4. Emergency Runway (fund names)
@@ -32,7 +40,7 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 8. Badges (100)
 9. Challenges
 10. Future You (12-month projection)
-11. Personality Evolution (monthly history)
+11. Personality Evolution (line chart + history)
 12. Explore (Analytics, Reports)
 
 ## Key API Endpoints
@@ -44,6 +52,7 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 - GET /api/intelligence/survival-clock — Stages + allStages
 - GET /api/intelligence/control-score — Score + scorePeriod
 - GET /api/financial-health — 9 modules + contributions
+- GET /api/income/list/summary — Income sources summary
 
 ## Prioritized Backlog
 ### P1
@@ -51,10 +60,8 @@ Full-stack personal finance manager with "Financial Control Operating System" on
 - Decision Impact Engine (large purchase impact)
 
 ### P2
-- Cron for auto weekly digest + monthly personality evaluation
 - Goal Tracker integration with Future You
-- Red Zone dark theme override
-- Personality evolution line chart
+- Refactor Insights.js into smaller component files
 
 ## Test Credentials
 - Username: `test`, Password: `test`
