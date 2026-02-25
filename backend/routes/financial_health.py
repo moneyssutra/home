@@ -144,8 +144,9 @@ async def get_financial_health(request: Request):
         emergency_action = "Your emergency fund is adequate. Consider investing the excess."
     
     # ============ 2. LIFE INSURANCE ADEQUACY ============
-    life_cover = sum(i.get('coverAmount', 0) or i.get('sumAssured', 0) for i in insurances 
-                     if (i.get('insuranceType', '') or i.get('type', '')).lower() in ['term life', 'term', 'life', 'whole life', 'life insurance'])
+    life_insurance_types = ['term life', 'term', 'life', 'whole life', 'life insurance', 'term insurance']
+    life_cover = sum(i.get('coverageAmount', 0) or i.get('coverAmount', 0) or i.get('sumAssured', 0) for i in insurances 
+                     if (i.get('insuranceType', '') or i.get('type', '')).lower() in life_insurance_types)
     life_target = annual_income * 12
     life_gap = max(0, life_target - life_cover)
     
