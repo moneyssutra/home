@@ -186,10 +186,12 @@ async def get_financial_health(request: Request):
     # ============ 4. INVESTMENT ALLOCATION ============
     recommended_equity = max(30, 100 - age)
     
+    equity_keywords = ['equity', 'stock', 'stocks', 'mutual fund', 'mf', 'elss', 'index', 'share', 'shares', 'smallcap', 'midcap', 'largecap', 'bluechip', 'reit']
     equity_investments = 0
     for inv in investments:
-        cat = inv.get('category', '').lower()
-        if any(x in cat for x in ['equity', 'stock', 'mutual fund', 'mf', 'elss', 'index']):
+        cat = (inv.get('investmentCategory', '') or inv.get('category', '') or '').lower()
+        name = (inv.get('name', '') or '').lower()
+        if any(x in cat for x in equity_keywords) or any(x in name for x in equity_keywords):
             equity_investments += inv.get('currentValue', 0)
     
     actual_equity = (equity_investments / total_investments * 100) if total_investments > 0 else 0
