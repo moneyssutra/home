@@ -32,7 +32,11 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - **Fixed (Feb 25, 2026)**: Retirement Readiness now correctly identifies NPS/PF/PPF from both `investmentCategory` and investment `name` fields
 - **Fixed (Feb 25, 2026)**: Liquid funds classification now uses correct `investmentCategory` field
 
-### Insurance Form Enhancement (Feb 2026)
+### Expense Normalization Fix (Feb 2026)
+- **Fixed (Feb 25, 2026)**: Expense totals were inconsistent across pages — My Expenses summed raw amounts (₹2.94L) instead of monthly-normalized (₹2.77L). Dashboard used month-specific logic.
+- Created shared `normalizeToMonthly` utility in `formatters.js` (Daily*30, Weekly*4, Monthly*1, Quarterly/3, Half-Yearly/6, Yearly/12)
+- Applied to: Dashboard backend, MyExpenses, ExpenseBreakdown, FixedExpenses, VariableExpenses, CategoryExpenses
+- Individual expense items still display original amounts with frequency labels
 - Term Insurance shows Covered Person and Maturity Type fields
 - **Added (Feb 25, 2026)**: Premium Payment Term dropdown for Term Insurance and Life Insurance (1-30 years + Till Maturity)
 - **Fixed (Feb 25, 2026)**: Auto-created expense from insurance was missing `userId` — expenses never appeared in user's list. Fixed for both expenses and assets.
