@@ -1,0 +1,138 @@
+{
+  "summary": "Iteration 70 - Verified granular tier model for Financial Score calculation. All tests pass: finalScore=90, EMI Load correctly mapped to 15/25 (31-40% tier), all new fields present (pct, liquidFunds, semiLiquidFunds), info tooltip displays granular tier criteria.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "/api/gamification/profile",
+        "issue": "lastScore field shows stale value (93) from before tier model update. Updates on weekly processing.",
+        "priority": "LOW - Expected behavior"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Insights - Financial Journey widget",
+        "issues": ["Shows FIN. SCORE as 93 (cached from gamification.lastScore) while FINANCIAL SCORE widget correctly shows 90. Value updates after clicking 'Update' button."]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_financial_score_tiers.py",
+    "/app/test_reports/pytest/financial_score_tiers_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Granular tier model correctly implemented in backend/routes/intelligence.py lines 280-349",
+    "EMI Load tier boundary at 30% is correctly exclusive (>30% = 31-40% tier = 15pts)",
+    "Buffer formula correctly uses (Liquid + 60% Semi-liquid) / Mandatory Expenses"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_financial_score_tiers.py"
+  ],
+  "success_rate": {
+    "backend": "100% - 9/9 tests passed",
+    "frontend": "100% - Score displays correctly, info tooltip with tier criteria works"
+  },
+  "test_credentials": {
+    "username": "test",
+    "password": "test"
+  },
+  "seed_data_creation": "None - used existing test user data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Granular tier model for Financial Score verified. Score=90 (25+15+25+25). EMI Load 30.8% correctly gives 15pts (31-40% tier, >30% threshold). New fields verified: breakdown.*.pct, metrics.liquidFunds/semiLiquidFunds. Info tooltip shows all tier criteria.",
+  "features_verified": {
+    "get_control_score_endpoint": {
+      "status": "PASS",
+      "finalScore": 90,
+      "grade": "A",
+      "expected": "90 (was 93 before tier model fix)"
+    },
+    "savings_rate_scoring": {
+      "status": "PASS",
+      "pct": 47.4,
+      "score": "25/25",
+      "tier": "≥35% tier",
+      "help_text": "You save 47% — outstanding discipline!"
+    },
+    "emi_load_scoring": {
+      "status": "PASS",
+      "pct": 30.8,
+      "score": "15/25",
+      "tier": "31-40% tier (>30%, NOT 26-30%)",
+      "help_text": "EMIs at 31% — getting heavy. Avoid new loans.",
+      "critical_note": "30.8% is correctly mapped to 15pts, not 20pts. This was the key fix."
+    },
+    "safety_buffer_scoring": {
+      "status": "PASS",
+      "months": 10.9,
+      "score": "25/25",
+      "tier": "≥8 months tier",
+      "help_text": "10.9 months — fortress-level safety net!"
+    },
+    "income_consistency_scoring": {
+      "status": "PASS",
+      "variancePct": 0,
+      "score": "25/25",
+      "tier": "≤5% tier",
+      "help_text": "Rock-steady income (±0% variance)."
+    },
+    "new_fields_in_response": {
+      "status": "PASS",
+      "breakdown_pct_fields": ["savingsRate.pct (47.4)", "emiLoad.pct (30.8)"],
+      "metrics_liquid_fields": ["liquidFunds (0)", "semiLiquidFunds (3767000)"]
+    },
+    "help_text_in_breakdown": {
+      "status": "PASS",
+      "all_4_pillars_have_help": true
+    },
+    "frontend_info_tooltip": {
+      "status": "PASS",
+      "data_testid": "financial-score-info-btn",
+      "tooltip_content_verified": true,
+      "granular_tier_criteria_shown": [
+        "Savings Rate (25pts) — 35%+ = 25pts, 30% = 22, 25% = 20, 20% = 17, 15% = 14, 10% = 10, 5% = 6, <1% = 0",
+        "EMI Load (25pts) — ≤20% = 25pts, 25% = 22, 30% = 20, 40% = 15, 50% = 10, 60% = 5, >60% = 0",
+        "Safety Buffer (25pts) — 8+ months = 25pts, 6 = 22, 4 = 18, 3 = 14, 2 = 10, 1 = 5, <1 = 0",
+        "Income Consistency (25pts) — ≤5% = 25pts, 10% = 22, 20% = 18, 30% = 14, 40% = 8, 50% = 4, >50% = 0"
+      ]
+    }
+  },
+  "tier_model_verification": {
+    "savings_rate_tiers": "0,3,6,10,14,17,20,22,25 (confirmed: 47.4% → 25pts)",
+    "emi_load_tiers": "0,5,10,15,20,22,25 (confirmed: 30.8% → 15pts)",
+    "safety_buffer_tiers": "0,5,10,14,18,22,25 (confirmed: 10.9 months → 25pts)",
+    "income_consistency_tiers": "0,4,8,14,18,22,25 (confirmed: 0% variance → 25pts)",
+    "total_score_formula": "25 + 15 + 25 + 25 = 90"
+  },
+  "api_response_sample": {
+    "finalScore": 90,
+    "grade": "A",
+    "breakdown": {
+      "savingsRate": {"score": 25, "max": 25, "pct": 47.4},
+      "emiLoad": {"score": 15, "max": 25, "pct": 30.8},
+      "safetyBuffer": {"score": 25, "max": 25, "months": 10.9},
+      "incomeConsistency": {"score": 25, "max": 25, "variancePct": 0}
+    },
+    "metrics": {
+      "monthlyIncome": 526083.33,
+      "monthlyExpenses": 276579.33,
+      "totalEMI": 162000,
+      "availableFunds": 2260200,
+      "liquidFunds": 0,
+      "semiLiquidFunds": 3767000
+    }
+  },
+  "playwright_test_summary": {
+    "login": "PASS",
+    "insights_navigation": "PASS",
+    "financial_score_widget_displayed": "PASS (score=90, grade=A)",
+    "breakdown_bars_correct": "PASS (25/25, 15/25, 25/25, 25/25)",
+    "info_button_clickable": "PASS",
+    "tooltip_content_verified": "PASS (all tier criteria shown)"
+  }
+}
