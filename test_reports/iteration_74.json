@@ -1,0 +1,82 @@
+{
+  "summary": "All 5 bug fixes verified. Backend: 19/19 tests pass. Frontend: Dashboard and Insights pages load correctly with all widgets. Empty user shows 0 values (not misleading defaults). Seeded user shows expected non-zero values.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter74_bugfixes.py",
+    "/app/test_reports/pytest/iter74_bugfixes_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_iter74_bugfixes.py"
+  ],
+  "success_rate": {
+    "backend": "100% (19/19 tests passed)",
+    "frontend": "100% (Dashboard and Insights pages working)"
+  },
+  "test_credentials": "username: test, password: test",
+  "seed_data_creation": "Used existing seeded data for Rahul Sharma",
+  "verified_bug_fixes": {
+    "1_financial_health_empty_user": {
+      "before": "47 for empty user",
+      "after": "0 for empty user",
+      "status": "FIXED"
+    },
+    "2_survival_days_empty_user": {
+      "before": "999 days for empty user",
+      "after": "0 days for empty user",
+      "status": "FIXED"
+    },
+    "3_financial_score_empty_user": {
+      "before": "50 for empty user",
+      "after": "0 for empty user with N/A grade",
+      "status": "FIXED"
+    },
+    "4_journey_level_empty_user": {
+      "before": "Stage 19 Financially Free",
+      "after": "Stage 1 Exposed (Critical phase)",
+      "status": "FIXED"
+    },
+    "5_insights_2phase_loading": {
+      "description": "Phase 1 loads survival/score/gamification first, Phase 2 loads alerts/challenges/pattern/future/history",
+      "status": "VERIFIED - code review confirms implementation"
+    }
+  },
+  "verified_seeded_user_values": {
+    "financial_health": "66 (expected ~66)",
+    "financial_score": "95 Grade A (expected ~95)",
+    "survival_days": "433 days, Stage 17 Fortified (expected ~433)",
+    "net_worth": "₹87.82L"
+  },
+  "tested_apis": {
+    "phase_1_critical": [
+      "GET /api/intelligence/survival-clock - 200 OK",
+      "GET /api/intelligence/control-score - 200 OK",
+      "GET /api/gamification/profile - 200 OK"
+    ],
+    "phase_2_secondary": [
+      "GET /api/intelligence/behavior-alerts - 200 OK",
+      "GET /api/gamification/challenges - 200 OK",
+      "GET /api/intelligence/money-pattern - 200 OK",
+      "GET /api/intelligence/future-you - 200 OK",
+      "GET /api/intelligence/personality-history - 200 OK"
+    ],
+    "reports": [
+      "GET /api/reports/generate/expense - 200 OK",
+      "GET /api/reports/generate/income - 200 OK",
+      "GET /api/reports/generate/cashflow - 200 OK",
+      "GET /api/reports/generate/networth - 200 OK"
+    ]
+  },
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All bug fixes verified in iteration 74. Empty user behavior now correctly shows 0 values instead of misleading defaults. Seeded test user (test/test) has comprehensive data showing non-zero scores. All intelligence APIs return 200. Reports generate successfully. Frontend Dashboard and Insights pages work correctly."
+}
