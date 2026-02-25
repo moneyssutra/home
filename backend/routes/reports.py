@@ -374,13 +374,18 @@ async def generate_excel_report(report_type, data, user_name, start_date, end_da
         ws.cell(row=row, column=1, value=label).font = Font(bold=True)
         ws.cell(row=row, column=col_idx, value=val).font = Font(bold=True)
 
-    if report_type == "income" and data.get("incomes"):
+    if report_type == "income" and (data.get("incomes") or data.get("other_incomes")):
         write_header(["Source", "Type", "Amount", "Frequency", "Date Added"], "10B981")
         total = 0
-        for inc in data["incomes"]:
+        for inc in data.get("incomes", []):
             amt = inc.get('expectedAmount', 0) or 0
             total += amt
             write_row([inc.get('name', 'N/A'), inc.get('type', 'N/A').title(), amt, inc.get('frequency', 'Monthly'), fmt_date(inc.get('createdAt') or inc.get('lastEntryDate'))])
+        for oi in data.get("other_incomes", []):
+            amt = oi.get('amount', 0) or 0
+            total += amt
+            cat = oi.get('customCategory') or oi.get('category', 'Other')
+            write_row([oi.get('incomeName', 'N/A'), cat.title(), amt, oi.get('frequency', 'One-time'), fmt_date(oi.get('createdAt') or oi.get('dateReceived'))])
         write_total(3, total)
 
     elif report_type == "expense" and data.get("expenses"):
