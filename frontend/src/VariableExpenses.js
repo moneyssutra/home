@@ -5,6 +5,7 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
+import { normalizeToMonthly } from "@/lib/formatters";
 
 const VariableExpenses = () => {
   const navigate = useNavigate();
