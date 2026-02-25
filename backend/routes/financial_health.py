@@ -164,7 +164,7 @@ async def get_financial_health(request: Request):
     
     # ============ 3. HEALTH INSURANCE ADEQUACY ============
     health_cover = sum(i.get('coverAmount', 0) or i.get('sumAssured', 0) for i in insurances 
-                       if i.get('type', '').lower() in ['health', 'medical', 'mediclaim'])
+                       if (i.get('insuranceType', '') or i.get('type', '')).lower() in ['health', 'medical', 'mediclaim', 'health insurance'])
     health_target = 1000000
     health_gap = max(0, health_target - health_cover)
     
