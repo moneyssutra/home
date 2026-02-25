@@ -430,7 +430,7 @@ const FinancialScoreWidget = ({ data }) => {
         </div>
         <div className="flex-1 space-y-2">
           {bars.map((b, i) => (
-            <div key={i}>
+            <div key={i} title={b.help}>
               <div className="flex justify-between text-[10px] mb-0.5">
                 <span style={{ color: "var(--text-secondary)" }}>{b.label}</span>
                 <span className="font-bold" style={{ color: b.color }}>{b.score}/{b.max}</span>
@@ -438,6 +438,9 @@ const FinancialScoreWidget = ({ data }) => {
               <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
                 <div className="h-full rounded-full transition-all" style={{ width: `${(b.score / b.max) * 100}%`, backgroundColor: b.color }} />
               </div>
+              {showInfo && (
+                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{b.help}</p>
+              )}
             </div>
           ))}
         </div>
