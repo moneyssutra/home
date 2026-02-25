@@ -11,6 +11,7 @@ const DataDeletion = () => {
         <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full flex items-center justify-center" data-testid="back-button">
           <ArrowLeft className="h-5 w-5" style={{ color: "var(--text-primary)" }} />
         </button>
+        <LogoIcon size={24} />
         <h1 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Data Deletion Policy</h1>
       </header>
 
