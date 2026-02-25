@@ -30,7 +30,8 @@ async def create_insurance(input: InsuranceCreate, request: Request):
         if not existing_asset:
             current_value = insurance_obj.expectedMaturityAmount or insurance_obj.premiumAmount
             asset_data = {
-                "id": str(uuid.uuid4()), "assetType": "Insurance Asset",
+                "id": str(uuid.uuid4()), "userId": user.get('user_id'),
+                "assetType": "Insurance Asset",
                 "assetName": f"{insurance_obj.policyName} (Maturity Value)",
                 "currentValue": current_value, "purchaseValue": insurance_obj.premiumAmount,
                 "purchaseDate": insurance_obj.startDate, "isFinanced": False, "linkedLoanId": None,
@@ -51,7 +52,8 @@ async def create_insurance(input: InsuranceCreate, request: Request):
             selected_date = str(start_date.day)
             selected_month = start_date.strftime("%B") if expense_freq == "Yearly" else None
             expense_data = {
-                "id": str(uuid.uuid4()), "expenseName": f"{insurance_obj.policyName} Premium",
+                "id": str(uuid.uuid4()), "userId": user.get('user_id'),
+                "expenseName": f"{insurance_obj.policyName} Premium",
                 "expenseType": "Fixed", "category": "Insurance",
                 "expectedAmount": insurance_obj.premiumAmount, "frequency": expense_freq,
                 "linkedAccountId": None, "linkedLoanId": None, "linkedInsuranceId": insurance_obj.id,
