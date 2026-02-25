@@ -85,6 +85,50 @@ const getStatusIcon = (status) => {
   return <AlertCircle className="h-4 w-4" />;
 };
 
+// Sort score for smart ordering: higher rawScore = better performance
+const getStatusSortScore = (status) => {
+  const scores = {
+    "Excellent": 100, "Good": 85, "Healthy": 85, "Adequate": 80, "Balanced": 75,
+    "Stable": 75, "Moderate": 50, "Average": 50, "Needs Improvement": 40,
+    "Low Coverage": 35, "Underinsured": 30, "Underexposed": 30, "Overexposed": 30,
+    "High": 25, "High Risk": 15, "High Leverage": 15, "Critical": 10,
+    "Dangerous": 5, "Weak": 5, "At Risk": 5, "Not Covered": 0, "N/A": -1,
+  };
+  return scores[status] ?? 50;
+};
+
+const STORAGE_KEY = "fh_custom_order";
+
+// Sortable wrapper for DnD
+const SortableHealthCard = ({ id, children, isReorderMode }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : "auto",
+  };
+
+  if (!isReorderMode) return children;
+
+  return (
+    <div ref={setNodeRef} style={style} className="relative">
+      <div className="flex items-stretch">
+        <button
+          {...attributes}
+          {...listeners}
+          className="flex items-center justify-center px-2 rounded-l-xl cursor-grab active:cursor-grabbing touch-none"
+          style={{ backgroundColor: "#8B5CF615", borderRight: "1px solid #8B5CF620" }}
+          data-testid={`drag-handle-${id}`}
+        >
+          <GripVertical className="h-5 w-5" style={{ color: "#8B5CF6" }} />
+        </button>
+        <div className="flex-1 min-w-0">{children}</div>
+      </div>
+    </div>
+  );
+};
+
 // Calculation explanations for each metric
 const METRIC_EXPLANATIONS = {
   emergencyFund: {
