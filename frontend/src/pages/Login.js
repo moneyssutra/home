@@ -145,11 +145,11 @@ const Login = () => {
         
         {/* Footer */}
         <div className="relative z-10 pb-4">
-          <p className="text-center text-white/50 text-xs">
+          <p className="text-center text-xs" style={{ color: "#333333" }}>
             By signing in, you agree to our{" "}
-            <span className="text-white/70 hover:text-white cursor-pointer">Terms of Service</span>
+            <span className="underline font-medium cursor-pointer" style={{ color: "#1A1A1A" }}>Terms of Service</span>
             {" "}and{" "}
-            <span className="text-white/70 hover:text-white cursor-pointer">Privacy Policy</span>
+            <span className="underline font-medium cursor-pointer" style={{ color: "#1A1A1A" }}>Privacy Policy</span>
           </p>
         </div>
       </div>
@@ -438,11 +438,11 @@ const Login = () => {
 
       {/* Footer */}
       <div className="relative z-10 pb-6">
-        <p className="text-center text-white/50 text-xs">
+        <p className="text-center text-xs" style={{ color: "#333333" }}>
           By signing in, you agree to our{" "}
-          <a href="/terms-of-service" className="text-white/70 hover:text-white underline" data-testid="login-terms-link">Terms of Service</a>
+          <a href="/terms-of-service" className="underline font-medium" style={{ color: "#1A1A1A" }} data-testid="login-terms-link">Terms of Service</a>
           {" "}and{" "}
-          <a href="/privacy-policy" className="text-white/70 hover:text-white underline" data-testid="login-privacy-link">Privacy Policy</a>
+          <a href="/privacy-policy" className="underline font-medium" style={{ color: "#1A1A1A" }} data-testid="login-privacy-link">Privacy Policy</a>
         </p>
       </div>
     </div>
