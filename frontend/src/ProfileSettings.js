@@ -28,10 +28,12 @@ const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const ProfileSettings = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, checkAuth } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const isCompleteProfile = location.state?.completeProfile === true;
+  const [isEditing, setIsEditing] = useState(isCompleteProfile);
   const [profile, setProfile] = useState({
     // Top Section
     name: "",
