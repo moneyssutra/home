@@ -1211,6 +1211,28 @@ const InsuranceForm = () => {
               </div>
             )}
 
+            {/* Premium Payment Term (for Term Insurance and Life Insurance) */}
+            {(insuranceType === "Term Insurance" || insuranceType === "Life Insurance") && (
+              <div className="w-full">
+                <label htmlFor="premiumPaymentTerm" className="block text-sm font-medium text-[#334155] mb-2">
+                  Premium Payment Term <span className="text-[#94A3B8] font-normal">(Optional)</span>
+                </label>
+                <select
+                  id="premiumPaymentTerm"
+                  value={premiumPaymentTerm}
+                  onChange={(e) => setPremiumPaymentTerm(e.target.value)}
+                  className="w-full rounded-xl border border-[#CBD5E1] bg-white px-4 py-3 text-[#334155] focus:border-[#00D09C] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+                  data-testid="premium-payment-term-select"
+                >
+                  <option value="">Select Premium Payment Term</option>
+                  {premiumPaymentTermOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+                <p className="text-xs text-[#64748B] mt-1">How long will you pay premiums for this policy?</p>
+              </div>
+            )}
+
             {/* Auto Add to Expense */}
             <div className="w-full rounded-xl border border-[#CBD5E1] bg-white p-4">
               <div className="flex items-center justify-between">
