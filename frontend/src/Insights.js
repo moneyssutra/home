@@ -737,7 +737,12 @@ const ShockTestWidget = ({ clockData }) => {
 
 // ─── FUTURE YOU (12-month projection) ───
 const FutureYouWidget = ({ data }) => {
-  if (!data) return null;
+  if (!data) return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="future-you">
+      <div className="flex items-center gap-2 mb-2"><Rocket className="h-5 w-5" style={{ color: "#8B5CF6" }} /><h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Future You</h3></div>
+      <p className="text-xs" style={{ color: "var(--text-muted)" }}>Add financial data to see your 12-month projection.</p>
+    </div>
+  );
   const cur = data.current || {};
   const proj = data.projected || {};
   const imp = data.improvement || {};
