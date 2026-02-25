@@ -208,7 +208,7 @@ async def get_survival_clock(request: Request):
 
     effective_funds = fund_breakdown["effectiveTotal"]
     daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 0
-    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 0
     survival_months = round(survival_days / 30, 1)
 
     level_info = _get_runway_level(survival_days)
@@ -462,7 +462,7 @@ async def shock_test(request: Request):
     total_emi = await _get_total_emi(user_filter)
     daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
 
-    current_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+    current_days = int(effective_funds / daily_expense) if daily_expense > 0 else 0
 
     # Calculate post-shock state
     if scenario["impact_type"] == "income_loss":
@@ -487,7 +487,7 @@ async def shock_test(request: Request):
         post_daily = daily_expense
         impact_label = "Unknown scenario"
 
-    post_days = int(post_funds / post_daily) if post_daily > 0 else 999
+    post_days = int(post_funds / post_daily) if post_daily > 0 else 0
     days_lost = current_days - post_days
     severity = "critical" if post_days < 30 else "warning" if post_days < 90 else "safe"
 
@@ -534,7 +534,7 @@ async def future_you_score(request: Request):
 
     monthly_savings = monthly_income - monthly_mandatory - monthly_discretionary
     daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
-    current_survival = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+    current_survival = int(effective_funds / daily_expense) if daily_expense > 0 else 0
     current_score = 0
     savings_rate = (monthly_savings / monthly_income) if monthly_income > 0 else 0
     debt_ratio = (total_emi / monthly_income) if monthly_income > 0 else 0
@@ -546,7 +546,7 @@ async def future_you_score(request: Request):
     for month in range(1, 13):
         proj_funds += max(monthly_savings, 0)
         proj_net_worth += max(monthly_savings, 0)
-        proj_survival = int(proj_funds / daily_expense) if daily_expense > 0 else 999
+        proj_survival = int(proj_funds / daily_expense) if daily_expense > 0 else 0
         proj_buffer = proj_funds / monthly_mandatory if monthly_mandatory > 0 else 0
         proj_score = min(int(savings_rate * 100), 25) + max(25 - int(debt_ratio * 50), 0) + min(int(proj_buffer * 4), 25) + 18
 
@@ -621,7 +621,7 @@ async def generate_weekly_digest(request: Request):
     fund_breakdown = await _get_fund_breakdown(user_filter)
     effective_funds = fund_breakdown["effectiveTotal"]
     daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
-    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 0
     savings_rate = ((monthly_income - monthly_mandatory - monthly_discretionary) / monthly_income * 100) if monthly_income > 0 else 0
 
     # Get last digest for comparison
@@ -769,7 +769,7 @@ async def get_behavior_alerts(request: Request):
 
     # 6. Emergency runway warning
     daily_exp = monthly_mandatory / 30 if monthly_mandatory > 0 else 0
-    survival_days = int(effective_funds / daily_exp) if daily_exp > 0 else 999
+    survival_days = int(effective_funds / daily_exp) if daily_exp > 0 else 0
     if survival_days == 0:
         alerts.append({
             "type": "SURVIVAL_CRITICAL", "severity": "HIGH",
@@ -839,7 +839,7 @@ async def runway_simulator(
 
     # Current baseline
     daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 0
-    current_survival = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+    current_survival = int(effective_funds / daily_expense) if daily_expense > 0 else 0
 
     # Simulated scenario
     sim_income = monthly_income * (1 + income_change_pct / 100)
@@ -848,7 +848,7 @@ async def runway_simulator(
 
     # If income still active, monthly net savings extend runway
     sim_daily_expense = sim_mandatory / 30 if sim_mandatory > 0 else 0
-    sim_survival = int(sim_funds / sim_daily_expense) if sim_daily_expense > 0 else 999
+    sim_survival = int(sim_funds / sim_daily_expense) if sim_daily_expense > 0 else 0
 
     # Monthly net savings with new income/expense
     monthly_net = sim_income - sim_mandatory - monthly_discretionary
@@ -857,7 +857,7 @@ async def runway_simulator(
     projections = []
     running_funds = sim_funds
     for month in range(0, 13):
-        days = int(running_funds / sim_daily_expense) if sim_daily_expense > 0 else 999
+        days = int(running_funds / sim_daily_expense) if sim_daily_expense > 0 else 0
         projections.append({
             "month": month,
             "funds": round(max(running_funds, 0), 0),
@@ -941,7 +941,7 @@ async def get_money_pattern(request: Request):
     effective_funds = fund_breakdown["effectiveTotal"]
     daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
 
-    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 0
 
     # Control score (inline calc to avoid circular call)
     savings_rate = ((monthly_income - monthly_mandatory - monthly_discretionary) / monthly_income) if monthly_income > 0 else 0
