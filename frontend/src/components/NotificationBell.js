@@ -183,27 +183,37 @@ const NotificationBell = () => {
   
   // Swipe handlers
   const handleTouchStart = (e, notificationId) => {
+    if (dismissingId) return;
     touchStartX.current = e.touches[0].clientX;
     setSwipingId(notificationId);
   };
   
   const handleTouchMove = (e) => {
-    if (!swipingId) return;
+    if (!swipingId || dismissingId) return;
     const currentX = e.touches[0].clientX;
     const diff = currentX - touchStartX.current;
-    // Only allow right swipe
     if (diff > 0) {
-      setSwipeX(Math.min(diff, 100));
+      setSwipeX(Math.min(diff, 120));
     }
   };
   
   const handleTouchEnd = () => {
+    if (!swipingId || dismissingId) return;
     if (swipeX > 80) {
-      // Dismiss notification
-      handleDeleteNotification(swipingId);
+      // Trigger dismiss animation
+      setDismissingId(swipingId);
+      setSwipingId(null);
+      setSwipeX(0);
+      // Wait for animation to finish, then delete
+      setTimeout(() => {
+        handleDeleteNotification(dismissingId);
+        setDismissingId(null);
+      }, 350);
+    } else {
+      // Snap back
+      setSwipingId(null);
+      setSwipeX(0);
     }
-    setSwipingId(null);
-    setSwipeX(0);
   };
   
   const getNotificationIcon = (notification) => {
