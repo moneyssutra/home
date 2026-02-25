@@ -810,7 +810,12 @@ const FutureYouWidget = ({ data }) => {
 // ─── PERSONALITY EVOLUTION TRACKER (Line Chart) ───
 const PersonalityEvolutionWidget = ({ data, currentPersonality }) => {
   const history = data?.history || [];
-  if (!currentPersonality) return null;
+  if (!currentPersonality) return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="personality-evolution">
+      <div className="flex items-center gap-2 mb-2"><TrendingUp className="h-5 w-5" style={{ color: "#F59E0B" }} /><h3 className="text-base font-black uppercase tracking-wide" style={{ color: "var(--text-primary)" }}>Personality Evolution</h3></div>
+      <p className="text-xs" style={{ color: "var(--text-muted)" }}>Your financial personality will evolve as you track your money.</p>
+    </div>
+  );
 
   const ZONE_COLORS = { Survival: "#EF4444", Stabilizing: "#F97316", Control: "#EAB308", Growth: "#22C55E", Advanced: "#3B82F6" };
 
