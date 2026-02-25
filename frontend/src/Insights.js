@@ -490,7 +490,12 @@ const FinancialScoreWidget = ({ data }) => {
 // ─── BADGES (Scrollable, max 4 rows visible) ───
 const BadgesWidget = ({ data }) => {
   const [activeCategory, setActiveCategory] = useState("all");
-  if (!data?.allAchievements) return null;
+  if (!data?.allAchievements) return (
+    <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="badges-widget">
+      <div className="flex items-center gap-2 mb-2"><Trophy className="h-5 w-5" style={{ color: "#F59E0B" }} /><h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Badges</h3></div>
+      <p className="text-xs" style={{ color: "var(--text-muted)" }}>Start tracking your finances to unlock badges.</p>
+    </div>
+  );
 
   const all = data.allAchievements;
   const unlocked = all.filter(a => a.unlocked);
