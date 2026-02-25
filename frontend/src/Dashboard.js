@@ -108,15 +108,12 @@ const Dashboard = () => {
       {/* Minimal Header */}
       <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
         <div className="relative px-5 pt-4 pb-6">
-          {/* Header Row - Logo, Profile left, Notification right */}
+          {/* Header Row - Profile left, Notification right */}
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <LogoIcon size={28} />
-              <ProfileMenu 
-                userName={getUserName()} 
-                userPicture={user?.picture}
-              />
-            </div>
+            <ProfileMenu 
+              userName={getUserName()} 
+              userPicture={user?.picture}
+            />
             <NotificationBell />
           </div>
 
