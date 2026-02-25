@@ -439,6 +439,58 @@ const FinancialHealth = () => {
     }
   ] : [];
 
+  // Apply sorting
+  const sortedModules = (() => {
+    if (healthModules.length === 0) return [];
+    if (sortMode === "custom" && customOrder) {
+      const orderMap = {};
+      customOrder.forEach((key, i) => { orderMap[key] = i; });
+      return [...healthModules].sort((a, b) => {
+        const ai = orderMap[a.key] ?? 999;
+        const bi = orderMap[b.key] ?? 999;
+        return ai - bi;
+      });
+    }
+    // Smart sort: by rawScore descending (highest achievement first)
+    return [...healthModules].sort((a, b) => {
+      const aScore = healthData?.contributions?.[a.key]?.rawScore ?? getStatusSortScore(a.status);
+      const bScore = healthData?.contributions?.[b.key]?.rawScore ?? getStatusSortScore(b.status);
+      return bScore - aScore;
+    });
+  })();
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = sortedModules.findIndex(m => m.key === active.id);
+    const newIndex = sortedModules.findIndex(m => m.key === over.id);
+    const reordered = arrayMove(sortedModules, oldIndex, newIndex);
+    const newOrder = reordered.map(m => m.key);
+    setCustomOrder(newOrder);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newOrder));
+    setSortMode("custom");
+  };
+
+  const switchToSmart = () => {
+    setSortMode("smart");
+    setCustomOrder(null);
+    localStorage.removeItem(STORAGE_KEY);
+    setIsReorderMode(false);
+  };
+
+  const enterReorder = () => {
+    // Capture current displayed order as starting point
+    if (!customOrder) {
+      setCustomOrder(sortedModules.map(m => m.key));
+    }
+    setIsReorderMode(true);
+    setSortMode("custom");
+  };
+
+  const doneReorder = () => {
+    setIsReorderMode(false);
+  };
+
   if (loading) {
     return (
       <div 
