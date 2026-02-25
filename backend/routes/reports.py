@@ -460,14 +460,20 @@ async def generate_excel_report(report_type, data, user_name, start_date, end_da
 
     elif report_type == "cashflow":
         incomes = data.get("incomes", [])
+        other_incomes = data.get("other_incomes", [])
         expenses = data.get("expenses", [])
-        if incomes:
+        if incomes or other_incomes:
             write_header(["Source", "Type", "Amount", "Frequency", "Date Added"], "10B981")
             it = 0
             for inc in incomes:
                 amt = inc.get('expectedAmount', 0) or 0
                 it += amt
                 write_row([inc.get('name', 'N/A'), inc.get('type', 'N/A').title(), amt, inc.get('frequency', 'Monthly'), fmt_date(inc.get('createdAt'))])
+            for oi in other_incomes:
+                amt = oi.get('amount', 0) or 0
+                it += amt
+                cat = oi.get('customCategory') or oi.get('category', 'Other')
+                write_row([oi.get('incomeName', 'N/A'), cat.title(), amt, oi.get('frequency', 'One-time'), fmt_date(oi.get('createdAt') or oi.get('dateReceived'))])
             write_total(3, it, "Total Income")
             row += 2
         if expenses:
