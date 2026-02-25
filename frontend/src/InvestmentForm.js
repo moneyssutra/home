@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams, useLocation, useSearchParams } from "react-router-dom";
-import { ChevronLeft, Calendar as CalendarIcon, Trash2, Info, Calendar } from "lucide-react";
+import { ChevronLeft, Calendar as CalendarIcon, Trash2, Info } from "lucide-react";
 import axios from "axios";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
