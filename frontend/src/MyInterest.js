@@ -245,7 +245,7 @@ const MyInterest = () => {
             <div className="flex h-20 w-20 items-center justify-center rounded-full mb-4" style={{ backgroundColor: "var(--status-info-soft)" }}><Landmark className="h-10 w-10" style={{ color: "var(--status-info)" }} /></div>
             <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>No Interest Income Added Yet</h2>
             <p className="text-center text-sm mb-6" style={{ color: "var(--text-secondary)" }}>Start by adding your FD, savings or bond interest</p>
-            <button onClick={() => navigate("/interest-income")} className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium" style={{ backgroundColor: "var(--brand-primary)" }}><Plus className="h-5 w-5" />Add Interest</button>
+            <button onClick={() => navigate("/investment")} className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium" style={{ backgroundColor: "var(--brand-primary)" }}><Plus className="h-5 w-5" />Add Investment</button>
           </div>
         ) : filteredInterests.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 px-6">
@@ -287,7 +287,7 @@ const MyInterest = () => {
         )}
       </div>
 
-      {interests.length > 0 && (<div className="px-6 mt-6"><button onClick={() => navigate("/interest-income")} className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 font-medium" style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}><Plus className="h-5 w-5" />Add New Interest</button></div>)}
+      {interests.length > 0 && (<div className="px-6 mt-6"><button onClick={() => navigate("/investment")} className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 font-medium" style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}><Plus className="h-5 w-5" />Add New Investment</button></div>)}
 
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />

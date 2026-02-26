@@ -279,8 +279,8 @@ const MyRental = () => {
             </div>
             <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>No Rentals Added Yet</h2>
             <p className="text-center text-sm mb-6" style={{ color: "var(--text-secondary)" }}>Start by adding your rental income</p>
-            <button onClick={() => navigate("/rental-income")} className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium" style={{ backgroundColor: "var(--brand-primary)" }} data-testid="add-rental-empty-button">
-              <Plus className="h-5 w-5" />Add Rental
+            <button onClick={() => navigate("/asset")} className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium" style={{ backgroundColor: "var(--brand-primary)" }} data-testid="add-rental-empty-button">
+              <Plus className="h-5 w-5" />Add Asset
             </button>
           </div>
         ) : filteredRentals.length === 0 ? (
@@ -331,8 +331,8 @@ const MyRental = () => {
 
       {rentals.length > 0 && (
         <div className="px-6 mt-6">
-          <button onClick={() => navigate("/rental-income")} className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 font-medium" style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }} data-testid="add-rental-button">
-            <Plus className="h-5 w-5" />Add New Rental
+          <button onClick={() => navigate("/asset")} className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 font-medium" style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }} data-testid="add-rental-button">
+            <Plus className="h-5 w-5" />Add New Asset
           </button>
         </div>
       )}
