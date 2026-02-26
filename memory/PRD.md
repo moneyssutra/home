@@ -71,12 +71,14 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 
 ### Enhanced Monthly Cashflow + Bug Fixes (Feb 26, 2026)
 - Monthly Cash Flow card now shows 4 boxes: Received, Expected, Spent, Upcoming with progress bars
-- Backend returns incomeReceived, expectedIncome, expensesDone, upcomingExpenses from transactions
-- Net Balance with savings rate percentage
+- Backend calculates schedule-based received/done (by comparing schedule date to today's date)
+- Net Balance = Income Received - Expenses Done
+- 4 new detail pages: /income-received, /expected-income, /expenses-done, /upcoming-expenses
+- Fixed income source navigation (Salary→/my-job, Freelance→/my-self-employed)
 - Fixed Quick Add sheet bottom icons hidden by bottom nav (pb-24 padding)
 - Fixed background scrolling when Quick Add sheet open (body overflow lock)
 - Fixed 0 amount in Income modal showing invalid error
-- Fixed validation errors persisting across all forms (11 forms: Investment, Expense, Goal, Loan, Account, Asset, Insurance, JobIncome, BusinessIncome, SelfEmployedIncome, RentalIncome)
+- Fixed validation errors persisting across all forms (11 forms)
 - Removed "Open" button from Reports page, only Download remains
 
 ## Prioritized Backlog
