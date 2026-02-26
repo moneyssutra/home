@@ -985,9 +985,10 @@ const HeroSection = ({ clockData, gamData, onImprove, onShare }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [ringAnimated, setRingAnimated] = useState(false);
 
-  // SVG ring
-  const r = 72, circ = 2 * Math.PI * r;
+  // SVG ring — larger to fit text inside
+  const r = 88, circ = 2 * Math.PI * r;
   const targetOffset = circ - (progressPct / 100) * circ;
+  const gradId = "ring-grad";
 
   useEffect(() => {
     const t = setTimeout(() => setRingAnimated(true), 100);
@@ -996,30 +997,36 @@ const HeroSection = ({ clockData, gamData, onImprove, onShare }) => {
 
   return (
     <div className="rounded-2xl overflow-hidden relative" style={{ background: zone.bg }} data-testid="hero-section" onClick={() => showTooltip && setShowTooltip(false)}>
-      {/* Radial glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full" style={{ background: `radial-gradient(circle, ${zone.glow}, transparent 70%)` }} />
+      {/* Radial glow behind circle */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 rounded-full" style={{ background: `radial-gradient(circle, ${zone.glow}, transparent 70%)` }} />
 
       <div className="relative p-6 pb-3 text-center">
         {/* Top label */}
-        <p className="text-[11px] font-bold tracking-[0.2em] uppercase mb-4" style={{ color: zone.secondary }}>Your Financial Safety</p>
+        <p className="text-[11px] font-bold tracking-[0.2em] uppercase mb-5" style={{ color: zone.secondary }}>Your Financial Safety</p>
 
         {/* Circular progress ring */}
         <div className="relative inline-block mb-4">
-          <svg width="170" height="170" viewBox="0 0 170 170" className="block">
-            <circle cx="85" cy="85" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3.5" />
-            <circle cx="85" cy="85" r={r} fill="none" stroke={zone.accent} strokeWidth="3.5"
+          <svg width="200" height="200" viewBox="0 0 200 200" className="block">
+            <defs>
+              <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={zone.stroke1} />
+                <stop offset="100%" stopColor={zone.stroke2} />
+              </linearGradient>
+            </defs>
+            <circle cx="100" cy="100" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
+            <circle cx="100" cy="100" r={r} fill="none" stroke={`url(#${gradId})`} strokeWidth="3"
               strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={ringAnimated ? targetOffset : circ}
-              transform="rotate(-90 85 85)" style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)", filter: `drop-shadow(0 0 8px ${zone.accent}50)` }} />
+              transform="rotate(-90 100 100)" style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)", filter: `drop-shadow(0 0 6px ${zone.accent}40)` }} />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ animation: "fadeIn 0.8s ease" }}>
             <span className="text-6xl font-black text-white leading-none tracking-tight" style={{
               textShadow: `0 0 40px ${zone.accent}30, 0 2px 4px rgba(0,0,0,0.4)`,
               animation: "subtlePulse 3s ease-in-out infinite"
             }} data-testid="hero-days">{survDays}</span>
-            <div className="flex items-center gap-1 mt-1">
-              <span className="text-[11px] font-bold tracking-[0.15em] text-white/60">DAYS OF SAFETY</span>
+            <div className="flex items-center gap-1.5 mt-2">
+              <span className="text-[10px] font-bold tracking-[0.12em] text-white/50">DAYS OF SAFETY</span>
               <button onClick={(e) => { e.stopPropagation(); setShowTooltip(prev => !prev); }} className="relative" data-testid="tooltip-trigger">
-                <Info className="h-3.5 w-3.5 text-white/30 hover:text-white/60 transition-colors" />
+                <Info className="h-3 w-3 text-white/25 hover:text-white/50 transition-colors" />
                 {showTooltip && (
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 rounded-xl text-left z-10" style={{ backgroundColor: "rgba(0,0,0,0.9)", border: "1px solid rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }} data-testid="tooltip-content">
                     <p className="text-[11px] text-white/80 leading-relaxed">This shows how many days your current liquid savings can cover your essential monthly expenses.</p>
