@@ -12,8 +12,9 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - **Scheduling**: apscheduler for cron jobs
 
 ## Test Credentials
-- Username: `test`, Password: `test`
-- User: Rahul Sharma (test@moneyssutra.com)
+- Username: `test@moneyssutra.com`, Password: `test`
+- User: Rahul Sharma
+- New/Empty User: `newuser@test.com` / `password`
 
 ## What's Been Implemented
 
@@ -58,32 +59,36 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Update button removed from Insights (only refresh remains)
 
 ### Insights Empty-State Fix (Feb 25, 2026)
-- Fixed Insights page for new users with no data: no more RED ZONE trigger, welcome banner instead
-- All widgets (Financial Journey, Score, Emergency Runway, Badges, Challenges, Future You, Personality Evolution) now show empty-state fallback UI instead of disappearing
+- Fixed Insights page for new users with no data
+- All widgets show empty-state fallback UI instead of disappearing
 - `hasRealData()` helper distinguishes "no data" from "has data but low runway"
 
 ### Financial Health Smart Sort & Reorder (Feb 25, 2026)
 - Smart sort by rawScore descending (best-performing metrics at top)
-- Drag-to-reorder using @dnd-kit (same pattern as Goals page)
+- Drag-to-reorder using @dnd-kit
 - Custom order persisted in localStorage
 - Toggle between "Best First" (smart) and manual reorder modes
-- Reorder mode shows drag handles, Done button, and "Reset to Smart" option
 
 ### Enhanced Monthly Cashflow + Bug Fixes (Feb 26, 2026)
 - Monthly Cash Flow card now shows 4 boxes: Received, Expected, Spent, Upcoming with progress bars
-- Backend calculates schedule-based received/done (by comparing schedule date to today's date)
+- Backend calculates schedule-based received/done
 - Net Balance = Income Received - Expenses Done
 - 4 new detail pages: /income-received, /expected-income, /expenses-done, /upcoming-expenses
-- Detail pages have: BottomNav, "View All" links to My Income/Expenses, clickable items → edit pages
-- Fixed income source navigation (Salary→/my-job, Freelance→/my-self-employed)
-- Fixed income type icons (Salary, Freelance now have proper icons, not "..." dots)
-- Fixed backend type synonyms (Job↔Salary, Self-Employed↔Freelance for API filtering)
-- Fixed "Invalid Date" on 8 income type pages (parseInt instead of new Date for selectedDate)
-- Fixed Quick Add sheet bottom icons hidden by bottom nav (pb-24 padding)
-- Fixed background scrolling when Quick Add sheet open (body overflow lock)
-- Fixed 0 amount in Income modal showing invalid error
-- Fixed validation errors persisting across all forms (11 forms)
-- Removed "Open" button from Reports page, only Download remains
+- Fixed income source navigation and type icons
+- Fixed backend type synonyms (Job↔Salary, Self-Employed↔Freelance)
+- Fixed "Invalid Date" on 8 income type pages
+- Fixed Quick Add sheet bottom icons and background scrolling
+- Fixed 0 amount and validation errors across all forms
+- Removed "Open" button from Reports page
+
+### Unified Add Income Refactor + Bug Fixes (Feb 26, 2026)
+- Created unified `/add-income` page with all 8 income types (Job, Business, Self-Employed, Rental, Commission, Interest, Dividend, Other Income)
+- Updated AddActionSheet to route to `/add-income` instead of individual type pages
+- Renamed "Salary" to "Job" and "Freelance" to "Self-Employed" in UI (MyIncome.js capitalizeType mapping)
+- Backend type synonym filtering: Job↔Salary, Self-Employed↔Freelance
+- Fixed/Variable income segments now populate correctly on all income type pages
+- Fixed Self-Employed edit crash (fullName undefined error)
+- **Tested**: 100% backend (9/9), 100% frontend (7/7 features verified) - `/app/test_reports/iteration_82.json`
 
 ## Prioritized Backlog
 
@@ -94,6 +99,7 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 ### P2 (Future)
 - **Refactor Insights.js**: Break monolithic component into smaller reusable components
 - **Security Settings**: 2FA and Biometric toggles are non-functional placeholders
+- **File Structure Cleanup**: Organize pages from `/src/` root into subdirectories
 
 ## Key DB Collections
 - users, profiles, user_sessions
@@ -106,3 +112,4 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Investment: requires `investmentMode` (str) and `principal` (float) fields
 - IncomeSource: uses `type` and `name` (not incomeType/incomeName)
 - Insurance: uses `coverageAmount` (not coverAmount/sumAssured)
+- Income `incomeType` field: "fixed" or "variable" (seeded data may have legacy values like "Salary", "Freelance" which default to "fixed")
