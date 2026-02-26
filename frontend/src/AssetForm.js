@@ -242,6 +242,12 @@ const AssetForm = () => {
     setter(value);
   };
 
+  // Clear field errors in real-time when user fills data
+  useEffect(() => { if (assetType && errors.assetType) setErrors(prev => { const n = {...prev}; delete n.assetType; return n; }); }, [assetType]);
+  useEffect(() => { if (purchaseValue && errors.purchaseValue) setErrors(prev => { const n = {...prev}; delete n.purchaseValue; return n; }); }, [purchaseValue]);
+  useEffect(() => { if (purchaseDate && errors.purchaseDate) setErrors(prev => { const n = {...prev}; delete n.purchaseDate; return n; }); }, [purchaseDate]);
+  useEffect(() => { if (rentalAmount && errors.rentalAmount) setErrors(prev => { const n = {...prev}; delete n.rentalAmount; return n; }); }, [rentalAmount]);
+
   const validate = () => {
     const newErrors = {};
 
