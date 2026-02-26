@@ -108,6 +108,17 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Fixed notification swipe-to-dismiss bug (stale closure: captured swipingId in local variable before setTimeout)
 - **Tested**: 100% frontend (9/9 features verified) - `/app/test_reports/iteration_84.json`
 
+### Toggle Fix, Duplicate Income Check, Insights Restructure (Feb 26, 2026)
+- Fixed "Already Received" toggle on OtherIncomeForm: background changed from dark #1E293B to themed var(--bg-card), text from dark #334155 to themed vars, toggle knob from dark to white
+- Added duplicate income check on InvestmentForm: when typing investment name, checks if matching Interest/Dividend income already exists and shows warning
+- **Insights Page Major Restructure** (3-layer architecture):
+  - Layer 1 HERO: Large "X Days Safe / Stage Name / N levels to Sovereign" + "Improve My Position" CTA
+  - Layer 2 ACTION: "How To Improve" with up to 3 dynamic suggestions based on savings rate, EMI load, buffer gap, pending challenges
+  - Layer 3 COLLAPSIBLE: 9 accordion modules (Financial Score, Emergency Runway, Shock Test, Runway Simulator, Money Personality, Badges, Challenges, Future You, Personality Evolution) - all collapsed by default, only one open at a time, smooth 300ms animation
+  - Progressive unlock: Shock Test (Stage 5), Simulator (Stage 7), Evolution (Stage 9), Challenges (Stage 12) - locked modules show blurred card + lock icon
+  - Removed LevelAndStagesWidget from main layout, replaced with clean HeroSection
+- **Tested**: Visual verification via screenshots
+
 ## Prioritized Backlog
 
 ### P1 (Upcoming)
