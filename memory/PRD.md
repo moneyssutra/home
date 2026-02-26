@@ -69,6 +69,16 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Toggle between "Best First" (smart) and manual reorder modes
 - Reorder mode shows drag handles, Done button, and "Reset to Smart" option
 
+### Enhanced Monthly Cashflow + Bug Fixes (Feb 26, 2026)
+- Monthly Cash Flow card now shows 4 boxes: Received, Expected, Spent, Upcoming with progress bars
+- Backend returns incomeReceived, expectedIncome, expensesDone, upcomingExpenses from transactions
+- Net Balance with savings rate percentage
+- Fixed Quick Add sheet bottom icons hidden by bottom nav (pb-24 padding)
+- Fixed background scrolling when Quick Add sheet open (body overflow lock)
+- Fixed 0 amount in Income modal showing invalid error
+- Fixed validation errors persisting across all forms (11 forms: Investment, Expense, Goal, Loan, Account, Asset, Insurance, JobIncome, BusinessIncome, SelfEmployedIncome, RentalIncome)
+- Removed "Open" button from Reports page, only Download remains
+
 ## Prioritized Backlog
 
 ### P1 (Upcoming)
