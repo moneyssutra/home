@@ -179,6 +179,43 @@ const InvestmentForm = () => {
     }
   }, [investmentCategory]);
 
+  // Clear field errors in real-time when user fills data
+  useEffect(() => {
+    if (investmentCategory && errors.investmentCategory) {
+      setErrors(prev => { const n = {...prev}; delete n.investmentCategory; return n; });
+    }
+  }, [investmentCategory]);
+  
+  useEffect(() => {
+    if (investmentMode && errors.investmentMode) {
+      setErrors(prev => { const n = {...prev}; delete n.investmentMode; return n; });
+    }
+  }, [investmentMode]);
+  
+  useEffect(() => {
+    if (name && errors.name) {
+      setErrors(prev => { const n = {...prev}; delete n.name; return n; });
+    }
+  }, [name]);
+  
+  useEffect(() => {
+    if (principal && errors.principal) {
+      setErrors(prev => { const n = {...prev}; delete n.principal; return n; });
+    }
+  }, [principal]);
+  
+  useEffect(() => {
+    if (startDate && errors.startDate) {
+      setErrors(prev => { const n = {...prev}; delete n.startDate; return n; });
+    }
+  }, [startDate]);
+  
+  useEffect(() => {
+    if (maturityDate && errors.maturityDate) {
+      setErrors(prev => { const n = {...prev}; delete n.maturityDate; return n; });
+    }
+  }, [maturityDate]);
+
   // Scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0);
