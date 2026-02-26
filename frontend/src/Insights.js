@@ -966,11 +966,11 @@ const AccordionModule = ({ title, icon: Icon, iconColor, children, isOpen, onTog
 
 // ─── ZONE GRADIENT CONFIG ───
 const ZONE_GRADIENTS = {
-  1: { bg: "linear-gradient(135deg, #1A0A0A, #7F1D1D)", glow: "rgba(239,68,68,0.25)", accent: "#EF4444", btn: "linear-gradient(135deg, #DC2626, #EF4444)", secondary: "#FCA5A5" },
-  2: { bg: "linear-gradient(135deg, #1A0F0A, #9A3412)", glow: "rgba(249,115,22,0.25)", accent: "#F97316", btn: "linear-gradient(135deg, #EA580C, #F97316)", secondary: "#FDBA74" },
-  3: { bg: "linear-gradient(135deg, #1A170A, #854D0E)", glow: "rgba(234,179,8,0.25)", accent: "#EAB308", btn: "linear-gradient(135deg, #CA8A04, #EAB308)", secondary: "#FDE68A" },
-  4: { bg: "linear-gradient(135deg, #0A1A0F, #166534)", glow: "rgba(34,197,94,0.25)", accent: "#22C55E", btn: "linear-gradient(135deg, #16A34A, #22C55E)", secondary: "#BBF7D0" },
-  5: { bg: "linear-gradient(135deg, #0B1026, #1E3A8A)", glow: "rgba(59,130,246,0.25)", accent: "#3B82F6", btn: "linear-gradient(135deg, #3B82F6, #60A5FA)", secondary: "#C7D2FE" },
+  1: { bg: "linear-gradient(135deg, #1A0A0A, #7F1D1D)", glow: "rgba(239,68,68,0.3)", accent: "#EF4444", stroke1: "#FCA5A5", stroke2: "#DC2626", btn: "linear-gradient(135deg, #DC2626, #EF4444)", secondary: "#FCA5A5" },
+  2: { bg: "linear-gradient(135deg, #1A0F0A, #9A3412)", glow: "rgba(249,115,22,0.3)", accent: "#F97316", stroke1: "#FDBA74", stroke2: "#EA580C", btn: "linear-gradient(135deg, #EA580C, #F97316)", secondary: "#FDBA74" },
+  3: { bg: "linear-gradient(135deg, #1A170A, #854D0E)", glow: "rgba(234,179,8,0.3)", accent: "#EAB308", stroke1: "#FDE68A", stroke2: "#CA8A04", btn: "linear-gradient(135deg, #CA8A04, #EAB308)", secondary: "#FDE68A" },
+  4: { bg: "linear-gradient(135deg, #0A1A0F, #166534)", glow: "rgba(34,197,94,0.3)", accent: "#22C55E", stroke1: "#86EFAC", stroke2: "#16A34A", btn: "linear-gradient(135deg, #16A34A, #22C55E)", secondary: "#BBF7D0" },
+  5: { bg: "linear-gradient(135deg, #0F172A, #1E293B)", glow: "rgba(59,130,246,0.3)", accent: "#3B82F6", stroke1: "#60A5FA", stroke2: "#2563EB", btn: "linear-gradient(135deg, #3B82F6, #6366F1)", secondary: "#C7D2FE" },
 };
 
 // ─── HERO SECTION ───
