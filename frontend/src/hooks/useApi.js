@@ -73,6 +73,23 @@ export function useExpenseList(filters = {}, options = {}) {
 }
 
 /**
+ * Hook for fetching expenses by month (for prepayment system)
+ * @param {string} month - Month in YYYY-MM format
+ * @param {object} options - SWR options
+ */
+export function useExpensesByMonth(month, options = {}) {
+  const url = month
+    ? `${backendUrl}/api/expenses/by-month?month=${month}`
+    : `${backendUrl}/api/expenses/by-month`;
+
+  return useSWR(url, fetcher, {
+    ...defaultConfig,
+    revalidateIfStale: true,
+    ...options
+  });
+}
+
+/**
  * Hook for fetching a single expense (full data)
  * @param {string} id - Expense ID
  * @param {object} options - SWR options
