@@ -1,0 +1,80 @@
+{
+  "summary": "All features tested and verified: 1) Schedule-based cashflow calculation working (incomeReceived=288K, expensesDone=200.7K based on schedule dates), 2) Net Balance = Received - Spent working correctly (87.3K), 3) 4 new detail pages working (/income-received, /expected-income, /expenses-done, /upcoming-expenses), 4) Income source navigation fixed (Salary→/my-job, Business→/my-business, Freelance→/my-self-employed)",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_dashboard_schedule_cashflow.py",
+    "/app/test_reports/pytest/iter79_schedule_cashflow_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_dashboard_schedule_cashflow.py"
+  ],
+  "success_rate": {
+    "backend": "100% (17/17 tests passed)",
+    "frontend": "100% (all UI tests passed)"
+  },
+  "test_credentials": "email=test@moneyssutra.com, password=test",
+  "seed_data_creation": "None needed - used existing test user data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Schedule-based cashflow working correctly. Today Feb 26: all 5 income sources (scheduleDay 1-20) are in 'received' list (₹288K total), all 23 expenses (scheduleDay 1-25) are in 'done' list (₹200.7K). Net Balance = 288K - 200.7K = ₹87.3K. Four detail pages have data-testids: income-received-page, expected-income-page, expenses-done-page, upcoming-expenses-page. Income source navigation uses getTypePath() mapping: Salary→/my-job, Freelance→/my-self-employed, Business→/my-business.",
+  "features_tested": {
+    "backend_schedule_based_cashflow": {
+      "status": "PASS",
+      "tests_passed": "17/17",
+      "details": {
+        "incomeReceived": "288000 (5 sources with scheduleDay <= 26)",
+        "expectedIncome": "0 (no sources with scheduleDay > 26)",
+        "expensesDone": "200700 (23 expenses with scheduleDay <= 26)",
+        "upcomingExpenses": "0 (no expenses with scheduleDay > 26)",
+        "monthlySavings": "87300 (incomeReceived - expensesDone)"
+      }
+    },
+    "dashboard_cashflow_boxes_navigation": {
+      "status": "PASS",
+      "details": {
+        "received_box": "Shows ₹2.88 L, navigates to /income-received",
+        "expected_box": "Shows ₹0, navigates to /expected-income",
+        "spent_box": "Shows ₹2.01 L, navigates to /expenses-done",
+        "upcoming_box": "Shows ₹0, navigates to /upcoming-expenses"
+      }
+    },
+    "income_received_page": {
+      "status": "PASS",
+      "items_shown": 5,
+      "sample_item": "TCS Salary - Salary · Monthly · Day 1 - ₹185,000 - Received",
+      "status_shown": "Received badge on each item"
+    },
+    "expected_income_page": {
+      "status": "PASS",
+      "empty_state": "All expected income has been received!"
+    },
+    "expenses_done_page": {
+      "status": "PASS",
+      "items_shown": 23,
+      "sample_item": "Rent - Housing · Monthly · Day 1 - ₹28,000 - Paid",
+      "status_shown": "Paid badge on each item"
+    },
+    "upcoming_expenses_page": {
+      "status": "PASS",
+      "empty_state": "All expenses are done for this month!"
+    },
+    "income_source_navigation_fix": {
+      "status": "PASS",
+      "tests": [
+        "Salary → /my-job (PASS, not redirecting to home)",
+        "Business → /my-business (PASS, not redirecting to home)",
+        "Freelance → /my-self-employed (PASS, not redirecting to home)"
+      ]
+    }
+  }
+}
