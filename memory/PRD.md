@@ -74,6 +74,7 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Backend calculates schedule-based received/done (by comparing schedule date to today's date)
 - Net Balance = Income Received - Expenses Done
 - 4 new detail pages: /income-received, /expected-income, /expenses-done, /upcoming-expenses
+- Detail pages have: BottomNav, "View All" links to My Income/Expenses, clickable items → edit pages
 - Fixed income source navigation (Salary→/my-job, Freelance→/my-self-employed)
 - Fixed Quick Add sheet bottom icons hidden by bottom nav (pb-24 padding)
 - Fixed background scrolling when Quick Add sheet open (body overflow lock)
