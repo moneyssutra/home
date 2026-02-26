@@ -28,13 +28,10 @@ import JobIncome from "@/JobIncome";
 import MyJob from "@/MyJob";
 import SelfEmployedIncome from "@/SelfEmployedIncome";
 import MySelfEmployed from "@/MySelfEmployed";
-import InterestIncome from "@/InterestIncome";
 import MyInterest from "@/MyInterest";
-import RentalIncome from "@/RentalIncome";
 import MyRental from "@/MyRental";
 import CommissionIncome from "@/CommissionIncome";
 import MyCommission from "@/MyCommission";
-import DividendIncome from "@/DividendIncome";
 import MyDividend from "@/MyDividend";
 
 // Financial Pages
