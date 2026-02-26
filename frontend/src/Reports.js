@@ -282,7 +282,6 @@ const Reports = () => {
             const Icon = report.icon;
             const isGenerating = generating === report.id;
             const isDownloaded = downloadedReports.includes(report.id);
-            const directUrl = `${backendUrl}/api/reports/generate/${report.id}?format=${exportFormat}&from_date=${dateRange.from}&to_date=${dateRange.to}`;
             
             return (
               <div
