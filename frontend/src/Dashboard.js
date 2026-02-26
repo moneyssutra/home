@@ -125,16 +125,16 @@ const Dashboard = () => {
             <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20" data-testid="networth-card">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <p className="text-white/70 text-sm font-medium mb-1">Total Net Worth</p>
-                  <h2 className="text-4xl font-bold text-white tracking-tight" style={{ fontFamily: "'Manrope', sans-serif" }}>
+                  <p className="text-white text-sm font-semibold mb-1" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>Total Net Worth</p>
+                  <h2 className="text-4xl font-bold text-white tracking-tight" style={{ fontFamily: "'Manrope', sans-serif", textShadow: "0 1px 3px rgba(0,0,0,0.15)" }}>
                     ₹ {formatFullAmount(data?.netWorth || 0)}
                   </h2>
                 </div>
-                <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium ${
+                <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold ${
                   getNetWorthTrend() === "positive" 
-                    ? "bg-emerald-500/20 text-emerald-100" 
-                    : "bg-rose-500/20 text-rose-100"
-                }`}>
+                    ? "bg-emerald-400/30 text-white" 
+                    : "bg-rose-400/30 text-white"
+                }`} style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>
                   {getNetWorthTrend() === "positive" ? (
                     <TrendingUp className="h-4 w-4" />
                   ) : (
