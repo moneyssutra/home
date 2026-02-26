@@ -96,7 +96,9 @@ const OtherIncomeForm = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    hasMounted.current = true;
+    // Delay setting mounted flag so the frequency useEffect skips on initial render
+    const timer = setTimeout(() => { hasMounted.current = true; }, 200);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
