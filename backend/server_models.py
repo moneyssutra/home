@@ -232,6 +232,11 @@ class Expense(BaseModel):
     oneTimeDate: Optional[str] = None
     isPaid: bool = False
     lastPaidDate: Optional[str] = None
+    paidDate: Optional[str] = None
+    prepaidFlag: bool = False
+    expenseMonth: Optional[str] = None
+    dueDate: Optional[str] = None
+    linkedPaymentId: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ExpenseCreate(BaseModel):
