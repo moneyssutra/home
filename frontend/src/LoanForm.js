@@ -327,6 +327,16 @@ const LoanIncome = () => {
     setErrors(newErrors);
   };
 
+  // Clear field errors in real-time when user fills data
+  useEffect(() => { if (loanType && errors.loanType) setErrors(prev => { const n = {...prev}; delete n.loanType; return n; }); }, [loanType]);
+  useEffect(() => { if (loanName && errors.loanName) setErrors(prev => { const n = {...prev}; delete n.loanName; return n; }); }, [loanName]);
+  useEffect(() => { if (principalAmount && errors.principalAmount) setErrors(prev => { const n = {...prev}; delete n.principalAmount; return n; }); }, [principalAmount]);
+  useEffect(() => { if (outstandingAmount && errors.outstandingAmount) setErrors(prev => { const n = {...prev}; delete n.outstandingAmount; return n; }); }, [outstandingAmount]);
+  useEffect(() => { if (interestRate && errors.interestRate) setErrors(prev => { const n = {...prev}; delete n.interestRate; return n; }); }, [interestRate]);
+  useEffect(() => { if (emiAmount && errors.emiAmount) setErrors(prev => { const n = {...prev}; delete n.emiAmount; return n; }); }, [emiAmount]);
+  useEffect(() => { if (startDate && errors.startDate) setErrors(prev => { const n = {...prev}; delete n.startDate; return n; }); }, [startDate]);
+  useEffect(() => { if (endDate && errors.endDate) setErrors(prev => { const n = {...prev}; delete n.endDate; return n; }); }, [endDate]);
+
   const validate = () => {
     const newErrors = {};
 
