@@ -182,9 +182,7 @@ const MyIncome = () => {
     const paths = {
       Business: "/my-business",
       Job: "/my-job",
-      Salary: "/my-job",
       "Self-Employed": "/my-self-employed",
-      Freelance: "/my-self-employed",
       Rental: "/my-rental",
       Commission: "/my-commission",
       Interest: "/my-interest",
