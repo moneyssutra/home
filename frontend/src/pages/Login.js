@@ -75,6 +75,12 @@ const Login = () => {
     const result = await login(identifier, password, rememberMe);
     
     if (result.success) {
+      // Save or clear remembered credentials
+      if (rememberMe) {
+        localStorage.setItem("moneyssutra_remember", JSON.stringify({ email: identifier, password }));
+      } else {
+        localStorage.removeItem("moneyssutra_remember");
+      }
       const from = location.state?.from?.pathname || "/home";
       navigate(from, { replace: true });
     } else {
