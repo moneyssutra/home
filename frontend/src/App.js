@@ -145,13 +145,9 @@ function AppRouter() {
       
       {/* Interest Income */}
       <Route path="/my-interest" element={<ProtectedRoute><MyInterest /></ProtectedRoute>} />
-      <Route path="/interest-income" element={<ProtectedRoute><InterestIncome /></ProtectedRoute>} />
-      <Route path="/interest-income/:id" element={<ProtectedRoute><InterestIncome /></ProtectedRoute>} />
       
       {/* Rental Income */}
       <Route path="/my-rental" element={<ProtectedRoute><MyRental /></ProtectedRoute>} />
-      <Route path="/rental-income" element={<ProtectedRoute><RentalIncome /></ProtectedRoute>} />
-      <Route path="/rental-income/:id" element={<ProtectedRoute><RentalIncome /></ProtectedRoute>} />
       
       {/* Commission Income */}
       <Route path="/my-commission" element={<ProtectedRoute><MyCommission /></ProtectedRoute>} />
