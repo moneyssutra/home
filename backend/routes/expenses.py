@@ -234,10 +234,21 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
         if isinstance(exp.get('createdAt'), str):
             exp['createdAt'] = datetime.fromisoformat(exp['createdAt'])
 
-        # Check if this is a prepaid expense targeting this month
+        # Skip prepaid child records - they only appear when their target month matches
+        if exp.get('linkedPaymentId'):
+            if exp.get('expenseMonth') == target_month:
+                exp['_displayStatus'] = 'prepaid'
+                result.append(exp)
+            continue
+
+        # Check if this is an expense explicitly assigned to this month
         if exp.get('expenseMonth') == target_month:
             exp['_displayStatus'] = 'prepaid' if exp.get('prepaidFlag') else 'scheduled'
             result.append(exp)
+            continue
+
+        # Skip expenses with expenseMonth set for a different month
+        if exp.get('expenseMonth') and exp.get('expenseMonth') != target_month:
             continue
 
         freq = exp.get('frequency', 'Monthly')
