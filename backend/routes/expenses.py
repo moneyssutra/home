@@ -257,3 +257,169 @@ async def process_fixed_expense_deductions():
         except Exception as e:
             errors.append({"expenseId": expense.get('id'), "error": str(e)})
     return {"processedCount": len(processed), "processed": processed, "errors": errors, "processedDate": today}
+
+
+
+@router.get("/by-month")
+async def get_expenses_by_month(request: Request, month: Optional[str] = None):
+    """Get expenses filtered by month (YYYY-MM). Returns current month if not specified.
+    Also returns prepaid expenses from previous months targeting this month."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+
+    now = datetime.now(timezone.utc)
+    target_month = month or f"{now.year}-{now.month:02d}"
+
+    try:
+        year, mon = int(target_month.split("-")[0]), int(target_month.split("-")[1])
+    except (ValueError, IndexError):
+        raise HTTPException(status_code=400, detail="Invalid month format. Use YYYY-MM")
+
+    all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
+
+    result = []
+    for exp in all_expenses:
+        if isinstance(exp.get('createdAt'), str):
+            exp['createdAt'] = datetime.fromisoformat(exp['createdAt'])
+
+        # Check if this is a prepaid expense targeting this month
+        if exp.get('expenseMonth') == target_month:
+            exp['_displayStatus'] = 'prepaid' if exp.get('prepaidFlag') else 'scheduled'
+            result.append(exp)
+            continue
+
+        freq = exp.get('frequency', 'Monthly')
+        # Skip one-time expenses not in this month
+        if freq == 'One-Time':
+            ot = exp.get('oneTimeDate', '')
+            if ot and ot[:7] == target_month:
+                result.append(exp)
+            continue
+
+        # For recurring expenses, check if due this month
+        if freq in ('Daily', 'Weekly', 'Bi-Weekly', 'Monthly'):
+            result.append(exp)
+        elif freq == 'Quarterly':
+            start_month = _parse_quarter_start(exp.get('selectedQuarter'))
+            if start_month and (mon - start_month) % 3 == 0:
+                result.append(exp)
+        elif freq == 'Half-Yearly':
+            start_month = _parse_half_start(exp.get('selectedHalf'))
+            if start_month and (mon - start_month) % 6 == 0:
+                result.append(exp)
+        elif freq == 'Yearly':
+            sm = _parse_month_num(exp.get('selectedMonth'))
+            if sm == mon:
+                result.append(exp)
+
+    return result
+
+
+def _parse_quarter_start(q):
+    mapping = {"Q1 (Jan-Mar)": 1, "Q2 (Apr-Jun)": 4, "Q3 (Jul-Sep)": 7, "Q4 (Oct-Dec)": 10}
+    return mapping.get(q)
+
+def _parse_half_start(h):
+    mapping = {"H1 (Jan-Jun)": 1, "H2 (Jul-Dec)": 7}
+    return mapping.get(h)
+
+def _parse_month_num(m):
+    months = {"January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6,
+              "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12}
+    return months.get(m)
+
+
+@router.post("/{expense_id}/prepay")
+async def prepay_expense(expense_id: str, request: Request):
+    """Mark an expense as prepaid for next month. Creates a record for next month and marks it paid."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    now = datetime.now(timezone.utc)
+    current_month = f"{now.year}-{now.month:02d}"
+
+    # Calculate next month
+    if now.month == 12:
+        next_month = f"{now.year + 1}-01"
+    else:
+        next_month = f"{now.year}-{now.month + 1:02d}"
+
+    # Check if already prepaid for next month
+    existing = await db.expenses.find_one({
+        "userId": user.get("user_id"),
+        "linkedPaymentId": expense_id,
+        "expenseMonth": next_month
+    }, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Already prepaid for next month")
+
+    import uuid
+    prepaid_id = str(uuid.uuid4())
+
+    # Create a prepaid record for next month
+    prepaid_doc = {
+        "id": prepaid_id,
+        "userId": user.get("user_id"),
+        "expenseName": expense.get("expenseName", ""),
+        "expenseType": expense.get("expenseType", "Fixed"),
+        "category": expense.get("category", ""),
+        "expectedAmount": expense.get("expectedAmount", 0),
+        "frequency": "One-Time",
+        "expenseMonth": next_month,
+        "dueDate": f"{next_month}-{expense.get('selectedDate', '01')}",
+        "paidDate": now.date().isoformat(),
+        "prepaidFlag": True,
+        "isPaid": True,
+        "linkedPaymentId": expense_id,
+        "selectedDate": expense.get("selectedDate"),
+        "createdAt": now.isoformat(),
+    }
+    await db.expenses.insert_one(prepaid_doc)
+
+    # Update original expense to note the prepayment
+    await db.expenses.update_one(
+        {"id": expense_id},
+        {"$set": {"lastPaidDate": now.date().isoformat()}}
+    )
+
+    return {
+        "message": f"Prepaid {expense.get('expenseName')} for {next_month}",
+        "prepaidId": prepaid_id,
+        "expenseMonth": next_month,
+        "amount": expense.get("expectedAmount", 0),
+        "paidDate": now.date().isoformat()
+    }
+
+
+@router.post("/{expense_id}/mark-paid")
+async def mark_expense_paid(expense_id: str, request: Request):
+    """Mark an expense as paid for the current month."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    now = datetime.now(timezone.utc)
+    await db.expenses.update_one(
+        {"id": expense_id},
+        {"$set": {
+            "isPaid": True,
+            "paidDate": now.date().isoformat(),
+            "lastPaidDate": now.date().isoformat()
+        }}
+    )
+    return {"message": "Expense marked as paid", "id": expense_id, "paidDate": now.date().isoformat()}
