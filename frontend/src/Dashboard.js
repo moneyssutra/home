@@ -130,11 +130,19 @@ const Dashboard = () => {
                     ₹ {formatFullAmount(data?.netWorth || 0)}
                   </h2>
                 </div>
-                <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold ${
+                <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold ${
                   getNetWorthTrend() === "positive" 
-                    ? "bg-emerald-400/30 text-white" 
-                    : "bg-rose-400/30 text-white"
-                }`} style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>
+                    ? "text-white" 
+                    : "text-white"
+                }`} style={{ 
+                  background: getNetWorthTrend() === "positive" 
+                    ? "linear-gradient(135deg, #10B981, #34D399)" 
+                    : "linear-gradient(135deg, #EF4444, #F87171)",
+                  textShadow: "0 1px 2px rgba(0,0,0,0.3)",
+                  boxShadow: getNetWorthTrend() === "positive"
+                    ? "0 2px 8px rgba(16,185,129,0.4)"
+                    : "0 2px 8px rgba(239,68,68,0.4)"
+                }}>
                   {getNetWorthTrend() === "positive" ? (
                     <TrendingUp className="h-4 w-4" />
                   ) : (
