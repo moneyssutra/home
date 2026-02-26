@@ -95,6 +95,7 @@ import IncomeReceived from "@/pages/IncomeReceived";
 import ExpectedIncome from "@/pages/ExpectedIncome";
 import ExpensesDone from "@/pages/ExpensesDone";
 import UpcomingExpenses from "@/pages/UpcomingExpenses";
+import AddIncome from "@/pages/AddIncome";
 
 // App Router with session_id detection
 function AppRouter() {
