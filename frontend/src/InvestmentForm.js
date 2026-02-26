@@ -68,6 +68,7 @@ const InvestmentForm = () => {
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
+  const [duplicateWarning, setDuplicateWarning] = useState("");
   
   // Calendar popover states
   const [startCalendarOpen, setStartCalendarOpen] = useState(false);
