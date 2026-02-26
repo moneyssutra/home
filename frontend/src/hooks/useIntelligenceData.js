@@ -43,6 +43,12 @@ export function useIntelligenceData() {
       setMoneyPattern(patternRes.data);
       setFutureYou(futureRes.data);
       setPersonalityHistory(historyRes.data);
+
+      // Phase 3: Auto-process gamification to award any new badges
+      try {
+        const processRes = await axios.post(`${backendUrl}/api/gamification/process`, {}, { withCredentials: true });
+        if (processRes.data) setGamification(prev => ({ ...prev, ...processRes.data }));
+      } catch (e) { /* silently skip if already processed recently */ }
     } catch (err) {
       setError(err.message);
       setLoading(false);
