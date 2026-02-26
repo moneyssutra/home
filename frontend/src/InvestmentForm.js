@@ -192,6 +192,13 @@ const InvestmentForm = () => {
       setErrors(prev => { const n = {...prev}; delete n.investmentMode; return n; });
     }
   }, [investmentMode]);
+
+  // Auto-enable expense creation when SIP frequency is selected with amount
+  useEffect(() => {
+    if (investmentFrequency && investmentFrequency !== "" && sipAmount && parseFloat(sipAmount) > 0) {
+      setAutoCreateExpense(true);
+    }
+  }, [investmentFrequency, sipAmount]);
   
   useEffect(() => {
     if (name && errors.name) {
