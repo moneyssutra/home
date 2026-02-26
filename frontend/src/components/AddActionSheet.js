@@ -47,7 +47,7 @@ const AddActionSheet = ({ isOpen, onClose }) => {
         style={{ backgroundColor: "var(--bg-card)" }}
         data-testid="add-action-sheet"
       >
-        <div className="max-w-lg mx-auto px-6 pb-8 pt-4">
+        <div className="max-w-lg mx-auto px-6 pb-24 pt-4">
           {/* Handle */}
           <div className="w-12 h-1.5 rounded-full mx-auto mb-4" style={{ backgroundColor: "var(--border-medium)" }} />
           
