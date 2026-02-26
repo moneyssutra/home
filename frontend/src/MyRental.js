@@ -301,7 +301,7 @@ const MyRental = () => {
               const rentalYield = getRentalYield(rental);
               
               return (
-                <button key={rental.id} onClick={() => navigate(`/rental-income/${rental.id}`)} className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", opacity: status === 'received' ? 0.7 : 1 }} data-testid={`rental-card-${rental.id}`}>
+                <button key={rental.id} onClick={() => navigate(`/my-assets`)} className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", opacity: status === 'received' ? 0.7 : 1 }} data-testid={`rental-card-${rental.id}`}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: freqColor.bg }}>
                     <Icon className="h-6 w-6" style={{ color: freqColor.text }} />
                   </div>

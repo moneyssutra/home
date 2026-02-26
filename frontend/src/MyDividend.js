@@ -254,7 +254,7 @@ const MyDividend = () => {
               const nextDate = getNextPaymentDateObj(dividend);
               const formattedNextDate = formatDate(nextDate);
               return (
-                <button key={dividend.id} onClick={() => navigate(`/dividend-income/${dividend.id}`)} className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", opacity: status === 'received' ? 0.7 : 1 }} data-testid={`dividend-card-${dividend.id}`}>
+                <button key={dividend.id} onClick={() => navigate(`/my-investments`)} className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", opacity: status === 'received' ? 0.7 : 1 }} data-testid={`dividend-card-${dividend.id}`}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: freqColor.bg }}><Icon className="h-6 w-6" style={{ color: freqColor.text }} /></div>
                   <div className="flex-1 text-left min-w-0">
                     <div className="flex items-center gap-2 mb-0.5 flex-wrap">
