@@ -341,6 +341,10 @@ const InsuranceForm = () => {
   useEffect(() => { if (endDate && errors.endDate) setErrors(prev => { const n = {...prev}; delete n.endDate; return n; }); }, [endDate]);
 
   const validate = () => {
+    const newErrors = {};
+
+    // Insurance Type validation
+    if (!insuranceType) {
       newErrors.insuranceType = "Please select insurance type.";
     }
 
