@@ -175,10 +175,10 @@ const Dashboard = () => {
                     </>
                   )}
                 </div>
-                <div className="flex justify-between mt-2 text-xs font-medium text-white/90" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "var(--chart-accent1)" }} /> Assets</span>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "var(--chart-accent2)" }} /> Investments</span>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "var(--brand-primary-light)" }} /> Cash</span>
+                <div className="flex justify-between mt-2 text-xs font-bold text-white" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.3)" }}>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: "#3B82F6", boxShadow: "0 0 4px rgba(59,130,246,0.5)" }} /> Assets</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: "#8B5CF6", boxShadow: "0 0 4px rgba(139,92,246,0.5)" }} /> Investments</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full shadow-sm" style={{ backgroundColor: "#34D399", boxShadow: "0 0 4px rgba(52,211,153,0.5)" }} /> Cash</span>
                 </div>
               </div>
             </div>
