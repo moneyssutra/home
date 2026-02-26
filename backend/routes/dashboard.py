@@ -48,20 +48,20 @@ async def get_networth_summary(request: Request):
     monthly_expenses = _calc_monthly_expenses(expenses, current_month, current_year)
     net_worth = total_assets + total_investments + liquid_balance - total_liabilities
 
-    # Calculate actual received/spent this month from transactions
-    month_start = datetime(current_year, current_month, 1, tzinfo=timezone.utc).isoformat()
-    if current_month == 12:
-        month_end = datetime(current_year + 1, 1, 1, tzinfo=timezone.utc).isoformat()
-    else:
-        month_end = datetime(current_year, current_month + 1, 1, tzinfo=timezone.utc).isoformat()
+    # Calculate schedule-based received/expected and done/upcoming
+    today = datetime.now(timezone.utc)
+    current_day = today.day
 
-    txn_filter = {**user_filter, "transactionDate": {"$gte": month_start, "$lt": month_end}}
-    income_txns, expense_txns = await asyncio.gather(
-        db.income_transactions.find(txn_filter, {"_id": 0, "amount": 1}).to_list(5000),
-        db.expense_transactions.find(txn_filter, {"_id": 0, "amount": 1}).to_list(5000),
-    )
-    income_received = sum(t.get('amount', 0) for t in income_txns)
-    expenses_done = sum(t.get('amount', 0) for t in expense_txns)
+    income_received_list, income_expected_list = _split_by_schedule_date(incomes, current_day, current_month, current_year, is_income=True)
+    expense_done_list, expense_upcoming_list = _split_by_schedule_date(expenses, current_day, current_month, current_year, is_income=False)
+
+    # Also include other_incomes in received/expected
+    oi_received, oi_expected = _split_other_income(other_incomes, current_day, current_month, current_year)
+
+    income_received = sum(i['amount'] for i in income_received_list) + sum(i['amount'] for i in oi_received)
+    income_expected = sum(i['amount'] for i in income_expected_list) + sum(i['amount'] for i in oi_expected)
+    expenses_done = sum(e['amount'] for e in expense_done_list)
+    upcoming_expenses = sum(e['amount'] for e in expense_upcoming_list)
 
     return {
         "netWorth": net_worth, "totalAssets": total_assets, "totalInvestments": total_investments,
@@ -70,11 +70,15 @@ async def get_networth_summary(request: Request):
         "creditCardLimit": credit_card_limit,
         "creditCardUtilization": (credit_card_outstanding / credit_card_limit * 100) if credit_card_limit > 0 else 0,
         "monthlyIncome": monthly_income, "monthlyExpenses": monthly_expenses,
-        "monthlySavings": monthly_income - monthly_expenses,
+        "monthlySavings": income_received - expenses_done,
         "incomeReceived": income_received,
-        "expectedIncome": monthly_income,
+        "expectedIncome": income_expected,
         "expensesDone": expenses_done,
-        "upcomingExpenses": max(0, monthly_expenses - expenses_done),
+        "upcomingExpenses": upcoming_expenses,
+        "incomeReceivedList": income_received_list + oi_received,
+        "incomeExpectedList": income_expected_list + oi_expected,
+        "expensesDoneList": expense_done_list,
+        "upcomingExpensesList": expense_upcoming_list,
         "assetCount": len(assets), "investmentCount": len(investments),
         "accountCount": len(accounts), "loanCount": len(loans),
         "creditCardCount": len(credit_cards), "incomeCount": len(incomes), "expenseCount": len(expenses)
