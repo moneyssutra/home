@@ -28,6 +28,12 @@ class Expense(BaseModel):
     oneTimeDate: Optional[str] = None
     isPaid: bool = False
     lastPaidDate: Optional[str] = None
+    # Prepayment & Future Expense fields
+    expenseMonth: Optional[str] = None  # YYYY-MM target month
+    dueDate: Optional[str] = None  # YYYY-MM-DD actual due date
+    paidDate: Optional[str] = None  # YYYY-MM-DD when actually paid
+    prepaidFlag: bool = False  # True if paid before due month
+    linkedPaymentId: Optional[str] = None  # Links to payment record
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -49,3 +55,8 @@ class ExpenseCreate(BaseModel):
     oneTimeDate: Optional[str] = None
     isPaid: bool = False
     lastPaidDate: Optional[str] = None
+    expenseMonth: Optional[str] = None
+    dueDate: Optional[str] = None
+    paidDate: Optional[str] = None
+    prepaidFlag: bool = False
+    linkedPaymentId: Optional[str] = None
