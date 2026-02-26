@@ -136,12 +136,13 @@ export default function ShareScoreCard({ isOpen, onClose }) {
                     background: `radial-gradient(circle at 30% 30%, ${gm.color}20 0%, transparent 60%)`,
                     boxShadow: `0 0 30px ${gm.color}20`,
                   }}>
-                    <span style={{ fontSize: "36px", fontWeight: 900, color: "#fff", lineHeight: 1 }}>{data.controlScore}</span>
-                    <span style={{ fontSize: "10px", fontWeight: 700, color: gm.color, letterSpacing: "1px" }}>GRADE {grade}</span>
+                    <span style={{ fontSize: "32px", fontWeight: 900, color: "#fff", lineHeight: 1 }}>{data.survivalDays}</span>
+                    <span style={{ fontSize: "8px", fontWeight: 700, color: "rgba(255,255,255,0.5)", letterSpacing: "1px", marginTop: "2px" }}>DAYS SAFE</span>
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: "14px", fontWeight: 700, color: lvlColor, marginBottom: "2px" }}>{data.level}</p>
-                    <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>{fmt(data.xp)} XP earned</p>
+                    <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginBottom: "2px" }}>If income stops today</p>
+                    <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Score: {data.controlScore}/100</p>
                     <div style={{ marginTop: "10px", height: "4px", borderRadius: "4px", backgroundColor: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
                       <div style={{ height: "100%", borderRadius: "4px", width: `${Math.min((data.controlScore / 100) * 100, 100)}%`, background: `linear-gradient(90deg, ${gm.color}, ${gm.color}88)` }} />
                     </div>
