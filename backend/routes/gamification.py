@@ -600,21 +600,27 @@ async def get_share_card(request: Request):
 
     # Compute live control score
     try:
-        monthly_income = sum(i.get("expectedAmount", 0) for i in incomes)
-        savings_rate = ((monthly_income - monthly_expense) / monthly_income * 100) if monthly_income > 0 else 0
-        investments = await db.investments.find({"userId": user_id}, {"_id": 0}).to_list(500)
-        loans = await db.loans.find({"userId": user_id}, {"_id": 0}).to_list(100)
-        total_emi = sum(l.get("emiAmount", 0) for l in loans)
-        emi_pct = (total_emi / monthly_income * 100) if monthly_income > 0 else 0
-        # Simple score
-        s1 = min(25, savings_rate * 0.5) if savings_rate > 0 else 0
-        s2 = max(0, 25 - emi_pct * 0.5) if monthly_income > 0 else 25
-        buffer_months = survival_days / 30
-        s3 = min(25, buffer_months * 4)
-        s4 = min(25, len(incomes) * 8.33) if len(incomes) > 0 else 0
-        control_score = round(s1 + s2 + s3 + s4)
+        from routes.intelligence import _calculate_control_score
+        score_data = await _calculate_control_score(user_filter)
+        control_score = score_data.get("totalScore", 0)
     except Exception:
-        control_score = profile.get("last_score", 0)
+        try:
+            incomes = await db.income_sources.find({"userId": user_id}, {"_id": 0}).to_list(500)
+            expenses = await db.expenses.find({"userId": user_id}, {"_id": 0}).to_list(500)
+            monthly_income = sum(i.get("expectedAmount", 0) for i in incomes)
+            monthly_expense = sum(e.get("normalizedMonthly", e.get("amount", 0)) for e in expenses)
+            savings_rate = ((monthly_income - monthly_expense) / monthly_income * 100) if monthly_income > 0 else 0
+            loans = await db.loans.find({"userId": user_id}, {"_id": 0}).to_list(100)
+            total_emi = sum(l.get("emiAmount", 0) for l in loans)
+            emi_pct = (total_emi / monthly_income * 100) if monthly_income > 0 else 0
+            s1 = min(25, savings_rate * 0.5) if savings_rate > 0 else 0
+            s2 = max(0, 25 - emi_pct * 0.5) if monthly_income > 0 else 25
+            buffer_months = survival_days / 30
+            s3 = min(25, buffer_months * 4)
+            s4 = min(25, len(incomes) * 8.33) if len(incomes) > 0 else 0
+            control_score = round(s1 + s2 + s3 + s4)
+        except Exception:
+            control_score = profile.get("last_score", 0)
 
     return {
         "name": user.get("name", "User"), "level": runway_level.get("name", level_info["title"]),
