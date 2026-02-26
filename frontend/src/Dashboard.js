@@ -264,16 +264,16 @@ const Dashboard = () => {
               </div>
             </div>
             {/* Expense progress */}
-            {(data?.monthlyExpenses || 0) > 0 && (
+            {(data?.expensesDone + data?.upcomingExpenses || 0) > 0 && (
               <div className="mt-2">
                 <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#FECACA" }}>
                   <div className="h-full rounded-full transition-all duration-500" style={{ 
-                    width: `${Math.min(((data?.expensesDone || 0) / (data?.monthlyExpenses || 1)) * 100, 100)}%`,
+                    width: `${Math.min(((data?.expensesDone || 0) / ((data?.expensesDone || 0) + (data?.upcomingExpenses || 1))) * 100, 100)}%`,
                     background: "linear-gradient(90deg, #DC2626, #F87171)"
                   }} />
                 </div>
                 <p className="text-[10px] mt-1 text-right" style={{ color: "#6B7280" }}>
-                  {Math.round(((data?.expensesDone || 0) / (data?.monthlyExpenses || 1)) * 100)}% spent
+                  {Math.round(((data?.expensesDone || 0) / ((data?.expensesDone || 0) + (data?.upcomingExpenses || 1))) * 100)}% spent
                 </p>
               </div>
             )}
