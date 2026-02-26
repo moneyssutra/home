@@ -97,6 +97,17 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Fixed Net Worth card text visibility: "Total Net Worth", "Growing" badge, "Assets"/"Investments"/"Cash" labels now use font-semibold and text-shadow for better contrast on teal background
 - **Tested**: 100% frontend (7/7 features verified) - `/app/test_reports/iteration_83.json`
 
+### Income Redirect Refactor, UI & Bug Fixes (Feb 26, 2026)
+- Interest/Dividend income "Add" flows now redirect to Investment page (`/investment`)
+- Rental income "Add" flow now redirects to Asset page (`/asset`)
+- Deleted InterestIncome.js, DividendIncome.js, RentalIncome.js form pages (routes removed from App.js)
+- MyInterest/MyDividend list item clicks navigate to /my-investments, MyRental items to /my-assets
+- All income form pages now scroll to top on load (window.scrollTo(0,0) in useEffect)
+- Fixed OtherIncomeForm scroll conflict (conditionalRef scrollIntoView was overriding scrollTo on mount)
+- Net Worth "Growing" badge now uses solid green gradient with glow effect, Cash indicator uses brighter #34D399, all labels use bold white with text-shadow
+- Fixed notification swipe-to-dismiss bug (stale closure: captured swipingId in local variable before setTimeout)
+- **Tested**: 100% frontend (9/9 features verified) - `/app/test_reports/iteration_84.json`
+
 ## Prioritized Backlog
 
 ### P1 (Upcoming)
