@@ -966,82 +966,102 @@ const AccordionModule = ({ title, icon: Icon, iconColor, children, isOpen, onTog
 
 // ─── ZONE GRADIENT CONFIG ───
 const ZONE_GRADIENTS = {
-  1: { bg: "linear-gradient(135deg, #1A0A0A, #7F1D1D)", glow: "#EF4444", btn: "linear-gradient(135deg, #DC2626, #EF4444)" },
-  2: { bg: "linear-gradient(135deg, #1A0F0A, #9A3412)", glow: "#F97316", btn: "linear-gradient(135deg, #EA580C, #F97316)" },
-  3: { bg: "linear-gradient(135deg, #1A170A, #854D0E)", glow: "#EAB308", btn: "linear-gradient(135deg, #CA8A04, #EAB308)" },
-  4: { bg: "linear-gradient(135deg, #0A1A0F, #166534)", glow: "#22C55E", btn: "linear-gradient(135deg, #16A34A, #22C55E)" },
-  5: { bg: "linear-gradient(135deg, #0F172A, #1E40AF)", glow: "#3B82F6", btn: "linear-gradient(135deg, #2563EB, #3B82F6)" },
+  1: { bg: "linear-gradient(135deg, #1A0A0A, #7F1D1D)", glow: "rgba(239,68,68,0.25)", accent: "#EF4444", btn: "linear-gradient(135deg, #DC2626, #EF4444)", secondary: "#FCA5A5" },
+  2: { bg: "linear-gradient(135deg, #1A0F0A, #9A3412)", glow: "rgba(249,115,22,0.25)", accent: "#F97316", btn: "linear-gradient(135deg, #EA580C, #F97316)", secondary: "#FDBA74" },
+  3: { bg: "linear-gradient(135deg, #1A170A, #854D0E)", glow: "rgba(234,179,8,0.25)", accent: "#EAB308", btn: "linear-gradient(135deg, #CA8A04, #EAB308)", secondary: "#FDE68A" },
+  4: { bg: "linear-gradient(135deg, #0A1A0F, #166534)", glow: "rgba(34,197,94,0.25)", accent: "#22C55E", btn: "linear-gradient(135deg, #16A34A, #22C55E)", secondary: "#BBF7D0" },
+  5: { bg: "linear-gradient(135deg, #0B1026, #1E3A8A)", glow: "rgba(59,130,246,0.25)", accent: "#3B82F6", btn: "linear-gradient(135deg, #3B82F6, #60A5FA)", secondary: "#C7D2FE" },
 };
 
 // ─── HERO SECTION ───
 const HeroSection = ({ clockData, gamData, onImprove, onShare }) => {
   const survDays = clockData?.survivalDays || 0;
   const stageName = clockData?.level || "Getting Started";
-  const allStages = clockData?.allStages || [];
   const stageNum = clockData?.stage || 0;
   const phaseNum = clockData?.phaseNum || 1;
   const levelsToSovereign = Math.max(0, 20 - stageNum);
   const progressPct = (stageNum / 20) * 100;
   const zone = ZONE_GRADIENTS[phaseNum] || ZONE_GRADIENTS[5];
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [ringAnimated, setRingAnimated] = useState(false);
 
   // SVG ring
-  const r = 72, circ = 2 * Math.PI * r, offset = circ - (progressPct / 100) * circ;
+  const r = 72, circ = 2 * Math.PI * r;
+  const targetOffset = circ - (progressPct / 100) * circ;
+
+  useEffect(() => {
+    const t = setTimeout(() => setRingAnimated(true), 100);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
-    <div className="rounded-2xl overflow-hidden relative" style={{ background: zone.bg }} data-testid="hero-section">
-      {/* Radial glow behind number */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full" style={{ background: `radial-gradient(circle, ${zone.glow}15, transparent 70%)` }} />
+    <div className="rounded-2xl overflow-hidden relative" style={{ background: zone.bg }} data-testid="hero-section" onClick={() => showTooltip && setShowTooltip(false)}>
+      {/* Radial glow */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full" style={{ background: `radial-gradient(circle, ${zone.glow}, transparent 70%)` }} />
 
       <div className="relative p-6 pb-3 text-center">
-        {/* RUNWAY label */}
-        <p className="text-[10px] font-bold tracking-[0.3em] uppercase mb-3" style={{ color: `${zone.glow}90` }}>RUNWAY</p>
+        {/* Top label */}
+        <p className="text-[11px] font-bold tracking-[0.2em] uppercase mb-4" style={{ color: zone.secondary }}>Your Financial Safety</p>
 
-        {/* Circular progress ring with days */}
-        <div className="relative inline-block mb-3">
+        {/* Circular progress ring */}
+        <div className="relative inline-block mb-4">
           <svg width="170" height="170" viewBox="0 0 170 170" className="block">
-            <circle cx="85" cy="85" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
-            <circle cx="85" cy="85" r={r} fill="none" stroke={zone.glow} strokeWidth="4"
-              strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
-              transform="rotate(-90 85 85)" style={{ transition: "stroke-dashoffset 1.5s ease", filter: `drop-shadow(0 0 6px ${zone.glow}60)` }} />
+            <circle cx="85" cy="85" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3.5" />
+            <circle cx="85" cy="85" r={r} fill="none" stroke={zone.accent} strokeWidth="3.5"
+              strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={ringAnimated ? targetOffset : circ}
+              transform="rotate(-90 85 85)" style={{ transition: "stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)", filter: `drop-shadow(0 0 8px ${zone.accent}50)` }} />
           </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ animation: "fadeIn 0.8s ease" }}>
             <span className="text-6xl font-black text-white leading-none tracking-tight" style={{
-              textShadow: `0 0 30px ${zone.glow}40, 0 2px 4px rgba(0,0,0,0.3)`,
+              textShadow: `0 0 40px ${zone.accent}30, 0 2px 4px rgba(0,0,0,0.4)`,
               animation: "subtlePulse 3s ease-in-out infinite"
             }} data-testid="hero-days">{survDays}</span>
-            <span className="text-xs font-bold tracking-widest text-white/70 mt-1">DAYS</span>
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-[11px] font-bold tracking-[0.15em] text-white/60">DAYS OF SAFETY</span>
+              <button onClick={(e) => { e.stopPropagation(); setShowTooltip(prev => !prev); }} className="relative" data-testid="tooltip-trigger">
+                <Info className="h-3.5 w-3.5 text-white/30 hover:text-white/60 transition-colors" />
+                {showTooltip && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 rounded-xl text-left z-10" style={{ backgroundColor: "rgba(0,0,0,0.9)", border: "1px solid rgba(255,255,255,0.15)", backdropFilter: "blur(8px)" }} data-testid="tooltip-content">
+                    <p className="text-[11px] text-white/80 leading-relaxed">This shows how many days your current liquid savings can cover your essential monthly expenses.</p>
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 rotate-45" style={{ backgroundColor: "rgba(0,0,0,0.9)", borderRight: "1px solid rgba(255,255,255,0.15)", borderBottom: "1px solid rgba(255,255,255,0.15)" }} />
+                  </div>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Stage name */}
-        <p className="text-xl font-black tracking-wide text-white" data-testid="hero-stage">{stageName}</p>
-        <p className="text-xs font-medium text-white/50 mt-1">{levelsToSovereign} level{levelsToSovereign !== 1 ? "s" : ""} to Sovereign</p>
+        {/* Explanation */}
+        <p className="text-xs text-white/40 mb-3">If your income stops today</p>
+
+        {/* Stage */}
+        <p className="text-lg font-black tracking-wide text-white">{stageName}</p>
+        <p className="text-[11px] font-medium mt-0.5" style={{ color: zone.secondary }}>{levelsToSovereign} level{levelsToSovereign !== 1 ? "s" : ""} away from Sovereign</p>
 
         {/* Dopamine line */}
-        <p className="text-sm font-bold mt-3" style={{ color: zone.glow }}>
-          +{Math.round(survDays * 0.028)} days added this month
+        <p className="text-sm font-bold mt-3" style={{ color: zone.accent }}>
+          +{Math.max(1, Math.round(survDays * 0.028))} days added this month
         </p>
       </div>
 
       {/* CTAs */}
-      <div className="relative px-6 pb-5 space-y-2.5">
+      <div className="relative px-6 pb-5 pt-1 space-y-2.5">
         <button onClick={onImprove} className="w-full py-3.5 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.97]" style={{
-          background: zone.btn,
-          boxShadow: `0 4px 20px ${zone.glow}35`,
+          background: zone.btn, boxShadow: `0 4px 20px ${zone.accent}30`,
         }} data-testid="improve-position-btn">
-          Boost My Runway
+          Increase My Safety
         </button>
         <button onClick={onShare} className="w-full py-3 rounded-xl text-xs font-bold transition-all active:scale-[0.97] flex items-center justify-center gap-2" style={{
-          backgroundColor: "rgba(255,255,255,0.08)",
-          color: "rgba(255,255,255,0.7)",
-          border: "1px solid rgba(255,255,255,0.1)"
+          backgroundColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.15)"
         }} data-testid="hero-share-btn">
-          <Share2 className="h-3.5 w-3.5" /> Share My Score
+          <Share2 className="h-3.5 w-3.5" /> Share My Progress
         </button>
       </div>
 
-      {/* CSS animation */}
-      <style>{`@keyframes subtlePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.92; } }`}</style>
+      <style>{`
+        @keyframes subtlePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.92; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
     </div>
   );
 };
