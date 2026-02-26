@@ -1,8 +1,17 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { X, Briefcase, Receipt, LineChart, Building2, Landmark, CreditCard, Shield, Wallet, Target } from "lucide-react";
 
 const AddActionSheet = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+
+  // Lock body scroll when sheet is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [isOpen]);
 
   const actions = [
     { label: "Add Income", icon: Briefcase, color: "from-emerald-500 to-teal-600", path: "/my-income" },
