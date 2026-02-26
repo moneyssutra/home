@@ -618,12 +618,12 @@ const OtherIncomeForm = () => {
           </div>
 
           {/* Is Received Toggle */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-[#1E293B]">
+          <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
             <div className="flex items-center gap-3">
               <CheckCircle className={cn("h-5 w-5", formData.isReceived ? "text-emerald-500" : "text-gray-400")} />
               <div>
-                <p className="font-medium text-[#334155]">Already Received?</p>
-                <p className="text-xs text-[#334155]/50">Mark if you've already received this income</p>
+                <p className="font-medium" style={{ color: "var(--text-primary)" }}>Already Received?</p>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Mark if you've already received this income</p>
               </div>
             </div>
             <button
@@ -637,7 +637,7 @@ const OtherIncomeForm = () => {
             >
               <span
                 className={cn(
-                  "absolute top-1 w-5 h-5 rounded-full bg-[#1E293B] shadow transition-transform",
+                  "absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform",
                   formData.isReceived ? "translate-x-6" : "translate-x-1"
                 )}
               />
