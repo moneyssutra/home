@@ -227,6 +227,7 @@ export default {
   useIncomeList,
   useIncomeSource,
   useExpenseList,
+  useExpensesByMonth,
   useExpense,
   useAssetList,
   useInsuranceList,
