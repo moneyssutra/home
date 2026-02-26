@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CalendarClock, ShoppingCart, Home, Zap, Wifi, Car, GraduationCap, Heart, Gift, Utensils, Shirt, Film, Plane, Scissors, CreditCard, Landmark } from "lucide-react";
+import { ArrowLeft, CalendarClock, ChevronRight, ShoppingCart, Home, Zap, Car, GraduationCap, Heart, Utensils, Film, Plane, Scissors, CreditCard, Landmark } from "lucide-react";
 import axios from "axios";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -16,6 +18,7 @@ const UpcomingExpenses = () => {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showAddSheet, setShowAddSheet] = useState(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -39,10 +42,10 @@ const UpcomingExpenses = () => {
   );
 
   return (
-    <div className="min-h-screen pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="upcoming-expenses-page">
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="upcoming-expenses-page">
       <header className="px-6 pt-6 pb-16" style={{ background: "linear-gradient(135deg, #EA580C, #FB923C)" }}>
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="text-white"><ArrowLeft className="h-5 w-5" /></button>
+          <button onClick={() => navigate(-1)} className="text-white" data-testid="back-btn"><ArrowLeft className="h-5 w-5" /></button>
           <h1 className="text-lg font-bold text-white">Upcoming Expenses</h1>
         </div>
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
@@ -53,6 +56,17 @@ const UpcomingExpenses = () => {
       </header>
 
       <div className="px-6 -mt-6 space-y-3">
+        {/* Go to My Expenses */}
+        <button
+          onClick={() => navigate("/my-expenses")}
+          className="w-full rounded-xl p-3 flex items-center justify-between shadow-card"
+          style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+          data-testid="go-to-my-expenses"
+        >
+          <span className="text-sm font-medium" style={{ color: "#EA580C" }}>View All Expenses</span>
+          <ChevronRight className="h-4 w-4" style={{ color: "#EA580C" }} />
+        </button>
+
         {items.length === 0 ? (
           <div className="rounded-2xl p-8 text-center shadow-card" style={{ backgroundColor: "var(--bg-card)" }}>
             <CalendarClock className="h-12 w-12 mx-auto mb-3" style={{ color: "var(--text-muted)" }} />
@@ -62,7 +76,13 @@ const UpcomingExpenses = () => {
           const TypeIcon = categoryIcons[item.type] || ShoppingCart;
           const daysUntil = item.scheduleDay - today;
           return (
-            <div key={idx} className="rounded-xl p-4 shadow-card flex items-center gap-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid={`upcoming-item-${idx}`}>
+            <div
+              key={idx}
+              className="rounded-xl p-4 shadow-card flex items-center gap-3 cursor-pointer transition-all active:scale-[0.98]"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+              onClick={() => item.id ? navigate(`/expense/${item.id}`) : null}
+              data-testid={`upcoming-item-${idx}`}
+            >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#EA580C15" }}>
                 <TypeIcon className="h-5 w-5" style={{ color: "#EA580C" }} />
               </div>
@@ -85,6 +105,9 @@ const UpcomingExpenses = () => {
           );
         })}
       </div>
+
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
     </div>
   );
 };
