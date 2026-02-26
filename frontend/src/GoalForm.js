@@ -299,6 +299,10 @@ const GoalForm = () => {
   useEffect(() => { if (customTypeName && errors.customTypeName) setErrors(prev => { const n = {...prev}; delete n.customTypeName; return n; }); }, [customTypeName]);
 
   const validate = () => {
+    const newErrors = {};
+
+    // Goal Name validation
+    const nameError = validateTextField(goalName, "Goal name", 100);
     if (nameError) newErrors.goalName = nameError;
 
     // Goal Type validation
