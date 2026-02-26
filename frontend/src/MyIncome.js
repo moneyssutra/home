@@ -348,38 +348,17 @@ const MyIncome = () => {
         </div>
       )}
 
-      {/* Income Types Grid */}
+      {/* Add Income Button */}
       <div className="px-6 mt-6">
-        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Add Income</h3>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { type: "Business", path: "/business-income" },
-            { type: "Job", path: "/job-income" },
-            { type: "Self-Employed", path: "/self-employed-income" },
-            { type: "Rental", path: "/rental-income" },
-            { type: "Commission", path: "/commission-income" },
-            { type: "Interest", path: "/interest-income" },
-            { type: "Dividend", path: "/dividend-income" },
-            { type: "Other Income", path: "/other-income", label: "Other" },
-          ].map((item) => {
-            const Icon = getTypeIcon(item.type);
-            const typeColor = getTypeColor(item.type);
-            return (
-              <button
-                key={item.type}
-                onClick={() => navigate(item.path)}
-                className="flex flex-col items-center gap-2 p-4 rounded-2xl shadow-card hover:shadow-md transition-all active:scale-95"
-                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-                data-testid={`add-${item.type.toLowerCase().replace(' ', '-')}`}
-              >
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: typeColor.bg }}>
-                  <Icon className="h-6 w-6" style={{ color: typeColor.text }} />
-                </div>
-                <span className="text-xs font-medium" style={{ color: "var(--text-secondary)" }}>{item.label || item.type}</span>
-              </button>
-            );
-          })}
-        </div>
+        <button
+          onClick={() => navigate("/add-income")}
+          className="w-full flex items-center justify-center gap-2 rounded-xl py-3 font-medium text-white"
+          style={{ background: "linear-gradient(135deg, #059669, #10B981)" }}
+          data-testid="add-income-btn"
+        >
+          <TrendingUp className="h-5 w-5" />
+          Add New Income Source
+        </button>
       </div>
 
       {/* Empty State */}
