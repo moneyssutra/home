@@ -312,6 +312,14 @@ const SelfEmployedIncome = () => {
     setProfessionSearch("");
   };
 
+  // Clear field errors in real-time when user fills data
+  useEffect(() => { if (profession && errors.profession) setErrors(prev => { const n = {...prev}; delete n.profession; return n; }); }, [profession]);
+  useEffect(() => { if (fullName && errors.fullName) setErrors(prev => { const n = {...prev}; delete n.fullName; return n; }); }, [fullName]);
+  useEffect(() => { if (expectedAmount && errors.expectedAmount) setErrors(prev => { const n = {...prev}; delete n.expectedAmount; return n; }); }, [expectedAmount]);
+  useEffect(() => { if (frequency && errors.frequency) setErrors(prev => { const n = {...prev}; delete n.frequency; return n; }); }, [frequency]);
+  useEffect(() => { if (selectedDay && errors.selectedDay) setErrors(prev => { const n = {...prev}; delete n.selectedDay; return n; }); }, [selectedDay]);
+  useEffect(() => { if (selectedDate && errors.selectedDate) setErrors(prev => { const n = {...prev}; delete n.selectedDate; return n; }); }, [selectedDate]);
+
   const validate = () => {
     const newErrors = {};
 

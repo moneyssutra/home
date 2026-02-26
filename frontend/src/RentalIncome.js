@@ -289,6 +289,13 @@ const RentalIncome = () => {
     return new Intl.NumberFormat('en-IN').format(amount);
   };
 
+  // Clear field errors in real-time when user fills data
+  useEffect(() => { if (propertyName && errors.propertyName) setErrors(prev => { const n = {...prev}; delete n.propertyName; return n; }); }, [propertyName]);
+  useEffect(() => { if (rentalAmount && errors.rentalAmount) setErrors(prev => { const n = {...prev}; delete n.rentalAmount; return n; }); }, [rentalAmount]);
+  useEffect(() => { if (frequency && errors.frequency) setErrors(prev => { const n = {...prev}; delete n.frequency; return n; }); }, [frequency]);
+  useEffect(() => { if (selectedDay && errors.selectedDay) setErrors(prev => { const n = {...prev}; delete n.selectedDay; return n; }); }, [selectedDay]);
+  useEffect(() => { if (selectedDate && errors.selectedDate) setErrors(prev => { const n = {...prev}; delete n.selectedDate; return n; }); }, [selectedDate]);
+
   const validate = () => {
     const newErrors = {};
 
