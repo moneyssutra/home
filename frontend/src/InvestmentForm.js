@@ -571,9 +571,9 @@ const InvestmentForm = () => {
                 </div>
               )}
             </div>
+
+            {/* Principal / Invested Amount */}
             <div className="w-full">
-              <label htmlFor="principal" className="block text-sm font-medium text-[#334155] mb-2">
-                Principal / Invested Amount
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
