@@ -331,18 +331,6 @@ const Reports = () => {
                           </>
                         )}
                       </button>
-                      
-                      {/* Direct link as fallback */}
-                      <a
-                        href={directUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-2 rounded-xl text-xs font-medium transition-all hover:opacity-80"
-                        style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-muted)" }}
-                        title="Open in new tab (if download is blocked)"
-                      >
-                        Open
-                      </a>
                     </div>
                   </div>
                 </div>

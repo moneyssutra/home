@@ -65,8 +65,12 @@ const IncomeAmountModal = ({
   };
 
   const handleSubmit = async () => {
-    if (!amount || parseInt(amount) <= 0) {
-      toast.error("Please enter a valid income amount");
+    if (amount === "" || amount === undefined || amount === null) {
+      toast.error("Please enter an income amount");
+      return;
+    }
+    if (parseInt(amount) < 0) {
+      toast.error("Income amount cannot be negative");
       return;
     }
 
