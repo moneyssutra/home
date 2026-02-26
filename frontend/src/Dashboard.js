@@ -169,7 +169,7 @@ const Dashboard = () => {
                       />
                       <div 
                         className="transition-all duration-500"
-                        style={{ width: `${(data.liquidBalance / (data.totalAssets + data.totalInvestments + data.liquidBalance)) * 100}%`, backgroundColor: "var(--brand-primary-light)" }}
+                        style={{ width: `${(data.liquidBalance / (data.totalAssets + data.totalInvestments + data.liquidBalance)) * 100}%`, backgroundColor: "#34D399" }}
                         title={`Cash: ₹${formatFullAmount(data.liquidBalance)}`}
                       />
                     </>
