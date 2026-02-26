@@ -581,11 +581,46 @@ async def get_share_card(request: Request):
     profile = await _get_or_create_profile(user_id)
     level_info = _get_level(profile.get("xp", 0))
     achievements = await db.user_achievements.count_documents({"user_id": user_id})
+
+    # Compute live survival data from intelligence
+    try:
+        from routes.intelligence import _get_runway_level
+        incomes = await db.income_sources.find({"userId": user_id}, {"_id": 0}).to_list(500)
+        expenses = await db.expenses.find({"userId": user_id}, {"_id": 0}).to_list(500)
+        accounts = await db.accounts.find({"userId": user_id}, {"_id": 0}).to_list(50)
+        monthly_expense = sum(e.get("normalizedMonthly", e.get("amount", 0)) for e in expenses)
+        daily_expense = monthly_expense / 30 if monthly_expense > 0 else 0
+        liquid = sum(a.get("balance", 0) for a in accounts)
+        survival_days = int(liquid / daily_expense) if daily_expense > 0 else 0
+        runway_level = _get_runway_level(survival_days)
+    except Exception:
+        survival_days = profile.get("last_survival_days", 0)
+        runway_level = {"name": profile.get("level", "Getting Started"), "stage": 0, "phaseNum": 1}
+
+    # Compute live control score
+    try:
+        monthly_income = sum(i.get("expectedAmount", 0) for i in incomes)
+        savings_rate = ((monthly_income - monthly_expense) / monthly_income * 100) if monthly_income > 0 else 0
+        investments = await db.investments.find({"userId": user_id}, {"_id": 0}).to_list(500)
+        loans = await db.loans.find({"userId": user_id}, {"_id": 0}).to_list(100)
+        total_emi = sum(l.get("emiAmount", 0) for l in loans)
+        emi_pct = (total_emi / monthly_income * 100) if monthly_income > 0 else 0
+        # Simple score
+        s1 = min(25, savings_rate * 0.5) if savings_rate > 0 else 0
+        s2 = max(0, 25 - emi_pct * 0.5) if monthly_income > 0 else 25
+        buffer_months = survival_days / 30
+        s3 = min(25, buffer_months * 4)
+        s4 = min(25, len(incomes) * 8.33) if len(incomes) > 0 else 0
+        control_score = round(s1 + s2 + s3 + s4)
+    except Exception:
+        control_score = profile.get("last_score", 0)
+
     return {
-        "name": user.get("name", "User"), "level": level_info["title"],
-        "levelNumber": level_info["level"], "xp": profile.get("xp", 0),
-        "survivalDays": profile.get("last_survival_days", 0),
-        "controlScore": profile.get("last_score", 0),
+        "name": user.get("name", "User"), "level": runway_level.get("name", level_info["title"]),
+        "levelNumber": runway_level.get("stage", level_info["level"]),
+        "xp": profile.get("xp", 0),
+        "survivalDays": survival_days,
+        "controlScore": control_score,
         "streak": profile.get("current_streak", 0),
         "achievements": achievements,
         "generated_at": datetime.now(timezone.utc).isoformat()
