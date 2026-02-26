@@ -174,7 +174,7 @@ export default function ShareScoreCard({ isOpen, onClose }) {
                     <div style={{ width: "20px", height: "20px", borderRadius: "6px", backgroundColor: "#059669", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <Award style={{ width: "12px", height: "12px", color: "#fff" }} />
                     </div>
-                    <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>MoneySutra</span>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>MoneySSutra</span>
                   </div>
                   <p style={{ fontSize: "9px", color: "rgba(255,255,255,0.25)" }}>
                     {new Date(data.generated_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
