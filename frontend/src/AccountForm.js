@@ -100,11 +100,13 @@ const AccountForm = () => {
     setErrors(newErrors);
   };
 
-  const validate = () => {
-    const newErrors = {};
+  // Clear field errors in real-time when user fills data
+  useEffect(() => { if (accountName && errors.accountName) setErrors(prev => { const n = {...prev}; delete n.accountName; return n; }); }, [accountName]);
+  useEffect(() => { if (accountType && errors.accountType) setErrors(prev => { const n = {...prev}; delete n.accountType; return n; }); }, [accountType]);
+  useEffect(() => { if (creditLimit && errors.creditLimit) setErrors(prev => { const n = {...prev}; delete n.creditLimit; return n; }); }, [creditLimit]);
+  useEffect(() => { if ((currentBalance || currentBalance === "0") && errors.currentBalance) setErrors(prev => { const n = {...prev}; delete n.currentBalance; return n; }); }, [currentBalance]);
 
-    // Account Name validation
-    const nameError = validateTextField(accountName, "Account name", 50);
+  const validate = () => {
     if (nameError) newErrors.accountName = nameError;
 
     // Account Type validation
