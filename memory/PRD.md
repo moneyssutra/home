@@ -90,6 +90,13 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Fixed Self-Employed edit crash (fullName undefined error)
 - **Tested**: 100% backend (9/9), 100% frontend (7/7 features verified) - `/app/test_reports/iteration_82.json`
 
+### Dashboard, Login & Navigation Fixes (Feb 26, 2026)
+- Added "My Income >" and "My Expenses >" navigation links in Monthly Cashflow widget on Dashboard
+- Fixed back button on all 7 income form pages (Job, Business, Self-Employed, Rental, Commission, Interest, Dividend) to use `navigate(-1)` instead of hardcoded paths
+- Implemented "Remember Me" on Login page: saves email+password to localStorage, prefills on next visit
+- Fixed Net Worth card text visibility: "Total Net Worth", "Growing" badge, "Assets"/"Investments"/"Cash" labels now use font-semibold and text-shadow for better contrast on teal background
+- **Tested**: 100% frontend (7/7 features verified) - `/app/test_reports/iteration_83.json`
+
 ## Prioritized Backlog
 
 ### P1 (Upcoming)
