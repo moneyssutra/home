@@ -191,7 +191,17 @@ const Dashboard = () => {
 
           {/* Income Section */}
           <div className="mb-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--finance-gain)" }}>Income</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--finance-gain)" }}>Income</p>
+              <button 
+                onClick={() => navigate("/my-income")}
+                className="flex items-center gap-1 text-[10px] font-semibold transition-all hover:opacity-80"
+                style={{ color: "var(--finance-gain)" }}
+                data-testid="cashflow-view-my-income"
+              >
+                My Income <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <div 
                 className="rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99]"
