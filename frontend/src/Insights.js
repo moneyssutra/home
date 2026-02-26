@@ -1163,7 +1163,7 @@ const Insights = () => {
         <SurvivalWarning data={survivalClock} isEmpty={isEmpty} />
 
         {/* LAYER 1: HERO */}
-        <HeroSection clockData={survivalClock} gamData={gamification} onImprove={scrollToActions} />
+        <HeroSection clockData={survivalClock} gamData={gamification} onImprove={scrollToActions} onShare={() => setShowShareCard(true)} />
 
         {/* LAYER 2: ACTION SECTION */}
         <ActionSection clockData={survivalClock} scoreData={controlScore} challenges={challenges} />
