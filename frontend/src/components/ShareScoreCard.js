@@ -119,12 +119,12 @@ export default function ShareScoreCard({ isOpen, onClose }) {
                 {/* Header */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px", position: "relative" }}>
                   <div>
-                    <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "4px" }}>Financial Score Card</p>
+                    <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "4px" }}>Financial Safety Card</p>
                     <p style={{ fontSize: "20px", color: "#fff", fontWeight: 800, lineHeight: 1.2 }}>{data.name}</p>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px", borderRadius: "20px", backgroundColor: `${lvlColor}20`, border: `1px solid ${lvlColor}40` }}>
                     <Zap style={{ width: "14px", height: "14px", color: lvlColor }} />
-                    <span style={{ fontSize: "12px", fontWeight: 700, color: lvlColor }}>Lv.{data.levelNumber}</span>
+                    <span style={{ fontSize: "12px", fontWeight: 700, color: lvlColor }}>Stage {data.levelNumber}</span>
                   </div>
                 </div>
 
