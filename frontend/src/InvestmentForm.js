@@ -564,9 +564,13 @@ const InvestmentForm = () => {
                 data-testid="name-input"
               />
               {errors.name && <p className="text-sm text-red-500 mt-1">{errors.name}</p>}
+              {duplicateWarning && (
+                <div className="flex items-start gap-2 mt-2 p-2.5 rounded-lg" style={{ backgroundColor: "#F59E0B15", border: "1px solid #F59E0B30" }} data-testid="duplicate-income-warning">
+                  <Info className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: "#F59E0B" }} />
+                  <p className="text-xs font-medium" style={{ color: "#F59E0B" }}>{duplicateWarning}</p>
+                </div>
+              )}
             </div>
-
-            {/* Principal / Invested Amount */}
             <div className="w-full">
               <label htmlFor="principal" className="block text-sm font-medium text-[#334155] mb-2">
                 Principal / Invested Amount
