@@ -121,15 +121,18 @@ const MyIncome = () => {
 
   const capitalizeType = (type) => {
     if (!type) return "Other";
-    // Handle special cases
-    const specialCases = {
+    // Map DB types to display category names
+    const typeDisplayNames = {
+      'salary': 'Job',
+      'freelance': 'Self-Employed',
       'self-employed': 'Self-Employed',
-      'other income': 'Other Income'
+      'other income': 'Other Income',
+      'job': 'Job',
     };
-    if (specialCases[type.toLowerCase()]) {
-      return specialCases[type.toLowerCase()];
+    const lower = type.toLowerCase();
+    if (typeDisplayNames[lower]) {
+      return typeDisplayNames[lower];
     }
-    // Capitalize first letter
     return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
   };
 
