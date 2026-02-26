@@ -19,6 +19,7 @@ class Expense(BaseModel):
     linkedAccountId: Optional[str] = None
     linkedLoanId: Optional[str] = None
     linkedInsuranceId: Optional[str] = None
+    linkedInvestmentId: Optional[str] = None
     selectedDay: Optional[str] = None
     selectedDate: Optional[str] = None
     selectedQuarter: Optional[str] = None
@@ -39,6 +40,7 @@ class ExpenseCreate(BaseModel):
     linkedAccountId: Optional[str] = None
     linkedLoanId: Optional[str] = None
     linkedInsuranceId: Optional[str] = None
+    linkedInvestmentId: Optional[str] = None
     selectedDay: Optional[str] = None
     selectedDate: Optional[str] = None
     selectedQuarter: Optional[str] = None
