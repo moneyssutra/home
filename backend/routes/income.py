@@ -45,7 +45,18 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
         raise HTTPException(status_code=401, detail="Not authenticated")
     user_filter = get_user_filter(user)
     if type:
-        user_filter["type"] = {"$regex": f"^{type}$", "$options": "i"}
+        # Treat synonymous types: Job↔Salary, Self-Employed↔Freelance
+        type_synonyms = {
+            "Job": ["Job", "Salary"],
+            "Salary": ["Job", "Salary"],
+            "Self-Employed": ["Self-Employed", "Freelance"],
+            "Freelance": ["Self-Employed", "Freelance"],
+        }
+        matches = type_synonyms.get(type)
+        if matches:
+            user_filter["type"] = {"$in": matches}
+        else:
+            user_filter["type"] = {"$regex": f"^{type}$", "$options": "i"}
     projection = {
         "_id": 0, "id": 1, "name": 1, "type": 1, "expectedAmount": 1,
         "frequency": 1, "selectedDay": 1, "selectedDate": 1, "selectedMonth": 1,
