@@ -934,15 +934,129 @@ const RED_ZONE_STYLES = {
   "--brand-primary": "#EF4444",
 };
 
+// ─── ACCORDION MODULE WRAPPER ───
+const AccordionModule = ({ title, icon: Icon, iconColor, children, isOpen, onToggle, locked, unlockStage, testId }) => {
+  if (locked) {
+    return (
+      <div className="rounded-2xl overflow-hidden relative" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid={testId}>
+        <div className="p-4 flex items-center gap-3" style={{ filter: "blur(1px)", opacity: 0.4 }}>
+          <Icon className="h-5 w-5" style={{ color: iconColor }} />
+          <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{title}</span>
+        </div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}>
+          <Lock className="h-6 w-6 mb-1.5" style={{ color: "var(--text-muted)" }} />
+          <p className="text-xs font-bold" style={{ color: "var(--text-muted)" }}>Unlock at Stage {unlockStage}</p>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid={testId}>
+      <button onClick={onToggle} className="w-full p-4 flex items-center gap-3 text-left" data-testid={`${testId}-toggle`}>
+        <Icon className="h-5 w-5" style={{ color: iconColor }} />
+        <span className="text-sm font-bold flex-1" style={{ color: "var(--text-primary)" }}>{title}</span>
+        <ChevronDown className="h-4 w-4 transition-transform" style={{ color: "var(--text-muted)", transform: isOpen ? "rotate(180deg)" : "rotate(0)" }} />
+      </button>
+      <div style={{ maxHeight: isOpen ? "2000px" : "0", overflow: "hidden", transition: "max-height 300ms ease-in-out" }}>
+        {isOpen && <div className="px-0 pb-0">{children}</div>}
+      </div>
+    </div>
+  );
+};
+
+// ─── HERO SECTION ───
+const HeroSection = ({ clockData, gamData, onImprove }) => {
+  const survDays = clockData?.survivalDays || 0;
+  const stageName = clockData?.level || "Getting Started";
+  const stageColor = clockData?.levelColor || "#059669";
+  const allStages = clockData?.allStages || [];
+  const stageNum = clockData?.stage || 0;
+  const remaining = allStages.filter(s => !s.reached && !s.current).length;
+  const sovereign = allStages.find(s => s.name === "Sovereign");
+  const levelsToSovereign = sovereign ? Math.max(0, 20 - stageNum) : remaining;
+
+  return (
+    <div className="rounded-2xl overflow-hidden" style={{ background: `linear-gradient(160deg, ${stageColor}18, ${stageColor}05)`, border: `1.5px solid ${stageColor}30` }} data-testid="hero-section">
+      <div className="p-6 pb-4 text-center">
+        <p className="text-6xl font-black leading-none tracking-tight" style={{ color: "var(--text-primary)" }} data-testid="hero-days">{survDays} Days Safe</p>
+        <p className="text-2xl font-black mt-2" style={{ color: stageColor }} data-testid="hero-stage">{stageName}</p>
+        <p className="text-sm mt-2 font-medium" style={{ color: "var(--text-muted)" }}>{levelsToSovereign} level{levelsToSovereign !== 1 ? "s" : ""} to Sovereign</p>
+      </div>
+      <div className="px-6 pb-6">
+        <button onClick={onImprove} className="w-full py-3.5 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.98]" style={{ backgroundColor: stageColor, boxShadow: `0 4px 14px ${stageColor}40` }} data-testid="improve-position-btn">
+          Improve My Position
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── ACTION SECTION ───
+const ActionSection = ({ clockData, scoreData, challenges }) => {
+  const suggestions = [];
+  const m = scoreData?.metrics || {};
+  const bd = scoreData?.breakdown || {};
+  const survDays = clockData?.survivalDays || 0;
+
+  // Savings rate suggestion
+  if (bd.savingsRate && bd.savingsRate.score < bd.savingsRate.max * 0.8) {
+    const gap = Math.round((m.monthlyIncome || 0) * 0.1);
+    const boost = Math.round(gap / ((clockData?.dailyBurnRate || 1) || 1));
+    if (gap > 0) suggestions.push({ text: `Increase savings by ₹${fmt(gap)}`, impact: `+${boost} days`, color: "#10B981" });
+  }
+  // EMI load suggestion
+  if (bd.emiLoad && bd.emiLoad.score < bd.emiLoad.max * 0.7) {
+    const emiReduction = Math.round((m.totalEMI || 0) * 0.1);
+    const boost = Math.round(emiReduction * 30 / ((clockData?.dailyBurnRate || 1) * 30 || 1));
+    if (emiReduction > 0) suggestions.push({ text: `Reduce EMI by 10%`, impact: `+${boost} days`, color: "#3B82F6" });
+  }
+  // Safety buffer suggestion
+  if (bd.safetyBuffer && bd.safetyBuffer.score < bd.safetyBuffer.max * 0.6) {
+    suggestions.push({ text: `Build emergency fund to 6 months`, impact: "Unlock Stability Bonus", color: "#8B5CF6" });
+  }
+  // Challenge suggestion
+  const pending = challenges?.available?.length || 0;
+  if (pending > 0 && suggestions.length < 3) {
+    suggestions.push({ text: `Complete a Shock Test`, impact: "Unlock new badge", color: "#F59E0B" });
+  }
+
+  const isStrong = suggestions.length === 0;
+
+  return (
+    <div className="space-y-3" data-testid="action-section" id="action-section">
+      <h2 className="text-base font-black uppercase tracking-wider" style={{ color: "var(--text-primary)" }}>How To Improve</h2>
+      {isStrong ? (
+        <div className="p-4 rounded-xl text-center" style={{ backgroundColor: "#10B98108", border: "1px solid #10B98120" }}>
+          <p className="text-sm font-bold" style={{ color: "#10B981" }}>You're operating at strong stability. Maintain discipline.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {suggestions.slice(0, 3).map((s, i) => (
+            <div key={i} className="flex items-center justify-between p-3.5 rounded-xl" style={{ backgroundColor: `${s.color}08`, border: `1px solid ${s.color}18` }} data-testid={`suggestion-${i}`}>
+              <p className="text-sm font-semibold flex-1" style={{ color: "var(--text-primary)" }}>{s.text}</p>
+              <span className="text-xs font-bold ml-3 px-2.5 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: `${s.color}15`, color: s.color }}>{s.impact}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ─── MAIN INSIGHTS PAGE ───
 const Insights = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
+  const [openModule, setOpenModule] = useState(null);
   const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, refresh, joinChallenge, leaveChallenge } = useIntelligenceData();
 
   const isEmpty = !hasRealData(survivalClock, controlScore);
   const isRedZone = !isEmpty && survivalClock && survivalClock.survivalDays < 30;
+  const stageNum = survivalClock?.stage || 0;
+
+  const handleToggle = (key) => setOpenModule(prev => prev === key ? null : key);
+  const scrollToActions = () => document.getElementById("action-section")?.scrollIntoView({ behavior: "smooth" });
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}>
@@ -958,12 +1072,13 @@ const Insights = () => {
           {isRedZone ? "RED ZONE" : "Insights"}
         </h1>
         {isRedZone && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse" style={{ backgroundColor: "#EF444420", color: "#EF4444", border: "1px solid #EF444440" }}>CRITICAL</span>}
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-2">
+          <button onClick={() => setShowShareCard(true)} className="p-2 rounded-xl" style={{ backgroundColor: isRedZone ? RED_ZONE_STYLES["--bg-card"] : "var(--bg-card)" }} data-testid="share-btn"><Share2 className="h-4 w-4" style={{ color: isRedZone ? "#8B5555" : "var(--text-muted)" }} /></button>
           <button onClick={refresh} className="p-2 rounded-xl" style={{ backgroundColor: isRedZone ? RED_ZONE_STYLES["--bg-card"] : "var(--bg-card)" }} data-testid="refresh-btn"><RefreshCw className="h-4 w-4" style={{ color: isRedZone ? "#8B5555" : "var(--text-muted)" }} /></button>
         </div>
       </header>
 
-      <div className="px-4 py-4 space-y-4 max-w-3xl mx-auto">
+      <div className="px-4 py-5 space-y-5 max-w-3xl mx-auto">
         {/* Welcome banner for new users */}
         {isEmpty && (
           <div className="rounded-2xl p-4 flex items-center gap-3" style={{ backgroundColor: "var(--brand-primary)", background: "linear-gradient(135deg, #059669, #10B981)" }} data-testid="welcome-banner">
@@ -976,6 +1091,7 @@ const Insights = () => {
             </div>
           </div>
         )}
+
         {/* Red Zone Warning */}
         {isRedZone && (
           <div className="rounded-2xl p-4 flex items-center gap-3" style={{ backgroundColor: "#EF444418", border: "2px solid #EF4444", boxShadow: "0 0 30px #EF444420" }} data-testid="red-zone-alert">
@@ -984,27 +1100,61 @@ const Insights = () => {
             </div>
             <div>
               <p className="text-sm font-black" style={{ color: "#EF4444" }}>RED ZONE ACTIVE</p>
-              <p className="text-xs" style={{ color: "#C9A3A3" }}>Only {survivalClock.survivalDays} days of runway left. Take immediate action to build your emergency fund.</p>
+              <p className="text-xs" style={{ color: "#C9A3A3" }}>Only {survivalClock.survivalDays} days of runway left. Take immediate action.</p>
             </div>
           </div>
         )}
+
         <SurvivalWarning data={survivalClock} isEmpty={isEmpty} />
-        <LevelAndStagesWidget gamData={gamification} clockData={survivalClock} onShare={() => setShowShareCard(true)} />
-        <FinancialScoreWidget data={controlScore} />
-        <EmergencyRunwayWidget data={survivalClock} />
-        <ShockTestWidget clockData={survivalClock} />
-        <RunwaySimulator currentData={survivalClock} />
-        <MoneyPatternWidget data={moneyPattern} />
-        <BadgesWidget data={gamification} />
-        <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
 
-        {/* Future You Widget */}
-        <FutureYouWidget data={futureYou} />
+        {/* LAYER 1: HERO */}
+        <HeroSection clockData={survivalClock} gamData={gamification} onImprove={scrollToActions} />
 
-        {/* Personality Evolution */}
-        <PersonalityEvolutionWidget data={personalityHistory} currentPersonality={moneyPattern?.personality} />
+        {/* LAYER 2: ACTION SECTION */}
+        <ActionSection clockData={survivalClock} scoreData={controlScore} challenges={challenges} />
 
-        {/* Quick Links */}
+        {/* LAYER 3: COLLAPSIBLE MODULES */}
+        <div className="space-y-3">
+          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Detailed Modules</p>
+
+          <AccordionModule title="Financial Score" icon={Target} iconColor="#10B981" isOpen={openModule === "score"} onToggle={() => handleToggle("score")} testId="accordion-score">
+            <FinancialScoreWidget data={controlScore} />
+          </AccordionModule>
+
+          <AccordionModule title="Emergency Runway" icon={Shield} iconColor="#3B82F6" isOpen={openModule === "runway"} onToggle={() => handleToggle("runway")} testId="accordion-runway">
+            <EmergencyRunwayWidget data={survivalClock} />
+          </AccordionModule>
+
+          <AccordionModule title="Shock Test" icon={Zap} iconColor="#EF4444" isOpen={openModule === "shock"} onToggle={() => handleToggle("shock")} locked={stageNum < 5 && stageNum > 0} unlockStage={5} testId="accordion-shock">
+            <ShockTestWidget clockData={survivalClock} />
+          </AccordionModule>
+
+          <AccordionModule title="Runway Simulator" icon={Rocket} iconColor="#8B5CF6" isOpen={openModule === "simulator"} onToggle={() => handleToggle("simulator")} locked={stageNum < 7 && stageNum > 0} unlockStage={7} testId="accordion-simulator">
+            <RunwaySimulator currentData={survivalClock} />
+          </AccordionModule>
+
+          <AccordionModule title="Money Personality" icon={TrendingUp} iconColor="#F59E0B" isOpen={openModule === "personality"} onToggle={() => handleToggle("personality")} testId="accordion-personality">
+            <MoneyPatternWidget data={moneyPattern} />
+          </AccordionModule>
+
+          <AccordionModule title="Badges" icon={Trophy} iconColor="#F59E0B" isOpen={openModule === "badges"} onToggle={() => handleToggle("badges")} testId="accordion-badges">
+            <BadgesWidget data={gamification} />
+          </AccordionModule>
+
+          <AccordionModule title="Challenges" icon={Swords} iconColor="#8B5CF6" isOpen={openModule === "challenges"} onToggle={() => handleToggle("challenges")} locked={stageNum < 12 && stageNum > 0} unlockStage={12} testId="accordion-challenges">
+            <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
+          </AccordionModule>
+
+          <AccordionModule title="Future You" icon={Rocket} iconColor="#8B5CF6" isOpen={openModule === "future"} onToggle={() => handleToggle("future")} testId="accordion-future">
+            <FutureYouWidget data={futureYou} />
+          </AccordionModule>
+
+          <AccordionModule title="Personality Evolution" icon={TrendingUp} iconColor="#F59E0B" isOpen={openModule === "evolution"} onToggle={() => handleToggle("evolution")} locked={stageNum < 9 && stageNum > 0} unlockStage={9} testId="accordion-evolution">
+            <PersonalityEvolutionWidget data={personalityHistory} currentPersonality={moneyPattern?.personality} />
+          </AccordionModule>
+        </div>
+
+        {/* Explore Links */}
         <div className="space-y-2.5 pt-2">
           <p className="text-xs font-bold tracking-wider uppercase" style={{ color: "var(--text-muted)" }}>Explore</p>
           {[
