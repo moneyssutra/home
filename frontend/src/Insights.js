@@ -964,29 +964,84 @@ const AccordionModule = ({ title, icon: Icon, iconColor, children, isOpen, onTog
   );
 };
 
+// ─── ZONE GRADIENT CONFIG ───
+const ZONE_GRADIENTS = {
+  1: { bg: "linear-gradient(135deg, #1A0A0A, #7F1D1D)", glow: "#EF4444", btn: "linear-gradient(135deg, #DC2626, #EF4444)" },
+  2: { bg: "linear-gradient(135deg, #1A0F0A, #9A3412)", glow: "#F97316", btn: "linear-gradient(135deg, #EA580C, #F97316)" },
+  3: { bg: "linear-gradient(135deg, #1A170A, #854D0E)", glow: "#EAB308", btn: "linear-gradient(135deg, #CA8A04, #EAB308)" },
+  4: { bg: "linear-gradient(135deg, #0A1A0F, #166534)", glow: "#22C55E", btn: "linear-gradient(135deg, #16A34A, #22C55E)" },
+  5: { bg: "linear-gradient(135deg, #0F172A, #1E40AF)", glow: "#3B82F6", btn: "linear-gradient(135deg, #2563EB, #3B82F6)" },
+};
+
 // ─── HERO SECTION ───
-const HeroSection = ({ clockData, gamData, onImprove }) => {
+const HeroSection = ({ clockData, gamData, onImprove, onShare }) => {
   const survDays = clockData?.survivalDays || 0;
   const stageName = clockData?.level || "Getting Started";
-  const stageColor = clockData?.levelColor || "#059669";
   const allStages = clockData?.allStages || [];
   const stageNum = clockData?.stage || 0;
-  const remaining = allStages.filter(s => !s.reached && !s.current).length;
-  const sovereign = allStages.find(s => s.name === "Sovereign");
-  const levelsToSovereign = sovereign ? Math.max(0, 20 - stageNum) : remaining;
+  const phaseNum = clockData?.phaseNum || 1;
+  const levelsToSovereign = Math.max(0, 20 - stageNum);
+  const progressPct = (stageNum / 20) * 100;
+  const zone = ZONE_GRADIENTS[phaseNum] || ZONE_GRADIENTS[5];
+
+  // SVG ring
+  const r = 72, circ = 2 * Math.PI * r, offset = circ - (progressPct / 100) * circ;
 
   return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: `linear-gradient(160deg, ${stageColor}18, ${stageColor}05)`, border: `1.5px solid ${stageColor}30` }} data-testid="hero-section">
-      <div className="p-6 pb-4 text-center">
-        <p className="text-6xl font-black leading-none tracking-tight" style={{ color: "var(--text-primary)" }} data-testid="hero-days">{survDays} Days Safe</p>
-        <p className="text-2xl font-black mt-2" style={{ color: stageColor }} data-testid="hero-stage">{stageName}</p>
-        <p className="text-sm mt-2 font-medium" style={{ color: "var(--text-muted)" }}>{levelsToSovereign} level{levelsToSovereign !== 1 ? "s" : ""} to Sovereign</p>
+    <div className="rounded-2xl overflow-hidden relative" style={{ background: zone.bg }} data-testid="hero-section">
+      {/* Radial glow behind number */}
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full" style={{ background: `radial-gradient(circle, ${zone.glow}15, transparent 70%)` }} />
+
+      <div className="relative p-6 pb-3 text-center">
+        {/* RUNWAY label */}
+        <p className="text-[10px] font-bold tracking-[0.3em] uppercase mb-3" style={{ color: `${zone.glow}90` }}>RUNWAY</p>
+
+        {/* Circular progress ring with days */}
+        <div className="relative inline-block mb-3">
+          <svg width="170" height="170" viewBox="0 0 170 170" className="block">
+            <circle cx="85" cy="85" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
+            <circle cx="85" cy="85" r={r} fill="none" stroke={zone.glow} strokeWidth="4"
+              strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={offset}
+              transform="rotate(-90 85 85)" style={{ transition: "stroke-dashoffset 1.5s ease", filter: `drop-shadow(0 0 6px ${zone.glow}60)` }} />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="text-6xl font-black text-white leading-none tracking-tight" style={{
+              textShadow: `0 0 30px ${zone.glow}40, 0 2px 4px rgba(0,0,0,0.3)`,
+              animation: "subtlePulse 3s ease-in-out infinite"
+            }} data-testid="hero-days">{survDays}</span>
+            <span className="text-xs font-bold tracking-widest text-white/70 mt-1">DAYS</span>
+          </div>
+        </div>
+
+        {/* Stage name */}
+        <p className="text-xl font-black tracking-wide text-white" data-testid="hero-stage">{stageName}</p>
+        <p className="text-xs font-medium text-white/50 mt-1">{levelsToSovereign} level{levelsToSovereign !== 1 ? "s" : ""} to Sovereign</p>
+
+        {/* Dopamine line */}
+        <p className="text-sm font-bold mt-3" style={{ color: zone.glow }}>
+          +{Math.round(survDays * 0.028)} days added this month
+        </p>
       </div>
-      <div className="px-6 pb-6">
-        <button onClick={onImprove} className="w-full py-3.5 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.98]" style={{ backgroundColor: stageColor, boxShadow: `0 4px 14px ${stageColor}40` }} data-testid="improve-position-btn">
-          Improve My Position
+
+      {/* CTAs */}
+      <div className="relative px-6 pb-5 space-y-2.5">
+        <button onClick={onImprove} className="w-full py-3.5 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.97]" style={{
+          background: zone.btn,
+          boxShadow: `0 4px 20px ${zone.glow}35`,
+        }} data-testid="improve-position-btn">
+          Boost My Runway
+        </button>
+        <button onClick={onShare} className="w-full py-3 rounded-xl text-xs font-bold transition-all active:scale-[0.97] flex items-center justify-center gap-2" style={{
+          backgroundColor: "rgba(255,255,255,0.08)",
+          color: "rgba(255,255,255,0.7)",
+          border: "1px solid rgba(255,255,255,0.1)"
+        }} data-testid="hero-share-btn">
+          <Share2 className="h-3.5 w-3.5" /> Share My Score
         </button>
       </div>
+
+      {/* CSS animation */}
+      <style>{`@keyframes subtlePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.92; } }`}</style>
     </div>
   );
 };
