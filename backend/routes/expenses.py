@@ -275,6 +275,23 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
             if sm == mon:
                 result.append(exp)
 
+    # Enrich each expense with payment status for the target month
+    for exp in result:
+        if not exp.get('_displayStatus'):
+            # Check if there's a prepaid record for this expense in the target month
+            if exp.get('id'):
+                prepaid = await db.expenses.find_one({
+                    "linkedPaymentId": exp['id'],
+                    "expenseMonth": target_month,
+                    "prepaidFlag": True
+                }, {"_id": 0})
+                if prepaid:
+                    exp['_displayStatus'] = 'prepaid'
+                elif exp.get('isPaid') and exp.get('lastPaidDate', '')[:7] == target_month:
+                    exp['_displayStatus'] = 'paid'
+                else:
+                    exp['_displayStatus'] = 'pending'
+
     return result
 
 
