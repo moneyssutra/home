@@ -56,7 +56,7 @@ const MyCommission = () => {
     switch (frequency) {
       case "Monthly":
         if (!selectedDate) return null;
-        const day = new Date(selectedDate).getDate();
+        const day = parseInt(selectedDate) || 1;
         const nextMonthlyDate = new Date(today.getFullYear(), today.getMonth(), day);
         if (nextMonthlyDate <= today) nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);
         return nextMonthlyDate;
@@ -64,7 +64,7 @@ const MyCommission = () => {
         if (!selectedMonth || !selectedDate) return null;
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const monthIndex = months.indexOf(selectedMonth);
-        const yearlyDay = new Date(selectedDate).getDate();
+        const yearlyDay = parseInt(selectedDate) || 1;
         const nextYearlyDate = new Date(today.getFullYear(), monthIndex, yearlyDay);
         if (nextYearlyDate <= today) nextYearlyDate.setFullYear(nextYearlyDate.getFullYear() + 1);
         return nextYearlyDate;

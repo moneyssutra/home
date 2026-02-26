@@ -57,7 +57,7 @@ const MyInterest = () => {
     switch (frequency) {
       case "Monthly":
         if (!selectedDate) return null;
-        const day = new Date(selectedDate).getDate();
+        const day = parseInt(selectedDate) || 1;
         const nextMonthlyDate = new Date(today.getFullYear(), today.getMonth(), day);
         if (nextMonthlyDate <= today) nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);
         return nextMonthlyDate;
@@ -65,7 +65,7 @@ const MyInterest = () => {
         if (!selectedMonth || !selectedDate) return null;
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const monthIndex = months.indexOf(selectedMonth);
-        const qDay = new Date(selectedDate).getDate();
+        const qDay = parseInt(selectedDate) || 1;
         const quarterMonths = [monthIndex, (monthIndex + 3) % 12, (monthIndex + 6) % 12, (monthIndex + 9) % 12];
         for (let qMonth of quarterMonths) {
           const nextDate = new Date(today.getFullYear(), qMonth, qDay);
