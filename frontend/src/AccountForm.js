@@ -107,6 +107,10 @@ const AccountForm = () => {
   useEffect(() => { if ((currentBalance || currentBalance === "0") && errors.currentBalance) setErrors(prev => { const n = {...prev}; delete n.currentBalance; return n; }); }, [currentBalance]);
 
   const validate = () => {
+    const newErrors = {};
+
+    // Account Name validation
+    const nameError = validateTextField(accountName, "Account name", 50);
     if (nameError) newErrors.accountName = nameError;
 
     // Account Type validation
