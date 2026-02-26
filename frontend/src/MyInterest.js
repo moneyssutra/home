@@ -76,7 +76,7 @@ const MyInterest = () => {
         if (!selectedMonth || !selectedDate) return null;
         const allMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const mIndex = allMonths.indexOf(selectedMonth);
-        const yearlyDay = new Date(selectedDate).getDate();
+        const yearlyDay = parseInt(selectedDate) || 1;
         const nextYearlyDate = new Date(today.getFullYear(), mIndex, yearlyDay);
         if (nextYearlyDate <= today) nextYearlyDate.setFullYear(nextYearlyDate.getFullYear() + 1);
         return nextYearlyDate;
