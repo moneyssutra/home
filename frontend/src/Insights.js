@@ -1059,7 +1059,7 @@ const HeroSection = ({ clockData, gamData, onImprove, onShare }) => {
           Increase My Safety
         </button>
         <button onClick={onShare} className="w-full py-3 rounded-xl text-xs font-bold transition-all active:scale-[0.97] flex items-center justify-center gap-2" style={{
-          backgroundColor: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.7)", border: "1px solid rgba(255,255,255,0.15)"
+          backgroundColor: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.08)"
         }} data-testid="hero-share-btn">
           <Share2 className="h-3.5 w-3.5" /> Share My Progress
         </button>
