@@ -5,10 +5,10 @@ const incomeTypes = [
   { key: "Job", label: "Job", desc: "Salary, wages, bonuses", icon: Briefcase, color: "#3B82F6", bg: "#EFF6FF", path: "/job-income" },
   { key: "Business", label: "Business", desc: "Business profits, revenue", icon: Building2, color: "#059669", bg: "#ECFDF5", path: "/business-income" },
   { key: "Self-Employed", label: "Self-Employed", desc: "Freelance, consulting", icon: UserCheck, color: "#D97706", bg: "#FEF3C7", path: "/self-employed-income" },
-  { key: "Rental", label: "Rental", desc: "Property rental income", icon: Home, color: "#F59E0B", bg: "#FFFBEB", path: "/rental-income" },
+  { key: "Rental", label: "Rental", desc: "Add property asset with rental income", icon: Home, color: "#F59E0B", bg: "#FFFBEB", path: "/asset" },
   { key: "Commission", label: "Commission", desc: "Sales commissions, referrals", icon: Percent, color: "#EC4899", bg: "#FDF2F8", path: "/commission-income" },
-  { key: "Interest", label: "Interest", desc: "FD, savings, bonds", icon: TrendingUp, color: "#0891B2", bg: "#ECFEFF", path: "/interest-income" },
-  { key: "Dividend", label: "Dividend", desc: "Stock, mutual fund dividends", icon: PieChart, color: "#10B981", bg: "#ECFDF5", path: "/dividend-income" },
+  { key: "Interest", label: "Interest", desc: "Add investment with interest income", icon: TrendingUp, color: "#0891B2", bg: "#ECFEFF", path: "/investment" },
+  { key: "Dividend", label: "Dividend", desc: "Add investment with dividend income", icon: PieChart, color: "#10B981", bg: "#ECFDF5", path: "/investment" },
   { key: "Other", label: "Other Income", desc: "Gifts, refunds, misc", icon: Gift, color: "#8B5CF6", bg: "#F5F3FF", path: "/other-income" },
 ];
 

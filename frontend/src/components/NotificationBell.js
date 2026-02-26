@@ -200,13 +200,14 @@ const NotificationBell = () => {
   const handleTouchEnd = () => {
     if (!swipingId || dismissingId) return;
     if (swipeX > 80) {
-      // Trigger dismiss animation
-      setDismissingId(swipingId);
+      // Capture the id before state changes
+      const idToDelete = swipingId;
+      setDismissingId(idToDelete);
       setSwipingId(null);
       setSwipeX(0);
       // Wait for animation to finish, then delete
       setTimeout(() => {
-        handleDeleteNotification(dismissingId);
+        handleDeleteNotification(idToDelete);
         setDismissingId(null);
       }, 350);
     } else {
