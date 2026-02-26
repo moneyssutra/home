@@ -16,6 +16,10 @@ import {
   AlertTriangle,
   Lightbulb,
   TrendingUp as TrendIcon,
+  CheckCircle2,
+  Clock,
+  CircleDollarSign,
+  CalendarClock,
 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
