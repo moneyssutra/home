@@ -92,8 +92,11 @@ const OtherIncomeForm = () => {
     { id: "H2", label: "Jul–Dec" },
   ];
 
+  const hasMounted = useRef(false);
+
   useEffect(() => {
     window.scrollTo(0, 0);
+    hasMounted.current = true;
   }, []);
 
   useEffect(() => {
@@ -103,7 +106,7 @@ const OtherIncomeForm = () => {
   }, [id]);
 
   useEffect(() => {
-    if (conditionalRef.current && formData.frequency) {
+    if (hasMounted.current && conditionalRef.current && formData.frequency) {
       setTimeout(() => {
         conditionalRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 100);
