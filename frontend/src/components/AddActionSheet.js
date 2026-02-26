@@ -14,7 +14,7 @@ const AddActionSheet = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   const actions = [
-    { label: "Add Income", icon: Briefcase, color: "from-emerald-500 to-teal-600", path: "/my-income" },
+    { label: "Add Income", icon: Briefcase, color: "from-emerald-500 to-teal-600", path: "/add-income" },
     { label: "Add Expense", icon: Receipt, color: "from-rose-500 to-pink-600", path: "/expense" },
     { label: "Add Investment", icon: LineChart, color: "from-violet-500 to-purple-600", path: "/investment" },
     { label: "Add Asset", icon: Building2, color: "from-blue-500 to-indigo-600", path: "/asset" },
