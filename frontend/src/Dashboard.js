@@ -253,7 +253,7 @@ const Dashboard = () => {
               <div 
                 className="rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99]"
                 style={{ backgroundColor: "#FFF7ED", border: "1px solid #FED7AA" }}
-                onClick={() => navigate("/my-expenses")}
+                onClick={() => navigate("/upcoming-expenses")}
                 data-testid="cashflow-expenses-upcoming"
               >
                 <div className="flex items-center gap-1.5 mb-1">
