@@ -217,3 +217,132 @@ def _calc_monthly_expenses(expenses, current_month, current_year):
         else:
             monthly_expenses += amount
     return monthly_expenses
+
+
+def _is_due_this_month(freq, item, current_month, current_year, is_income=True):
+    """Check if this item is due in the current month based on its frequency."""
+    month_map = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,
+                 "July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
+    quarter_months = {'Q1': [1,2,3], 'Q2': [4,5,6], 'Q3': [7,8,9], 'Q4': [10,11,12]}
+
+    if freq == 'Monthly' or freq == 'Daily' or freq == 'Weekly':
+        return True
+    elif freq == 'Quarterly':
+        sq = item.get('selectedQuarter', '')
+        for qp, ms in quarter_months.items():
+            if sq and sq.startswith(qp):
+                return current_month in ms
+        return current_month in [1, 4, 7, 10]
+    elif freq == 'Half-Yearly':
+        sh = item.get('selectedHalf', '')
+        if 'Jan' in sh:
+            return current_month in [1, 7]
+        return current_month in [7, 1]
+    elif freq == 'Yearly':
+        sm = item.get('selectedMonth', '')
+        return month_map.get(sm) == current_month
+    elif freq in ('One-Time', 'Irregular', 'Others'):
+        date_field = 'customDate' if is_income else 'oneTimeDate'
+        cd = item.get(date_field, '') or item.get('customDate', '')
+        if cd:
+            try:
+                d = datetime.fromisoformat(cd).date()
+                return d.month == current_month and d.year == current_year
+            except (ValueError, TypeError):
+                pass
+        return False
+    return True
+
+
+def _get_schedule_day(item, is_income=True):
+    """Get the day of month when this item is due. Returns 1 if unknown."""
+    sd = item.get('selectedDate')
+    if sd:
+        try:
+            return int(sd)
+        except (ValueError, TypeError):
+            pass
+    return 1
+
+
+def _split_by_schedule_date(items, current_day, current_month, current_year, is_income=True):
+    """Split items into received/done vs expected/upcoming based on schedule date."""
+    received = []
+    expected = []
+    name_field = 'name' if is_income else 'expenseName'
+
+    for item in items:
+        amount = item.get('expectedAmount', 0)
+        freq = item.get('frequency', 'Monthly')
+
+        if not _is_due_this_month(freq, item, current_month, current_year, is_income):
+            continue
+
+        schedule_day = _get_schedule_day(item, is_income)
+        entry = {
+            "id": item.get('id', ''),
+            "name": item.get(name_field, item.get('name', 'Unknown')),
+            "amount": amount,
+            "frequency": freq,
+            "scheduleDay": schedule_day,
+            "type": item.get('type', item.get('category', '')),
+        }
+
+        if freq in ('Daily', 'Weekly'):
+            # Daily/weekly: proportional split based on days passed
+            import calendar
+            days_in_month = calendar.monthrange(current_year, current_month)[1]
+            if freq == 'Daily':
+                entry_received = {**entry, "amount": amount * current_day}
+                entry_expected = {**entry, "amount": amount * (days_in_month - current_day)}
+            else:
+                weeks_passed = current_day / 7
+                entry_received = {**entry, "amount": round(amount * weeks_passed, 2)}
+                entry_expected = {**entry, "amount": round(amount * (4 - weeks_passed), 2)}
+            if entry_received["amount"] > 0:
+                received.append(entry_received)
+            if entry_expected["amount"] > 0:
+                expected.append(entry_expected)
+        elif schedule_day <= current_day:
+            received.append(entry)
+        else:
+            expected.append(entry)
+
+    return received, expected
+
+
+def _split_other_income(other_incomes, current_day, current_month, current_year):
+    """Split other income into received/expected."""
+    received = []
+    expected = []
+
+    for oi in other_incomes:
+        amount = oi.get('amount', 0)
+        freq = oi.get('frequency', 'One-Time')
+        entry = {
+            "id": oi.get('id', ''),
+            "name": oi.get('source', oi.get('name', 'Other Income')),
+            "amount": amount,
+            "frequency": freq,
+            "scheduleDay": 1,
+            "type": "Other Income",
+        }
+
+        if freq == 'One-Time' or freq == 'Irregular':
+            dr = oi.get('dateReceived', '')
+            if dr:
+                try:
+                    d = datetime.fromisoformat(dr).date()
+                    if d.month == current_month and d.year == current_year:
+                        if d.day <= current_day:
+                            received.append(entry)
+                        else:
+                            expected.append(entry)
+                except (ValueError, TypeError):
+                    pass
+        elif freq == 'Monthly':
+            received.append(entry)  # Monthly other income counted as received
+        else:
+            received.append(entry)
+
+    return received, expected
