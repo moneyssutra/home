@@ -71,6 +71,7 @@ const CommissionIncome = () => {
 
   // Fetch data if editing
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (id) {
       fetchCommissionData();
     }

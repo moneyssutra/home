@@ -119,6 +119,7 @@ const SelfEmployedIncome = () => {
 
   // Fetch data if editing
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (id) {
       fetchIncomeData();
     }

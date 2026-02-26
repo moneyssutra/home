@@ -83,6 +83,7 @@ const BusinessIncome = () => {
 
   // Fetch business data if editing
   useEffect(() => {
+    window.scrollTo(0, 0);
     if (id) {
       fetchBusinessData();
     }
