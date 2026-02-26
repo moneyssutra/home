@@ -117,7 +117,7 @@ const MyBusiness = () => {
   const calculateQuarterlyNextDateObj = (month, dateStr) => {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const monthIndex = months.indexOf(month);
-    const day = new Date(dateStr).getDate();
+    const day = parseInt(dateStr) || 1;
     const today = new Date();
     
     const quarterMonths = [monthIndex, monthIndex + 3, monthIndex + 6, monthIndex + 9].map(m => m % 12);
@@ -135,7 +135,7 @@ const MyBusiness = () => {
   const calculateHalfYearlyNextDateObj = (month, dateStr) => {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     const monthIndex = months.indexOf(month);
-    const day = new Date(dateStr).getDate();
+    const day = parseInt(dateStr) || 1;
     const today = new Date();
     
     const currentYearDate = new Date(today.getFullYear(), monthIndex, day);
