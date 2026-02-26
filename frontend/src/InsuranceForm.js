@@ -332,11 +332,15 @@ const InsuranceForm = () => {
     }
   };
 
-  const validate = () => {
-    const newErrors = {};
+  // Clear field errors in real-time when user fills data
+  useEffect(() => { if (insuranceType && errors.insuranceType) setErrors(prev => { const n = {...prev}; delete n.insuranceType; return n; }); }, [insuranceType]);
+  useEffect(() => { if (coverageAmount && errors.coverageAmount) setErrors(prev => { const n = {...prev}; delete n.coverageAmount; return n; }); }, [coverageAmount]);
+  useEffect(() => { if (premiumAmount && errors.premiumAmount) setErrors(prev => { const n = {...prev}; delete n.premiumAmount; return n; }); }, [premiumAmount]);
+  useEffect(() => { if (premiumFrequency && errors.premiumFrequency) setErrors(prev => { const n = {...prev}; delete n.premiumFrequency; return n; }); }, [premiumFrequency]);
+  useEffect(() => { if (startDate && errors.startDate) setErrors(prev => { const n = {...prev}; delete n.startDate; return n; }); }, [startDate]);
+  useEffect(() => { if (endDate && errors.endDate) setErrors(prev => { const n = {...prev}; delete n.endDate; return n; }); }, [endDate]);
 
-    // Insurance Type validation
-    if (!insuranceType) {
+  const validate = () => {
       newErrors.insuranceType = "Please select insurance type.";
     }
 
