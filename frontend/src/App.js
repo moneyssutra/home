@@ -156,8 +156,6 @@ function AppRouter() {
       
       {/* Dividend Income */}
       <Route path="/my-dividend" element={<ProtectedRoute><MyDividend /></ProtectedRoute>} />
-      <Route path="/dividend-income" element={<ProtectedRoute><DividendIncome /></ProtectedRoute>} />
-      <Route path="/dividend-income/:id" element={<ProtectedRoute><DividendIncome /></ProtectedRoute>} />
       
       {/* Loans */}
       <Route path="/my-loans" element={<ProtectedRoute><MyLoans /></ProtectedRoute>} />
