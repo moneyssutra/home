@@ -290,10 +290,10 @@ const Dashboard = () => {
                 {(data?.monthlySavings || 0) >= 0 ? "+" : "-"}₹{formatAmount(Math.abs(data?.monthlySavings || 0))}
               </p>
             </div>
-            {data?.monthlyIncome > 0 && (
+            {data?.incomeReceived > 0 && (
               <div className="flex justify-end mt-1">
                 <span className="text-[10px]" style={{ color: (data?.monthlySavings || 0) >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
-                  {Math.round((data.monthlySavings / data.monthlyIncome) * 100)}% savings rate
+                  {Math.round(((data.incomeReceived - (data.expensesDone || 0)) / data.incomeReceived) * 100)}% savings rate
                 </span>
               </div>
             )}
