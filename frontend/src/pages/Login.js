@@ -24,6 +24,19 @@ const Login = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Load remembered credentials on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("moneyssutra_remember");
+    if (saved) {
+      try {
+        const { email, password: savedPw } = JSON.parse(saved);
+        if (email) setIdentifier(email);
+        if (savedPw) setPassword(savedPw);
+        setRememberMe(true);
+      } catch (e) {}
+    }
+  }, []);
+
   useEffect(() => {
     if (isAuthenticated && !loading) {
       const from = location.state?.from?.pathname || "/home";
