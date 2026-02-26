@@ -257,6 +257,11 @@ class ExpenseCreate(BaseModel):
     oneTimeDate: Optional[str] = None
     isPaid: bool = False
     lastPaidDate: Optional[str] = None
+    paidDate: Optional[str] = None
+    prepaidFlag: bool = False
+    expenseMonth: Optional[str] = None
+    dueDate: Optional[str] = None
+    linkedPaymentId: Optional[str] = None
 
 
 # ============ INSURANCE MODEL ============
