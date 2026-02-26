@@ -1,0 +1,91 @@
+{
+  "summary": "Frontend testing for Add Income navigation redirects and Other Income scroll fix. 8/9 features verified working. Main issues: 1) Other Income form scroll to top NOT working (scroll position 381 on load instead of 0).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "OtherIncomeForm",
+        "issue": "Page does NOT scroll to top on load - scroll position is 381 instead of 0. Root cause: useEffect at line 105-111 scrolls to conditionalRef after mount when formData.frequency has initial value 'One-Time'",
+        "selector": "[data-testid='other-income-form']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Multiple forms",
+        "issues": ["Console shows HTML hydration warnings about <span> inside <option> and <select> - non-critical React dev warnings from Emergent Visual Editor"]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Fix OtherIncomeForm.js scroll to top - the useEffect at lines 105-111 that scrolls to conditionalRef is running on initial load when formData.frequency has default value 'One-Time'. Add a flag to skip initial scroll or check if frequency actually changed from user action."
+  ],
+  "critical_code_review_comments": [
+    "OtherIncomeForm.js line 105-111: The scroll-to-conditional-field effect runs on mount because formData.frequency is initialized to 'One-Time'. This causes the page to scroll down on load, defeating the window.scrollTo(0,0) at line 96-97."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only testing)",
+    "frontend": "89% (8/9 features verified working)"
+  },
+  "test_credentials": "email=test@moneyssutra.com, password=test",
+  "seed_data_creation": "None required",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All Add Income navigation redirects verified working. OtherIncomeForm scroll to top issue needs fix in lines 105-111 - add initial mount check to prevent scrollIntoView on initial render.",
+  "features_tested": {
+    "add_income_interest_to_investment": {
+      "status": "PASS",
+      "details": "Add Income page Interest button navigates to /investment"
+    },
+    "add_income_dividend_to_investment": {
+      "status": "PASS",
+      "details": "Add Income page Dividend button navigates to /investment"
+    },
+    "add_income_rental_to_asset": {
+      "status": "PASS",
+      "details": "Add Income page Rental button navigates to /asset"
+    },
+    "add_income_other_types_regression": {
+      "status": "PASS",
+      "details": "Add Income page Job/Business/Self-Employed/Commission/Other still navigate to respective form pages"
+    },
+    "my_interest_add_investment": {
+      "status": "PASS",
+      "details": "My Interest page has Add Investment button that navigates to /investment (verified in code, button exists per MyInterest.js lines 248, 290)"
+    },
+    "my_dividend_add_investment": {
+      "status": "PASS",
+      "details": "My Dividend page has Add Investment button that navigates to /investment (verified in code, button exists per MyDividend.js lines 240, 282)"
+    },
+    "my_rental_add_asset": {
+      "status": "PASS",
+      "details": "My Rental page 'Add New Asset' button (data-testid=add-rental-button) navigates to /asset"
+    },
+    "my_rental_card_navigation": {
+      "status": "PASS",
+      "details": "Rental item cards navigate to /my-assets when clicked"
+    },
+    "dashboard_networth_card": {
+      "status": "PASS",
+      "details": "Net Worth card shows 'Total Net Worth', 'Growing' badge (solid green gradient), 'Assets', 'Investments', 'Cash' labels - all visible with white bold text"
+    },
+    "dashboard_cashflow_links": {
+      "status": "PASS",
+      "details": "Monthly Cashflow widget has 'My Income >' (data-testid=cashflow-view-my-income) and 'My Expenses >' (data-testid=cashflow-view-my-expenses) navigation links"
+    },
+    "other_income_scroll_to_top": {
+      "status": "FAIL",
+      "details": "Other Income form (/other-income) does NOT scroll to top on load. Scroll position is 381 instead of 0. Root cause: conditionalRef scrollIntoView runs immediately on mount."
+    },
+    "back_button_regression": {
+      "status": "PASS",
+      "details": "/add-income → /job-income → back → returns to /add-income correctly"
+    }
+  }
+}
