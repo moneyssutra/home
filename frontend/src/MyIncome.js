@@ -179,14 +179,16 @@ const MyIncome = () => {
     const paths = {
       Business: "/my-business",
       Job: "/my-job",
+      Salary: "/my-job",
       "Self-Employed": "/my-self-employed",
+      Freelance: "/my-self-employed",
       Rental: "/my-rental",
       Commission: "/my-commission",
       Interest: "/my-interest",
       Dividend: "/my-dividend",
       "Other Income": "/my-other-income",
     };
-    return paths[type] || "/";
+    return paths[type] || "/my-income";
   };
 
   const chartColors = ["#059669", "#3B82F6", "#F59E0B", "#8B5CF6", "#06B6D4", "#EC4899"];
