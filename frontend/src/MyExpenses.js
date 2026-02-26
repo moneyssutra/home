@@ -1,18 +1,44 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal, TrendingUp, PiggyBank } from "lucide-react";
+import { ChevronRight, ChevronLeft, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal, TrendingUp, PiggyBank, Check, Clock, CalendarDays, FastForward } from "lucide-react";
+import axios from "axios";
+import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
-import { useExpenseList } from "@/hooks/useApi";
+import { useExpenseList, useExpensesByMonth } from "@/hooks/useApi";
+import { mutate } from "swr";
 import { normalizeToMonthly } from "@/lib/formatters";
+
+const API = process.env.REACT_APP_BACKEND_URL;
+
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+function getMonthKey(offset = 0) {
+  const d = new Date();
+  d.setMonth(d.getMonth() + offset);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function getMonthLabel(monthKey) {
+  const [y, m] = monthKey.split("-").map(Number);
+  return `${MONTH_NAMES[m - 1]} ${y}`;
+}
 
 const MyExpenses = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [actionLoading, setActionLoading] = useState(null);
 
-  // Use SWR for data fetching with caching
-  const { data: expenses = [], isLoading: loading, error } = useExpenseList();
+  const currentMonthKey = getMonthKey(monthOffset);
+  const isCurrentMonth = monthOffset === 0;
+  const isNextMonth = monthOffset === 1;
+
+  // Fetch summary for totals (all expenses)
+  const { data: allExpenses = [] } = useExpenseList();
+  // Fetch month-specific data
+  const { data: monthExpenses = [], isLoading: loading, mutate: mutateMonth } = useExpensesByMonth(currentMonthKey);
 
   const formatAmount = (amount) => {
     if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
@@ -21,46 +47,57 @@ const MyExpenses = () => {
     return new Intl.NumberFormat("en-IN").format(amount);
   };
 
-  // Memoize calculations to avoid unnecessary re-computation
-  const { totalExpenses, fixedExpenses, variableExpenses, fixedTotal, variableTotal } = useMemo(() => {
-    const total = expenses.reduce((sum, exp) => sum + normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || 'Monthly'), 0);
-    const fixed = expenses.filter(e => e.expenseType === "Fixed");
-    const variable = expenses.filter(e => e.expenseType === "Variable");
+  const totalMonthly = useMemo(() =>
+    allExpenses.reduce((sum, exp) => sum + normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || "Monthly"), 0),
+    [allExpenses]
+  );
+
+  // Month expense stats
+  const monthStats = useMemo(() => {
+    const paid = monthExpenses.filter(e => e._displayStatus === "paid" || e._displayStatus === "prepaid");
+    const pending = monthExpenses.filter(e => e._displayStatus === "pending");
     return {
-      totalExpenses: total,
-      fixedExpenses: fixed,
-      variableExpenses: variable,
-      fixedTotal: fixed.reduce((sum, e) => sum + normalizeToMonthly(e.expectedAmount || 0, e.frequency || 'Monthly'), 0),
-      variableTotal: variable.reduce((sum, e) => sum + normalizeToMonthly(e.expectedAmount || 0, e.frequency || 'Monthly'), 0)
+      total: monthExpenses.reduce((s, e) => s + (e.expectedAmount || 0), 0),
+      paidTotal: paid.reduce((s, e) => s + (e.expectedAmount || 0), 0),
+      pendingTotal: pending.reduce((s, e) => s + (e.expectedAmount || 0), 0),
+      paidCount: paid.length,
+      pendingCount: pending.length,
     };
-  }, [expenses]);
+  }, [monthExpenses]);
 
-  const getPaymentStatus = (expense) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (!expense.selectedDate) return 'upcoming';
-    const dueDate = new Date();
-    dueDate.setDate(parseInt(expense.selectedDate));
-    dueDate.setHours(0, 0, 0, 0);
-    if (dueDate < today) return 'paid';
-    if (dueDate.getTime() === today.getTime()) return 'due-today';
-    return 'upcoming';
-  };
+  // Sort: pending first, then paid/prepaid
+  const sortedExpenses = useMemo(() => {
+    const order = { pending: 0, paid: 1, prepaid: 2 };
+    return [...monthExpenses].sort((a, b) => (order[a._displayStatus] ?? 0) - (order[b._displayStatus] ?? 0));
+  }, [monthExpenses]);
 
-  const sortedExpenses = [...expenses].sort((a, b) => {
-    const statusOrder = { 'upcoming': 0, 'due-today': 1, 'paid': 2 };
-    return statusOrder[getPaymentStatus(a)] - statusOrder[getPaymentStatus(b)];
-  });
+  const handleMarkPaid = useCallback(async (expenseId, expenseName) => {
+    setActionLoading(expenseId);
+    try {
+      await axios.post(`${API}/api/expenses/${expenseId}/mark-paid`, {}, { withCredentials: true });
+      toast.success(`${expenseName} marked as paid`);
+      mutateMonth();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to mark as paid");
+    } finally {
+      setActionLoading(null);
+    }
+  }, [mutateMonth]);
 
-  const expenseByCategory = expenses.reduce((acc, exp) => {
-    const cat = exp.category || "Other";
-    if (!acc[cat]) acc[cat] = { total: 0, count: 0 };
-    acc[cat].total += normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || 'Monthly');
-    acc[cat].count += 1;
-    return acc;
-  }, {});
-
-  const sortedCategories = Object.entries(expenseByCategory).sort(([, a], [, b]) => b.total - a.total);
+  const handlePrepay = useCallback(async (expenseId, expenseName) => {
+    setActionLoading(expenseId);
+    try {
+      const res = await axios.post(`${API}/api/expenses/${expenseId}/prepay`, {}, { withCredentials: true });
+      toast.success(`${expenseName} prepaid for ${getMonthLabel(res.data.expenseMonth)}`);
+      mutateMonth();
+      // Also invalidate next month's cache
+      mutate(`${API}/api/expenses/by-month?month=${getMonthKey(1)}`);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to prepay");
+    } finally {
+      setActionLoading(null);
+    }
+  }, [mutateMonth]);
 
   const getCategoryIcon = (category) => {
     const icons = {
@@ -93,35 +130,27 @@ const MyExpenses = () => {
     return colors[category] || { bg: "var(--bg-subtle)", text: "var(--text-secondary)" };
   };
 
-  const getStatusColor = (status) => {
+  const getStatusBadge = (status) => {
     switch (status) {
-      case 'paid': return { bg: "var(--status-success-soft)", text: "var(--status-success)", border: "var(--status-success)" };
-      case 'due-today': return { bg: "var(--status-warning-soft)", text: "var(--status-warning)", border: "var(--status-warning)" };
-      case 'upcoming': return { bg: "var(--status-info-soft)", text: "var(--status-info)", border: "var(--status-info)" };
-      default: return { bg: "var(--bg-subtle)", text: "var(--text-secondary)", border: "var(--border-light)" };
+      case "paid": return { label: "Paid", bg: "var(--status-success-soft)", text: "var(--status-success)", border: "var(--status-success)", icon: Check };
+      case "prepaid": return { label: "Paid Early", bg: "#DBEAFE", text: "#2563EB", border: "#2563EB", icon: FastForward };
+      case "pending": return { label: "Pending", bg: "var(--status-warning-soft)", text: "var(--status-warning)", border: "var(--status-warning)", icon: Clock };
+      default: return { label: "Upcoming", bg: "var(--status-info-soft)", text: "var(--status-info)", border: "var(--status-info)", icon: CalendarDays };
     }
   };
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'paid': return 'Paid';
-      case 'due-today': return 'Due Today';
-      case 'upcoming': return 'Upcoming';
-      default: return '';
-    }
-  };
+  const expenseByCategory = useMemo(() => {
+    const acc = {};
+    allExpenses.forEach((exp) => {
+      const cat = exp.category || "Other";
+      if (!acc[cat]) acc[cat] = { total: 0, count: 0 };
+      acc[cat].total += normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || "Monthly");
+      acc[cat].count += 1;
+    });
+    return Object.entries(acc).sort(([, a], [, b]) => b.total - a.total);
+  }, [allExpenses]);
 
   const chartColors = ["#EF4444", "#F59E0B", "#3B82F6", "#8B5CF6", "#06B6D4", "#EC4899"];
-
-  const fixedPaidList = fixedExpenses.filter(e => getPaymentStatus(e) === 'paid');
-  const fixedPendingList = fixedExpenses.filter(e => getPaymentStatus(e) !== 'paid');
-  const variablePaidList = variableExpenses.filter(e => getPaymentStatus(e) === 'paid');
-  const variablePendingList = variableExpenses.filter(e => getPaymentStatus(e) !== 'paid');
-  
-  const fixedPaidTotal = fixedPaidList.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
-  const fixedPendingTotal = fixedPendingList.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
-  const variablePaidTotal = variablePaidList.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
-  const variablePendingTotal = variablePendingList.reduce((sum, e) => sum + (e.expectedAmount || 0), 0);
 
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-expenses-page">
@@ -134,67 +163,104 @@ const MyExpenses = () => {
           </h1>
         </div>
 
-        {/* Total Expenses Card */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="total-expenses-card">
-          <p className="text-white/70 text-sm font-medium mb-1">Total Monthly Expenses</p>
-          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalExpenses)}</h2>
-          <p className="text-white/50 text-xs mt-1">{expenses.length} expense sources (normalized to monthly)</p>
-          
+        {/* Month Selector */}
+        <div className="flex items-center justify-between mb-5 bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/20" data-testid="month-selector">
+          <button
+            onClick={() => setMonthOffset(Math.max(-2, monthOffset - 1))}
+            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-30"
+            disabled={monthOffset <= -2}
+            data-testid="month-prev-btn"
+          >
+            <ChevronLeft className="h-5 w-5 text-white" />
+          </button>
+          <div className="text-center">
+            <p className="text-white font-semibold text-base" data-testid="month-label">{getMonthLabel(currentMonthKey)}</p>
+            <p className="text-white/60 text-xs">
+              {isCurrentMonth ? "Current Month" : isNextMonth ? "Next Month" : monthOffset > 0 ? `+${monthOffset} months` : `${monthOffset} months`}
+            </p>
+          </div>
+          <button
+            onClick={() => setMonthOffset(Math.min(3, monthOffset + 1))}
+            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-30"
+            disabled={monthOffset >= 3}
+            data-testid="month-next-btn"
+          >
+            <ChevronRight className="h-5 w-5 text-white" />
+          </button>
+        </div>
+
+        {/* Month Summary */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="month-summary-card">
+          <p className="text-white/70 text-sm font-medium mb-1">
+            {getMonthLabel(currentMonthKey)} Expenses
+          </p>
+          <h2 className="text-3xl font-bold text-white">
+            {loading ? "..." : `₹ ${formatAmount(monthStats.total)}`}
+          </h2>
+          <p className="text-white/50 text-xs mt-1">{monthExpenses.length} expenses this month</p>
+
           <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-white/70 mb-1">Fixed Expenses</p>
-              <p className="text-white font-medium">
-                <span style={{ color: "#A7F3D0" }}>₹{formatAmount(fixedPaidTotal)} Paid</span>
+              <p className="text-white/70 mb-1">Paid / Prepaid</p>
+              <p className="font-semibold" style={{ color: "#A7F3D0" }}>
+                ₹{formatAmount(monthStats.paidTotal)}
               </p>
-              <p className="text-white font-medium">
-                <span style={{ color: "#FDE68A" }}>₹{formatAmount(fixedPendingTotal)} Pending</span>
-              </p>
+              <p className="text-white/50 text-xs">{monthStats.paidCount} expenses</p>
             </div>
             <div>
-              <p className="text-white/70 mb-1">Variable Expenses</p>
-              <p className="text-white font-medium">
-                <span style={{ color: "#A7F3D0" }}>₹{formatAmount(variablePaidTotal)} Paid</span>
+              <p className="text-white/70 mb-1">Pending</p>
+              <p className="font-semibold" style={{ color: "#FDE68A" }}>
+                ₹{formatAmount(monthStats.pendingTotal)}
               </p>
-              <p className="text-white font-medium">
-                <span style={{ color: "#FDE68A" }}>₹{formatAmount(variablePendingTotal)} Pending</span>
-              </p>
+              <p className="text-white/50 text-xs">{monthStats.pendingCount} expenses</p>
             </div>
           </div>
+
+          {/* Progress bar */}
+          {monthStats.total > 0 && (
+            <div className="mt-3">
+              <div className="h-2 rounded-full bg-white/20 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${Math.min(100, (monthStats.paidTotal / monthStats.total) * 100)}%`,
+                    background: "linear-gradient(90deg, #34D399, #6EE7B7)",
+                  }}
+                />
+              </div>
+              <p className="text-white/50 text-xs mt-1 text-right">
+                {Math.round((monthStats.paidTotal / monthStats.total) * 100)}% settled
+              </p>
+            </div>
+          )}
         </div>
       </header>
 
-      {/* Expense Allocation */}
-      {sortedCategories.length > 0 && (
+      {/* Expense Allocation (only on current month view) */}
+      {isCurrentMonth && expenseByCategory.length > 0 && (
         <div className="px-6 -mt-4">
-          <div 
-            className="w-full rounded-2xl p-5 shadow-card text-left transition-all hover:shadow-lg" 
-            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} 
+          <div
+            className="w-full rounded-2xl p-5 shadow-card text-left transition-all hover:shadow-lg"
+            style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
             data-testid="expense-allocation"
           >
-            <div 
-              className="flex items-center justify-between mb-4 cursor-pointer"
-              onClick={() => navigate("/expense-breakdown")}
-            >
+            <div className="flex items-center justify-between mb-4 cursor-pointer" onClick={() => navigate("/expense-breakdown")}>
               <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Expense Breakdown</h3>
               <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--brand-primary-soft)", color: "var(--brand-primary)" }}>
-                View All →
+                View All
               </span>
             </div>
             <div className="space-y-3">
-              {sortedCategories.slice(0, 5).map(([category, data], idx) => {
-                const percentage = totalExpenses > 0 ? (data.total / totalExpenses) * 100 : 0;
+              {expenseByCategory.slice(0, 5).map(([category, data], idx) => {
+                const percentage = totalMonthly > 0 ? (data.total / totalMonthly) * 100 : 0;
                 const Icon = getCategoryIcon(category);
                 const catColor = getCategoryColor(category);
-                // Map category name to route slug
-                const categorySlug = category.toLowerCase().replace(/\s+/g, '-');
+                const categorySlug = category.toLowerCase().replace(/\s+/g, "-");
                 return (
-                  <div 
-                    key={category} 
+                  <div
+                    key={category}
                     className="flex items-center gap-3 cursor-pointer rounded-lg p-1 -m-1 hover:bg-gray-50 transition-colors"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/expenses/${categorySlug}`);
-                    }}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/expenses/${categorySlug}`); }}
                   >
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: catColor.bg }}>
                       <Icon className="h-5 w-5" style={{ color: catColor.text }} />
@@ -219,161 +285,172 @@ const MyExpenses = () => {
         </div>
       )}
 
-      {/* Fixed vs Variable Split */}
-      {expenses.length > 0 && (
+      {/* Fixed vs Variable Split (only on current month) */}
+      {isCurrentMonth && allExpenses.length > 0 && (
         <div className="px-6 mt-4">
           <div className="grid grid-cols-2 gap-3" style={{ alignItems: "stretch" }}>
-            <button
-              onClick={() => navigate('/expenses/fixed')}
-              className="rounded-2xl p-4 shadow-card text-left hover:shadow-md transition-all flex flex-col"
-              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", minHeight: "180px" }}
-              data-testid="fixed-expenses-card"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--bg-subtle)" }}>
-                  <Shield className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
-                </div>
-                <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Fixed</span>
-                <ChevronRight className="h-4 w-4 ml-auto" style={{ color: "var(--text-muted)" }} />
-              </div>
-              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(fixedTotal)}</p>
-              <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>{fixedExpenses.length} expenses</p>
-              <div className="mt-auto space-y-1">
-                {fixedExpenses.slice(0, 2).map(exp => (
-                  <div key={exp.id} className="flex justify-between text-xs">
-                    <span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{exp.expenseName}</span>
-                    <span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(exp.expectedAmount)}</span>
+            {[
+              { label: "Fixed", type: "Fixed", Icon: Shield, path: "/expenses/fixed", color: "var(--text-secondary)", bgColor: "var(--bg-subtle)" },
+              { label: "Variable", type: "Variable", Icon: Zap, path: "/expenses/variable", color: "var(--status-warning)", bgColor: "var(--status-warning-soft)" },
+            ].map(({ label, type, Icon, path, color, bgColor }) => {
+              const items = allExpenses.filter(e => e.expenseType === type);
+              const total = items.reduce((sum, e) => sum + normalizeToMonthly(e.expectedAmount || 0, e.frequency || "Monthly"), 0);
+              return (
+                <button
+                  key={type}
+                  onClick={() => navigate(path)}
+                  className="rounded-2xl p-4 shadow-card text-left hover:shadow-md transition-all flex flex-col"
+                  style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", minHeight: "160px" }}
+                  data-testid={`${label.toLowerCase()}-expenses-card`}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: bgColor }}>
+                      <Icon className="h-4 w-4" style={{ color }} />
+                    </div>
+                    <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{label}</span>
+                    <ChevronRight className="h-4 w-4 ml-auto" style={{ color: "var(--text-muted)" }} />
                   </div>
-                ))}
-                {fixedExpenses.length > 2 && (
-                  <p className="text-xs font-medium" style={{ color: "var(--brand-primary)" }}>+{fixedExpenses.length - 2} more</p>
-                )}
-              </div>
-            </button>
-
-            <button
-              onClick={() => navigate('/expenses/variable')}
-              className="rounded-2xl p-4 shadow-card text-left hover:shadow-md transition-all flex flex-col"
-              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", minHeight: "180px" }}
-              data-testid="variable-expenses-card"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--status-warning-soft)" }}>
-                  <Zap className="h-4 w-4" style={{ color: "var(--status-warning)" }} />
-                </div>
-                <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Variable</span>
-                <ChevronRight className="h-4 w-4 ml-auto" style={{ color: "var(--text-muted)" }} />
-              </div>
-              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(variableTotal)}</p>
-              <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>{variableExpenses.length} expenses</p>
-              <div className="mt-auto space-y-1">
-                {variableExpenses.slice(0, 2).map(exp => (
-                  <div key={exp.id} className="flex justify-between text-xs">
-                    <span className="truncate flex-1" style={{ color: "var(--text-muted)" }}>{exp.expenseName}</span>
-                    <span className="font-medium ml-2" style={{ color: "var(--text-primary)" }}>₹{formatAmount(exp.expectedAmount)}</span>
-                  </div>
-                ))}
-                {variableExpenses.length > 2 && (
-                  <p className="text-xs font-medium" style={{ color: "var(--status-warning)" }}>+{variableExpenses.length - 2} more</p>
-                )}
-              </div>
-            </button>
+                  <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(total)}</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{items.length} expenses</p>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Expense List */}
+      {/* Month Expense List */}
       <div className="px-6 mt-6">
-        <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>All Expenses</h3>
-        
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+            {getMonthLabel(currentMonthKey)} - All Expenses
+          </h3>
+          <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-muted)" }}>
+            {monthExpenses.length} items
+          </span>
+        </div>
+
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <div style={{ color: "var(--text-muted)" }}>Loading...</div>
           </div>
-        ) : expenses.length === 0 ? (
+        ) : monthExpenses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 px-6">
             <div className="flex h-20 w-20 items-center justify-center rounded-full mb-4" style={{ backgroundColor: "var(--status-error-soft)" }}>
               <Receipt className="h-10 w-10" style={{ color: "var(--status-error)" }} />
             </div>
-            <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>No Expenses Added Yet</h2>
-            <p className="text-center text-sm mb-6" style={{ color: "var(--text-secondary)" }}>Start tracking your expenses</p>
-            <button
-              onClick={() => navigate("/expense")}
-              className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium transition-all active:scale-[0.98]"
-              style={{ backgroundColor: "var(--brand-primary)" }}
-            >
-              <Plus className="h-5 w-5" />
-              Add Expense
-            </button>
+            <h2 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>No Expenses for {getMonthLabel(currentMonthKey)}</h2>
+            <p className="text-center text-sm mb-6" style={{ color: "var(--text-secondary)" }}>
+              {isCurrentMonth ? "Start tracking your expenses" : "No expenses scheduled for this month"}
+            </p>
+            {isCurrentMonth && (
+              <button
+                onClick={() => navigate("/expense")}
+                className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium transition-all active:scale-[0.98]"
+                style={{ backgroundColor: "var(--brand-primary)" }}
+              >
+                <Plus className="h-5 w-5" />
+                Add Expense
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
             {sortedExpenses.map((expense) => {
-              const status = getPaymentStatus(expense);
+              const status = expense._displayStatus || "pending";
               const Icon = getCategoryIcon(expense.category);
               const catColor = getCategoryColor(expense.category);
-              const statusColor = getStatusColor(status);
-              const nextDate = expense.nextDeductionDate ? new Date(expense.nextDeductionDate) : null;
-              const formattedNextDate = nextDate ? nextDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : null;
-              
+              const badge = getStatusBadge(status);
+              const BadgeIcon = badge.icon;
+              const isPrepaidChild = !!expense.linkedPaymentId;
+              const isLoading = actionLoading === expense.id;
+
               return (
-                <button
+                <div
                   key={expense.id}
-                  onClick={() => {
-                    // Navigate to parent entity for linked expenses, otherwise to expense edit
-                    // Pass fromExpenses state so back button returns here
-                    const currentPath = "/my-expenses";
-                    if (expense.linkedLoanId) {
-                      navigate(`/loan/${expense.linkedLoanId}`, { state: { fromExpenses: currentPath } });
-                    } else if (expense.linkedInsuranceId) {
-                      navigate(`/insurance/${expense.linkedInsuranceId}`, { state: { fromExpenses: currentPath } });
-                    } else if (expense.linkedInvestmentId) {
-                      navigate(`/investment/${expense.linkedInvestmentId}`, { state: { fromExpenses: currentPath } });
-                    } else {
-                      navigate(`/expense/${expense.id}`);
-                    }
-                  }}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card"
-                  style={{ 
-                    backgroundColor: "var(--bg-card)", 
-                    border: "1px solid var(--border-light)",
-                    opacity: status === 'paid' ? 0.7 : 1
-                  }}
+                  className="rounded-xl shadow-card overflow-hidden"
+                  style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
                   data-testid={`expense-card-${expense.id}`}
                 >
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: catColor.bg }}>
-                    <Icon className="h-6 w-6" style={{ color: catColor.text }} />
-                  </div>
-                  <div className="flex-1 text-left min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                      <h3 className="font-semibold truncate" style={{ color: "var(--text-primary)" }}>{expense.expenseName}</h3>
-                      <span 
-                        className="px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap flex-shrink-0"
-                        style={{ backgroundColor: statusColor.bg, color: statusColor.text, border: `1px solid ${statusColor.border}` }}
-                      >
-                        {getStatusLabel(status)}
-                      </span>
+                  <button
+                    onClick={() => {
+                      if (isPrepaidChild) return;
+                      const currentPath = "/my-expenses";
+                      if (expense.linkedLoanId) navigate(`/loan/${expense.linkedLoanId}`, { state: { fromExpenses: currentPath } });
+                      else if (expense.linkedInsuranceId) navigate(`/insurance/${expense.linkedInsuranceId}`, { state: { fromExpenses: currentPath } });
+                      else if (expense.linkedInvestmentId) navigate(`/investment/${expense.linkedInvestmentId}`, { state: { fromExpenses: currentPath } });
+                      else navigate(`/expense/${expense.id}`);
+                    }}
+                    className="w-full flex items-center gap-3 p-4 transition-all"
+                    style={{ opacity: status === "paid" || status === "prepaid" ? 0.7 : 1 }}
+                  >
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: catColor.bg }}>
+                      <Icon className="h-6 w-6" style={{ color: catColor.text }} />
                     </div>
-                    <div className="flex items-center gap-2 text-xs flex-wrap" style={{ color: "var(--text-muted)" }}>
-                      <span className="truncate max-w-[80px]">{expense.category}</span>
-                      <span>•</span>
-                      <span className="whitespace-nowrap">{expense.expenseType}</span>
-                      {formattedNextDate && expense.expenseType === "Fixed" && (
-                        <>
-                          <span>•</span>
-                          <span className="font-medium whitespace-nowrap" style={{ color: "var(--status-warning)" }}>Next: {formattedNextDate}</span>
-                        </>
+                    <div className="flex-1 text-left min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                        <h3 className="font-semibold truncate" style={{ color: "var(--text-primary)" }}>{expense.expenseName}</h3>
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap flex-shrink-0"
+                          style={{ backgroundColor: badge.bg, color: badge.text, border: `1px solid ${badge.border}` }}
+                        >
+                          <BadgeIcon className="h-3 w-3" />
+                          {badge.label}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs flex-wrap" style={{ color: "var(--text-muted)" }}>
+                        <span className="truncate max-w-[80px]">{expense.category}</span>
+                        <span>·</span>
+                        <span className="whitespace-nowrap">{expense.frequency}</span>
+                        {expense.selectedDate && (
+                          <>
+                            <span>·</span>
+                            <span className="whitespace-nowrap">Due: {expense.selectedDate}th</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className="font-bold" style={{ color: status === "paid" || status === "prepaid" ? "var(--status-success)" : "var(--text-primary)" }}>
+                        ₹ {formatAmount(expense.expectedAmount)}
+                      </p>
+                    </div>
+                    {!isPrepaidChild && <ChevronRight className="h-5 w-5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />}
+                  </button>
+
+                  {/* Action buttons for pending expenses */}
+                  {status === "pending" && !isPrepaidChild && (
+                    <div className="flex border-t" style={{ borderColor: "var(--border-light)" }}>
+                      {isCurrentMonth && (
+                        <button
+                          onClick={() => handleMarkPaid(expense.id, expense.expenseName)}
+                          disabled={isLoading}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors hover:bg-green-50 disabled:opacity-50"
+                          style={{ color: "var(--status-success)" }}
+                          data-testid={`mark-paid-btn-${expense.id}`}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          {isLoading ? "Marking..." : "Mark Paid"}
+                        </button>
+                      )}
+                      {isCurrentMonth && expense.frequency !== "One-Time" && (
+                        <div className="w-px" style={{ backgroundColor: "var(--border-light)" }} />
+                      )}
+                      {isCurrentMonth && expense.frequency !== "One-Time" && (
+                        <button
+                          onClick={() => handlePrepay(expense.id, expense.expenseName)}
+                          disabled={isLoading}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors hover:bg-blue-50 disabled:opacity-50"
+                          style={{ color: "#2563EB" }}
+                          data-testid={`prepay-btn-${expense.id}`}
+                        >
+                          <FastForward className="h-3.5 w-3.5" />
+                          {isLoading ? "Processing..." : "Prepay Next Month"}
+                        </button>
                       )}
                     </div>
-                  </div>
-                  <div className="text-right flex-shrink-0 ml-2">
-                    <p className="font-bold" style={{ color: status === 'paid' ? "var(--status-success)" : "var(--text-primary)" }}>
-                      ₹ {formatAmount(expense.expectedAmount)}
-                    </p>
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{expense.frequency}</p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
-                </button>
+                  )}
+                </div>
               );
             })}
           </div>
@@ -381,12 +458,13 @@ const MyExpenses = () => {
       </div>
 
       {/* Add Button */}
-      {expenses.length > 0 && (
+      {allExpenses.length > 0 && isCurrentMonth && (
         <div className="px-6 mt-6">
           <button
             onClick={() => navigate("/expense")}
             className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 font-medium transition-all"
             style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}
+            data-testid="add-expense-btn"
           >
             <Plus className="h-5 w-5" />
             Add New Expense
