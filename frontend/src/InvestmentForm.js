@@ -222,6 +222,27 @@ const InvestmentForm = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Check for duplicate income linked to this investment name
+  useEffect(() => {
+    const checkDuplicate = async () => {
+      if (!name || name.length < 2 || id) { setDuplicateWarning(""); return; }
+      try {
+        const res = await axios.get(`${backendUrl}/api/income/list/summary`);
+        const existing = res.data.find(inc => 
+          inc.name && name && inc.name.toLowerCase().includes(name.toLowerCase())
+          && ["Interest", "Dividend"].includes(inc.type)
+        );
+        if (existing) {
+          setDuplicateWarning(`"${existing.name}" (${existing.type}) is already linked as income. Adding may create a duplicate.`);
+        } else {
+          setDuplicateWarning("");
+        }
+      } catch (e) { /* ignore */ }
+    };
+    const timer = setTimeout(checkDuplicate, 500);
+    return () => clearTimeout(timer);
+  }, [name, id, backendUrl]);
+
   // Fetch accounts and investment data
   useEffect(() => {
     fetchAccounts();
