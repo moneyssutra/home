@@ -48,6 +48,21 @@ async def get_networth_summary(request: Request):
     monthly_expenses = _calc_monthly_expenses(expenses, current_month, current_year)
     net_worth = total_assets + total_investments + liquid_balance - total_liabilities
 
+    # Calculate actual received/spent this month from transactions
+    month_start = datetime(current_year, current_month, 1, tzinfo=timezone.utc).isoformat()
+    if current_month == 12:
+        month_end = datetime(current_year + 1, 1, 1, tzinfo=timezone.utc).isoformat()
+    else:
+        month_end = datetime(current_year, current_month + 1, 1, tzinfo=timezone.utc).isoformat()
+
+    txn_filter = {**user_filter, "transactionDate": {"$gte": month_start, "$lt": month_end}}
+    income_txns, expense_txns = await asyncio.gather(
+        db.income_transactions.find(txn_filter, {"_id": 0, "amount": 1}).to_list(5000),
+        db.expense_transactions.find(txn_filter, {"_id": 0, "amount": 1}).to_list(5000),
+    )
+    income_received = sum(t.get('amount', 0) for t in income_txns)
+    expenses_done = sum(t.get('amount', 0) for t in expense_txns)
+
     return {
         "netWorth": net_worth, "totalAssets": total_assets, "totalInvestments": total_investments,
         "liquidBalance": liquid_balance, "totalLiabilities": total_liabilities,
@@ -56,6 +71,10 @@ async def get_networth_summary(request: Request):
         "creditCardUtilization": (credit_card_outstanding / credit_card_limit * 100) if credit_card_limit > 0 else 0,
         "monthlyIncome": monthly_income, "monthlyExpenses": monthly_expenses,
         "monthlySavings": monthly_income - monthly_expenses,
+        "incomeReceived": income_received,
+        "expectedIncome": monthly_income,
+        "expensesDone": expenses_done,
+        "upcomingExpenses": max(0, monthly_expenses - expenses_done),
         "assetCount": len(assets), "investmentCount": len(investments),
         "accountCount": len(accounts), "loanCount": len(loans),
         "creditCardCount": len(credit_cards), "incomeCount": len(incomes), "expenseCount": len(expenses)
