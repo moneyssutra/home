@@ -123,6 +123,12 @@ function AppRouter() {
       <Route path="/my-income" element={<ProtectedRoute><MyIncome /></ProtectedRoute>} />
       <Route path="/portfolio" element={<ProtectedRoute><Portfolio /></ProtectedRoute>} />
       
+      {/* Cashflow Detail Routes */}
+      <Route path="/income-received" element={<ProtectedRoute><IncomeReceived /></ProtectedRoute>} />
+      <Route path="/expected-income" element={<ProtectedRoute><ExpectedIncome /></ProtectedRoute>} />
+      <Route path="/expenses-done" element={<ProtectedRoute><ExpensesDone /></ProtectedRoute>} />
+      <Route path="/upcoming-expenses" element={<ProtectedRoute><UpcomingExpenses /></ProtectedRoute>} />
+      
       {/* Business Income */}
       <Route path="/my-business" element={<ProtectedRoute><MyBusiness /></ProtectedRoute>} />
       <Route path="/business-income" element={<ProtectedRoute><BusinessIncome /></ProtectedRoute>} />
