@@ -152,7 +152,7 @@ export default function ShareScoreCard({ isOpen, onClose }) {
                 {/* Stats Grid */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", marginBottom: "20px" }}>
                   {[
-                    { icon: Shield, value: `${data.survivalDays}d`, label: "RUNWAY", color: "#8B5CF6" },
+                    { icon: Shield, value: `${data.survivalDays}d`, label: "SAFETY", color: "#8B5CF6" },
                     { icon: Trophy, value: data.achievements, label: "BADGES", color: "#F59E0B" },
                     { icon: Flame, value: `${data.streak}w`, label: "STREAK", color: "#EF4444" },
                     { icon: Target, value: gm.label, label: "HEALTH", color: gm.color },
