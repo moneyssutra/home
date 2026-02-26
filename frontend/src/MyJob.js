@@ -22,7 +22,7 @@ const MyJob = () => {
 
   const { totalIncome, fixedJobs, variableJobs, fixedTotal, variableTotal } = useMemo(() => {
     const total = jobs.reduce((sum, job) => sum + (job.expectedAmount || 0), 0);
-    const fixed = jobs.filter(j => j.incomeType === "fixed" || !j.incomeType);
+    const fixed = jobs.filter(j => j.incomeType !== "variable");
     const variable = jobs.filter(j => j.incomeType === "variable");
     return {
       totalIncome: total,

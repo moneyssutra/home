@@ -29,7 +29,7 @@ const MyRental = () => {
 
   const { totalIncome, fixedRentals, variableRentals, fixedTotal, variableTotal } = useMemo(() => {
     const total = rentals.reduce((sum, r) => sum + (r.expectedAmount || 0), 0);
-    const fixed = rentals.filter(r => r.incomeType === "fixed" || !r.incomeType);
+    const fixed = rentals.filter(r => r.incomeType !== "variable");
     const variable = rentals.filter(r => r.incomeType === "variable");
     return {
       totalIncome: total,

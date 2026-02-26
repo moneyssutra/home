@@ -24,7 +24,7 @@ const MySelfEmployed = () => {
   // Memoize calculations
   const { totalIncome, fixedIncomes, variableIncomes, fixedTotal, variableTotal } = useMemo(() => {
     const total = selfEmployedIncomes.reduce((sum, inc) => sum + (inc.expectedAmount || 0), 0);
-    const fixed = selfEmployedIncomes.filter(i => i.incomeType === "fixed" || !i.incomeType);
+    const fixed = selfEmployedIncomes.filter(i => i.incomeType !== "variable");
     const variable = selfEmployedIncomes.filter(i => i.incomeType === "variable");
     return {
       totalIncome: total,

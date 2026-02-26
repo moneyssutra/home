@@ -24,7 +24,7 @@ const MyBusiness = () => {
   // Memoize calculations
   const { totalIncome, fixedBusinesses, variableBusinesses, fixedTotal, variableTotal } = useMemo(() => {
     const total = businesses.reduce((sum, biz) => sum + (biz.expectedAmount || 0), 0);
-    const fixed = businesses.filter(b => b.incomeType === "fixed" || !b.incomeType);
+    const fixed = businesses.filter(b => b.incomeType !== "variable");
     const variable = businesses.filter(b => b.incomeType === "variable");
     return {
       totalIncome: total,
