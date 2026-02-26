@@ -623,8 +623,9 @@ async def get_share_card(request: Request):
             control_score = profile.get("last_score", 0)
 
     return {
-        "name": user.get("name", "User"), "level": runway_level.get("name", level_info["title"]),
+        "name": user.get("name", "User"), "level": runway_level.get("level", level_info["title"]),
         "levelNumber": runway_level.get("stage", level_info["level"]),
+        "phaseNum": runway_level.get("phase_num", 1),
         "xp": profile.get("xp", 0),
         "survivalDays": survival_days,
         "controlScore": control_score,
