@@ -255,21 +255,54 @@ def _is_due_this_month(freq, item, current_month, current_year, is_income=True):
 
 
 def _get_schedule_day(item, is_income=True):
-    """Get the day of month when this item is due. Returns 1 if unknown."""
+    """Get the day of month when this item is due. Returns 0 if unknown (not deterministic)."""
     sd = item.get('selectedDate')
     if sd:
         try:
             return int(sd)
         except (ValueError, TypeError):
             pass
-    return 1
+        # Try parsing ISO date string like "2026-02-27"
+        try:
+            return datetime.fromisoformat(str(sd)).day
+        except (ValueError, TypeError):
+            pass
+    # For expenses, also check 'dueDate' field
+    if not is_income:
+        dd = item.get('dueDate') or item.get('dueDay')
+        if dd:
+            try:
+                return int(dd)
+            except (ValueError, TypeError):
+                pass
+            try:
+                return datetime.fromisoformat(str(dd)).day
+            except (ValueError, TypeError):
+                pass
+    return 0  # 0 = unknown, will be treated conservatively
+
+
+def _count_weekday_occurrences(year, month, day_name, up_to_day=None):
+    """Count how many times a named weekday occurs in a month, optionally up to a specific day."""
+    import calendar
+    day_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
+    target = day_map.get(day_name, 0)
+    days_in_month = calendar.monthrange(year, month)[1]
+    end = min(up_to_day or days_in_month, days_in_month)
+    count = 0
+    for d in range(1, end + 1):
+        if datetime(year, month, d).weekday() == target:
+            count += 1
+    return count
 
 
 def _split_by_schedule_date(items, current_day, current_month, current_year, is_income=True):
     """Split items into received/done vs expected/upcoming based on schedule date."""
+    import calendar
     received = []
     expected = []
     name_field = 'name' if is_income else 'expenseName'
+    days_in_month = calendar.monthrange(current_year, current_month)[1]
 
     for item in items:
         amount = item.get('expectedAmount', 0)
@@ -284,28 +317,42 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
             "name": item.get(name_field, item.get('name', 'Unknown')),
             "amount": amount,
             "frequency": freq,
-            "scheduleDay": schedule_day,
+            "scheduleDay": schedule_day if schedule_day > 0 else 1,
             "type": item.get('type', item.get('category', '')),
         }
 
-        if freq in ('Daily', 'Weekly'):
-            # Daily/weekly: proportional split based on days passed
-            import calendar
-            days_in_month = calendar.monthrange(current_year, current_month)[1]
-            if freq == 'Daily':
-                entry_received = {**entry, "amount": amount * current_day}
-                entry_expected = {**entry, "amount": amount * (days_in_month - current_day)}
-            else:
-                weeks_passed = current_day / 7
-                entry_received = {**entry, "amount": round(amount * weeks_passed, 2)}
-                entry_expected = {**entry, "amount": round(amount * (4 - weeks_passed), 2)}
+        if freq == 'Daily':
+            entry_received = {**entry, "amount": round(amount * current_day, 2)}
+            entry_expected = {**entry, "amount": round(amount * (days_in_month - current_day), 2)}
             if entry_received["amount"] > 0:
                 received.append(entry_received)
             if entry_expected["amount"] > 0:
                 expected.append(entry_expected)
-        elif schedule_day <= current_day:
-            received.append(entry)
+        elif freq == 'Weekly':
+            # Count actual occurrences of the named day
+            day_name = item.get('selectedDay', '')
+            if day_name:
+                past_count = _count_weekday_occurrences(current_year, current_month, day_name, current_day)
+                total_count = _count_weekday_occurrences(current_year, current_month, day_name)
+                future_count = total_count - past_count
+            else:
+                # Fallback: estimate by weeks
+                past_count = current_day // 7
+                future_count = max(0, 4 - past_count)
+            entry_received = {**entry, "amount": round(amount * past_count, 2)}
+            entry_expected = {**entry, "amount": round(amount * future_count, 2)}
+            if entry_received["amount"] > 0:
+                received.append(entry_received)
+            if entry_expected["amount"] > 0:
+                expected.append(entry_expected)
+        elif schedule_day > 0:
+            # Known schedule day
+            if schedule_day <= current_day:
+                received.append(entry)
+            else:
+                expected.append(entry)
         else:
+            # Unknown schedule day — treat as expected (not yet received/spent)
             expected.append(entry)
 
     return received, expected
