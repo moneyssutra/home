@@ -291,11 +291,14 @@ const GoalForm = () => {
     );
   };
 
-  const validate = () => {
-    const newErrors = {};
+  // Clear field errors in real-time when user fills data
+  useEffect(() => { if (goalType && errors.goalType) setErrors(prev => { const n = {...prev}; delete n.goalType; return n; }); }, [goalType]);
+  useEffect(() => { if (goalName && errors.goalName) setErrors(prev => { const n = {...prev}; delete n.goalName; return n; }); }, [goalName]);
+  useEffect(() => { if (targetAmount && errors.targetAmount) setErrors(prev => { const n = {...prev}; delete n.targetAmount; return n; }); }, [targetAmount]);
+  useEffect(() => { if (targetDate && errors.targetDate) setErrors(prev => { const n = {...prev}; delete n.targetDate; return n; }); }, [targetDate]);
+  useEffect(() => { if (customTypeName && errors.customTypeName) setErrors(prev => { const n = {...prev}; delete n.customTypeName; return n; }); }, [customTypeName]);
 
-    // Goal Name validation
-    const nameError = validateTextField(goalName, "Goal name", 100);
+  const validate = () => {
     if (nameError) newErrors.goalName = nameError;
 
     // Goal Type validation
