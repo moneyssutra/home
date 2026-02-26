@@ -90,6 +90,12 @@ import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import DataDeletion from "@/pages/DataDeletion";
 
+// Cashflow Detail Pages
+import IncomeReceived from "@/pages/IncomeReceived";
+import ExpectedIncome from "@/pages/ExpectedIncome";
+import ExpensesDone from "@/pages/ExpensesDone";
+import UpcomingExpenses from "@/pages/UpcomingExpenses";
+
 // App Router with session_id detection
 function AppRouter() {
   const location = useLocation();
