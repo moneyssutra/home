@@ -584,18 +584,19 @@ async def get_share_card(request: Request):
 
     # Compute live survival data from intelligence
     try:
-        from routes.intelligence import _get_runway_level
-        incomes = await db.income_sources.find({"userId": user_id}, {"_id": 0}).to_list(500)
-        expenses = await db.expenses.find({"userId": user_id}, {"_id": 0}).to_list(500)
-        accounts = await db.accounts.find({"userId": user_id}, {"_id": 0}).to_list(50)
-        monthly_expense = sum(e.get("normalizedMonthly", e.get("amount", 0)) for e in expenses)
-        daily_expense = monthly_expense / 30 if monthly_expense > 0 else 0
-        liquid = sum(a.get("balance", 0) for a in accounts)
-        survival_days = int(liquid / daily_expense) if daily_expense > 0 else 0
+        from routes.intelligence import _get_fund_breakdown, _get_monthly_mandatory_expense, _get_runway_level, get_user_filter
+        user_filter = get_user_filter(user)
+        fund_breakdown = await _get_fund_breakdown(user_filter)
+        monthly_mandatory = await _get_monthly_mandatory_expense(user_filter)
+        effective_funds = fund_breakdown["effectiveTotal"]
+        daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 0
+        survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 0
+        if monthly_mandatory == 0 and effective_funds == 0:
+            survival_days = 0
         runway_level = _get_runway_level(survival_days)
     except Exception:
         survival_days = profile.get("last_survival_days", 0)
-        runway_level = {"name": profile.get("level", "Getting Started"), "stage": 0, "phaseNum": 1}
+        runway_level = {"name": "Getting Started", "stage": 0, "phase_num": 1}
 
     # Compute live control score
     try:
