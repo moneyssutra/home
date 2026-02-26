@@ -76,6 +76,9 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - 4 new detail pages: /income-received, /expected-income, /expenses-done, /upcoming-expenses
 - Detail pages have: BottomNav, "View All" links to My Income/Expenses, clickable items → edit pages
 - Fixed income source navigation (Salary→/my-job, Freelance→/my-self-employed)
+- Fixed income type icons (Salary, Freelance now have proper icons, not "..." dots)
+- Fixed backend type synonyms (Job↔Salary, Self-Employed↔Freelance for API filtering)
+- Fixed "Invalid Date" on 8 income type pages (parseInt instead of new Date for selectedDate)
 - Fixed Quick Add sheet bottom icons hidden by bottom nav (pb-24 padding)
 - Fixed background scrolling when Quick Add sheet open (body overflow lock)
 - Fixed 0 amount in Income modal showing invalid error
