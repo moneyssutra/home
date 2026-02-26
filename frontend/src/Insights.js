@@ -970,7 +970,7 @@ const ZONE_GRADIENTS = {
   2: { bg: "linear-gradient(135deg, #1A0F0A, #9A3412)", glow: "rgba(249,115,22,0.3)", accent: "#F97316", stroke1: "#FDBA74", stroke2: "#EA580C", btn: "linear-gradient(135deg, #EA580C, #F97316)", secondary: "#FDBA74" },
   3: { bg: "linear-gradient(135deg, #1A170A, #854D0E)", glow: "rgba(234,179,8,0.3)", accent: "#EAB308", stroke1: "#FDE68A", stroke2: "#CA8A04", btn: "linear-gradient(135deg, #CA8A04, #EAB308)", secondary: "#FDE68A" },
   4: { bg: "linear-gradient(135deg, #0A1A0F, #166534)", glow: "rgba(34,197,94,0.3)", accent: "#22C55E", stroke1: "#86EFAC", stroke2: "#16A34A", btn: "linear-gradient(135deg, #16A34A, #22C55E)", secondary: "#BBF7D0" },
-  5: { bg: "linear-gradient(135deg, #0F172A, #1E293B)", glow: "rgba(59,130,246,0.3)", accent: "#3B82F6", stroke1: "#60A5FA", stroke2: "#2563EB", btn: "linear-gradient(135deg, #3B82F6, #6366F1)", secondary: "#C7D2FE" },
+  5: { bg: "linear-gradient(135deg, #1E1B4B, #312E81)", glow: "rgba(139,92,246,0.3)", accent: "#8B5CF6", stroke1: "#A78BFA", stroke2: "#7C3AED", btn: "linear-gradient(135deg, #6366F1, #8B5CF6)", secondary: "#C7D2FE" },
 };
 
 // ─── HERO SECTION ───
