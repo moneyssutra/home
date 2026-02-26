@@ -180,64 +180,123 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="px-6 pb-8 space-y-6 mt-4">
-        {/* Monthly Cash Flow Card - MOVED TO TOP */}
+        {/* Monthly Cash Flow Card - Enhanced */}
         <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="income-expense-card">
-          <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Monthly Cash Flow</h3>
-          <div className="grid grid-cols-3 gap-3">
-            <div 
-              className="text-center cursor-pointer rounded-xl p-2 transition-all hover:bg-green-50 active:scale-[0.98]"
-              onClick={() => navigate("/my-income")}
-              data-testid="cashflow-income-link"
-            >
-              <div className="flex items-center justify-center gap-1 mb-1 whitespace-nowrap" style={{ color: "var(--finance-gain)" }}>
-                <ArrowUpRight className="h-4 w-4 flex-shrink-0" />
-                <span className="text-xs font-medium">Income</span>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Monthly Cash Flow</h3>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-muted)" }}>
+              {new Date().toLocaleString('default', { month: 'short', year: 'numeric' })}
+            </span>
+          </div>
+
+          {/* Income Section */}
+          <div className="mb-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--finance-gain)" }}>Income</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div 
+                className="rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99]"
+                style={{ backgroundColor: "#ECFDF5", border: "1px solid #D1FAE5" }}
+                onClick={() => navigate("/my-income")}
+                data-testid="cashflow-income-received"
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" style={{ color: "#059669" }} />
+                  <span className="text-[10px] font-medium" style={{ color: "#065F46" }}>Received</span>
+                </div>
+                <p className="text-base font-bold" style={{ color: "#065F46" }}>₹{formatAmount(data?.incomeReceived || 0)}</p>
               </div>
-              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyIncome || 0)}</p>
-            </div>
-            <div 
-              className="text-center cursor-pointer rounded-xl p-2 transition-all hover:bg-red-50 active:scale-[0.98]"
-              onClick={() => navigate("/my-expenses")}
-              data-testid="cashflow-expense-link"
-            >
-              <div className="flex items-center justify-center gap-1 mb-1 whitespace-nowrap" style={{ color: "var(--finance-loss)" }}>
-                <ArrowDownRight className="h-4 w-4 flex-shrink-0" />
-                <span className="text-xs font-medium">Expense</span>
+              <div 
+                className="rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99]"
+                style={{ backgroundColor: "#F0FDF4", border: "1px solid #D1FAE5" }}
+                onClick={() => navigate("/my-income")}
+                data-testid="cashflow-income-expected"
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Clock className="h-3.5 w-3.5" style={{ color: "#10B981" }} />
+                  <span className="text-[10px] font-medium" style={{ color: "#065F46" }}>Expected</span>
+                </div>
+                <p className="text-base font-bold" style={{ color: "#065F46" }}>₹{formatAmount(data?.expectedIncome || 0)}</p>
               </div>
-              <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.monthlyExpenses || 0)}</p>
             </div>
-            <div className="text-center p-2">
-              <div className="flex items-center justify-center gap-1 mb-1 whitespace-nowrap" style={{ color: "var(--status-warning)" }}>
-                <PiggyBank className="h-4 w-4 flex-shrink-0" />
-                <span className="text-xs font-medium">Balance</span>
+            {/* Income progress */}
+            {(data?.expectedIncome || 0) > 0 && (
+              <div className="mt-2">
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#D1FAE5" }}>
+                  <div className="h-full rounded-full transition-all duration-500" style={{ 
+                    width: `${Math.min(((data?.incomeReceived || 0) / (data?.expectedIncome || 1)) * 100, 100)}%`,
+                    background: "linear-gradient(90deg, #059669, #10B981)"
+                  }} />
+                </div>
+                <p className="text-[10px] mt-1 text-right" style={{ color: "#6B7280" }}>
+                  {Math.round(((data?.incomeReceived || 0) / (data?.expectedIncome || 1)) * 100)}% received
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Expense Section */}
+          <div className="mb-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--finance-loss)" }}>Expenses</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div 
+                className="rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99]"
+                style={{ backgroundColor: "#FEF2F2", border: "1px solid #FECACA" }}
+                onClick={() => navigate("/my-expenses")}
+                data-testid="cashflow-expenses-done"
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <CircleDollarSign className="h-3.5 w-3.5" style={{ color: "#DC2626" }} />
+                  <span className="text-[10px] font-medium" style={{ color: "#991B1B" }}>Spent</span>
+                </div>
+                <p className="text-base font-bold" style={{ color: "#991B1B" }}>₹{formatAmount(data?.expensesDone || 0)}</p>
+              </div>
+              <div 
+                className="rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99]"
+                style={{ backgroundColor: "#FFF7ED", border: "1px solid #FED7AA" }}
+                onClick={() => navigate("/my-expenses")}
+                data-testid="cashflow-expenses-upcoming"
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <CalendarClock className="h-3.5 w-3.5" style={{ color: "#EA580C" }} />
+                  <span className="text-[10px] font-medium" style={{ color: "#9A3412" }}>Upcoming</span>
+                </div>
+                <p className="text-base font-bold" style={{ color: "#9A3412" }}>₹{formatAmount(data?.upcomingExpenses || 0)}</p>
+              </div>
+            </div>
+            {/* Expense progress */}
+            {(data?.monthlyExpenses || 0) > 0 && (
+              <div className="mt-2">
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "#FECACA" }}>
+                  <div className="h-full rounded-full transition-all duration-500" style={{ 
+                    width: `${Math.min(((data?.expensesDone || 0) / (data?.monthlyExpenses || 1)) * 100, 100)}%`,
+                    background: "linear-gradient(90deg, #DC2626, #F87171)"
+                  }} />
+                </div>
+                <p className="text-[10px] mt-1 text-right" style={{ color: "#6B7280" }}>
+                  {Math.round(((data?.expensesDone || 0) / (data?.monthlyExpenses || 1)) * 100)}% spent
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Net Balance */}
+          <div className="rounded-xl p-3 mt-1" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <PiggyBank className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
+                <span className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>Net Balance</span>
               </div>
               <p className="text-lg font-bold" style={{ color: (data?.monthlySavings || 0) >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
-                ₹ {formatAmount(Math.abs(data?.monthlySavings || 0))}
+                {(data?.monthlySavings || 0) >= 0 ? "+" : "-"}₹{formatAmount(Math.abs(data?.monthlySavings || 0))}
               </p>
             </div>
-          </div>
-          
-          {/* Savings Progress Bar */}
-          <div className="mt-4">
-            <div className="flex justify-between text-xs mb-1" style={{ color: "var(--text-muted)" }}>
-              <span>Balance Rate</span>
-              <span>
-                {data?.monthlyIncome > 0 
-                  ? `${Math.round((data.monthlySavings / data.monthlyIncome) * 100)}%` 
-                  : "0%"}
-              </span>
-            </div>
-            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
-              <div 
-                className="h-full rounded-full transition-all duration-500"
-                style={{ 
-                  width: `${Math.min(Math.abs(data?.monthlyIncome > 0 ? (data.monthlySavings / data.monthlyIncome) * 100 : 0), 100)}%`,
-                  background: (data?.monthlySavings || 0) >= 0 
-                    ? "linear-gradient(90deg, var(--brand-primary) 0%, var(--brand-secondary) 100%)"
-                    : "linear-gradient(90deg, var(--status-error) 0%, #F87171 100%)"
-                }}
-              />
-            </div>
+            {data?.monthlyIncome > 0 && (
+              <div className="flex justify-end mt-1">
+                <span className="text-[10px]" style={{ color: (data?.monthlySavings || 0) >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>
+                  {Math.round((data.monthlySavings / data.monthlyIncome) * 100)}% savings rate
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
