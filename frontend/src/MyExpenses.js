@@ -477,6 +477,38 @@ const MyExpenses = () => {
                       )}
                     </div>
                   )}
+
+                  {/* Undo button for paid expenses */}
+                  {status === "paid" && !isPrepaidChild && isCurrentMonth && (
+                    <div className="flex border-t" style={{ borderColor: "var(--border-light)" }}>
+                      <button
+                        onClick={() => handleUnmarkPaid(expense.id, expense.expenseName)}
+                        disabled={isLoading}
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors hover:bg-orange-50 disabled:opacity-50"
+                        style={{ color: "#EA580C" }}
+                        data-testid={`undo-paid-btn-${expense.id}`}
+                      >
+                        <Undo2 className="h-3.5 w-3.5" />
+                        {isLoading ? "Undoing..." : "Undo Payment"}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Undo button for prepaid expenses */}
+                  {status === "prepaid" && !isPrepaidChild && isCurrentMonth && (
+                    <div className="flex border-t" style={{ borderColor: "var(--border-light)" }}>
+                      <button
+                        onClick={() => handleUndoPrepay(expense.id, expense.expenseName)}
+                        disabled={isLoading}
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors hover:bg-orange-50 disabled:opacity-50"
+                        style={{ color: "#EA580C" }}
+                        data-testid={`undo-prepay-btn-${expense.id}`}
+                      >
+                        <Undo2 className="h-3.5 w-3.5" />
+                        {isLoading ? "Undoing..." : "Undo Prepayment"}
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
