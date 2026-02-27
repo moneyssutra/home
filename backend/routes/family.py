@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from typing import Optional
 from server_models import get_current_user
+from routes.auth import get_current_user
 from database import db
 
 router = APIRouter(prefix="/family", tags=["family"])
