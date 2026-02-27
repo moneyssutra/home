@@ -1,92 +1,108 @@
 <analysis>**original_problem_statement**: The user is building MoneySSutra, a sophisticated personal finance application designed as a Financial Control Operating System.
 
-Recent user requests have focused on a complete overhaul of two core systems:
-1.  **Insights Page Restructure**: Transform the data-heavy Insights page into a gamified, 3-layer architecture (Hero, Action, Collapsible Modules) to improve user clarity and retention. This involved multiple iterations of UI/UX redesigns for the main Hero section to make it more emotionally engaging and visually premium, including implementing a dynamic shareable score card.
-2.  **Cash Flow Engine Upgrade**: A massive, multi-phase project to refactor the cash flow logic from a simple monthly calculation to a more realistic model.
-    *   **Phase 1 (Rolling Balance)**: Implement a rolling balance where the closing balance of one month becomes the opening balance of the next.
-    *   **Phase 2 (Prepayment System)**: Allow users to view and pay expenses for future months, with the system correctly tracking these prepayments.
-    *   **Phase 3 (Projection)**: A future goal to project daily balances based on upcoming income and expenses.
-    *   **Phase 4 (Negative Balance Logic)**: Change how negative balances are displayed, avoiding panic indicators unless total liquid assets are truly depleted.
-
-Alongside these major features, the user has requested numerous bug fixes related to cash flow calculations, investment expense linking, gamification badge awards, and UI inconsistencies.
+Recent user requests have focused on:
+1.  **Excel Data Management**: Implement a feature allowing users to download a sample Excel template, fill it with their financial data (income, expenses, etc.), and upload it to pre-populate the application.
+2.  **Family Financial Tracking**: Add a feature to allow a primary user to add family members and toggle between viewing their own personal finances and the finances of a selected family member. This is a major architectural change.
+3.  **Investment Form UX**: Allow the Principal Invested amount to be zero for SIPs and improve the form layout.
+4.  **Data Seeding & Integrity**: The user requested a comprehensive data seeding for a test user (Rahul) across all categories and later requested the complete deletion of this data. They also reported a bug where older SIP investments (NPS/PPF) were not creating linked expenses.
+5.  **UI/UX Enhancements**:
+    *   Create a Monthly Expense Calendar view.
+    *   Implement an undo feature for marking expenses as paid/prepaid.
+    *   Restructure the Insights page to have a progressive unlocking mechanism for modules.
+    *   Fix a mobile swipe-to-dismiss bug for notifications.
+    *   Fix a back-button navigation bug on the Add Income page.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI/MongoDB PWA. It features a dashboard, a highly redesigned and gamified Insights page, and modules for managing income, expenses, and investments.
-
-The agent has successfully:
--   Completely restructured the Insights page into the 3-layer architecture.
--   Iteratively redesigned the Hero section with dynamic gradients based on user zone, a circular progress meter, a dopamine line, and a Share My Score feature that generates a dynamic, premium-looking card.
--   Fixed numerous critical backend bugs:
-    -   Corrected the cash flow logic that miscalculated weekly income and failed to parse scheduled dates, resolving issues for user Sandeep.
-    -   Fixed a bug preventing gamification badges from being awarded by ensuring the processing logic runs when the Insights page loads.
-    -   Resolved an issue where expenses linked to SIP investments weren't being created correctly by adding a missing  field to the backend  model.
--   The agent has started work on the Cash Flow Engine Upgrade, beginning with Phase 2 (Prepayment System).
+The application is a full-stack React/FastAPI/MongoDB PWA. It includes a dashboard, a gamified Insights page, expense/income/investment tracking, a new expense calendar view, and a complete prepayment system. The backend routes and placeholder frontend pages for the Excel Import and Family Management features have been created but are not yet fully implemented or integrated into the UI.
 
 **Last working item**:
--   **Last item agent was working**: The agent was in the initial stages of implementing Phase 2 of the Cash Flow Engine Upgrade: the **Prepayment System**. This involved creating the backend infrastructure to allow users to view and pay future expenses. The agent was actively editing  to add new API endpoints for prepayment and month-based filtering.
+-   **Last item agent was working**: The agent was simultaneously scaffolding two major features requested by the user:
+    1.  **Excel Import/Export**: Created backend routes in  (, ) and a placeholder frontend page at .
+    2.  **Family Financial Tracking**: Created the  model, backend routes in  for CRUD operations on family members, and a placeholder page at .
+    The agent had just finished creating these foundational files and was about to start building the frontend UI and integrating them into the main application (e.g., adding links in settings, creating the family toggle).
 -   **Status**: IN PROGRESS
--   **Agent Testing Done**: N
+-   **Agent Testing Done**: N (Only backend routes were tested with )
 -   **Which testing method agent to use?**: both
-    -   First, complete the backend API endpoints ( and the updated list endpoint) and test them with .
-    -   Then, implement the frontend changes (month selector in ) and use the testing agent to verify the full end-to-end prepayment flow.
+    -   After implementing the UI, the frontend agent should be used to test the Excel download/upload flow and the end-to-end process of adding a family member and toggling views. Backend testing is also needed to ensure data is correctly scoped per user (personal vs. family member).
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   There are no outstanding bugs. The focus is on the large feature implementation.
+-   There are no outstanding bugs. All issues are related to the new feature development.
 
 **In progress Task List**:
--   **Task 1: Complete Phase 2 of Cash Flow Engine Upgrade (Prepayment System) (P0)**
+-   **Task 1: Complete Excel Import/Export Feature (P0)**
     -   **Where to resume**:
-        1.  In , finish implementing the new  endpoint. This should handle the logic of marking an expense as paid, setting the , and recording the transaction date.
-        2.  In , modify the main  endpoint to accept a  (e.g., ) query parameter to fetch expenses for future or past months.
-        3.  Once the backend is complete and tested via , move to the frontend. In , add a month selector UI (e.g., Current Month / Next Month toggle or dropdown).
-        4.  Wire the new month selector to the updated backend API.
-        5.  Add a Pay Now button or similar UI for upcoming, unpaid expenses, which calls the new  endpoint.
-        6.  Update the expense list UI to visually indicate prepaid expenses (e.g., a Paid Early badge).
-    -   **What will be achieved with this?**: Users will be able to manage and settle their expenses for upcoming months, a key requirement of the new cash flow engine.
+        1.  In , build the UI with two main actions: a button to call  and a file input form to upload the filled Excel file to .
+        2.  Implement the file upload logic, including displaying progress and handling success/error messages from the backend.
+        3.  Add a link to the Import from Excel page from a relevant location, such as the settings page or a new Data section.
+    -   **What will be achieved with this?**: Users will have a powerful bulk-data entry method, making it easier to onboard.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: both
+    -   **Blocked on something**: Nothing.
+
+-   **Task 2: Complete Family Financial Tracking Feature (P0)**
+    -   **Where to resume**:
+        1.  **Frontend UI**: In , build the UI to add, view, and manage family members. This involves a form to add a member (name, relation) which calls .
+        2.  **Global Toggle**: Implement a UI toggle (e.g., in the main header or user menu) that lists Personal and all added family members.
+        3.  **Data Scoping (MAJOR REFACTOR)**:
+            -   Create a global state (e.g., using React Context) to store the currently selected user context (either the logged-in user's ID or a family member's ID).
+            -   Update all data-fetching hooks (e.g., , and hooks for income, investments, assets, etc.) to accept the selected user ID and pass it as a parameter to the backend API calls.
+            -   Update all relevant backend endpoints to filter data based on the provided user ID.
+    -   **What will be achieved with this?**: Users will be able to manage and view the financial status of their family members within the same app, a major new capability.
     -   **Status**: IN PROGRESS
     -   **Should Test frontend/backend/both after fix?**: both
     -   **Blocked on something**: Nothing.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks (P0)**:
-    -   **Cash Flow Engine - Phase 1: Rolling Balance Engine**: After the prepayment system is complete, implement the core logic for rolling balances. This will involve significant changes in  to calculate the opening balance of the current month from the closing balance of the previous month. A data migration script may be needed to backfill this for existing users.
 -   **Upcoming Tasks (P1)**:
-    -   **Cash Flow Engine - Phase 4: Negative Balance Handling**: Update the dashboard UI and backend logic to only show severe negative balance warnings if  is low, not just because  is negative.
+    -   **Cash Flow Engine - Phase 1: Rolling Balance Engine**: Implement logic for rolling balances where the closing balance of one month becomes the opening balance of the next.
+    -   **Cash Flow Engine - Phase 4: Negative Balance Handling**: Update dashboard UI to show severe negative balance warnings only if  is low.
 -   **Future Tasks (P2)**:
-    -   **Cash Flow Engine - Phase 3: Cash Flow Timeline Engine**: Implement the projection logic to calculate and visualize a user's daily balance in the future.
-    -   **Financial Command Center**: Enhance the Financial Score widget into a cockpit dashboard with Control/Pressure/Risk indicators.
-    -   **Decision Impact Engine**: Create a tool to simulate the financial impact of a potential large purchase.
+    -   **Cash Flow Engine - Phase 3: Cash Flow Timeline Engine**: Implement daily balance projections.
+    -   **Financial Command Center**: Enhance the Financial Score widget.
+    -   **Decision Impact Engine**: Simulate the financial impact of large purchases.
 
 **Completed work in this session**
--   **Insights Page Overhaul**: Transformed the Insights page into a 3-layer architecture (Hero, Action, Collapsible Accordions).
--   **Premium Hero Section Redesign**: Iteratively redesigned the Insights hero section with dynamic gradients, a circular progress meter, glow/pulse animations, and a Share My Score feature that generates a premium-looking shareable card (, ).
--   **Critical Cash Flow Bug Fix**: Corrected the backend logic for weekly income/expense calculations and schedule date parsing, resolving major data discrepancies for users ().
--   **Gamification Engine Fix**: Fixed a bug where badges were not being awarded by triggering the gamification processing logic when the Insights page loads ().
--   **SIP Auto-Expense Fix**: Repaired the Systematic Investment Plan flow by adding a missing  to the  model, ensuring automated expenses are correctly linked to their parent investment (, ).
--   **Navigation & UI Fixes**: Resolved incorrect back-button navigation, implemented a Remember Me feature on the login page, and improved color visibility on the dashboard.
+-   **Prepayment System (Phase 2)**: Fully implemented backend and frontend for paying future expenses.
+-   **Undo Paid/Prepaid Status**: Implemented backend endpoints and UI to revert an expense's paid status.
+-   **Monthly Expense Calendar**: Created a new page () with a visual calendar showing expenses by due date.
+-   **Investment Form Overhaul**: Allowed  for SIPs and restructured the form layout for a better user experience.
+-   **Data Integrity Fix**: Created and ran a backend repair endpoint to retroactively create linked expenses for old SIP investments that were missing them.
+-   **Comprehensive Data Seeding**: Created and executed a script to populate the database with extensive test data across all modules, then cleared it on user request.
+-   **Insights Page Restructure**: Reordered modules and implemented a progressive unlock mechanism based on user level. Badges and Challenges is now always unlocked.
+-   **Navigation & UI Fixes**:
+    -   Fixed a bug where the back button from Add Income led to the wrong page.
+    -   Fixed a swipe-to-dismiss notification bug on mobile by using a non-passive event listener.
+
+**Earlier issues found/mentioned but not fixed**
+-   None. The agent has addressed all user-reported issues from this session.
+
+**Known issue recurrence from previous fork**
+-   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Phased Implementation**: Breaking down a massive feature (Cash Flow Engine) into smaller, manageable, and independently shippable phases.
--   **Backend Data Model Evolution**: Safely adding new fields (, , , ) to existing Pydantic models and MongoDB collections to support new features.
--   **Complex Backend Logic**: Rewriting core business logic for cash flow calculations (weekly occurrences vs. simple division) and gamification (triggering badge awards).
--   **Dynamic UI Generation**: Creating highly dynamic and state-driven components like the Insights hero section with conditional gradients, animations, and progress rings.
--   **Live Data Calculation vs. Stale Data**: Refactoring an API endpoint () from reading stale, stored data to calculating fresh, live data on demand, ensuring accuracy.
+-   **Excel Data Handling**: Using  on the backend to generate and parse Excel files for bulk data operations.
+-   **Multi-Tenancy/Data Scoping**: Designing a system to manage and view data for multiple related users (family members) under a single login.
+-   **Data-Driven UI**: Creating dynamic UI components like the progressive-unlock modules on the Insights page and the data-heavy Expense Calendar.
+-   **Data Repair/Migration**: Writing one-off API endpoints to fix data inconsistencies in existing records (e.g., the SIP expense link repair).
+-   **Robust Event Handling**: Fixing a subtle mobile UI bug by manually attaching a non-passive touch event listener to override default browser behavior.
 
 **key DB schema**
--   **expenses**:  (new fields in bold)
+-   **family_members**: 
+-   **expenses**: 
+-   **investments**: 
 
 **All files of reference**
--   **Current Task (Prepayment System)**:
-    -   
-    -   
-    -   
+-   **In-Progress Features**:
+    -   , 
+    -   , 
 -   **Recently Completed/Modified**:
+    -   
     -   
     -   
     -   
@@ -94,54 +110,56 @@ The agent has successfully:
     -   
 
 **Areas that need refactoring**:
--   The current work *is* a major refactor of the cash flow system. No other areas are prioritized for refactoring at this moment.
+-   The entire data-fetching layer needs to be refactored to support the Family Toggle feature. All hooks and components that display user data will need to be made aware of the currently selected user context.
 
 **key api endpoints**
--   : (IN PROGRESS) New endpoint to mark a future expense as paid.
--   : (IN PROGRESS) Modified endpoint to list expenses for a specific month.
--   : (MODIFIED) Now calculates live, accurate data for the shareable score card.
--   : (MODIFIED) Now triggers gamification processing to award badges automatically.
--   : (MODIFIED) Backend logic now correctly creates a linked expense for SIPs.
+-   : (NEW) Downloads a blank Excel template.
+-   : (NEW) Uploads and processes a filled Excel file.
+-   : (NEW) Adds a new family member.
+-   : (NEW) Lists all family members.
+-   : (NEW) Reverts a paid expense to pending.
+-   : (NEW) Reverts a prepaid expense.
+-   : (NEW) One-time endpoint to fix inconsistent data.
 
 **Critical Info for New Agent**
-1.  **You are mid-refactor**: You are in the middle of a multi-phase refactor of the core cash flow engine. Your immediate task is to complete **Phase 2 (Prepayment System)**.
-2.  **Backend First**: The current task requires finishing the backend work first. Complete the new endpoints in  and test them thoroughly with  before touching any frontend code.
-3.  **Model has Changed**: The  model in  has been updated with several new fields (, , etc.). Make sure your new backend logic correctly uses these fields.
-4.  **Follow the Plan**: The user has approved a clear, phased plan. Do not start work on Phase 1 (Rolling Balance) until Phase 2 (Prepayment) is fully implemented, tested, and verified.
+1.  **Dual Feature Implementation**: You are in the middle of building two large, unrelated features: Excel Import and Family Management. The backend routes and basic frontend pages are created, but the core implementation is pending.
+2.  **Family Toggle is a Major Refactor**: The Family Toggle feature is not a simple addition. It requires a fundamental change in how data is fetched and displayed throughout the entire application. You will need to implement a global state for the selected user and update dozens of components and hooks. Plan this carefully.
+3.  **Resume with Frontend**: The immediate next steps are to build out the UI for  and  and then integrate them into the app's navigation and state management.
 
 **documents and test reports created in this job**
--    (updated multiple times)
--   Multiple test reports in  confirming previous fixes.
+-    (created and used for comprehensive data seeding)
+-   Multiple test reports in , with the latest confirming the success of the Undo, Calendar, and Investment Form features.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Requested a massive Cash Flow Engine Upgrade with rolling balance and prepayment. (Status: **IN PROGRESS**)
-2.  **User**: Reported that the badge count was showing 0/100. (Status: **COMPLETED**)
-3.  **User**: Reported that creating a SIP investment was not correctly enabling the Auto Create Expense toggle or linking the expense. (Status: **COMPLETED**)
-4.  **User**: Asked about production vs. preview databases after seeing discrepancies for user Sandeep. (Status: **RESOLVED**)
-5.  **User**: Followed up on the incorrect income calculation for Sandeep. (Status: **COMPLETED**)
-6.  **User**: Reported critical bugs with cash flow calculations (income/expenses appearing on wrong dates/amounts) for a user named Sandeep. (Status: **COMPLETED**)
-7.  **User**: Provided final color tweaks for the Insights hero section. (Status: **COMPLETED**)
-8.  **User**: Reported layout issue (DAYS OF SAFETY outside circle) and provided new color specs for the hero section. (Status: **COMPLETED**)
-9.  **User**: Reported that the share card data was 0 and requested another full redesign of the hero section with new terminology (Runway -> Days of Safety) and a dynamic share card. (Status: **COMPLETED**)
-10. **User**: Requested a major visual/emotional redesign of the Insights hero section to be more premium and addictive, including a share button. (Status: **COMPLETED**)
+1.  **User**: Requested Excel import/export and a family tracking feature. (Status: **IN PROGRESS**)
+2.  **Agent**: Proposed a plan to implement both features.
+3.  **User**: Approved the plan.
+4.  **User**: Requested fixes for the Add Income back button and the Insights page lock logic, plus comprehensive data seeding. (Status: **COMPLETED**)
+5.  **Agent**: Fixed navigation, updated Insights locks, and created a seeding script.
+6.  **User**: Requested Principal=0 for SIP investments and data clearing for a user. (Status: **COMPLETED**)
+7.  **Agent**: Implemented form changes and cleared data.
+8.  **User**: Reported a bug with NPS/PPF investments not creating SIP expenses and requested a monthly expense calendar view. (Status: **COMPLETED**)
+9.  **Agent**: Fixed the data bug with a repair script and built the calendar view.
+10. **User**: Requested an undo option for paid expenses, re-structuring of the Insights page, and a fix for a mobile notification bug. (Status: **COMPLETED**)
 
 **Project Health Check:**
--   **Broken**: No, the application is stable. However, the expenses functionality is actively being upgraded, so it's in a transitional state.
+-   **Broken**: No. The main application is stable. The new features are under construction and not yet accessible to a user.
 -   **Mocked**: UI toggles for Two-Factor Authentication and Biometric Login in Security Settings.
 
 **3rd Party Integrations**
--    (Background scheduling)
--    (Data visualization)
--    (PDF generation)
--    (Drag and drop UI)
+-   : (newly used) For Excel file generation and parsing.
+-   : Background scheduling.
+-   : Data visualization.
+-   : PDF generation.
+-   : Drag and drop UI.
 -   Emergent-managed Google Auth
 -   OpenAI GPT-5.2 (via )
 -   MongoDB Atlas
 
 **Testing status**
--   **Testing agent used after significant changes**: YES, it has been used frequently and successfully after each major feature implementation and bug fix cycle.
+-   **Testing agent used after significant changes**: YES, it was used successfully multiple times to validate large features like the Prepayment System, Expense Calendar, and Undo functionality.
 -   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: None.
+-   **Test files created**: None. A one-off seeding script was created at .
 -   **Known regressions**: None.
 
 **Credentials to test flow:**
@@ -149,4 +167,4 @@ The agent has successfully:
 -   **New/Empty User**:  / 
 
 **What agent forgot to execute**
--   The previous agent was in the middle of implementing the backend portion of the prepayment system in . This work is incomplete and is the immediate next step.</analysis>
+-   The agent was in the process of implementing the new features (Excel import, Family toggle). They successfully created the backend routes and placeholder frontend files but did not complete the UI implementation on those pages or integrate them into the main application navigation and state. The work is mid-flight and needs to be completed.</analysis>
