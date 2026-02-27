@@ -935,18 +935,44 @@ const RED_ZONE_STYLES = {
 };
 
 // ─── ACCORDION MODULE WRAPPER ───
-const AccordionModule = ({ title, icon: Icon, iconColor, children, isOpen, onToggle, locked, unlockStage, testId }) => {
+const AccordionModule = ({ title, icon: Icon, iconColor, children, isOpen, onToggle, locked, unlockStage, stageNum, testId }) => {
+  const [showLockedMsg, setShowLockedMsg] = useState(false);
+
+  const LOCK_MESSAGES = [
+    "Keep building your financial runway to unlock this.",
+    "You're getting closer! Level up to access deeper insights.",
+    "Your financial journey is just beginning — keep going!",
+    "Reach the next stage to reveal this module.",
+    "Unlock more power as your financial strength grows.",
+  ];
+
   if (locked) {
     return (
       <div className="rounded-2xl overflow-hidden relative" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid={testId}>
-        <div className="p-4 flex items-center gap-3" style={{ filter: "blur(1px)", opacity: 0.4 }}>
-          <Icon className="h-5 w-5" style={{ color: iconColor }} />
-          <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{title}</span>
-        </div>
-        <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}>
-          <Lock className="h-6 w-6 mb-1.5" style={{ color: "var(--text-muted)" }} />
-          <p className="text-xs font-bold" style={{ color: "var(--text-muted)" }}>Unlock at Stage {unlockStage}</p>
-        </div>
+        <button
+          className="w-full p-4 flex items-center gap-3 text-left"
+          onClick={() => setShowLockedMsg(prev => !prev)}
+          data-testid={`${testId}-locked-btn`}
+        >
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${iconColor}15` }}>
+            <Icon className="h-4 w-4" style={{ color: iconColor, opacity: 0.5 }} />
+          </div>
+          <span className="text-sm font-bold flex-1" style={{ color: "var(--text-muted)" }}>{title}</span>
+          <Lock className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
+        </button>
+        {showLockedMsg && (
+          <div className="px-4 pb-4 pt-0">
+            <div className="rounded-xl p-3" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+              <div className="flex items-center gap-2 mb-1">
+                <Rocket className="h-4 w-4" style={{ color: iconColor }} />
+                <span className="text-xs font-bold" style={{ color: iconColor }}>Stage {unlockStage} Required</span>
+              </div>
+              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                {LOCK_MESSAGES[(unlockStage || 0) % LOCK_MESSAGES.length]} You're at Stage {stageNum || 0}.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
