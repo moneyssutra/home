@@ -23,7 +23,7 @@ class TestIteration89Features:
             # Login
             login_response = TestIteration89Features.session.post(
                 f"{BASE_URL}/api/auth/login",
-                json={"identifier": "test@moneyssutra.com", "password": "test"}
+                json={"username": "test@moneyssutra.com", "password": "test"}
             )
             assert login_response.status_code == 200, f"Login failed: {login_response.text}"
             TestIteration89Features.auth_cookie = TestIteration89Features.session.cookies.get_dict()
