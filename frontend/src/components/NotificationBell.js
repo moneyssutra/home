@@ -462,6 +462,18 @@ const NotificationBell = () => {
                             {!notification.isRead && (
                               <div className="w-2.5 h-2.5 rounded-full bg-[#00D09C] flex-shrink-0 mt-1"></div>
                             )}
+                            <button
+                              className="p-1 rounded-full hover:bg-gray-200 transition-colors flex-shrink-0 ml-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const id = notification.id;
+                                setDismissingId(id);
+                                setTimeout(() => { handleDeleteNotification(id); setDismissingId(null); }, 350);
+                              }}
+                              data-testid={`dismiss-btn-${notification.id}`}
+                            >
+                              <X className="h-3.5 w-3.5 text-gray-400" />
+                            </button>
                           </div>
                           
                           <p className="text-sm text-gray-600 mt-1 break-words" style={{ wordWrap: 'break-word' }}>
