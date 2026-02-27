@@ -82,46 +82,46 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Removed "Open" button from Reports page
 
 ### Unified Add Income Refactor + Bug Fixes (Feb 26, 2026)
-- Created unified `/add-income` page with all 8 income types (Job, Business, Self-Employed, Rental, Commission, Interest, Dividend, Other Income)
-- Updated AddActionSheet to route to `/add-income` instead of individual type pages
-- Renamed "Salary" to "Job" and "Freelance" to "Self-Employed" in UI (MyIncome.js capitalizeType mapping)
+- Created unified `/add-income` page with all 8 income types
+- Updated AddActionSheet to route to `/add-income`
 - Backend type synonym filtering: Job↔Salary, Self-Employed↔Freelance
-- Fixed/Variable income segments now populate correctly on all income type pages
-- Fixed Self-Employed edit crash (fullName undefined error)
-- **Tested**: 100% backend (9/9), 100% frontend (7/7 features verified) - `/app/test_reports/iteration_82.json`
 
 ### Dashboard, Login & Navigation Fixes (Feb 26, 2026)
-- Added "My Income >" and "My Expenses >" navigation links in Monthly Cashflow widget on Dashboard
-- Fixed back button on all 7 income form pages (Job, Business, Self-Employed, Rental, Commission, Interest, Dividend) to use `navigate(-1)` instead of hardcoded paths
-- Implemented "Remember Me" on Login page: saves email+password to localStorage, prefills on next visit
-- Fixed Net Worth card text visibility: "Total Net Worth", "Growing" badge, "Assets"/"Investments"/"Cash" labels now use font-semibold and text-shadow for better contrast on teal background
-- **Tested**: 100% frontend (7/7 features verified) - `/app/test_reports/iteration_83.json`
+- Added "My Income >" and "My Expenses >" navigation links in Monthly Cashflow widget
+- Fixed back button on all 7 income form pages
+- Implemented "Remember Me" on Login page
+- Fixed Net Worth card text visibility
 
-### Income Redirect Refactor, UI & Bug Fixes (Feb 26, 2026)
-- Interest/Dividend income "Add" flows now redirect to Investment page (`/investment`)
-- Rental income "Add" flow now redirects to Asset page (`/asset`)
-- Deleted InterestIncome.js, DividendIncome.js, RentalIncome.js form pages (routes removed from App.js)
-- MyInterest/MyDividend list item clicks navigate to /my-investments, MyRental items to /my-assets
-- All income form pages now scroll to top on load (window.scrollTo(0,0) in useEffect)
-- Fixed OtherIncomeForm scroll conflict (conditionalRef scrollIntoView was overriding scrollTo on mount)
-- Net Worth "Growing" badge now uses solid green gradient with glow effect, Cash indicator uses brighter #34D399, all labels use bold white with text-shadow
-- Fixed notification swipe-to-dismiss bug (stale closure: captured swipingId in local variable before setTimeout)
-- **Tested**: 100% frontend (9/9 features verified) - `/app/test_reports/iteration_84.json`
+### Insights Page Overhaul (Feb 26, 2026)
+- 3-layer architecture (Hero, Action, Collapsible Accordions)
+- Premium Hero Section with dynamic gradients, circular progress meter, share feature
+- Gamification Engine fix (badges now awarded properly)
+- SIP Auto-Expense fix (linkedInvestmentId added)
 
-### Toggle Fix, Duplicate Income Check, Insights Restructure (Feb 26, 2026)
-- Fixed "Already Received" toggle on OtherIncomeForm: background changed from dark #1E293B to themed var(--bg-card), text from dark #334155 to themed vars, toggle knob from dark to white
-- Added duplicate income check on InvestmentForm: when typing investment name, checks if matching Interest/Dividend income already exists and shows warning
-- **Insights Page Major Restructure** (3-layer architecture):
-  - Layer 1 HERO: Large "X Days Safe / Stage Name / N levels to Sovereign" + "Improve My Position" CTA
-  - Layer 2 ACTION: "How To Improve" with up to 3 dynamic suggestions based on savings rate, EMI load, buffer gap, pending challenges
-  - Layer 3 COLLAPSIBLE: 9 accordion modules (Financial Score, Emergency Runway, Shock Test, Runway Simulator, Money Personality, Badges, Challenges, Future You, Personality Evolution) - all collapsed by default, only one open at a time, smooth 300ms animation
-  - Progressive unlock: Shock Test (Stage 5), Simulator (Stage 7), Evolution (Stage 9), Challenges (Stage 12) - locked modules show blurred card + lock icon
-  - Removed LevelAndStagesWidget from main layout, replaced with clean HeroSection
-- **Tested**: Visual verification via screenshots
+### Cash Flow Engine Phase 2: Prepayment System (Feb 27, 2026)
+- **Backend**: 3 new endpoints in expenses.py:
+  - `GET /api/expenses/by-month?month=YYYY-MM` — returns expenses filtered by month with `_displayStatus` (paid/pending/prepaid)
+  - `POST /api/expenses/{id}/mark-paid` — marks expense as paid for current month
+  - `POST /api/expenses/{id}/prepay` — creates prepaid record for next month, prevents duplicates
+- **Model updates**: Added `prepaidFlag`, `expenseMonth`, `paidDate`, `dueDate`, `linkedPaymentId` to Expense model
+- **Route ordering fix**: Moved `/{expense_id}` routes to bottom to prevent conflict with `/by-month`
+- **Frontend**: Complete MyExpenses.js rewrite:
+  - Month selector with left/right navigation (±2 past, +3 future months)
+  - Month summary card: total, paid/prepaid, pending amounts with progress bar
+  - "Mark Paid" and "Prepay Next Month" action buttons on pending expenses only
+  - Status badges: Paid (green), Pending (yellow), Paid Early (blue)
+  - Expense Breakdown and Fixed/Variable split cards (current month only)
+- **Hook**: Added `useExpensesByMonth` to useApi.js
+- **Tested**: 100% — 13/13 backend, 11/11 frontend (iteration_85.json)
 
 ## Prioritized Backlog
 
+### P0 (Next)
+- **Cash Flow Engine Phase 1: Rolling Balance** — closing balance of month N becomes opening balance of month N+1
+- **Cash Flow Engine Phase 4: Negative Balance Handling** — only warn when total liquid assets truly depleted
+
 ### P1 (Upcoming)
+- **Cash Flow Engine Phase 3: Cash Flow Timeline** — daily balance projection
 - **Financial Command Center**: Cockpit dashboard with Control/Pressure/Risk indicators
 - **Decision Impact Engine**: Simulate financial impact of large purchases
 
@@ -141,4 +141,4 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Investment: requires `investmentMode` (str) and `principal` (float) fields
 - IncomeSource: uses `type` and `name` (not incomeType/incomeName)
 - Insurance: uses `coverageAmount` (not coverAmount/sumAssured)
-- Income `incomeType` field: "fixed" or "variable" (seeded data may have legacy values like "Salary", "Freelance" which default to "fixed")
+- Expense: new fields `prepaidFlag`, `expenseMonth`, `paidDate`, `dueDate`, `linkedPaymentId` for prepayment system
