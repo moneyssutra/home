@@ -266,8 +266,10 @@ function App() {
         <AuthProvider>
           <BrowserRouter>
             <WorkspaceProvider>
-              <AppRouter />
-              <Toaster />
+              <FamilyProvider>
+                <AppRouter />
+                <Toaster />
+              </FamilyProvider>
             </WorkspaceProvider>
           </BrowserRouter>
         </AuthProvider>
