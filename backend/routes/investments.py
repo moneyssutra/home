@@ -58,6 +58,55 @@ async def get_investments(request: Request):
     return investments
 
 
+@router.post("/repair-expenses")
+async def repair_missing_sip_expenses(request: Request):
+    """Find investments with autoCreateExpense=True but no linked expense, and create missing expenses."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["autoCreateExpense"] = True
+
+    investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+    repaired = []
+
+    for inv in investments:
+        linked_id = inv.get("linkedExpenseId")
+        # Check if linked expense actually exists
+        if linked_id:
+            existing_exp = await db.expenses.find_one({"id": linked_id}, {"_id": 0})
+            if existing_exp:
+                continue  # Already has a valid linked expense
+
+        freq = inv.get("investmentFrequency")
+        sip_amt = inv.get("sipAmount")
+        if not freq or not sip_amt:
+            continue
+
+        expense_name = f"SIP - {inv['name']}"
+        expense_dict = {
+            'expenseName': expense_name, 'expenseType': 'Fixed', 'category': 'Investments',
+            'expectedAmount': sip_amt, 'frequency': freq,
+            'linkedAccountId': inv.get('linkedAccountId'),
+            'linkedInvestmentId': inv['id'],
+            'selectedDay': inv.get('sipSelectedDay'),
+            'selectedDate': inv.get('sipSelectedDate'),
+            'isPaid': False, 'userId': user.get('user_id')
+        }
+        expense_obj = Expense(**expense_dict)
+        expense_doc = expense_obj.model_dump()
+        expense_doc['createdAt'] = expense_doc['createdAt'].isoformat()
+        await db.expenses.insert_one(expense_doc)
+
+        await db.investments.update_one(
+            {"id": inv['id']},
+            {"$set": {"linkedExpenseId": expense_obj.id}}
+        )
+        repaired.append({"investment": inv['name'], "expenseId": expense_obj.id})
+
+    return {"repaired": len(repaired), "details": repaired}
+
+
 @router.get("/{investment_id}", response_model=Investment)
 async def get_investment(investment_id: str, request: Request):
     user = await get_current_user(request)
