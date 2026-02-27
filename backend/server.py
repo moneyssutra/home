@@ -32,6 +32,8 @@ from routes.financial_health import router as financial_health_router
 from routes.reports import router as reports_router
 from routes.settings import router as settings_router
 from routes.security import router as security_router
+from routes.data_import import router as data_import_router
+from routes.family import router as family_router
 from routes.notifications import router as notifications_router
 from routes.push import router as push_router
 from routes.transactions import router as transactions_router
