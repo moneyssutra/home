@@ -236,6 +236,15 @@ const NotificationBell = () => {
       isSwipingHorizontal.current = false;
     }
   }, [swipingId, swipeX, dismissingId, handleDeleteNotification]);
+
+  // Attach non-passive touchmove listener for preventDefault on mobile
+  useEffect(() => {
+    const container = notifContainerRef.current;
+    if (!container) return;
+    const handler = (e) => handleTouchMove(e);
+    container.addEventListener('touchmove', handler, { passive: false });
+    return () => container.removeEventListener('touchmove', handler);
+  }, [handleTouchMove]);
   
   const getNotificationIcon = (notification) => {
     const type = notification.type;
