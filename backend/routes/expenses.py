@@ -401,6 +401,57 @@ async def mark_expense_paid(expense_id: str, request: Request):
     return {"message": "Expense marked as paid", "id": expense_id, "paidDate": now.date().isoformat()}
 
 
+@router.post("/{expense_id}/unmark-paid")
+async def unmark_expense_paid(expense_id: str, request: Request):
+    """Undo marking an expense as paid."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    await db.expenses.update_one(
+        {"id": expense_id},
+        {"$set": {"isPaid": False, "paidDate": None, "lastPaidDate": None}}
+    )
+    return {"message": "Payment undone", "id": expense_id}
+
+
+@router.post("/{expense_id}/undo-prepay")
+async def undo_prepay_expense(expense_id: str, request: Request):
+    """Undo a prepayment — deletes the prepaid child record for next month."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    now = datetime.now(timezone.utc)
+    if now.month == 12:
+        next_month = f"{now.year + 1}-01"
+    else:
+        next_month = f"{now.year}-{now.month + 1:02d}"
+
+    result = await db.expenses.delete_one({
+        "linkedPaymentId": expense_id,
+        "expenseMonth": next_month,
+        "userId": user.get("user_id")
+    })
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="No prepaid record found for next month")
+
+    return {"message": f"Prepayment undone for {next_month}", "id": expense_id}
+
+
 # ---- Parameterized {expense_id} routes MUST be last to avoid path conflicts ----
 
 @router.get("/{expense_id}")
