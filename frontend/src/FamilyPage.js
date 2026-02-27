@@ -242,9 +242,9 @@ const FamilyPage = () => {
                   const isSelected = selectedMember === member.id;
                   return (
                     <div key={member.id}>
-                      <button
+                      <div
                         onClick={() => isSelected ? setSelectedMember(null) : fetchMemberSummary(member.id)}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl transition-all"
+                        className="w-full flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer"
                         style={{ backgroundColor: isSelected ? "var(--brand-primary-soft)" : "var(--bg-subtle)", border: isSelected ? "1px solid var(--brand-primary)" : "1px solid transparent" }}
                         data-testid={`member-${member.id}`}
                       >
@@ -264,7 +264,7 @@ const FamilyPage = () => {
                           </button>
                         )}
                         <ChevronRight className="h-4 w-4" style={{ color: "var(--text-muted)", transform: isSelected ? "rotate(90deg)" : "rotate(0)", transition: "transform 200ms" }} />
-                      </button>
+                      </div>
 
                       {isSelected && memberSummary?.member?.id === member.id && (
                         <div className="mt-2 ml-12 p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
