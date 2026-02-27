@@ -9,10 +9,13 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
 from server_models import (
-    IncomeSource, Expense, Investment, Asset, Loan, CreditCard, Insurance, Account, Goal,
-    get_current_user, get_user_filter
+    IncomeSource, Expense, Investment, Asset, Loan, CreditCard, Insurance, Account, Goal
 )
+from routes.auth import get_current_user
 from database import db
+
+def get_user_filter(user):
+    return {"userId": user.get("user_id")}
 
 router = APIRouter(prefix="/data", tags=["data"])
 
