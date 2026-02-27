@@ -99,6 +99,33 @@ const MyExpenses = () => {
     }
   }, [mutateMonth]);
 
+  const handleUnmarkPaid = useCallback(async (expenseId, expenseName) => {
+    setActionLoading(expenseId);
+    try {
+      await axios.post(`${API}/api/expenses/${expenseId}/unmark-paid`, {}, { withCredentials: true });
+      toast.success(`${expenseName} unmarked as paid`);
+      mutateMonth();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to undo");
+    } finally {
+      setActionLoading(null);
+    }
+  }, [mutateMonth]);
+
+  const handleUndoPrepay = useCallback(async (expenseId, expenseName) => {
+    setActionLoading(expenseId);
+    try {
+      await axios.post(`${API}/api/expenses/${expenseId}/undo-prepay`, {}, { withCredentials: true });
+      toast.success(`Prepayment undone for ${expenseName}`);
+      mutateMonth();
+      mutate(`${API}/api/expenses/by-month?month=${getMonthKey(1)}`);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to undo prepay");
+    } finally {
+      setActionLoading(null);
+    }
+  }, [mutateMonth]);
+
   const getCategoryIcon = (category) => {
     const icons = {
       "Housing": Home, "Utilities": Zap, "Food": ShoppingBag, "Travel": Car,
