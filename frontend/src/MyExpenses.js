@@ -188,6 +188,13 @@ const MyExpenses = () => {
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             My Expenses
           </h1>
+          <button
+            onClick={() => navigate("/expense-calendar")}
+            className="ml-auto p-2 rounded-xl bg-white/15 hover:bg-white/25 transition-colors border border-white/20"
+            data-testid="calendar-view-btn"
+          >
+            <CalendarDays className="h-5 w-5 text-white" />
+          </button>
         </div>
 
         {/* Month Selector */}
