@@ -7,7 +7,9 @@ import {
   Palette, 
   Database,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  FileSpreadsheet,
+  Users
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
