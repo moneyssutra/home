@@ -200,7 +200,7 @@ const Login = () => {
               <button
                 onClick={resetForgotPassword}
                 className="flex items-center gap-2 mb-4 text-sm hover:underline"
-                style={{ color: "#14B8A6" }}
+                style={{ color: "#059669" }}
                 data-testid="back-to-login-btn"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -252,7 +252,7 @@ const Login = () => {
                       type="submit"
                       disabled={isSubmitting || !identifier.trim()}
                       className="w-full py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                      style={{ backgroundColor: "#0D9488" }}
+                      style={{ backgroundColor: "#047857" }}
                       data-testid="forgot-password-submit"
                     >
                       {isSubmitting ? (
@@ -281,7 +281,7 @@ const Login = () => {
                   <button
                     onClick={resetForgotPassword}
                     className="py-2 px-6 rounded-xl font-medium"
-                    style={{ backgroundColor: "#0D9488", color: "white" }}
+                    style={{ backgroundColor: "#047857", color: "white" }}
                     data-testid="back-to-login-success-btn"
                   >
                     Back to Login
@@ -382,7 +382,7 @@ const Login = () => {
                     type="button"
                     onClick={() => { setIsForgotPasswordMode(true); setError(""); }}
                     className="text-sm hover:underline"
-                    style={{ color: "#14B8A6" }}
+                    style={{ color: "#059669" }}
                     data-testid="forgot-password-link"
                   >
                     Forgot Password?
@@ -394,7 +394,7 @@ const Login = () => {
                   type="submit"
                   disabled={isSubmitting || !identifier.trim() || !password}
                   className="w-full py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={{ backgroundColor: "#0D9488" }}
+                  style={{ backgroundColor: "#047857" }}
                   data-testid="login-button"
                 >
                   {isSubmitting ? (
@@ -414,7 +414,7 @@ const Login = () => {
                 <button
                   onClick={toggleMode}
                   className="font-semibold hover:underline"
-                  style={{ color: "#14B8A6" }}
+                  style={{ color: "#059669" }}
                   data-testid="create-account-link"
                 >
                   Create Account
