@@ -52,6 +52,8 @@ import CategoryExpenses from "@/CategoryExpenses";
 import FixedExpenses from "@/FixedExpenses";
 import VariableExpenses from "@/VariableExpenses";
 import ExpenseCalendar from "@/ExpenseCalendar";
+import DataImport from "@/DataImport";
+import FamilyPage from "@/FamilyPage";
 import InsuranceForm from "@/InsuranceForm";
 import MyInsurance from "@/MyInsurance";
 import InsuranceBreakdown from "@/InsuranceBreakdown";
