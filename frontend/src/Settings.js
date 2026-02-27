@@ -115,6 +115,31 @@ const Settings = () => {
 
       {/* Content */}
       <div className="px-4 py-2">
+        {/* Quick Actions */}
+        <div className="mb-5">
+          <p className="text-xs font-semibold uppercase tracking-wider mb-3 px-1" style={{ color: "var(--text-muted)" }}>Quick Actions</p>
+          <div className="grid grid-cols-2 gap-3">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <button
+                  key={action.id}
+                  onClick={() => navigate(action.path)}
+                  className="rounded-2xl p-4 text-left transition-all hover:shadow-md active:scale-[0.98]"
+                  style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+                  data-testid={`settings-${action.id}`}
+                >
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: action.bgColor }}>
+                    <Icon className="h-5 w-5" style={{ color: action.color }} />
+                  </div>
+                  <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{action.title}</h3>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{action.description}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Settings Sections */}
         <div className="space-y-3">
           {sections.map((section) => {
