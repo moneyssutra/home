@@ -212,6 +212,53 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
+      {!isPersonalView && memberSummary ? (
+        /* Family Member Summary View */
+        <div className="px-6 pb-8 space-y-4 mt-4" data-testid="member-dashboard">
+          <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold" style={{ backgroundColor: "#F3E8FF", color: "#7C3AED" }}>
+                {memberSummary.member?.name?.charAt(0) || "?"}
+              </div>
+              <div>
+                <h3 className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>{memberSummary.member?.name}</h3>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{memberSummary.member?.relationship}</p>
+              </div>
+            </div>
+
+            <div className="rounded-xl p-4 mb-4" style={{ background: "linear-gradient(135deg, #7C3AED, #A78BFA)" }}>
+              <p className="text-white/70 text-xs mb-1">Net Worth</p>
+              <p className="text-3xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+                ₹ {formatFullAmount(memberSummary.summary?.netWorth || 0)}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Monthly Income", value: memberSummary.summary?.monthlyIncome, color: "#059669", count: memberSummary.summary?.counts?.income },
+                { label: "Monthly Expenses", value: memberSummary.summary?.monthlyExpenses, color: "#DC2626", count: memberSummary.summary?.counts?.expenses },
+                { label: "Investments", value: memberSummary.summary?.totalInvestments, color: "#2563EB", count: memberSummary.summary?.counts?.investments },
+                { label: "Assets", value: memberSummary.summary?.totalAssets, color: "#7C3AED", count: memberSummary.summary?.counts?.assets },
+                { label: "Loans", value: memberSummary.summary?.totalLoans, color: "#EA580C", count: memberSummary.summary?.counts?.loans },
+                { label: "Liquid Balance", value: memberSummary.summary?.liquidBalance, color: "#0891B2", count: memberSummary.summary?.counts?.accounts },
+              ].map(({ label, value, color, count }) => (
+                <div key={label} className="rounded-xl p-3" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+                  <p className="text-[10px] font-medium mb-0.5" style={{ color: "var(--text-muted)" }}>{label}</p>
+                  <p className="text-base font-bold" style={{ color }}> ₹{formatAmount(value || 0)}</p>
+                  <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{count || 0} entries</p>
+                </div>
+              ))}
+            </div>
+
+            {memberSummary.summary?.counts && Object.values(memberSummary.summary.counts).every(v => v === 0) && (
+              <div className="mt-4 p-4 rounded-xl text-center" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>No financial data yet for {memberSummary.member?.name}.</p>
+                <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Add data via Excel Import or manually for this member.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
       <div className="px-6 pb-8 space-y-6 mt-4">
         {/* Monthly Cash Flow Card - Enhanced */}
         <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="income-expense-card">
