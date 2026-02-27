@@ -151,7 +151,7 @@ class TestIteration89Features:
     # === DASHBOARD TESTS ===
     def test_dashboard_net_worth(self):
         """Verify dashboard shows positive net worth"""
-        response = self.session.get(f"{BASE_URL}/api/dashboard/summary")
+        response = self.session.get(f"{BASE_URL}/api/dashboard/networth")
         assert response.status_code == 200
         data = response.json()
         
