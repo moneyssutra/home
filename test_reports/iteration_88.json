@@ -1,0 +1,96 @@
+{
+  "summary": "Iteration 88: Complete testing of (1) Investment form restructure with SIP section before Principal, dynamic label change, principal=0 support, (2) User data cleared for test@moneyssutra.com, (3) Expense Calendar view at /expense-calendar. All backend tests (100% - 9/9 passed) and frontend features verified working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration88_features.py",
+    "/app/test_reports/pytest/iteration88_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_iteration88_features.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)",
+    "frontend": "100% (all features verified working)"
+  },
+  "test_credentials": "email=test@moneyssutra.com, password=test",
+  "seed_data_creation": "Test investments created and cleaned up during testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 3 features working correctly: (1) Investment form restructure - SIP section appears right after Investment Name field, before Principal/Initial Investment field. When SIP frequency is selected, the Principal label changes to 'Initial Investment (can be 0)' and allows 0 value. Auto Create SIP Expense toggle auto-enables when SIP amount is entered. (2) User test@moneyssutra.com (Rahul) has cleared data - 0 expenses, 0 income, 0 investments shown. (3) Expense Calendar at /expense-calendar with month selector, calendar grid showing days with expense dots, legend (Paid/Pending/Prepaid), and 'View as List' button. Calendar icon button on /my-expenses header navigates to calendar view.",
+  "features_tested": {
+    "backend_investment_zero_principal_with_sip": {
+      "status": "PASS",
+      "details": "POST /api/investments accepts principal=0 with investmentFrequency=Monthly and sipAmount set. Creates linked expense when autoCreateExpense=True"
+    },
+    "backend_investment_model_default_principal": {
+      "status": "PASS",
+      "details": "InvestmentCreate model defaults principal to 0 (per server_models.py line 433)"
+    },
+    "backend_investment_positive_principal_still_works": {
+      "status": "PASS",
+      "details": "Normal investments with principal > 0 still work correctly"
+    },
+    "backend_expenses_by_month_endpoint": {
+      "status": "PASS",
+      "details": "GET /api/expenses/by-month?month=YYYY-MM returns expenses with _displayStatus field"
+    },
+    "backend_user_data_cleared": {
+      "status": "PASS",
+      "details": "User test@moneyssutra.com has 0 expenses, 0 income, 0 investments"
+    },
+    "frontend_investment_form_sip_before_principal": {
+      "status": "PASS",
+      "details": "SIP section (Recurring Investment) appears right after Investment Name field. DOM positions: name-input (13893) < investment-frequency-select (15884) < principal-input (23936)"
+    },
+    "frontend_principal_label_dynamic_change": {
+      "status": "PASS",
+      "details": "When Monthly SIP is selected, Principal label changes to 'Initial Investment (can be 0)'"
+    },
+    "frontend_investment_principal_zero_allowed": {
+      "status": "PASS",
+      "details": "Principal input accepts 0 value when SIP frequency is selected, no validation error for principal=0"
+    },
+    "frontend_auto_expense_toggle_enabled": {
+      "status": "PASS",
+      "details": "Auto Create SIP Expense toggle auto-enables when SIP amount > 0 is entered"
+    },
+    "frontend_expense_calendar_route": {
+      "status": "PASS",
+      "details": "/expense-calendar page loads with calendar grid, month selector, and legend"
+    },
+    "frontend_calendar_month_selector": {
+      "status": "PASS",
+      "details": "Month selector shows 'February 2026 / Current Month' with prev/next navigation working"
+    },
+    "frontend_calendar_view_as_list_button": {
+      "status": "PASS",
+      "details": "'View as List' button visible at bottom of calendar page"
+    },
+    "frontend_my_expenses_calendar_button": {
+      "status": "PASS",
+      "details": "Calendar icon button on /my-expenses header navigates to /expense-calendar"
+    },
+    "frontend_user_empty_state": {
+      "status": "PASS",
+      "details": "My Expenses shows 'No Expenses for February 2026' and ₹0 total for cleared user"
+    }
+  },
+  "test_summary_table": {
+    "total_backend_tests": 9,
+    "backend_passed": 9,
+    "backend_failed": 0,
+    "frontend_features_tested": 9,
+    "frontend_passed": 9,
+    "frontend_failed": 0
+  }
+}
