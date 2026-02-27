@@ -143,7 +143,7 @@ class TestIteration89Features:
     
     def test_expense_summary_endpoint(self):
         """Verify expense summary/breakdown works"""
-        response = self.session.get(f"{BASE_URL}/api/expense-summary?month=2026-02")
+        response = self.session.get(f"{BASE_URL}/api/expenses/list/summary?month=2026-02")
         assert response.status_code == 200
         summary = response.json()
         print(f"Expense summary: {summary}")
