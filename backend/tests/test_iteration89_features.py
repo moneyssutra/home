@@ -98,7 +98,7 @@ class TestIteration89Features:
     # === INSURANCE TESTS ===
     def test_insurance_count(self):
         """Verify insurance policies exist (expected ~9)"""
-        response = self.session.get(f"{BASE_URL}/api/insurance")
+        response = self.session.get(f"{BASE_URL}/api/insurances")
         assert response.status_code == 200
         insurance = response.json()
         
