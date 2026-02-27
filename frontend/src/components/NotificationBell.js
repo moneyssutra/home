@@ -181,41 +181,61 @@ const NotificationBell = () => {
     }
   };
   
-  // Swipe handlers
+  // Swipe handlers - improved for mobile reliability
+  const touchStartRef = useRef({ x: 0, y: 0 });
+  const isSwipingHorizontal = useRef(false);
+
   const handleTouchStart = (e, notificationId) => {
     if (dismissingId) return;
-    touchStartX.current = e.touches[0].clientX;
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    isSwipingHorizontal.current = false;
     setSwipingId(notificationId);
+    setSwipeX(0);
   };
   
-  const handleTouchMove = (e) => {
+  const handleTouchMove = useCallback((e) => {
     if (!swipingId || dismissingId) return;
-    const currentX = e.touches[0].clientX;
-    const diff = currentX - touchStartX.current;
-    if (diff > 0) {
-      setSwipeX(Math.min(diff, 120));
+    const touch = e.touches[0];
+    const diffX = touch.clientX - touchStartRef.current.x;
+    const diffY = touch.clientY - touchStartRef.current.y;
+
+    // Determine swipe direction on first significant movement
+    if (!isSwipingHorizontal.current && (Math.abs(diffX) > 8 || Math.abs(diffY) > 8)) {
+      isSwipingHorizontal.current = Math.abs(diffX) > Math.abs(diffY);
+      if (!isSwipingHorizontal.current) {
+        // Vertical scroll — cancel swipe
+        setSwipingId(null);
+        setSwipeX(0);
+        return;
+      }
     }
-  };
+
+    if (isSwipingHorizontal.current && diffX > 0) {
+      // Prevent vertical scroll while swiping horizontally
+      e.preventDefault();
+      setSwipeX(Math.min(diffX, 120));
+    }
+  }, [swipingId, dismissingId]);
   
-  const handleTouchEnd = () => {
+  const handleTouchEnd = useCallback(() => {
     if (!swipingId || dismissingId) return;
     if (swipeX > 80) {
-      // Capture the id before state changes
       const idToDelete = swipingId;
       setDismissingId(idToDelete);
       setSwipingId(null);
       setSwipeX(0);
-      // Wait for animation to finish, then delete
+      isSwipingHorizontal.current = false;
       setTimeout(() => {
         handleDeleteNotification(idToDelete);
         setDismissingId(null);
       }, 350);
     } else {
-      // Snap back
       setSwipingId(null);
       setSwipeX(0);
+      isSwipingHorizontal.current = false;
     }
-  };
+  }, [swipingId, swipeX, dismissingId, handleDeleteNotification]);
   
   const getNotificationIcon = (notification) => {
     const type = notification.type;
