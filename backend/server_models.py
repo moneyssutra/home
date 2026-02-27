@@ -430,8 +430,8 @@ class InvestmentCreate(BaseModel):
     investmentCategory: str
     investmentMode: str
     name: str
-    principal: float
-    currentValue: float
+    principal: float = 0
+    currentValue: float = 0
     startDate: str
     linkedAccountId: Optional[str] = None
     notes: Optional[str] = None
