@@ -234,11 +234,9 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
         if isinstance(exp.get('createdAt'), str):
             exp['createdAt'] = datetime.fromisoformat(exp['createdAt'])
 
-        # Skip prepaid child records - they only appear when their target month matches
+        # Skip prepaid child records entirely - they're just tracking records
+        # The parent expense will be enriched with prepaid status instead
         if exp.get('linkedPaymentId'):
-            if exp.get('expenseMonth') == target_month:
-                exp['_displayStatus'] = 'prepaid'
-                result.append(exp)
             continue
 
         # Check if this is an expense explicitly assigned to this month
