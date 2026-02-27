@@ -232,6 +232,8 @@ app.include_router(transactions_router, prefix="/api")
 app.include_router(cron_router, prefix="/api")
 app.include_router(intelligence_router, prefix="/api")
 app.include_router(gamification_router, prefix="/api")
+app.include_router(data_import_router, prefix="/api")
+app.include_router(family_router, prefix="/api")
 
 
 # ============ LIFECYCLE EVENTS ============
