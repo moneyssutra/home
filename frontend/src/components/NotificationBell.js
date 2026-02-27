@@ -184,6 +184,7 @@ const NotificationBell = () => {
   // Swipe handlers - improved for mobile reliability
   const touchStartRef = useRef({ x: 0, y: 0 });
   const isSwipingHorizontal = useRef(false);
+  const notifContainerRef = useRef(null);
 
   const handleTouchStart = (e, notificationId) => {
     if (dismissingId) return;
