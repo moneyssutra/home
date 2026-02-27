@@ -409,7 +409,6 @@ const NotificationBell = () => {
                       transition: isDismissing ? 'max-height 0.35s ease-out, opacity 0.25s ease-out, margin 0.35s ease-out, padding 0.35s ease-out' : 'none',
                     }}
                     onTouchStart={(e) => handleTouchStart(e, notification.id)}
-                    onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
                   >
                     {/* Swipe delete background */}
