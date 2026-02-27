@@ -67,6 +67,27 @@ const Settings = () => {
     }
   ];
 
+  const quickActions = [
+    {
+      id: "import-data",
+      title: "Import from Excel",
+      description: "Bulk import your financial data",
+      icon: FileSpreadsheet,
+      color: "#0F766E",
+      bgColor: "rgba(15, 118, 110, 0.1)",
+      path: "/import-data"
+    },
+    {
+      id: "family-hub",
+      title: "Family Hub",
+      description: "Manage & track family finances",
+      icon: Users,
+      color: "#7C3AED",
+      bgColor: "rgba(124, 58, 237, 0.1)",
+      path: "/family"
+    }
+  ];
+
   const legalLinks = [
     { label: "Terms of Service", path: "/terms-of-service" },
     { label: "Privacy Policy", path: "/privacy-policy" },
