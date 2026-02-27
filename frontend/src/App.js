@@ -233,6 +233,10 @@ function AppRouter() {
       <Route path="/settings/profile" element={<ProtectedRoute><ProfileSettings /></ProtectedRoute>} />
       <Route path="/settings/security" element={<ProtectedRoute><SecuritySettings /></ProtectedRoute>} />
       <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+      
+      {/* Data Import & Family */}
+      <Route path="/import-data" element={<ProtectedRoute><DataImport /></ProtectedRoute>} />
+      <Route path="/family" element={<ProtectedRoute><FamilyPage /></ProtectedRoute>} />
       <Route path="/settings/preferences" element={<ProtectedRoute><PreferencesSettings /></ProtectedRoute>} />
       <Route path="/settings/data-privacy" element={<ProtectedRoute><DataPrivacySettings /></ProtectedRoute>} />
 
