@@ -26,8 +26,10 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
+import FamilyToggle from "@/components/FamilyToggle";
 import FinancialHealth from "@/components/FinancialHealth";
 import { useAuth } from "@/context/AuthContext";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
