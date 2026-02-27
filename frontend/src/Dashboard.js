@@ -34,21 +34,28 @@ import { useFamilyContext } from "@/context/FamilyContext";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { activeViewId, activeViewLabel, isPersonalView } = useFamilyContext();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [profile, setProfile] = useState(null);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [goalsSummary, setGoalsSummary] = useState(null);
+  const [memberSummary, setMemberSummary] = useState(null);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (isPersonalView) {
+      fetchDashboardData();
+    } else {
+      fetchMemberDashboard();
+    }
+  }, [activeViewId]);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      setMemberSummary(null);
       const [networthRes, profileRes, goalsRes] = await Promise.all([
         axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/profile/basic`, { withCredentials: true }),
@@ -59,6 +66,19 @@ const Dashboard = () => {
       setGoalsSummary(goalsRes.data);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMemberDashboard = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${backendUrl}/api/family/member/${activeViewId}/summary`, { withCredentials: true });
+      setMemberSummary(res.data);
+    } catch (error) {
+      console.error("Error fetching member summary:", error);
+      setMemberSummary(null);
     } finally {
       setLoading(false);
     }
