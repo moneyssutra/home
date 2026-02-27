@@ -1,0 +1,100 @@
+{
+  "summary": "Iteration 87: Complete testing of NPS/PPF SIP auto-expense repair endpoint and Monthly Expense Calendar View. All backend tests (100% - 11/11 passed) and frontend features (100%) verified working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_repair_expenses_calendar.py",
+    "/app/test_reports/pytest/repair_expenses_calendar_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_repair_expenses_calendar.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 tests passed)",
+    "frontend": "100% (all features verified working)"
+  },
+  "test_credentials": "email=test@moneyssutra.com, password=test",
+  "seed_data_creation": "None - used existing test data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Two new features working correctly: (1) POST /api/investments/repair-expenses finds investments with autoCreateExpense=True but missing linked expense, creates the expense - idempotent endpoint returns repaired=0 on subsequent calls since all were fixed. (2) Expense Calendar at /expense-calendar shows monthly grid with expense dots on due dates, day amounts (e.g. ₹67K on 5th), clicking day shows expense detail list, month selector navigates between months, View as List button navigates to /my-expenses, calendar icon on /my-expenses header navigates to /expense-calendar, legend shows Paid/Pending/Prepaid indicators.",
+  "features_tested": {
+    "backend_repair_expenses_endpoint": {
+      "status": "PASS",
+      "details": "POST /api/investments/repair-expenses exists and returns {repaired: int, details: []}"
+    },
+    "backend_repair_expenses_idempotent": {
+      "status": "PASS",
+      "details": "Calling repair-expenses twice returns repaired=0 on second call (already fixed)"
+    },
+    "backend_ppf_sip_creates_expense": {
+      "status": "PASS",
+      "details": "PPF investment with autoCreateExpense=True creates linked expense with SIP - name format"
+    },
+    "backend_nps_sip_creates_expense": {
+      "status": "PASS",
+      "details": "NPS investment with autoCreateExpense=True creates linked expense correctly"
+    },
+    "backend_expenses_by_month_endpoint": {
+      "status": "PASS",
+      "details": "GET /api/expenses/by-month returns expenses for calendar view with _displayStatus field"
+    },
+    "backend_expenses_by_month_param": {
+      "status": "PASS",
+      "details": "GET /api/expenses/by-month?month=YYYY-MM accepts month parameter"
+    },
+    "backend_expenses_by_month_invalid": {
+      "status": "PASS",
+      "details": "Invalid month format returns 400 error"
+    },
+    "frontend_expense_calendar_route": {
+      "status": "PASS",
+      "details": "/expense-calendar page loads with calendar grid showing expense dots on due dates"
+    },
+    "frontend_calendar_day_amounts": {
+      "status": "PASS",
+      "details": "Calendar shows day amounts (e.g. ₹67K on 5th, ₹50K on 1st)"
+    },
+    "frontend_calendar_day_detail": {
+      "status": "PASS",
+      "details": "Clicking a calendar day shows expense detail list below with expense name, category, amount, status"
+    },
+    "frontend_calendar_month_selector": {
+      "status": "PASS",
+      "details": "Month selector with prev/next arrows navigates between months (Jan-Mar 2026 tested)"
+    },
+    "frontend_view_as_list_button": {
+      "status": "PASS",
+      "details": "'View as List' button at bottom navigates to /my-expenses"
+    },
+    "frontend_calendar_icon_button": {
+      "status": "PASS",
+      "details": "Calendar icon button on /my-expenses header navigates to /expense-calendar"
+    },
+    "frontend_calendar_legend": {
+      "status": "PASS",
+      "details": "Legend shows Paid (green), Pending (orange), Prepaid (blue) indicators"
+    },
+    "frontend_mobile_responsive": {
+      "status": "PASS",
+      "details": "Calendar displays correctly on mobile viewport (390x844)"
+    }
+  },
+  "test_summary_table": {
+    "total_backend_tests": 11,
+    "backend_passed": 11,
+    "backend_failed": 0,
+    "frontend_features_tested": 8,
+    "frontend_passed": 8,
+    "frontend_failed": 0
+  }
+}
