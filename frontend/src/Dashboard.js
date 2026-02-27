@@ -572,6 +572,7 @@ const Dashboard = () => {
           </div>
         )}
       </div>
+      )}
 
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
