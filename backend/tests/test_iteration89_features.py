@@ -173,7 +173,7 @@ class TestIteration89Features:
     
     def test_intelligence_gamification_endpoint(self):
         """Verify gamification data with badges/challenges"""
-        response = self.session.get(f"{BASE_URL}/api/intelligence/gamification")
+        response = self.session.get(f"{BASE_URL}/api/gamification/profile")
         assert response.status_code == 200
         data = response.json()
         
