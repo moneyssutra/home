@@ -1225,40 +1225,40 @@ const Insights = () => {
         <div className="space-y-3">
           <p className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Detailed Modules</p>
 
-          <AccordionModule title="Financial Score" icon={Target} iconColor="#10B981" isOpen={openModule === "score"} onToggle={() => handleToggle("score")} testId="accordion-score">
-            <FinancialScoreWidget data={controlScore} />
-          </AccordionModule>
-
-          <AccordionModule title="Emergency Runway" icon={Shield} iconColor="#3B82F6" isOpen={openModule === "runway"} onToggle={() => handleToggle("runway")} testId="accordion-runway">
-            <EmergencyRunwayWidget data={survivalClock} />
-          </AccordionModule>
-
-          <AccordionModule title="Shock Test" icon={Zap} iconColor="#EF4444" isOpen={openModule === "shock"} onToggle={() => handleToggle("shock")} locked={stageNum < 5 && stageNum > 0} unlockStage={5} testId="accordion-shock">
+          <AccordionModule title="Shock Test" icon={Zap} iconColor="#EF4444" isOpen={openModule === "shock"} onToggle={() => handleToggle("shock")} locked={stageNum < 1 && stageNum === 0} unlockStage={1} stageNum={stageNum} testId="accordion-shock">
             <ShockTestWidget clockData={survivalClock} />
           </AccordionModule>
 
-          <AccordionModule title="Runway Simulator" icon={Rocket} iconColor="#8B5CF6" isOpen={openModule === "simulator"} onToggle={() => handleToggle("simulator")} locked={stageNum < 7 && stageNum > 0} unlockStage={7} testId="accordion-simulator">
-            <RunwaySimulator currentData={survivalClock} />
+          <AccordionModule title="Financial Score" icon={Target} iconColor="#10B981" isOpen={openModule === "score"} onToggle={() => handleToggle("score")} locked={stageNum < 2 && stageNum > 0} unlockStage={2} stageNum={stageNum} testId="accordion-score">
+            <FinancialScoreWidget data={controlScore} />
           </AccordionModule>
 
-          <AccordionModule title="Money Personality" icon={TrendingUp} iconColor="#F59E0B" isOpen={openModule === "personality"} onToggle={() => handleToggle("personality")} testId="accordion-personality">
+          <AccordionModule title="Emergency Runway" icon={Shield} iconColor="#3B82F6" isOpen={openModule === "runway"} onToggle={() => handleToggle("runway")} locked={stageNum < 3 && stageNum > 0} unlockStage={3} stageNum={stageNum} testId="accordion-runway">
+            <EmergencyRunwayWidget data={survivalClock} />
+          </AccordionModule>
+
+          <AccordionModule title="Money Personality" icon={TrendingUp} iconColor="#F59E0B" isOpen={openModule === "personality"} onToggle={() => handleToggle("personality")} locked={stageNum < 5 && stageNum > 0} unlockStage={5} stageNum={stageNum} testId="accordion-personality">
             <MoneyPatternWidget data={moneyPattern} />
           </AccordionModule>
 
-          <AccordionModule title="Badges" icon={Trophy} iconColor="#F59E0B" isOpen={openModule === "badges"} onToggle={() => handleToggle("badges")} testId="accordion-badges">
-            <BadgesWidget data={gamification} />
+          <AccordionModule title="Runway Simulator" icon={Rocket} iconColor="#8B5CF6" isOpen={openModule === "simulator"} onToggle={() => handleToggle("simulator")} locked={stageNum < 7 && stageNum > 0} unlockStage={7} stageNum={stageNum} testId="accordion-simulator">
+            <RunwaySimulator currentData={survivalClock} />
           </AccordionModule>
 
-          <AccordionModule title="Challenges" icon={Swords} iconColor="#8B5CF6" isOpen={openModule === "challenges"} onToggle={() => handleToggle("challenges")} locked={stageNum < 12 && stageNum > 0} unlockStage={12} testId="accordion-challenges">
-            <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
-          </AccordionModule>
-
-          <AccordionModule title="Future You" icon={Rocket} iconColor="#8B5CF6" isOpen={openModule === "future"} onToggle={() => handleToggle("future")} testId="accordion-future">
+          <AccordionModule title="Future You" icon={Rocket} iconColor="#8B5CF6" isOpen={openModule === "future"} onToggle={() => handleToggle("future")} locked={stageNum < 9 && stageNum > 0} unlockStage={9} stageNum={stageNum} testId="accordion-future">
             <FutureYouWidget data={futureYou} />
           </AccordionModule>
 
-          <AccordionModule title="Personality Evolution" icon={TrendingUp} iconColor="#F59E0B" isOpen={openModule === "evolution"} onToggle={() => handleToggle("evolution")} locked={stageNum < 9 && stageNum > 0} unlockStage={9} testId="accordion-evolution">
+          <AccordionModule title="Personality Evolution" icon={TrendingUp} iconColor="#F59E0B" isOpen={openModule === "evolution"} onToggle={() => handleToggle("evolution")} locked={stageNum < 11 && stageNum > 0} unlockStage={11} stageNum={stageNum} testId="accordion-evolution">
             <PersonalityEvolutionWidget data={personalityHistory} currentPersonality={moneyPattern?.personality} />
+          </AccordionModule>
+
+          <AccordionModule title="Badges" icon={Trophy} iconColor="#F59E0B" isOpen={openModule === "badges"} onToggle={() => handleToggle("badges")} locked={stageNum < 13 && stageNum > 0} unlockStage={13} stageNum={stageNum} testId="accordion-badges">
+            <BadgesWidget data={gamification} />
+          </AccordionModule>
+
+          <AccordionModule title="Challenges" icon={Swords} iconColor="#8B5CF6" isOpen={openModule === "challenges"} onToggle={() => handleToggle("challenges")} locked={stageNum < 15 && stageNum > 0} unlockStage={15} stageNum={stageNum} testId="accordion-challenges">
+            <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
           </AccordionModule>
         </div>
 
