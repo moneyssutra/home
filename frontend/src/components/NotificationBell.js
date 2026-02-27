@@ -393,7 +393,7 @@ const NotificationBell = () => {
                 <p className="text-gray-500 text-sm">No new notifications at the moment.</p>
               </div>
             ) : (
-              <div className="py-2">
+              <div className="py-2" ref={notifContainerRef}>
                 {notifications.map((notification) => {
                   const isDismissing = dismissingId === notification.id;
                   const isSwiping = swipingId === notification.id;
