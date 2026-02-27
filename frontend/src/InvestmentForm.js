@@ -361,9 +361,20 @@ const InvestmentForm = () => {
     const nameError = validateTextField(name, "Investment name", 100);
     if (nameError) newErrors.name = nameError;
 
-    // Principal Amount validation
-    const principalError = validatePositiveAmount(principal, "Principal amount");
-    if (principalError) newErrors.principal = principalError;
+    // Principal Amount validation - allow 0 if SIP frequency is set
+    if (investmentFrequency && investmentFrequency !== "") {
+      // SIP mode: principal can be 0
+      if (principal !== "" && principal !== null && principal !== undefined) {
+        const val = parseFloat(principal);
+        if (isNaN(val) || val < 0) {
+          newErrors.principal = "Principal amount cannot be negative.";
+        }
+      }
+    } else {
+      // One-time mode: principal must be > 0
+      const principalError = validatePositiveAmount(principal, "Principal amount");
+      if (principalError) newErrors.principal = principalError;
+    }
 
     // Start Date validation
     if (!startDate) {
