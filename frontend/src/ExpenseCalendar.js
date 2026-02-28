@@ -111,6 +111,13 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
   const todayMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
   const isCurrentMonth = currentMonthKey === todayMonthKey;
 
+  // Auto-select today's date on first load
+  useEffect(() => {
+    if (isCurrentMonth && selectedDay === null) {
+      setSelectedDay(todayDay);
+    }
+  }, [isCurrentMonth, todayDay]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Fetch data only when standalone (not embedded)
   useEffect(() => {
     if (embedded) return;
