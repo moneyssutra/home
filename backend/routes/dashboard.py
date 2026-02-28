@@ -5,7 +5,7 @@ import asyncio
 
 from database import db
 from routes.auth import get_current_user
-from routes.utils import get_user_filter
+from routes.utils import get_user_filter, get_user_now
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -42,14 +42,14 @@ async def get_networth_summary(request: Request):
     credit_card_limit = sum(card.get('creditLimit', 0) for card in credit_cards)
     total_liabilities = sum(loan.get('outstandingAmount', 0) for loan in loans) + credit_outstanding + credit_card_outstanding
 
-    current_month = datetime.now(timezone.utc).month
-    current_year = datetime.now(timezone.utc).year
+    current_month = get_user_now(request).month
+    current_year = get_user_now(request).year
     monthly_income = _calc_monthly_income(incomes, other_incomes, current_month, current_year)
     monthly_expenses = _calc_monthly_expenses(expenses, current_month, current_year)
     net_worth = total_assets + total_investments + liquid_balance - total_liabilities
 
     # Calculate schedule-based received/expected and done/upcoming
-    today = datetime.now(timezone.utc)
+    today = get_user_now(request)
     current_day = today.day
 
     income_received_list, income_expected_list = _split_by_schedule_date(incomes, current_day, current_month, current_year, is_income=True)
