@@ -3,11 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { Settings, LogOut, User, ChevronDown } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
-const ProfileMenu = ({ userName, userPicture }) => {
+const ProfileMenu = ({ userName: propName, userPicture: propPicture }) => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user, profile } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
+
+  // Use props if provided, fallback to auth context
+  const resolvedName = propName || user?.name || profile?.fullName || null;
+  const resolvedPicture = propPicture || user?.picture || null;
 
   const getInitials = (name) => {
     if (!name) return "U";
