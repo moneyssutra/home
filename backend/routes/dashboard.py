@@ -307,6 +307,9 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
     days_in_month = calendar.monthrange(current_year, current_month)[1]
 
     for item in items:
+        # Skip linked expenses to avoid double-counting (consistent with monthly-summary)
+        if not is_income and item.get('linkedPaymentId'):
+            continue
         amount = item.get('expectedAmount', 0)
         freq = item.get('frequency', 'Monthly')
 
