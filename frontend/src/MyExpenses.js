@@ -221,7 +221,7 @@ const MyExpenses = () => {
       </header>
 
       {/* Conditional Views */}
-      {activeView === "daily" && <ExpenseCalendar embedded />}
+      {activeView === "daily" && <ExpenseCalendar embedded expenses={monthExpenses} monthKey={currentMonthKey} monthOffset={monthOffset} setMonthOffset={setMonthOffset} dataLoading={loading} />}
       {activeView === "weekly" && <ExpenseWeekly />}
       {activeView === "monthly" && <ExpenseMonthly />}
       {activeView === "list" && (
