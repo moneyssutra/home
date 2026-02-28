@@ -6,18 +6,18 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-// Premium dark navy design tokens matching reference
+// Premium turquoise dark theme tokens
 const DK = {
-  bg: "#060D1B",
-  card: "#0C1829",
-  cardAlt: "#0F1D32",
-  cardBorder: "rgba(56,97,150,0.15)",
-  cardBorderHover: "rgba(56,97,150,0.3)",
+  bg: "#041418",
+  card: "#0A1F24",
+  cardAlt: "#0D2A30",
+  cardBorder: "rgba(13,148,136,0.15)",
+  cardBorderHover: "rgba(13,148,136,0.3)",
   // Warm spectrum
   teal: "#2DD4BF",
   tealSoft: "rgba(45,212,191,0.08)",
   tealBorder: "rgba(45,212,191,0.2)",
-  cyan: "#22D3EE",
+  cyan: "#14B8A6",
   amber: "#F59E0B",
   amberSoft: "rgba(245,158,11,0.06)",
   amberBorder: "rgba(245,158,11,0.2)",
@@ -28,19 +28,19 @@ const DK = {
   green: "#34D399",
   greenSoft: "rgba(52,211,153,0.08)",
   greenBorder: "rgba(52,211,153,0.2)",
-  blue: "#3B82F6",
-  blueSoft: "rgba(59,130,246,0.08)",
-  blueBorder: "rgba(59,130,246,0.2)",
+  blue: "#06B6D4",
+  blueSoft: "rgba(6,182,212,0.08)",
+  blueBorder: "rgba(6,182,212,0.2)",
   gold: "#FBBF24",
   goldSoft: "rgba(251,191,36,0.06)",
   goldBorder: "rgba(251,191,36,0.15)",
   red: "#EF4444",
   redSoft: "rgba(239,68,68,0.1)",
-  textPrimary: "#E8EDF5",
-  textSecondary: "#8B9DC3",
-  textMuted: "#546A8D",
-  barTrack: "#121E33",
-  divider: "rgba(86,122,170,0.1)",
+  textPrimary: "#E8F5F2",
+  textSecondary: "#8BC4B8",
+  textMuted: "#547D73",
+  barTrack: "#0C2A30",
+  divider: "rgba(45,212,191,0.1)",
 };
 
 const formatK = (v) => {
