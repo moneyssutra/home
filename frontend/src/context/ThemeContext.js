@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
 
 const ThemeContext = createContext();
+const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
@@ -22,6 +24,20 @@ export const ThemeProvider = ({ children }) => {
     }
     return 'light';
   });
+
+  // Sync theme from backend after login
+  const syncThemeFromBackend = useCallback(async () => {
+    try {
+      const res = await axios.get(`${backendUrl}/api/settings/preferences`, { withCredentials: true });
+      const serverTheme = res.data?.theme;
+      if (serverTheme && (serverTheme === 'dark' || serverTheme === 'light')) {
+        setTheme(serverTheme);
+        localStorage.setItem('moneyssutra-theme', serverTheme);
+      }
+    } catch {
+      // Not logged in or no preferences — keep current theme
+    }
+  }, []);
 
   useEffect(() => {
     // Save to localStorage
@@ -75,7 +91,8 @@ export const ThemeProvider = ({ children }) => {
     theme,
     setTheme,
     toggleTheme,
-    isDark: theme === 'dark'
+    isDark: theme === 'dark',
+    syncThemeFromBackend
   };
 
   return (
