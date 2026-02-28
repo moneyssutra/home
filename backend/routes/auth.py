@@ -33,6 +33,60 @@ def verify_password(password: str, hashed: str) -> bool:
     return hash_password(password) == hashed
 
 
+async def _seed_test_account(user_id: str):
+    """Ensure the test account has sample assets, loans, credit cards, and insurance."""
+    try:
+        # Only seed if assets collection is empty for this user
+        existing = await db.assets.find_one({"userId": user_id}, {"_id": 0})
+        if existing:
+            return  # Already seeded
+
+        now = datetime.now(timezone.utc).isoformat()
+
+        # Sample Assets
+        assets = [
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "Primary Residence", "type": "Real Estate", "value": 45000000, "purchaseDate": "2020-01-15", "notes": "3BHK Apartment", "createdAt": now},
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "Gold Jewelry", "type": "Gold", "value": 800000, "purchaseDate": "2018-06-20", "notes": "Family gold", "createdAt": now},
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "Car - Honda City", "type": "Vehicle", "value": 1200000, "purchaseDate": "2022-03-10", "notes": "2022 model", "createdAt": now},
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "Fixed Deposit - SBI", "type": "Fixed Deposit", "value": 500000, "purchaseDate": "2023-01-01", "notes": "7.1% p.a.", "createdAt": now},
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "Emergency Fund", "type": "Savings", "value": 300000, "purchaseDate": "2024-01-01", "notes": "Liquid savings", "createdAt": now},
+        ]
+
+        # Sample Credit Cards
+        credit_cards = [
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "HDFC Regalia", "bank": "HDFC Bank", "cardNumber": "****4521", "creditLimit": 500000, "currentBalance": 45000, "dueDate": 15, "interestRate": 3.5, "rewardPoints": 12500, "createdAt": now},
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "ICICI Amazon Pay", "bank": "ICICI Bank", "cardNumber": "****7832", "creditLimit": 200000, "currentBalance": 18000, "dueDate": 20, "interestRate": 3.25, "rewardPoints": 5600, "createdAt": now},
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "SBI SimplyCLICK", "bank": "SBI", "cardNumber": "****3145", "creditLimit": 300000, "currentBalance": 8500, "dueDate": 5, "interestRate": 3.35, "rewardPoints": 3200, "createdAt": now},
+        ]
+
+        # Sample Loans (stored in liquid_assets with loan types)
+        loans = [
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "Home Loan - SBI", "type": "Home Loan", "balance": 3500000, "amount": 4500000, "interestRate": 8.5, "emiAmount": 45000, "tenure": 240, "startDate": "2020-02-01", "bank": "SBI", "createdAt": now},
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "Car Loan - HDFC", "type": "Car Loan", "balance": 600000, "amount": 900000, "interestRate": 9.0, "emiAmount": 18000, "tenure": 60, "startDate": "2022-04-01", "bank": "HDFC Bank", "createdAt": now},
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "Personal Loan - ICICI", "type": "Personal Loan", "balance": 150000, "amount": 300000, "interestRate": 12.0, "emiAmount": 10000, "tenure": 36, "startDate": "2024-06-01", "bank": "ICICI Bank", "createdAt": now},
+        ]
+
+        # Sample Insurance (stored in insurances collection)
+        insurances = [
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "Health Insurance - Star", "type": "Health Insurance", "provider": "Star Health", "premium": 25000, "frequency": "Yearly", "coverAmount": 1000000, "policyNumber": "SH-2024-78543", "startDate": "2024-01-01", "endDate": "2025-01-01", "createdAt": now},
+            {"id": str(uuid.uuid4()), "userId": user_id, "name": "Term Life - LIC", "type": "Term Insurance", "provider": "LIC", "premium": 15000, "frequency": "Yearly", "coverAmount": 10000000, "policyNumber": "LIC-TL-456123", "startDate": "2021-06-15", "endDate": "2051-06-15", "createdAt": now},
+        ]
+
+        if assets:
+            await db.assets.insert_many(assets)
+        if credit_cards:
+            await db.credit_cards.insert_many(credit_cards)
+        if loans:
+            await db.liquid_assets.insert_many(loans)
+        if insurances:
+            await db.insurances.insert_many(insurances)
+
+        logger.info(f"Seeded test account {user_id} with sample data")
+    except Exception as e:
+        logger.error(f"Failed to seed test account: {e}")
+
+
+
 def validate_password_strength(password: str) -> tuple:
     if len(password) < 8:
         return False, "Password must be at least 8 characters"
