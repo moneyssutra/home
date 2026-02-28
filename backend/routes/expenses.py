@@ -474,10 +474,8 @@ async def get_monthly_summary(request: Request, last: int = 6):
                     continue
                 freq = exp.get('frequency', 'Monthly')
                 amt_raw = exp.get('expectedAmount', 0) or 0
-                cat_raw = exp.get('category', 'Other')
 
                 applies_here = False
-                amt_here = amt_raw
                 if freq == 'One-Time':
                     ot = exp.get('oneTimeDate', '')
                     if ot and ot[:7] == mk:
@@ -485,11 +483,26 @@ async def get_monthly_summary(request: Request, last: int = 6):
                 elif freq == 'Monthly':
                     applies_here = True
                 elif freq in ('Daily',):
-                    applies_here = True
-                    amt_here = amt_raw * days_in_m
+                    # Daily: split by days elapsed
+                    done_amt += amt_raw * current_day
+                    upcoming_amt += amt_raw * (days_in_m - current_day)
+                    continue
                 elif freq in ('Weekly', 'Bi-Weekly'):
-                    applies_here = True
-                    amt_here = amt_raw * (4.33 if freq == 'Weekly' else 2.17)
+                    # Weekly: count actual weekday occurrences
+                    day_name = exp.get('selectedDay', '')
+                    if day_name and freq == 'Weekly':
+                        from routes.utils import count_weekday_occurrences
+                        past_count = count_weekday_occurrences(y, m, day_name, current_day)
+                        total_count = count_weekday_occurrences(y, m, day_name)
+                        done_amt += amt_raw * past_count
+                        upcoming_amt += amt_raw * (total_count - past_count)
+                    else:
+                        # Fallback: proportional split
+                        monthly_amt = amt_raw * (4.33 if freq == 'Weekly' else 2.17)
+                        ratio = current_day / days_in_m
+                        done_amt += monthly_amt * ratio
+                        upcoming_amt += monthly_amt * (1 - ratio)
+                    continue
                 elif freq == 'Quarterly':
                     start = _parse_quarter_start(exp.get('selectedQuarter'))
                     if start and (m - start) % 3 == 0:
@@ -510,9 +523,9 @@ async def get_monthly_summary(request: Request, last: int = 6):
                     except (ValueError, TypeError):
                         sd = 1
                     if sd <= current_day:
-                        done_amt += amt_here
+                        done_amt += amt_raw
                     else:
-                        upcoming_amt += amt_here
+                        upcoming_amt += amt_raw
             spent_so_far = round(done_amt)
             upcoming_total = round(upcoming_amt)
 
