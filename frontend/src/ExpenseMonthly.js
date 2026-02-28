@@ -41,6 +41,7 @@ const DK = {
 };
 
 const ExpenseMonthly = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedIdx, setSelectedIdx] = useState(null);
