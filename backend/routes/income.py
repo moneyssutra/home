@@ -173,16 +173,21 @@ async def get_income_monthly_summary(request: Request):
         else:
             month_amt = amount
             sd_str = inc.get('selectedDate')
-            try:
-                sd = min(int(sd_str), days_in_month) if sd_str else 1
-            except (ValueError, TypeError):
-                sd = 1
-            if sd <= current_day:
-                rec = month_amt
-                pend = 0
-            else:
+            if not sd_str:
+                # No schedule date known → treat as expected (matches dashboard logic)
                 rec = 0
                 pend = month_amt
+            else:
+                try:
+                    sd = min(int(sd_str), days_in_month)
+                except (ValueError, TypeError):
+                    sd = 1
+                if sd <= current_day:
+                    rec = month_amt
+                    pend = 0
+                else:
+                    rec = 0
+                    pend = month_amt
 
         total_income += month_amt
         received_income += rec
