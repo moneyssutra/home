@@ -50,13 +50,18 @@ const ExpenseMonthly = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedIdx, setSelectedIdx] = useState(null);
+  const [behaviorData, setBehaviorData] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/api/expenses/monthly-summary?last=6`, { withCredentials: true });
-      setData(res.data);
-      setSelectedIdx(res.data.months.length - 1); // select current month
+      const [summaryRes, behaviorRes] = await Promise.all([
+        axios.get(`${API}/api/expenses/monthly-summary?last=6`, { withCredentials: true }),
+        axios.get(`${API}/api/expenses/behavior-insights`, { withCredentials: true }),
+      ]);
+      setData(summaryRes.data);
+      setBehaviorData(behaviorRes.data);
+      setSelectedIdx(summaryRes.data.months.length - 1);
     } catch (err) {
       console.error(err);
     } finally {
