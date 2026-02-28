@@ -945,7 +945,7 @@ const RED_ZONE_STYLES = {
 };
 
 // ─── ACCORDION MODULE WRAPPER ───
-const AccordionModule = ({ title, icon: Icon, iconColor, children, isOpen, onToggle, locked, unlockStage, stageNum, testId }) => {
+const AccordionModule = ({ title, icon: Icon, iconColor, children, isOpen, onToggle, locked, unlockStage, stageNum, testId, meta }) => {
   const [showLockedMsg, setShowLockedMsg] = useState(false);
 
   const LOCK_MESSAGES = [
@@ -991,6 +991,7 @@ const AccordionModule = ({ title, icon: Icon, iconColor, children, isOpen, onTog
       <button onClick={onToggle} className="w-full p-4 flex items-center gap-3 text-left" data-testid={`${testId}-toggle`}>
         <Icon className="h-5 w-5" style={{ color: iconColor }} />
         <span className="text-sm font-bold flex-1" style={{ color: "var(--text-primary)" }}>{title}</span>
+        {meta && <span className="text-xs font-bold mr-1" style={{ color: "var(--text-muted)" }}>{meta}</span>}
         <ChevronDown className="h-4 w-4 transition-transform" style={{ color: "var(--text-muted)", transform: isOpen ? "rotate(180deg)" : "rotate(0)" }} />
       </button>
       <div style={{ maxHeight: isOpen ? "2000px" : "0", overflow: "hidden", transition: "max-height 300ms ease-in-out" }}>
