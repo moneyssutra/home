@@ -18,7 +18,9 @@ import {
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
-import BackButton from "@/components/BackButton";
+import NotificationBell from "@/components/NotificationBell";
+import ProfileMenu from "@/components/ProfileMenu";
+import { useAuth } from "@/context/AuthContext";
 import {
   DndContext,
   closestCenter,
