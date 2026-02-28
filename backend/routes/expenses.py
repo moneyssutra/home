@@ -495,6 +495,362 @@ async def get_monthly_summary(request: Request, last: int = 6):
     }
 
 
+@router.get("/behavior-insights")
+async def get_behavior_insights(request: Request):
+    """Cross-analysis of spending patterns: weekend vs weekday, salary-week spikes, category trends, etc."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+
+    all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
+    income_sources = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
+
+    now = datetime.now(timezone.utc)
+    insights = []
+
+    # Build 6-month data for analysis
+    months_data = []
+    for i in range(5, -1, -1):
+        y, m = now.year, now.month - i
+        while m <= 0:
+            m += 12
+            y -= 1
+        mk = f"{y}-{m:02d}"
+        _, days_in_month = monthrange(y, m)
+
+        month_total = 0
+        first_week = 0  # days 1-7
+        last_week = 0   # last 7 days
+        mid_month = 0   # days 8 to (days_in_month-7)
+        weekend_total = 0
+        weekday_total = 0
+        category_totals = {}
+
+        for exp in all_expenses:
+            if exp.get('linkedPaymentId'):
+                continue
+            freq = exp.get('frequency', 'Monthly')
+            amt = exp.get('expectedAmount', 0) or 0
+            cat = exp.get('category', 'Other')
+
+            applies = False
+            due_day = None
+
+            if freq == 'One-Time':
+                ot = exp.get('oneTimeDate', '')
+                if ot and ot[:7] == mk:
+                    applies = True
+                    try:
+                        due_day = int(ot.split('-')[2])
+                    except (ValueError, IndexError):
+                        due_day = 15
+            elif freq == 'Monthly':
+                applies = True
+                try:
+                    due_day = int(exp.get('selectedDate', '1'))
+                except (ValueError, TypeError):
+                    due_day = 1
+            elif freq == 'Daily':
+                applies = True
+                # Spread across all days
+                daily_amt = amt
+                for d in range(1, days_in_month + 1):
+                    from datetime import date as dt_date
+                    try:
+                        day_date = dt_date(y, m, d)
+                    except ValueError:
+                        continue
+                    wd = day_date.weekday()
+                    if wd >= 5:
+                        weekend_total += daily_amt
+                    else:
+                        weekday_total += daily_amt
+                    if d <= 7:
+                        first_week += daily_amt
+                    elif d > days_in_month - 7:
+                        last_week += daily_amt
+                    else:
+                        mid_month += daily_amt
+                month_total += amt * days_in_month
+                category_totals[cat] = category_totals.get(cat, 0) + amt * days_in_month
+                continue
+            elif freq in ('Weekly', 'Bi-Weekly'):
+                applies = True
+                due_day_name = exp.get('selectedDay', 'Monday')
+                day_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
+                target_wd = day_map.get(due_day_name, 0)
+                multiplier = 4.33 if freq == 'Weekly' else 2.17
+                if target_wd >= 5:
+                    weekend_total += amt * multiplier
+                else:
+                    weekday_total += amt * multiplier
+                month_total += amt * multiplier
+                category_totals[cat] = category_totals.get(cat, 0) + amt * multiplier
+                first_week += amt * (multiplier / 4)
+                last_week += amt * (multiplier / 4)
+                mid_month += amt * (multiplier / 2)
+                continue
+            elif freq == 'Quarterly':
+                start = _parse_quarter_start(exp.get('selectedQuarter'))
+                if start and (m - start) % 3 == 0:
+                    applies = True
+                    try:
+                        due_day = int(exp.get('selectedDate', '1'))
+                    except (ValueError, TypeError):
+                        due_day = 1
+            elif freq == 'Half-Yearly':
+                start = _parse_half_start(exp.get('selectedHalf'))
+                if start and (m - start) % 6 == 0:
+                    applies = True
+                    try:
+                        due_day = int(exp.get('selectedDate', '1'))
+                    except (ValueError, TypeError):
+                        due_day = 1
+            elif freq == 'Yearly':
+                sm = _parse_month_num(exp.get('selectedMonth'))
+                if sm == m:
+                    applies = True
+                    try:
+                        due_day = int(exp.get('selectedDate', '1'))
+                    except (ValueError, TypeError):
+                        due_day = 1
+
+            if applies and due_day:
+                from datetime import date as dt_date
+                try:
+                    day_date = dt_date(y, m, min(due_day, days_in_month))
+                except ValueError:
+                    day_date = dt_date(y, m, 1)
+                wd = day_date.weekday()
+                if wd >= 5:
+                    weekend_total += amt
+                else:
+                    weekday_total += amt
+                if due_day <= 7:
+                    first_week += amt
+                elif due_day > days_in_month - 7:
+                    last_week += amt
+                else:
+                    mid_month += amt
+                month_total += amt
+                category_totals[cat] = category_totals.get(cat, 0) + amt
+
+        months_data.append({
+            "month": mk,
+            "total": round(month_total),
+            "first_week": round(first_week),
+            "last_week": round(last_week),
+            "mid_month": round(mid_month),
+            "weekend": round(weekend_total),
+            "weekday": round(weekday_total),
+            "categories": {k: round(v) for k, v in category_totals.items()},
+        })
+
+    # --- Generate Behavioral Insights ---
+
+    # 1. Weekend vs Weekday Pattern
+    total_weekend = sum(m["weekend"] for m in months_data)
+    total_weekday = sum(m["weekday"] for m in months_data)
+    total_all = total_weekend + total_weekday
+    if total_all > 0:
+        wknd_pct = round(total_weekend / total_all * 100, 1)
+        wkdy_pct = round(total_weekday / total_all * 100, 1)
+        if wknd_pct > 35:
+            insights.append({
+                "type": "weekend_heavy",
+                "icon": "calendar",
+                "title": "Weekend Spender",
+                "description": f"{wknd_pct}% of your spending happens on weekends. Consider setting weekend budgets.",
+                "metric": f"{wknd_pct}% weekend",
+                "trend": "warning",
+            })
+        elif wknd_pct < 15:
+            insights.append({
+                "type": "weekday_heavy",
+                "icon": "briefcase",
+                "title": "Weekday Pattern",
+                "description": f"{wkdy_pct}% of spending is on weekdays — mostly bills and essentials.",
+                "metric": f"{wkdy_pct}% weekday",
+                "trend": "neutral",
+            })
+        else:
+            insights.append({
+                "type": "balanced_week",
+                "icon": "scale",
+                "title": "Balanced Spending",
+                "description": f"Weekend ({wknd_pct}%) vs Weekday ({wkdy_pct}%) — spending is evenly distributed.",
+                "metric": f"{wknd_pct}% / {wkdy_pct}%",
+                "trend": "positive",
+            })
+
+    # 2. Salary Week Spike (first week vs rest)
+    total_first_week = sum(m["first_week"] for m in months_data)
+    total_rest = sum(m["mid_month"] + m["last_week"] for m in months_data)
+    if total_first_week + total_rest > 0:
+        fw_pct = round(total_first_week / (total_first_week + total_rest) * 100, 1)
+        if fw_pct > 40:
+            insights.append({
+                "type": "salary_spike",
+                "icon": "trending-up",
+                "title": "Salary Week Spike",
+                "description": f"{fw_pct}% of monthly spending clusters in the first week. EMIs and bills hit right after salary.",
+                "metric": f"{fw_pct}% in Week 1",
+                "trend": "warning",
+            })
+        elif fw_pct > 25:
+            insights.append({
+                "type": "salary_moderate",
+                "icon": "clock",
+                "title": "Front-loaded Month",
+                "description": f"{fw_pct}% of spending happens in the first week — typical for salary-driven expenses.",
+                "metric": f"{fw_pct}% in Week 1",
+                "trend": "neutral",
+            })
+
+    # 3. Month-End Pressure
+    total_last_week = sum(m["last_week"] for m in months_data)
+    total_month = sum(m["total"] for m in months_data)
+    if total_month > 0:
+        lw_pct = round(total_last_week / total_month * 100, 1)
+        if lw_pct > 30:
+            insights.append({
+                "type": "month_end_pressure",
+                "icon": "alert-triangle",
+                "title": "Month-End Pressure",
+                "description": f"{lw_pct}% of spending hits in the last week. Consider spreading payments.",
+                "metric": f"{lw_pct}% in last week",
+                "trend": "warning",
+            })
+
+    # 4. Category Consistency — find categories that appear every month
+    all_cats = set()
+    for md in months_data:
+        all_cats.update(md["categories"].keys())
+
+    consistent_cats = []
+    growing_cats = []
+    for cat in all_cats:
+        cat_vals = [md["categories"].get(cat, 0) for md in months_data]
+        non_zero = [v for v in cat_vals if v > 0]
+        if len(non_zero) >= 4:  # appears in at least 4 of 6 months
+            avg_val = sum(non_zero) / len(non_zero)
+            consistent_cats.append({"category": cat, "avg": avg_val, "months": len(non_zero)})
+            # Check growth trend
+            if len(non_zero) >= 3:
+                recent = sum(cat_vals[-2:]) / max(1, len([v for v in cat_vals[-2:] if v > 0]))
+                older = sum(cat_vals[:2]) / max(1, len([v for v in cat_vals[:2] if v > 0]))
+                if older > 0 and recent > older * 1.2:
+                    growth = round((recent - older) / older * 100)
+                    growing_cats.append({"category": cat, "growth": growth})
+
+    if growing_cats:
+        growing_cats.sort(key=lambda x: -x["growth"])
+        top_growing = growing_cats[0]
+        insights.append({
+            "type": "category_growth",
+            "icon": "arrow-up-right",
+            "title": f"{top_growing['category']} Rising",
+            "description": f"{top_growing['category']} spending increased ~{top_growing['growth']}% over 6 months.",
+            "metric": f"+{top_growing['growth']}%",
+            "trend": "warning",
+        })
+
+    # 5. Spending Momentum (are expenses increasing month-over-month?)
+    totals = [m["total"] for m in months_data if m["total"] > 0]
+    if len(totals) >= 3:
+        growth_rates = []
+        for i in range(1, len(totals)):
+            if totals[i - 1] > 0:
+                growth_rates.append((totals[i] - totals[i - 1]) / totals[i - 1] * 100)
+        if growth_rates:
+            avg_growth = round(sum(growth_rates) / len(growth_rates), 1)
+            if avg_growth > 5:
+                insights.append({
+                    "type": "spending_acceleration",
+                    "icon": "rocket",
+                    "title": "Spending Accelerating",
+                    "description": f"Average month-over-month increase of {avg_growth}%. Review discretionary expenses.",
+                    "metric": f"+{avg_growth}%/mo",
+                    "trend": "warning",
+                })
+            elif avg_growth < -5:
+                insights.append({
+                    "type": "spending_deceleration",
+                    "icon": "shield",
+                    "title": "Great Discipline",
+                    "description": f"Spending is decreasing ~{abs(avg_growth)}% per month. Excellent financial control!",
+                    "metric": f"{avg_growth}%/mo",
+                    "trend": "positive",
+                })
+
+    # 6. Income Coverage Ratio
+    monthly_income = 0
+    for src in income_sources:
+        amt = src.get("expectedAmount", 0) or 0
+        freq = src.get("frequency", "Monthly")
+        if freq == "Daily":
+            monthly_income += amt * 30
+        elif freq == "Weekly":
+            monthly_income += amt * 4.33
+        elif freq == "Monthly":
+            monthly_income += amt
+        elif freq == "Quarterly":
+            monthly_income += amt / 3
+        elif freq == "Half-Yearly":
+            monthly_income += amt / 6
+        elif freq == "Yearly":
+            monthly_income += amt / 12
+        else:
+            monthly_income += amt
+
+    if monthly_income > 0 and totals:
+        avg_spend = sum(totals) / len(totals)
+        coverage = round(avg_spend / monthly_income * 100, 1)
+        if coverage > 90:
+            insights.append({
+                "type": "tight_budget",
+                "icon": "alert-circle",
+                "title": "Tight Budget",
+                "description": f"Expenses consume {coverage}% of income. Very little room for savings.",
+                "metric": f"{coverage}% used",
+                "trend": "warning",
+            })
+        elif coverage < 60:
+            insights.append({
+                "type": "healthy_savings",
+                "icon": "piggy-bank",
+                "title": "Healthy Savings",
+                "description": f"Only {coverage}% of income goes to expenses. Great savings potential!",
+                "metric": f"{coverage}% used",
+                "trend": "positive",
+            })
+
+    # Build month-over-month pattern for chart
+    pattern_data = []
+    for md in months_data:
+        total = md["total"]
+        pattern_data.append({
+            "month": md["month"],
+            "firstWeek": md["first_week"],
+            "midMonth": md["mid_month"],
+            "lastWeek": md["last_week"],
+            "weekend": md["weekend"],
+            "weekday": md["weekday"],
+        })
+
+    return {
+        "insights": insights[:6],
+        "patternData": pattern_data,
+        "summary": {
+            "weekendPct": round(total_weekend / total_all * 100, 1) if total_all > 0 else 0,
+            "weekdayPct": round(total_weekday / total_all * 100, 1) if total_all > 0 else 0,
+            "firstWeekPct": round(total_first_week / total_month * 100, 1) if total_month > 0 else 0,
+            "consistentCategories": [c["category"] for c in sorted(consistent_cats, key=lambda x: -x["avg"])[:5]],
+        },
+    }
+
+
 @router.get("/weekly-summary")
 async def get_weekly_summary(request: Request, last: int = 8):
     """Get aggregated expense summary per week for the last N weeks."""
