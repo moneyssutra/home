@@ -66,6 +66,7 @@ const ExpenseGroup = () => {
   const { group } = useParams();
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [expandedCats, setExpandedCats] = useState({});
   const config = GROUP_CONFIG[group] || GROUP_CONFIG.uncategorized;
   const Icon = config.icon;
 
