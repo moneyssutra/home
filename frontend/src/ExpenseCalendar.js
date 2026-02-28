@@ -373,7 +373,7 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
                 const color = catColors[i % catColors.length];
                 const pct = totalForMonth > 0 ? Math.round(c.amount / totalForMonth * 100) : 0;
                 return (
-                  <button key={c.category} className="w-full text-left" data-testid={`daily-cat-${c.category}`}>
+                  <button key={c.category} onClick={() => navigate(`/expenses/${c.category.toLowerCase().replace(/\s+/g, "-")}`)} className="w-full text-left" data-testid={`daily-cat-${c.category}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
