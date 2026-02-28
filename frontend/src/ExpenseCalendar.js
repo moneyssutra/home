@@ -108,23 +108,17 @@ const ExpenseCalendar = ({ embedded = false }) => {
   const isCurrentMonth = currentMonthKey === todayMonthKey;
 
   useEffect(() => {
-    let active = true;
     setIsLoading(true);
     axios.get(`${API}/api/expenses/by-month`, {
       params: { month: currentMonthKey },
       withCredentials: true,
     }).then(res => {
-      if (active) {
-        setMonthExpenses(Array.isArray(res.data) ? res.data : []);
-        setIsLoading(false);
-      }
+      setMonthExpenses(Array.isArray(res.data) ? res.data : []);
+      setIsLoading(false);
     }).catch(() => {
-      if (active) {
-        setMonthExpenses([]);
-        setIsLoading(false);
-      }
+      setMonthExpenses([]);
+      setIsLoading(false);
     });
-    return () => { active = false; };
   }, [currentMonthKey]);
   const calendarDays = useMemo(() => getCalendarDays(currentMonthKey), [currentMonthKey]);
 
