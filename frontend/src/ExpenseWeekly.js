@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { TrendingUp, TrendingDown, Eye, Zap } from "lucide-react";
+import { TrendingUp, TrendingDown, Eye, Zap, ChevronLeft, ChevronRight, Wallet, ShoppingBag, PiggyBank } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -11,6 +12,9 @@ const DK = {
   card: "#FFFFFF",
   cardHighlight: "#F8FAFC",
   cardBorder: "#E5E7EB",
+  essentialBlue: "#3B82F6",
+  lifestyleOrange: "#F97316",
+  wealthGreen: "#22C55E",
   teal: "#0D9488",
   cyan: "#06B6D4",
   amber: "#F59E0B",
@@ -26,6 +30,7 @@ const DK = {
   textMuted: "#94A3B8",
   barTrack: "#F1F5F9",
   divider: "#E5E7EB",
+  weekPillActive: "#3B82F6",
 };
 
 const formatINR = (v) => `₹${Math.round(v).toLocaleString("en-IN")}`;
@@ -47,15 +52,20 @@ const getDayBarColor = (amount, max, isWeekend) => {
 const CAT_COLORS = [DK.blue, DK.orangeHot, DK.green, DK.amber, DK.cyan, DK.teal];
 
 const ExpenseWeekly = () => {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedWeek, setSelectedWeek] = useState(null);
+  const [selectedIdx, setSelectedIdx] = useState(null);
+  const [selectedTrendWeek, setSelectedTrendWeek] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await axios.get(`${API}/api/expenses/weekly-summary?last=8`, { withCredentials: true });
       setData(res.data);
+      if (res.data?.weeks?.length > 0) {
+        setSelectedIdx(res.data.weeks.length - 1);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -65,6 +75,35 @@ const ExpenseWeekly = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  const weeks = data?.weeks || [];
+  const sel = selectedIdx !== null ? weeks[selectedIdx] : null;
+  const prevWeek = selectedIdx > 0 ? weeks[selectedIdx - 1] : null;
+  const wowChange = prevWeek && prevWeek.total > 0 ? Math.round((sel?.total - prevWeek.total) / prevWeek.total * 100) : null;
+
+  const dayData = useMemo(() => {
+    if (!sel) return [];
+    return DAY_NAMES.map(d => ({
+      name: d, amount: sel.byDay[d] || 0, isWeekend: d === "Sat" || d === "Sun",
+    }));
+  }, [sel]);
+
+  const maxDayAmt = Math.max(...(dayData.map(d => d.amount) || [0]));
+  const avgDaily = sel?.total > 0 ? Math.round(sel.total / 7) : 0;
+
+  const trendData = weeks.map(w => ({ name: w.label.split(" - ")[0], total: w.total }));
+  const maxTrend = Math.max(...trendData.map(t => t.total), 1);
+
+  const drillWeek = selectedTrendWeek !== null ? weeks[selectedTrendWeek] : null;
+
+  const breakdownItems = useMemo(() => {
+    if (!sel) return [];
+    return [
+      { label: "Essential", value: sel.essential || 0, color: DK.essentialBlue, bgGrad: `linear-gradient(135deg, rgba(59,130,246,0.06), rgba(59,130,246,0.02))`, borderColor: DK.essentialBlue, icon: Wallet, route: "/expenses/group/essential" },
+      { label: "Lifestyle", value: sel.lifestyle || 0, color: DK.lifestyleOrange, bgGrad: `linear-gradient(135deg, rgba(249,115,22,0.06), rgba(249,115,22,0.02))`, borderColor: DK.lifestyleOrange, icon: ShoppingBag, route: "/expenses/group/lifestyle" },
+      { label: "Wealth Building", value: sel.wealth || 0, color: DK.wealthGreen, bgGrad: `linear-gradient(135deg, rgba(34,197,94,0.06), rgba(34,197,94,0.02))`, borderColor: DK.wealthGreen, icon: PiggyBank, route: "/expenses/group/wealth-building" },
+    ];
+  }, [sel]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20" style={{ backgroundColor: DK.bg }}>
@@ -73,7 +112,7 @@ const ExpenseWeekly = () => {
     );
   }
 
-  if (!data?.weeks?.length) {
+  if (!weeks.length || !sel) {
     return (
       <div className="py-20 text-center" style={{ backgroundColor: DK.bg }}>
         <p style={{ color: DK.textMuted }}>No expense data yet</p>
@@ -81,56 +120,90 @@ const ExpenseWeekly = () => {
     );
   }
 
-  const weeks = data.weeks;
-  const currentWeek = weeks[weeks.length - 1];
-  const prevWeek = weeks.length >= 2 ? weeks[weeks.length - 2] : null;
-  const wowChange = prevWeek && prevWeek.total > 0 ? Math.round((currentWeek.total - prevWeek.total) / prevWeek.total * 100) : null;
-
-  const trendData = weeks.map(w => ({ name: w.label.split(" - ")[0], total: w.total }));
-  const maxTrend = Math.max(...trendData.map(t => t.total));
-
-  const dayData = DAY_NAMES.map(d => ({
-    name: d, amount: currentWeek.byDay[d] || 0, isWeekend: d === "Sat" || d === "Sun",
-  }));
-  const maxDayAmt = Math.max(...dayData.map(d => d.amount));
-  const avgDaily = currentWeek.total > 0 ? Math.round(currentWeek.total / 7) : 0;
-  const drillWeek = selectedWeek !== null ? weeks[selectedWeek] : null;
-
   return (
     <div className="pb-6" style={{ backgroundColor: DK.bg }} data-testid="expense-weekly">
-      {/* Summary Card */}
+
+      {/* Week Selector — at top */}
       <div className="px-4 pt-4 mb-3">
+        <div className="flex items-center justify-between rounded-2xl px-2 py-2" style={{ backgroundColor: DK.barTrack, border: `1px solid ${DK.cardBorder}` }}>
+          <button onClick={() => setSelectedIdx(i => Math.max(0, i - 1))} className="p-1.5 rounded-lg" style={{ color: DK.textMuted }} data-testid="week-nav-prev"><ChevronLeft className="h-4 w-4" /></button>
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            {weeks.map((w, i) => (
+              <button key={i} onClick={() => setSelectedIdx(i)} className="px-2 sm:px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap" style={{ backgroundColor: i === selectedIdx ? DK.weekPillActive : "transparent", color: i === selectedIdx ? "#fff" : DK.textMuted }} data-testid={`week-pill-${i}`}>
+                {w.label.split(" - ")[0]}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setSelectedIdx(i => Math.min(weeks.length - 1, i + 1))} className="p-1.5 rounded-lg" style={{ color: DK.textMuted }} data-testid="week-nav-next"><ChevronRight className="h-4 w-4" /></button>
+        </div>
+      </div>
+
+      {/* Summary Card */}
+      <div className="px-4 mb-3">
         <div className="rounded-2xl p-4" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }} data-testid="weekly-summary-card">
           <div className="flex items-start justify-between mb-1">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: DK.textMuted }}>{currentWeek.label}</p>
-              <p className="text-2xl sm:text-3xl font-bold" style={{ color: DK.textWhite }}>{formatINR(currentWeek.total)}</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: DK.textMuted }}>{sel.label}</p>
+              <p className="text-2xl sm:text-3xl font-bold" style={{ color: DK.textWhite }}>{formatINR(sel.total)}</p>
             </div>
             {wowChange !== null && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold" style={{ backgroundColor: wowChange > 0 ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)", color: wowChange > 0 ? DK.red : DK.green }}>
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold" style={{ backgroundColor: wowChange > 0 ? "rgba(239,68,68,0.1)" : "rgba(34,197,94,0.1)", color: wowChange > 0 ? DK.red : DK.green }}>
                 {wowChange > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                 {wowChange > 0 ? "+" : ""}{wowChange}%
               </div>
             )}
           </div>
 
-          {/* Weekday/Weekend */}
-          <div className="grid grid-cols-2 gap-2 mt-3">
-            <div className="rounded-xl p-3" style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(6,182,212,0.05) 100%)", border: `1px solid rgba(59,130,246,0.2)` }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: DK.blue }}>Weekdays</p>
-              <p className="text-lg font-bold" style={{ color: DK.textWhite }}>{formatK(currentWeek.weekdayTotal)}</p>
+          {/* Budget Bar */}
+          <div className="my-3">
+            <div className="flex h-2.5 rounded-full overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
+              <div className="h-full transition-all duration-500" style={{ width: `${sel.total > 0 ? Math.min(100, sel.essential / sel.total * 100) : 0}%`, backgroundColor: DK.essentialBlue }} />
+              <div className="h-full transition-all duration-500" style={{ width: `${sel.total > 0 ? Math.min(100, sel.lifestyle / sel.total * 100) : 0}%`, backgroundColor: DK.lifestyleOrange }} />
+              <div className="h-full transition-all duration-500" style={{ width: `${sel.total > 0 ? Math.min(100, sel.wealth / sel.total * 100) : 0}%`, backgroundColor: DK.wealthGreen }} />
             </div>
-            <div className="rounded-xl p-3" style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(251,146,60,0.05) 100%)", border: `1px solid rgba(249,115,22,0.2)` }}>
+          </div>
+
+          {/* Weekday/Weekend */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-xl p-3" style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.08), rgba(6,182,212,0.03))", border: `1px solid rgba(59,130,246,0.15)` }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: DK.blue }}>Weekdays</p>
+              <p className="text-lg font-bold" style={{ color: DK.textWhite }}>{formatK(sel.weekdayTotal)}</p>
+            </div>
+            <div className="rounded-xl p-3" style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.08), rgba(251,146,60,0.03))", border: `1px solid rgba(249,115,22,0.15)` }}>
               <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: DK.orangeHot }}>Weekends</p>
-              <p className="text-lg font-bold" style={{ color: DK.textWhite }}>{formatK(currentWeek.weekendTotal)}</p>
+              <p className="text-lg font-bold" style={{ color: DK.textWhite }}>{formatK(sel.weekendTotal)}</p>
             </div>
           </div>
 
           <div className="flex items-center justify-center gap-3 mt-3 pt-2.5 text-xs" style={{ borderTop: `1px solid ${DK.divider}` }}>
-            <span style={{ color: DK.textMuted }}>Week Total: <span className="font-bold" style={{ color: DK.textWhite }}>{formatINR(currentWeek.total)}</span></span>
+            <span style={{ color: DK.textMuted }}>Week Total: <span className="font-bold" style={{ color: DK.textWhite }}>{formatINR(sel.total)}</span></span>
             <span style={{ color: DK.divider }}>|</span>
             <span style={{ color: DK.textMuted }}>Avg Daily: <span className="font-bold" style={{ color: DK.textWhite }}>{formatINR(avgDaily)}</span></span>
           </div>
+        </div>
+      </div>
+
+      {/* Expense Breakdown — 3 cards matching Monthly */}
+      <div className="px-4 mb-3">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="h-px flex-1" style={{ backgroundColor: DK.divider }} />
+          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: DK.textSecondary }}>Expense Breakdown</p>
+          <div className="h-px flex-1" style={{ backgroundColor: DK.divider }} />
+        </div>
+        <div className="grid grid-cols-3 gap-2" data-testid="weekly-category-breakdown">
+          {breakdownItems.map(({ label, value, color, bgGrad, borderColor, route }) => {
+            const pct = sel.total > 0 ? Math.round(value / sel.total * 100) : 0;
+            return (
+              <button key={label} onClick={() => navigate(route)} className="text-left rounded-xl p-3 transition-all active:scale-[0.97]" style={{ background: bgGrad, border: `1px solid ${DK.cardBorder}`, borderLeftWidth: "4px", borderLeftColor: borderColor }} data-testid={`breakdown-${label.toLowerCase().replace(/\s/g, "-")}`}>
+                <p className="text-[11px] sm:text-xs font-bold mb-1" style={{ color }}>{label}</p>
+                <p className="text-base sm:text-lg font-bold" style={{ color: DK.textWhite }}>{formatINR(value)}</p>
+                <p className="text-[11px] font-semibold mb-1.5" style={{ color }}>{pct}%</p>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
+                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}80, ${color})` }} />
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -160,23 +233,23 @@ const ExpenseWeekly = () => {
         </div>
       </div>
 
-      {/* Categories for Current Week */}
-      {currentWeek.topCategories?.length > 0 && (
+      {/* Categories — Clickable */}
+      {sel.topCategories?.length > 0 && (
         <div className="px-4 mb-3">
           <div className="rounded-2xl p-4" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }} data-testid="weekly-categories">
-            <h3 className="text-sm font-bold mb-3" style={{ color: DK.textWhite }}>This Week — Categories</h3>
+            <h3 className="text-sm font-bold mb-3" style={{ color: DK.textWhite }}>{sel.label} — Categories</h3>
             <div className="space-y-2">
-              {currentWeek.topCategories.slice(0, 6).map((c, i) => {
-                const pct = currentWeek.total > 0 ? Math.round(c.amount / currentWeek.total * 100) : 0;
+              {sel.topCategories.slice(0, 6).map((c, i) => {
+                const pct = sel.total > 0 ? Math.round(c.amount / sel.total * 100) : 0;
                 const color = CAT_COLORS[i % CAT_COLORS.length];
                 return (
-                  <button key={c.category} className="w-full text-left" data-testid={`weekly-cat-${c.category}`}>
+                  <button key={c.category} onClick={() => navigate(`/expenses/${c.category.toLowerCase().replace(/\s+/g, "-")}`)} className="w-full text-left" data-testid={`weekly-cat-${c.category}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                         <span className="text-xs font-medium" style={{ color: DK.textSecondary }}>{c.category}</span>
                       </div>
-                      <span className="text-xs font-bold" style={{ color: DK.textWhite }}>{formatINR(c.amount)}</span>
+                      <span className="text-xs font-bold" style={{ color: DK.textWhite }}>{formatINR(c.amount)} <span style={{ color: DK.textMuted, fontWeight: 400 }}>({pct}%)</span></span>
                     </div>
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
                       <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}60, ${color})` }} />
@@ -195,7 +268,7 @@ const ExpenseWeekly = () => {
           <h3 className="text-sm font-bold mb-3" style={{ color: DK.textWhite }}>8-Week Trend</h3>
           <div className="h-[140px] sm:h-[160px]" style={{ outline: "none" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={trendData} barSize={18} style={{ outline: "none" }} accessibilityLayer={false} onClick={(e) => { if (e?.activeTooltipIndex !== undefined) setSelectedWeek(e.activeTooltipIndex === selectedWeek ? null : e.activeTooltipIndex); }}>
+              <BarChart data={trendData} barSize={18} style={{ outline: "none" }} accessibilityLayer={false} onClick={(e) => { if (e?.activeTooltipIndex !== undefined) setSelectedTrendWeek(e.activeTooltipIndex === selectedTrendWeek ? null : e.activeTooltipIndex); }}>
                 <XAxis dataKey="name" tick={{ fill: DK.textMuted, fontSize: 9 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: DK.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={formatK} width={38} />
                 <Tooltip formatter={(val) => [formatINR(val), "Spend"]} contentStyle={{ backgroundColor: DK.cardHighlight, border: `1px solid ${DK.cardBorder}`, borderRadius: "10px", color: DK.textWhite, fontSize: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} labelStyle={{ color: DK.blue, fontWeight: "bold" }} itemStyle={{ color: DK.textWhite }} cursor={false} />
@@ -203,11 +276,11 @@ const ExpenseWeekly = () => {
                   {trendData.map((entry, idx) => {
                     const ratio = maxTrend > 0 ? entry.total / maxTrend : 0;
                     let fill;
-                    if (idx === selectedWeek) fill = DK.gold;
+                    if (idx === selectedTrendWeek) fill = DK.gold;
                     else if (idx === trendData.length - 1) fill = DK.teal;
                     else if (ratio > 0.7) fill = DK.amber;
                     else fill = DK.cyan;
-                    return <Cell key={idx} fill={fill} fillOpacity={idx === selectedWeek ? 1 : 0.65} />;
+                    return <Cell key={idx} fill={fill} fillOpacity={idx === selectedTrendWeek ? 1 : 0.65} />;
                   })}
                 </Bar>
               </BarChart>
@@ -222,7 +295,7 @@ const ExpenseWeekly = () => {
           <div className="rounded-2xl p-4" style={{ backgroundColor: DK.cardHighlight, border: `1px solid rgba(251,191,36,0.2)` }}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-bold" style={{ color: DK.gold }}>{drillWeek.label}</h3>
-              <button onClick={() => setSelectedWeek(null)} className="text-[11px] px-2 py-1 rounded-lg font-medium" style={{ color: DK.textMuted, backgroundColor: DK.barTrack }}>Close</button>
+              <button onClick={() => setSelectedTrendWeek(null)} className="text-[11px] px-2 py-1 rounded-lg font-medium" style={{ color: DK.textMuted, backgroundColor: DK.barTrack }}>Close</button>
             </div>
             <p className="text-xl font-bold mb-2" style={{ color: DK.textWhite }}>{formatINR(drillWeek.total)}</p>
             <div className="space-y-1.5">
