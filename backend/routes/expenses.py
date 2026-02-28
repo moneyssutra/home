@@ -501,3 +501,321 @@ async def delete_expense(expense_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Expense not found")
     await db.expenses.delete_one({"id": expense_id})
     return {"message": "Expense deleted successfully", "id": expense_id}
+
+
+
+@router.get("/monthly-summary")
+async def get_monthly_summary(request: Request, last: int = 6):
+    """Get aggregated expense summary per month for the last N months."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+
+    all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
+    # Also get income for % of income calculation
+    income_sources = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
+
+    now = datetime.now(timezone.utc)
+    months = []
+    for i in range(last - 1, -1, -1):
+        y = now.year
+        m = now.month - i
+        while m <= 0:
+            m += 12
+            y -= 1
+        months.append(f"{y}-{m:02d}")
+
+    # Category groups
+    ESSENTIAL = {"Housing", "Utilities", "Food", "Medical", "Education", "Insurance", "EMI"}
+    LIFESTYLE = {"Travel", "Shopping", "Subscriptions", "Business Expense", "Salary Paid"}
+    WEALTH = {"Investments", "Savings"}
+
+    def categorize(cat):
+        if cat in ESSENTIAL:
+            return "essential"
+        if cat in LIFESTYLE:
+            return "lifestyle"
+        if cat in WEALTH:
+            return "wealth"
+        return "essential"  # default
+
+    def calc_monthly_income_total(sources):
+        total = 0
+        for src in sources:
+            amt = src.get("expectedAmount", 0) or 0
+            freq = src.get("frequency", "Monthly")
+            if freq == "Daily":
+                total += amt * 30
+            elif freq == "Weekly":
+                total += amt * 4.33
+            elif freq == "Monthly":
+                total += amt
+            elif freq == "Quarterly":
+                total += amt / 3
+            elif freq == "Half-Yearly":
+                total += amt / 6
+            elif freq == "Yearly":
+                total += amt / 12
+            else:
+                total += amt
+        return total
+
+    monthly_income = calc_monthly_income_total(income_sources)
+
+    result = []
+    for mk in months:
+        y, m = int(mk.split("-")[0]), int(mk.split("-")[1])
+        total = 0
+        essential = 0
+        lifestyle = 0
+        wealth = 0
+        category_breakdown = {}
+        day_totals = {}
+
+        for exp in all_expenses:
+            if exp.get('linkedPaymentId'):
+                continue
+            freq = exp.get('frequency', 'Monthly')
+            amt = exp.get('expectedAmount', 0) or 0
+            cat = exp.get('category', 'Other')
+
+            applies = False
+            if freq == 'One-Time':
+                ot = exp.get('oneTimeDate', '')
+                if ot and ot[:7] == mk:
+                    applies = True
+            elif freq in ('Daily',):
+                applies = True
+                amt = amt * monthrange(y, m)[1]
+            elif freq in ('Weekly', 'Bi-Weekly'):
+                applies = True
+                amt = amt * (4.33 if freq == 'Weekly' else 2.17)
+            elif freq == 'Monthly':
+                applies = True
+            elif freq == 'Quarterly':
+                start = _parse_quarter_start(exp.get('selectedQuarter'))
+                if start and (m - start) % 3 == 0:
+                    applies = True
+            elif freq == 'Half-Yearly':
+                start = _parse_half_start(exp.get('selectedHalf'))
+                if start and (m - start) % 6 == 0:
+                    applies = True
+            elif freq == 'Yearly':
+                sm = _parse_month_num(exp.get('selectedMonth'))
+                if sm == m:
+                    applies = True
+
+            if applies:
+                total += amt
+                grp = categorize(cat)
+                if grp == "essential":
+                    essential += amt
+                elif grp == "lifestyle":
+                    lifestyle += amt
+                else:
+                    wealth += amt
+
+                category_breakdown[cat] = category_breakdown.get(cat, 0) + amt
+
+                # Track by day for daily heatmap
+                due_day = exp.get('selectedDate')
+                if due_day:
+                    try:
+                        d = int(due_day)
+                        day_totals[d] = day_totals.get(d, 0) + amt
+                    except (ValueError, TypeError):
+                        pass
+
+        # Sort categories
+        top_categories = sorted(category_breakdown.items(), key=lambda x: -x[1])[:5]
+
+        result.append({
+            "month": mk,
+            "total": round(total),
+            "essential": round(essential),
+            "lifestyle": round(lifestyle),
+            "wealth": round(wealth),
+            "incomeTotal": round(monthly_income),
+            "percentOfIncome": round((total / monthly_income * 100) if monthly_income > 0 else 0, 1),
+            "topCategories": [{"category": c, "amount": round(a)} for c, a in top_categories],
+            "dayTotals": day_totals,
+        })
+
+    # Compute insights
+    totals = [r["total"] for r in result]
+    insights = []
+    if len(totals) >= 2 and totals[-2] > 0:
+        growth = round((totals[-1] - totals[-2]) / totals[-2] * 100, 1)
+        result[-1]["changeVsLastMonth"] = growth
+        if len(totals) >= 3:
+            avg_growth_rates = []
+            for i in range(1, len(totals)):
+                if totals[i - 1] > 0:
+                    avg_growth_rates.append((totals[i] - totals[i - 1]) / totals[i - 1] * 100)
+            if avg_growth_rates:
+                avg_g = round(sum(avg_growth_rates) / len(avg_growth_rates), 1)
+                if abs(avg_g) >= 1:
+                    direction = "rising" if avg_g > 0 else "falling"
+                    insights.append(f"Spending {direction} ~{abs(avg_g)}% per month")
+
+    if totals:
+        highest_idx = totals.index(max(totals))
+        lowest_idx = totals.index(min(totals))
+        month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        h_m = int(result[highest_idx]["month"].split("-")[1])
+        l_m = int(result[lowest_idx]["month"].split("-")[1])
+        insights.append(f"Highest month: {month_names[h_m - 1]} (₹{max(totals):,.0f})")
+
+    # Lifestyle % check
+    lifestyle_pcts = []
+    for r in result:
+        if r["total"] > 0:
+            lifestyle_pcts.append(r["lifestyle"] / r["total"] * 100)
+    if lifestyle_pcts:
+        avg_ls = sum(lifestyle_pcts) / len(lifestyle_pcts)
+        if avg_ls >= 30:
+            insights.append(f"Lifestyle consistently above {round(avg_ls)}%")
+
+    return {
+        "months": result,
+        "insights": insights[:3],
+        "avgMonthlySpend": round(sum(totals) / len(totals)) if totals else 0,
+        "highestSpendMonth": result[totals.index(max(totals))]["month"] if totals else None,
+        "lowestSpendMonth": result[totals.index(min(totals))]["month"] if totals else None,
+    }
+
+
+@router.get("/weekly-summary")
+async def get_weekly_summary(request: Request, last: int = 8):
+    """Get aggregated expense summary per week for the last N weeks."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+
+    all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
+
+    now = datetime.now(timezone.utc)
+    today = now.date()
+
+    # Build week ranges (Mon-Sun)
+    # Current week start
+    current_week_start = today - timedelta(days=today.weekday())
+    weeks = []
+    for i in range(last - 1, -1, -1):
+        ws = current_week_start - timedelta(weeks=i)
+        we = ws + timedelta(days=6)
+        weeks.append({"start": ws, "end": we, "label": f"{ws.strftime('%d %b')} - {we.strftime('%d %b')}"})
+
+    DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    result = []
+    for week in weeks:
+        ws, we = week["start"], week["end"]
+        total = 0
+        by_day = {d: 0 for d in DAY_NAMES}
+        weekend_total = 0
+        weekday_total = 0
+        categories = {}
+
+        for exp in all_expenses:
+            if exp.get('linkedPaymentId'):
+                continue
+            freq = exp.get('frequency', 'Monthly')
+            amt = exp.get('expectedAmount', 0) or 0
+
+            if freq == 'Daily':
+                daily_amt = amt
+                for d_offset in range(7):
+                    day_date = ws + timedelta(days=d_offset)
+                    if day_date <= we:
+                        day_name = DAY_NAMES[day_date.weekday()]
+                        by_day[day_name] += daily_amt
+                        total += daily_amt
+                        if day_date.weekday() >= 5:
+                            weekend_total += daily_amt
+                        else:
+                            weekday_total += daily_amt
+                        cat = exp.get('category', 'Other')
+                        categories[cat] = categories.get(cat, 0) + daily_amt
+            elif freq == 'Weekly':
+                selected_day = exp.get('selectedDay', '')
+                if selected_day:
+                    day_mapping = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
+                    target_idx = day_mapping.get(selected_day, 0)
+                    target_date = ws + timedelta(days=target_idx)
+                    if ws <= target_date <= we:
+                        day_name = DAY_NAMES[target_idx]
+                        by_day[day_name] += amt
+                        total += amt
+                        if target_idx >= 5:
+                            weekend_total += amt
+                        else:
+                            weekday_total += amt
+                        cat = exp.get('category', 'Other')
+                        categories[cat] = categories.get(cat, 0) + amt
+            elif freq == 'Monthly':
+                due_day_str = exp.get('selectedDate', '')
+                if due_day_str:
+                    try:
+                        due_day = int(due_day_str)
+                        # Check if this due day falls within the week
+                        for d_offset in range(7):
+                            day_date = ws + timedelta(days=d_offset)
+                            if day_date.day == due_day and day_date <= we:
+                                day_name = DAY_NAMES[day_date.weekday()]
+                                by_day[day_name] += amt
+                                total += amt
+                                if day_date.weekday() >= 5:
+                                    weekend_total += amt
+                                else:
+                                    weekday_total += amt
+                                cat = exp.get('category', 'Other')
+                                categories[cat] = categories.get(cat, 0) + amt
+                                break
+                    except (ValueError, TypeError):
+                        pass
+
+        top_categories = sorted(categories.items(), key=lambda x: -x[1])[:3]
+        result.append({
+            "weekStart": ws.isoformat(),
+            "weekEnd": we.isoformat(),
+            "label": week["label"],
+            "total": round(total),
+            "byDay": {d: round(v) for d, v in by_day.items()},
+            "weekdayTotal": round(weekday_total),
+            "weekendTotal": round(weekend_total),
+            "topCategories": [{"category": c, "amount": round(a)} for c, a in top_categories],
+        })
+
+    # Insights
+    insights = []
+    totals = [w["total"] for w in result]
+    weekend_pcts = []
+    for w in result:
+        if w["total"] > 0:
+            weekend_pcts.append(w["weekendTotal"] / w["total"] * 100)
+
+    if weekend_pcts:
+        avg_wknd = round(sum(weekend_pcts) / len(weekend_pcts), 1)
+        if avg_wknd >= 25:
+            insights.append(f"Weekend spending avg {avg_wknd}% of weekly total")
+
+    if len(totals) >= 2:
+        trend = "increasing" if totals[-1] > totals[-2] else "decreasing" if totals[-1] < totals[-2] else "stable"
+        insights.append(f"Week-over-week spending is {trend}")
+
+    # Find spike days
+    day_sums = {d: 0 for d in DAY_NAMES}
+    for w in result:
+        for d, v in w["byDay"].items():
+            day_sums[d] += v
+    if any(day_sums.values()):
+        peak_day = max(day_sums, key=day_sums.get)
+        insights.append(f"Peak spending day: {peak_day}")
+
+    return {
+        "weeks": result,
+        "insights": insights[:3],
+    }
