@@ -345,20 +345,6 @@ const ExpenseMonthly = () => {
         </div>
       </div>
 
-      {/* Bottom Month Selector — matching reference design */}
-      <div className="px-4">
-        <div className="flex items-center justify-between rounded-2xl px-2 py-2" style={{ backgroundColor: DK.barTrack, border: `1px solid ${DK.cardBorder}` }}>
-          <button onClick={() => setSelectedIdx(i => Math.max(0, i - 1))} className="p-1.5 rounded-lg" style={{ color: DK.textMuted }}><ChevronLeft className="h-4 w-4" /></button>
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-            {months.map((m, i) => (
-              <button key={m.month} onClick={() => setSelectedIdx(i)} className="px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap" style={{ backgroundColor: i === selectedIdx ? DK.monthPillActive : "transparent", color: i === selectedIdx ? "#fff" : DK.textMuted }} data-testid={`month-pill-${m.month}`}>
-                {getMonthLabel(m.month)}
-              </button>
-            ))}
-          </div>
-          <button onClick={() => setSelectedIdx(i => Math.min(months.length - 1, i + 1))} className="p-1.5 rounded-lg" style={{ color: DK.textMuted }}><ChevronRight className="h-4 w-4" /></button>
-        </div>
-      </div>
     </div>
   );
 };
