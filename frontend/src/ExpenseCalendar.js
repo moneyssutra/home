@@ -98,7 +98,6 @@ const ExpenseCalendar = ({ embedded = false }) => {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [monthExpenses, setMonthExpenses] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [fetchKey, setFetchKey] = useState(0);
 
   const currentMonthKey = getMonthKey(monthOffset);
   const today = new Date();
@@ -107,24 +106,13 @@ const ExpenseCalendar = ({ embedded = false }) => {
   const isCurrentMonth = currentMonthKey === todayMonthKey;
 
   useEffect(() => {
-    let active = true;
-    const load = async () => {
-      try {
-        setIsLoading(true);
-        const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/expenses/by-month?month=${currentMonthKey}`, { credentials: "include" });
-        if (active && resp.ok) {
-          const json = await resp.json();
-          setMonthExpenses(json || []);
-        }
-      } catch (e) {
-        // ignore
-      } finally {
-        if (active) setIsLoading(false);
-      }
-    };
-    load();
-    return () => { active = false; };
-  }, [currentMonthKey, fetchKey]);
+    setIsLoading(true);
+    setMonthExpenses([]);
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/api/expenses/by-month?month=${currentMonthKey}`, { credentials: "include" })
+      .then(r => r.json())
+      .then(d => { setMonthExpenses(d); setIsLoading(false); })
+      .catch(() => setIsLoading(false));
+  }, [currentMonthKey]);
   const calendarDays = useMemo(() => getCalendarDays(currentMonthKey), [currentMonthKey]);
 
   const dayExpenseMap = useMemo(() => {
