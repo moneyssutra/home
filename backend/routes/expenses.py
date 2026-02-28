@@ -219,7 +219,7 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
         raise HTTPException(status_code=401, detail="Not authenticated")
     user_filter = get_user_filter(user)
 
-    now = datetime.now(timezone.utc)
+    now = get_user_now(request)
     target_month = month or f"{now.year}-{now.month:02d}"
 
     try:
@@ -287,7 +287,7 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
             prepaid_map[rec.get("linkedPaymentId")] = True
 
     # Determine if this is the current month
-    now = datetime.now(timezone.utc)
+    now = get_user_now(request)
     current_month_key = f"{now.year}-{now.month:02d}"
     is_current_month = (target_month == current_month_key)
     today_day = now.day
@@ -525,7 +525,7 @@ async def get_behavior_insights(request: Request):
     all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
     income_sources = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
 
-    now = datetime.now(timezone.utc)
+    now = get_user_now(request)
     insights = []
 
     # Build 6-month data for analysis
@@ -880,7 +880,7 @@ async def get_weekly_summary(request: Request, last: int = 8):
 
     all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
 
-    now = datetime.now(timezone.utc)
+    now = get_user_now(request)
     today = now.date()
 
     # Build week ranges (Mon-Sun)
@@ -1041,7 +1041,7 @@ async def prepay_expense(expense_id: str, request: Request):
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
 
-    now = datetime.now(timezone.utc)
+    now = get_user_now(request)
     current_month = f"{now.year}-{now.month:02d}"
 
     # Calculate next month
@@ -1110,7 +1110,7 @@ async def mark_expense_paid(expense_id: str, request: Request):
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
 
-    now = datetime.now(timezone.utc)
+    now = get_user_now(request)
     await db.expenses.update_one(
         {"id": expense_id},
         {"$set": {
@@ -1155,7 +1155,7 @@ async def undo_prepay_expense(expense_id: str, request: Request):
     if not expense:
         raise HTTPException(status_code=404, detail="Expense not found")
 
-    now = datetime.now(timezone.utc)
+    now = get_user_now(request)
     if now.month == 12:
         next_month = f"{now.year + 1}-01"
     else:
@@ -1268,7 +1268,7 @@ async def get_wealth_impact(request: Request):
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     user_filter = get_user_filter(user)
-    now = datetime.now(timezone.utc)
+    now = get_user_now(request)
     current_month_str = f"{now.year}-{now.month:02d}"
 
     # ── Gather data ──
@@ -1412,7 +1412,7 @@ async def get_overspend_analysis(request: Request):
     user = await get_current_user(request)
     user_filter = get_user_filter(user)
 
-    now = datetime.now(timezone.utc)
+    now = get_user_now(request)
     current_month = f"{now.year}-{now.month:02d}"
 
     # ── Gather 6 months of expense data ──
