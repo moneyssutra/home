@@ -1,0 +1,104 @@
+{
+  "summary": "Iteration 101: Verified 4 bug fixes - Insurance page crash fix, back button navigation to /wealth, and Financial Intelligence Engine. All 15 tests PASSED.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration101.py",
+    ".screenshots/insurance_page_test.png",
+    ".screenshots/monthly_tab_financial_intel.png"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "MyInsurance.js getNextPremiumDate() now has isNaN(baseDate.getTime()) guard at line 65 to prevent Invalid time value error",
+    "All Wealth sub-pages have onClick={() => navigate('/wealth')} for back buttons",
+    "MyIncome.js uses BackButton component with forceNavigate=true and fallbackPath='/wealth'",
+    "MyLoans.js and MyCreditCards.js back buttons now go to /wealth instead of /my-liabilities",
+    "FinancialIntelligence.js component at line 23-278 renders allocation ratios, days of safety, primary advice, and structural alerts",
+    "ExpenseMonthly.js integrates FinancialIntelligence component at line 351-353",
+    "Backend /api/expenses/overspend-analysis endpoint at routes/expenses.py line 1203-1484 implements the Financial Intelligence Engine"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration101.py"
+  ],
+  "success_rate": {
+    "backend": "100% (6/6 tests passed)",
+    "frontend": "100% (9/9 tests passed)"
+  },
+  "test_credentials": {
+    "username": "test@moneyssutra.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Used existing test user data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 4 changes verified: 1) Insurance page loads without 'Invalid time value' crash - shows 9 policies with ₹2.7Cr coverage, 2) All Wealth sub-pages back buttons navigate to /wealth (Income, Expenses, Assets, Investments, Insurance, Loans, Credit Cards, Accounts), 3) My Expenses tab behavior - from non-list tabs (Monthly/Weekly/Daily) back goes to List tab, from List tab back goes to /wealth, 4) Financial Intelligence Engine displays on Monthly tab at bottom with: Monthly Allocation bar (Essential 76.2%/Lifestyle 5.7%/Wealth 18.1%), Days of Safety (402 days, Strong badge), Primary Focus advice card, and Structural Alert about essential spending > 50%.",
+  "features_tested": {
+    "insurance_page_loads": {
+      "status": "PASS",
+      "details": "Insurance page loads without 'Invalid time value' error, shows 9 policies with ₹2.7Cr coverage"
+    },
+    "insurance_back_to_wealth": {
+      "status": "PASS",
+      "details": "Back button from /my-insurance navigates to /wealth"
+    },
+    "income_back_to_wealth": {
+      "status": "PASS",
+      "details": "Back button from /my-income navigates to /wealth using BackButton with forceNavigate"
+    },
+    "assets_back_to_wealth": {
+      "status": "PASS",
+      "details": "Back button from /my-assets navigates to /wealth"
+    },
+    "investments_back_to_wealth": {
+      "status": "PASS",
+      "details": "Back button from /my-investments navigates to /wealth"
+    },
+    "loans_back_to_wealth": {
+      "status": "PASS",
+      "details": "Back button from /my-loans navigates to /wealth (not /my-liabilities)"
+    },
+    "credit_cards_back_to_wealth": {
+      "status": "PASS",
+      "details": "Back button from /my-credit-cards navigates to /wealth (not /my-liabilities)"
+    },
+    "accounts_back_to_wealth": {
+      "status": "PASS",
+      "details": "Back button from /my-accounts navigates to /wealth"
+    },
+    "expenses_list_back_to_wealth": {
+      "status": "PASS",
+      "details": "Back button from /my-expenses List tab navigates to /wealth"
+    },
+    "financial_intelligence_api": {
+      "status": "PASS",
+      "details": "/api/expenses/overspend-analysis returns 200 with actualRatios, daysOfSafety, primaryAdvice, structuralAlerts"
+    },
+    "financial_intelligence_section_visible": {
+      "status": "PASS",
+      "details": "Financial Intelligence section visible at bottom of Monthly tab with data-testid='financial-intelligence'"
+    },
+    "monthly_allocation_bar": {
+      "status": "PASS",
+      "details": "Shows Essential 76.2%, Lifestyle 5.7%, Wealth 18.1% with 50/30/20 recommended comparison"
+    },
+    "days_of_safety_badge": {
+      "status": "PASS",
+      "details": "Shows 402 days with 'Strong' badge (>= 180 days threshold)"
+    },
+    "primary_focus_advice": {
+      "status": "PASS",
+      "details": "Shows 'Redirect savings toward Financial Goal — ₹295,000 remaining'"
+    },
+    "structural_alert": {
+      "status": "PASS",
+      "details": "Shows 'Essential spending at 76.2% — above 50% target. Review fixed costs.'"
+    }
+  }
+}
