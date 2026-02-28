@@ -941,6 +941,7 @@ async def get_weekly_summary(request: Request, last: int = 8):
                             weekday_total += daily_amt
                         cat = exp.get('category', 'Other')
                         categories[cat] = categories.get(cat, 0) + daily_amt
+                        _classify(cat, daily_amt)
             elif freq == 'Weekly':
                 selected_day = exp.get('selectedDay', '')
                 if selected_day:
