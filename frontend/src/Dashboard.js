@@ -27,6 +27,7 @@ import AddActionSheet from "@/components/AddActionSheet";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
 import FamilyToggle from "@/components/FamilyToggle";
+import FinancialHealth from "@/components/FinancialHealth";
 import { useAuth } from "@/context/AuthContext";
 import { useFamilyContext } from "@/context/FamilyContext";
 
@@ -532,7 +533,8 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Financial Health — MOVED TO /health */}
+        {/* Financial Health */}
+        <FinancialHealth />
 
         {/* Empty State - When no data */}
         {data && data.assetCount === 0 && data.investmentCount === 0 && data.accountCount === 0 && (
