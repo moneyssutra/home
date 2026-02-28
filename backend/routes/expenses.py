@@ -1173,58 +1173,6 @@ async def undo_prepay_expense(expense_id: str, request: Request):
     return {"message": f"Prepayment undone for {next_month}", "id": expense_id}
 
 
-# ---- Parameterized {expense_id} routes MUST be last to avoid path conflicts ----
-
-@router.get("/{expense_id}")
-async def get_expense(expense_id: str, request: Request):
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
-    user_filter["id"] = expense_id
-    expense = await db.expenses.find_one(user_filter, {"_id": 0})
-    if not expense:
-        raise HTTPException(status_code=404, detail="Expense not found")
-    if isinstance(expense.get('createdAt'), str):
-        expense['createdAt'] = datetime.fromisoformat(expense['createdAt'])
-    return expense
-
-
-@router.put("/{expense_id}")
-async def update_expense(expense_id: str, input: ExpenseCreate, request: Request):
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
-    user_filter["id"] = expense_id
-    existing = await db.expenses.find_one(user_filter, {"_id": 0})
-    if not existing:
-        raise HTTPException(status_code=404, detail="Expense not found")
-    expense_dict = input.model_dump()
-    expense_dict['id'] = expense_id
-    expense_dict['userId'] = user.get('user_id')
-    expense_dict['createdAt'] = existing['createdAt']
-    await db.expenses.replace_one({"id": expense_id}, expense_dict)
-    if isinstance(expense_dict.get('createdAt'), str):
-        expense_dict['createdAt'] = datetime.fromisoformat(expense_dict['createdAt'])
-    return expense_dict
-
-
-@router.delete("/{expense_id}")
-async def delete_expense(expense_id: str, request: Request):
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
-    user_filter["id"] = expense_id
-    existing = await db.expenses.find_one(user_filter, {"_id": 0})
-    if not existing:
-        raise HTTPException(status_code=404, detail="Expense not found")
-    await db.expenses.delete_one({"id": expense_id})
-    return {"message": "Expense deleted successfully", "id": expense_id}
-
-
-
 
 # ─────────────────────────────────────────────────────────
 # FINANCIAL INTELLIGENCE ENGINE — Rule-Based Overspend Analysis
@@ -1534,3 +1482,56 @@ async def get_overspend_analysis(request: Request):
         "reallocation": reallocation,
         "topGoal": top_goal,
     }
+
+# ---- Parameterized {expense_id} routes MUST be last to avoid path conflicts ----
+
+@router.get("/{expense_id}")
+async def get_expense(expense_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    if isinstance(expense.get('createdAt'), str):
+        expense['createdAt'] = datetime.fromisoformat(expense['createdAt'])
+    return expense
+
+
+@router.put("/{expense_id}")
+async def update_expense(expense_id: str, input: ExpenseCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    existing = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    expense_dict = input.model_dump()
+    expense_dict['id'] = expense_id
+    expense_dict['userId'] = user.get('user_id')
+    expense_dict['createdAt'] = existing['createdAt']
+    await db.expenses.replace_one({"id": expense_id}, expense_dict)
+    if isinstance(expense_dict.get('createdAt'), str):
+        expense_dict['createdAt'] = datetime.fromisoformat(expense_dict['createdAt'])
+    return expense_dict
+
+
+@router.delete("/{expense_id}")
+async def delete_expense(expense_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    existing = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    await db.expenses.delete_one({"id": expense_id})
+    return {"message": "Expense deleted successfully", "id": expense_id}
+
+
+
