@@ -31,11 +31,12 @@ def session():
 def auth_session(session):
     """Login and return authenticated session"""
     response = session.post(f"{BASE_URL}/api/auth/login", json={
-        "email": TEST_EMAIL,
+        "username": TEST_EMAIL,
         "password": TEST_PASSWORD
     })
     if response.status_code != 200:
         pytest.skip(f"Authentication failed: {response.text}")
+    # Session cookies are automatically stored by requests.Session
     return session
 
 
