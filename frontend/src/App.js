@@ -119,6 +119,7 @@ function AppRouter() {
       {/* Protected Routes */}
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/home" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/home" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
       <Route path="/setup" element={<ProtectedRoute><BasicSetup /></ProtectedRoute>} />
       
