@@ -68,26 +68,14 @@ function getHeatColor(value, maxValue) {
   if (!value || !maxValue) return "transparent";
   const ratio = Math.min(1, value / maxValue);
   if (ratio < 0.33) {
-    // Dark teal range
     const t = ratio / 0.33;
-    const r = Math.round(10 + t * 10);
-    const g = Math.round(80 + t * 60);
-    const b = Math.round(70 + t * 50);
-    return `rgba(${r}, ${g}, ${b}, 0.7)`;
+    return `rgba(59, ${Math.round(100 + t * 30)}, ${Math.round(200 + t * 46)}, ${0.3 + t * 0.2})`;
   } else if (ratio < 0.66) {
-    // Teal to turquoise range
     const t = (ratio - 0.33) / 0.33;
-    const r = Math.round(20 + t * 20);
-    const g = Math.round(140 + t * 40);
-    const b = Math.round(120 + t * 50);
-    return `rgba(${r}, ${g}, ${b}, 0.8)`;
+    return `rgba(${Math.round(6 + t * 39)}, ${Math.round(182 - t * 24)}, ${Math.round(212 - t * 23)}, ${0.5 + t * 0.15})`;
   } else {
-    // Turquoise to amber range
     const t = (ratio - 0.66) / 0.34;
-    const r = Math.round(40 + t * 205);
-    const g = Math.round(180 - t * 22);
-    const b = Math.round(170 - t * 159);
-    return `rgba(${r}, ${g}, ${b}, 0.9)`;
+    return `rgba(${Math.round(45 + t * 200)}, ${Math.round(158 + t * 0)}, ${Math.round(11 + t * 0)}, ${0.65 + t * 0.25})`;
   }
 }
 
