@@ -140,14 +140,16 @@ class TestSeedDataForTestAccount:
         assert isinstance(data, list), "Assets response should be a list"
         assert len(data) >= 1, f"Test account should have at least 1 asset, got {len(data)}"
         
-        # Verify asset structure
+        # Verify asset structure - actual field names are assetName, assetType, currentValue
         first_asset = data[0]
-        assert "name" in first_asset, "Asset should have 'name' field"
-        assert "type" in first_asset, "Asset should have 'type' field"
-        assert "value" in first_asset, "Asset should have 'value' field"
+        assert "assetName" in first_asset or "name" in first_asset, "Asset should have 'assetName' or 'name' field"
+        assert "assetType" in first_asset or "type" in first_asset, "Asset should have 'assetType' or 'type' field"
+        assert "currentValue" in first_asset or "value" in first_asset, "Asset should have 'currentValue' or 'value' field"
         print(f"Found {len(data)} assets for test account")
         for asset in data[:3]:  # Show first 3
-            print(f"  - {asset.get('name')}: ₹{asset.get('value', 0):,}")
+            name = asset.get('assetName') or asset.get('name')
+            value = asset.get('currentValue') or asset.get('value', 0)
+            print(f"  - {name}: ₹{value:,.0f}")
 
     def test_credit_cards_endpoint_returns_data(self):
         """Test /api/credit-cards returns seed data for test account"""
@@ -158,13 +160,15 @@ class TestSeedDataForTestAccount:
         assert isinstance(data, list), "Credit cards response should be a list"
         assert len(data) >= 1, f"Test account should have at least 1 credit card, got {len(data)}"
         
-        # Verify credit card structure
+        # Verify credit card structure - actual field names are cardName, bankName, creditLimit
         first_cc = data[0]
-        assert "name" in first_cc, "Credit card should have 'name' field"
-        assert "bank" in first_cc or "cardNumber" in first_cc, "Credit card should have bank or card number"
+        assert "cardName" in first_cc or "name" in first_cc, "Credit card should have 'cardName' or 'name' field"
+        assert "bankName" in first_cc or "bank" in first_cc, "Credit card should have 'bankName' or 'bank' field"
         print(f"Found {len(data)} credit cards for test account")
         for cc in data[:3]:
-            print(f"  - {cc.get('name')}: Limit ₹{cc.get('creditLimit', 0):,}")
+            name = cc.get('cardName') or cc.get('name')
+            limit = cc.get('creditLimit', 0)
+            print(f"  - {name}: Limit ₹{limit:,.0f}")
 
     def test_insurance_endpoint_returns_data(self):
         """Test /api/insurances returns seed data for test account"""
@@ -175,27 +179,29 @@ class TestSeedDataForTestAccount:
         assert isinstance(data, list), "Insurance response should be a list"
         assert len(data) >= 1, f"Test account should have at least 1 insurance, got {len(data)}"
         
-        # Verify insurance structure
+        # Verify insurance structure - actual field names are policyName, insuranceType, coverageAmount
         first_ins = data[0]
-        assert "name" in first_ins, "Insurance should have 'name' field"
-        assert "type" in first_ins, "Insurance should have 'type' field"
+        assert "policyName" in first_ins or "name" in first_ins, "Insurance should have 'policyName' or 'name' field"
+        assert "insuranceType" in first_ins or "type" in first_ins, "Insurance should have 'insuranceType' or 'type' field"
         print(f"Found {len(data)} insurance policies for test account")
         for ins in data[:2]:
-            print(f"  - {ins.get('name')}: Cover ₹{ins.get('coverAmount', 0):,}")
+            name = ins.get('policyName') or ins.get('name')
+            cover = ins.get('coverageAmount') or ins.get('coverAmount', 0)
+            print(f"  - {name}: Cover ₹{cover:,.0f}")
 
     def test_loans_endpoint_returns_data(self):
-        """Test /api/liquid-assets returns loans (stored as liquid_assets) for test account"""
-        response = self.session.get(f"{BASE_URL}/api/liquid-assets")
+        """Test /api/loans returns loans for test account"""
+        response = self.session.get(f"{BASE_URL}/api/loans")
         assert response.status_code == 200, f"Get loans failed: {response.text}"
         data = response.json()
         # Should be a list with at least 1 loan
         assert isinstance(data, list), "Loans response should be a list"
-        # Filter for loan types
-        loans = [item for item in data if 'Loan' in item.get('type', '')]
-        assert len(loans) >= 1, f"Test account should have at least 1 loan, got {len(loans)}"
-        print(f"Found {len(loans)} loans for test account")
-        for loan in loans[:3]:
-            print(f"  - {loan.get('name')}: Balance ₹{loan.get('balance', 0):,}")
+        assert len(data) >= 1, f"Test account should have at least 1 loan, got {len(data)}"
+        print(f"Found {len(data)} loans for test account")
+        for loan in data[:3]:
+            name = loan.get('loanName') or loan.get('name')
+            balance = loan.get('outstandingAmount') or loan.get('balance', 0)
+            print(f"  - {name}: Balance ₹{balance:,.0f}")
 
 
 class TestThemePersistenceFlow:
