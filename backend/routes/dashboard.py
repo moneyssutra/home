@@ -5,7 +5,7 @@ import asyncio
 
 from database import db
 from routes.auth import get_current_user
-from routes.utils import get_user_filter, get_user_now
+from routes.utils import get_user_filter, get_user_now, count_weekday_occurrences
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
