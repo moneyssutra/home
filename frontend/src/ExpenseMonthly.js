@@ -164,7 +164,7 @@ const ExpenseMonthly = () => {
           {breakdownItems.map(({ label, value, color, bgGrad, borderColor }) => {
             const pct = sel.total > 0 ? Math.round(value / sel.total * 100) : 0;
             return (
-              <button key={label} className="text-left rounded-xl p-3 transition-all active:scale-[0.97]" style={{ background: bgGrad, borderLeft: `4px solid ${borderColor}`, border: `1px solid ${DK.cardBorder}`, borderLeftWidth: "4px", borderLeftColor: borderColor }} data-testid={`breakdown-${label.toLowerCase().replace(/\s/g, "-")}`}>
+              <button key={label} onClick={() => navigate(`/expenses/group/${label.toLowerCase().replace(/\s/g, "-")}`)} className="text-left rounded-xl p-3 transition-all active:scale-[0.97]" style={{ background: bgGrad, borderLeft: `4px solid ${borderColor}`, border: `1px solid ${DK.cardBorder}`, borderLeftWidth: "4px", borderLeftColor: borderColor }} data-testid={`breakdown-${label.toLowerCase().replace(/\s/g, "-")}`}>
                 <p className="text-[11px] sm:text-xs font-bold mb-1" style={{ color }}>{label}</p>
                 <p className="text-base sm:text-lg font-bold" style={{ color: DK.textWhite }}>{formatINR(value)}</p>
                 <p className="text-[11px] font-semibold mb-1.5" style={{ color }}>{pct}%</p>
