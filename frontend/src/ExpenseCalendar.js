@@ -54,7 +54,7 @@ const STATUS_COLORS = {
   pending: { dot: "#F59E0B", bg: "#FEF3C7" },
 };
 
-const ExpenseCalendar = () => {
+const ExpenseCalendar = ({ embedded = false }) => {
   const navigate = useNavigate();
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState(null);
