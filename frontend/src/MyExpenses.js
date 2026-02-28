@@ -236,7 +236,7 @@ const MyExpenses = () => {
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => handleViewChange(id)}}
+              onClick={() => handleViewChange(id)}
               className="flex-1 flex items-center justify-center gap-1 py-2 px-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all"
               style={{
                 backgroundColor: activeView === id ? "rgba(255,255,255,0.95)" : "transparent",
