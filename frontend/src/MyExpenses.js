@@ -259,7 +259,7 @@ const MyExpenses = () => {
       {activeView === "list" && (
       <>
       {/* Month Selector (List view only) */}
-      <div className="px-6 -mt-2 pb-4" style={{ background: "linear-gradient(135deg, #0D9488 0%, #14B8A6 40%, #06B6D4 100%)" }}>
+      <div className="px-6 pb-5" style={{ background: "linear-gradient(135deg, #0D9488 0%, #14B8A6 40%, #06B6D4 100%)" }}>
         <div className="flex items-center justify-between mb-5 bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/20" data-testid="month-selector">
           <button
             onClick={() => setMonthOffset(Math.max(-2, monthOffset - 1))}
