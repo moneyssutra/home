@@ -111,8 +111,8 @@ const ExpenseCalendar = ({ embedded = false }) => {
     fetch(`${process.env.REACT_APP_BACKEND_URL}/api/expenses/by-month?month=${currentMonthKey}`, { credentials: "include" })
       .then(r => r.json())
       .then(d => { setMonthExpenses(d); setIsLoading(false); })
-      .catch(() => setIsLoading(false));
-  }, [currentMonthKey]);
+      .catch(e => { console.error("Calendar fetch failed:", e); setIsLoading(false); });
+  }, [currentMonthKey]); // eslint-disable-line
   const calendarDays = useMemo(() => getCalendarDays(currentMonthKey), [currentMonthKey]);
 
   const dayExpenseMap = useMemo(() => {
