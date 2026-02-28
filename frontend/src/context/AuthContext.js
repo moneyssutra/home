@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { useTheme } from "@/context/ThemeContext";
 
 const AuthContext = createContext(null);
 
@@ -15,6 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { syncThemeFromBackend } = useTheme();
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
@@ -30,6 +32,7 @@ export const AuthProvider = ({ children }) => {
       });
       setUser(response.data);
       setIsAuthenticated(true);
+      syncThemeFromBackend();
     } catch (error) {
       setUser(null);
       setIsAuthenticated(false);
