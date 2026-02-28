@@ -533,8 +533,7 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Financial Health */}
-        <FinancialHealth />
+        {/* Financial Health — MOVED TO /health */}
 
         {/* Empty State - When no data */}
         {data && data.assetCount === 0 && data.investmentCount === 0 && data.accountCount === 0 && (
