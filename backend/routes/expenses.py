@@ -982,7 +982,7 @@ async def get_weekly_summary(request: Request, last: int = 8):
                     except (ValueError, TypeError):
                         pass
 
-        top_categories = sorted(categories.items(), key=lambda x: -x[1])[:3]
+        top_categories = sorted(categories.items(), key=lambda x: -x[1])[:6]
         result.append({
             "weekStart": ws.isoformat(),
             "weekEnd": we.isoformat(),
@@ -991,6 +991,9 @@ async def get_weekly_summary(request: Request, last: int = 8):
             "byDay": {d: round(v) for d, v in by_day.items()},
             "weekdayTotal": round(weekday_total),
             "weekendTotal": round(weekend_total),
+            "essential": round(essential_total),
+            "lifestyle": round(lifestyle_total),
+            "wealth": round(wealth_total),
             "topCategories": [{"category": c, "amount": round(a)} for c, a in top_categories],
         })
 
