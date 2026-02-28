@@ -39,7 +39,7 @@ const Wealth = () => {
     try {
       setLoading(true);
       const [nwRes, assetsRes, investRes, loansRes, insRes, accRes, ccRes, incomeRes, expenseRes] = await Promise.all([
-        axios.get(`${API}/api/dashboard/networth`, { withCredentials: true }),
+        axios.get(`${API}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
         axios.get(`${API}/api/assets`, { withCredentials: true }),
         axios.get(`${API}/api/investments`, { withCredentials: true }),
         axios.get(`${API}/api/loans`, { withCredentials: true }),

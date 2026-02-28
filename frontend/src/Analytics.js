@@ -55,7 +55,7 @@ const Analytics = () => {
       const timeoutId = setTimeout(() => controller.abort(), timeout);
       
       const [networthRes, investmentRes, snapshotsRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true, signal: controller.signal }),
+        axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true, signal: controller.signal }),
         axios.get(`${backendUrl}/api/analytics/investment-performance`, { withCredentials: true, signal: controller.signal }),
         axios.get(`${backendUrl}/api/analytics/snapshots?period=${timeFilter}`, { withCredentials: true, signal: controller.signal })
       ]);

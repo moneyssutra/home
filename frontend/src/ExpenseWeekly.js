@@ -61,7 +61,7 @@ const ExpenseWeekly = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/api/expenses/weekly-summary?last=8`, { withCredentials: true });
+      const res = await axios.get(`${API}/api/expenses/weekly-summary?last=8&tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
       setData(res.data);
       if (res.data?.weeks?.length > 0) {
         setSelectedIdx(res.data.weeks.length - 1);

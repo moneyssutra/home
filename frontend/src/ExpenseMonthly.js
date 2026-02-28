@@ -53,8 +53,8 @@ const ExpenseMonthly = () => {
     try {
       setLoading(true);
       const [summaryRes, behaviorRes] = await Promise.all([
-        axios.get(`${API}/api/expenses/monthly-summary?last=6`, { withCredentials: true }),
-        axios.get(`${API}/api/expenses/behavior-insights`, { withCredentials: true }),
+        axios.get(`${API}/api/expenses/monthly-summary?last=6&tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
+        axios.get(`${API}/api/expenses/behavior-insights?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
       ]);
       setData(summaryRes.data);
       setBehaviorData(behaviorRes.data);

@@ -57,7 +57,7 @@ const Dashboard = () => {
       setLoading(true);
       setMemberSummary(null);
       const [networthRes, profileRes, goalsRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/profile/basic`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/goals/summary/dashboard`, { withCredentials: true }).catch(() => ({ data: null })),
       ]);
