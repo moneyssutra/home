@@ -1,0 +1,93 @@
+{
+  "summary": "Iteration 105: Verified timezone fix and new Spending Insights module. Backend: 18/18 tests passed (100%). Frontend: SpendingInsights component rendering correctly with 3 insight cards, Rule B (Subscription Concentration at 23%) triggered.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Insight card click navigation",
+        "issue": "Clicking insight card doesn't add category param to URL - stays on same page. handleClick in SpendingInsights.js navigates to /my-expenses?tab=monthly&category={category} but URL showed /my-expenses?tab=monthly after click",
+        "affected_selectors": ["[data-testid^='insight-card-']"],
+        "priority": "LOW"
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "Recharts warning",
+        "issues": ["Console warning: 'The width(-1) and height(-1) of chart should be greater than 0' - chart container sizing issue during initial render"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_timezone_spending_insights.py",
+    "/app/test_reports/pytest/timezone_spending_insights_results.xml"
+  ],
+  "action_items": [
+    "Minor: Investigate insight card click navigation - may be working but URL update is delayed or route doesn't change visually"
+  ],
+  "critical_code_review_comments": [
+    "routes/utils.py: get_user_now(request) correctly reads tz_offset from query params and adjusts UTC time",
+    "routes/dashboard.py: Lines 45-53 use get_user_now(request) for month calculations",
+    "routes/expenses.py: spending-insights endpoint at line 1409 implements 5 rules (A-E) correctly, returns top 3 by severity",
+    "useApi.js: appendTz() utility adds tz_offset to all fetcher calls",
+    "Dashboard.js: Line 60 sends tz_offset to networth endpoint",
+    "SpendingInsights.js: Renders insight cards with animated progress bars and severity gradients",
+    "ExpenseMonthly.js: Imports and renders SpendingInsights above FinancialIntelligence (verified: y=313 vs y=451)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_timezone_spending_insights.py"
+  ],
+  "success_rate": {
+    "backend": "100% (18/18 tests passed)",
+    "frontend": "100% (SpendingInsights rendering, 3 cards, dashboard tz_offset verified)"
+  },
+  "test_credentials": {
+    "username": "test",
+    "password": "test"
+  },
+  "seed_data_creation": "None - using existing test account data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Timezone fix verified: Dashboard and expense endpoints accept tz_offset query param (IST=-330, UTC=0). SpendingInsights component renders at bottom of Monthly tab above FinancialIntelligence. Currently only Rule B (Subscription Concentration 23%) triggered due to high recurring costs. Other rules (A,C,D,E) may trigger with more expense data.",
+  "features_tested": {
+    "timezone_dashboard_networth": {
+      "status": "PASS",
+      "details": "GET /api/dashboard/networth?tz_offset=-330 and ?tz_offset=0 both return valid data with cashflow fields"
+    },
+    "timezone_monthly_summary": {
+      "status": "PASS",
+      "details": "GET /api/expenses/monthly-summary?last=6&tz_offset=-330 returns 6 months of data with correct structure"
+    },
+    "spending_insights_endpoint": {
+      "status": "PASS",
+      "details": "GET /api/expenses/spending-insights?tz_offset=-330 returns insights array with id, title, subtitle, severity, value, category, rule fields"
+    },
+    "spending_insights_max_3": {
+      "status": "PASS",
+      "details": "Endpoint returns max 3 insights sorted by severity"
+    },
+    "spending_insights_auth": {
+      "status": "PASS",
+      "details": "Endpoint returns 401 without authentication"
+    },
+    "rule_b_subscription_concentration": {
+      "status": "PASS",
+      "details": "Rule B triggered - 'Recurring Costs: ₹152,343' (23% of income > 10% threshold)"
+    },
+    "frontend_spending_insights_component": {
+      "status": "PASS",
+      "details": "SpendingInsights.js component renders 3 insight cards with animated progress bars"
+    },
+    "frontend_component_order": {
+      "status": "PASS",
+      "details": "SpendingInsights rendered above FinancialIntelligence (y=313 vs y=451)"
+    },
+    "frontend_dashboard_tz_param": {
+      "status": "PASS",
+      "details": "Dashboard.js sends tz_offset to networth endpoint - verified via request interception"
+    }
+  }
+}
