@@ -332,8 +332,8 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
             # Count actual occurrences of the named day
             day_name = item.get('selectedDay', '')
             if day_name:
-                past_count = _count_weekday_occurrences(current_year, current_month, day_name, current_day)
-                total_count = _count_weekday_occurrences(current_year, current_month, day_name)
+                past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
+                total_count = count_weekday_occurrences(current_year, current_month, day_name)
                 future_count = total_count - past_count
             else:
                 # Fallback: estimate by weeks
