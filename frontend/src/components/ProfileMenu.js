@@ -15,7 +15,7 @@ const ProfileMenu = ({ userName: propName, userPicture: propPicture }) => {
 
   const getInitials = (name) => {
     if (!name) return "U";
-    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+    return name.trim()[0].toUpperCase();
   };
 
   // Close menu when clicking outside

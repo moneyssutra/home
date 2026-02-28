@@ -1176,7 +1176,7 @@ const Insights = () => {
 
   return (
     <div className="min-h-screen pb-32" style={isRedZone ? { ...RED_ZONE_STYLES, backgroundColor: RED_ZONE_STYLES["--bg-app"] } : { backgroundColor: "var(--bg-app)" }} data-testid={isRedZone ? "insights-red-zone" : "insights-page"}>
-      <header className="relative overflow-hidden" style={isRedZone ? { backgroundColor: RED_ZONE_STYLES["--bg-app"], borderBottom: `1px solid ${RED_ZONE_STYLES["--border-light"]}` } : { background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
+      <header className="relative" style={isRedZone ? { backgroundColor: RED_ZONE_STYLES["--bg-app"], borderBottom: `1px solid ${RED_ZONE_STYLES["--border-light"]}` } : { background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
         <div className="relative px-5 pt-4 pb-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
