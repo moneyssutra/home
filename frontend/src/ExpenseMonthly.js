@@ -5,6 +5,7 @@ import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Zap, Calendar, Bri
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import FinancialIntelligence from "@/components/FinancialIntelligence";
 import WealthImpactAnalysis from "@/components/financial_intelligence/WealthImpactAnalysis";
+import SpendingInsights from "@/components/financial_intelligence/SpendingInsights";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const MONTH_NAMES_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -347,6 +348,11 @@ const ExpenseMonthly = () => {
             <p className="text-sm font-bold" style={{ color: DK.amber }}>{data.highestSpendMonth ? getFullLabel(data.highestSpendMonth).split(" ")[0] : "-"}</p>
           </div>
         </div>
+      </div>
+
+      {/* Spending Insights */}
+      <div className="px-4 mb-3">
+        <SpendingInsights />
       </div>
 
       {/* Financial Intelligence Engine */}
