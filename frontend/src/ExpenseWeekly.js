@@ -7,11 +7,11 @@ const API = process.env.REACT_APP_BACKEND_URL;
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const DK = {
-  bg: "#0E1421",
-  card: "#1A2332",
-  cardHighlight: "#222D3F",
-  cardBorder: "rgba(100,140,200,0.12)",
-  teal: "#2DD4BF",
+  bg: "#F5F7FA",
+  card: "#FFFFFF",
+  cardHighlight: "#F8FAFC",
+  cardBorder: "#E5E7EB",
+  teal: "#0D9488",
   cyan: "#06B6D4",
   amber: "#F59E0B",
   orange: "#FB923C",
@@ -20,12 +20,12 @@ const DK = {
   blue: "#3B82F6",
   gold: "#FBBF24",
   red: "#EF4444",
-  textWhite: "#FFFFFF",
-  textPrimary: "#E2E8F0",
-  textSecondary: "#94A3B8",
-  textMuted: "#64748B",
-  barTrack: "#1E293B",
-  divider: "rgba(100,140,200,0.1)",
+  textWhite: "#1F2937",
+  textPrimary: "#1F2937",
+  textSecondary: "#6B7280",
+  textMuted: "#94A3B8",
+  barTrack: "#F1F5F9",
+  divider: "#E5E7EB",
 };
 
 const formatINR = (v) => `₹${Math.round(v).toLocaleString("en-IN")}`;

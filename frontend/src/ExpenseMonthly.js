@@ -18,27 +18,24 @@ const getFullLabel = (mk) => { const [y, m] = mk.split("-"); return `${MONTH_NAM
 
 // Deep navy design tokens matching reference
 const DK = {
-  bg: "#0E1421",
-  card: "#1A2332",
-  cardHighlight: "#222D3F",
-  cardBorder: "rgba(100,140,200,0.12)",
-  // Category accent colors
+  bg: "#F5F7FA",
+  card: "#FFFFFF",
+  cardHighlight: "#F8FAFC",
+  cardBorder: "#E5E7EB",
   essentialBlue: "#3B82F6",
   lifestyleOrange: "#F97316",
   wealthGreen: "#22C55E",
-  // General
-  teal: "#2DD4BF",
+  teal: "#0D9488",
   cyan: "#06B6D4",
   amber: "#F59E0B",
   gold: "#FBBF24",
   red: "#EF4444",
-  // Text — higher contrast for visibility
-  textWhite: "#FFFFFF",
-  textPrimary: "#E2E8F0",
-  textSecondary: "#94A3B8",
-  textMuted: "#64748B",
-  barTrack: "#1E293B",
-  divider: "rgba(100,140,200,0.1)",
+  textWhite: "#1F2937",
+  textPrimary: "#1F2937",
+  textSecondary: "#6B7280",
+  textMuted: "#94A3B8",
+  barTrack: "#F1F5F9",
+  divider: "#E5E7EB",
   monthPillActive: "#3B82F6",
 };
 
