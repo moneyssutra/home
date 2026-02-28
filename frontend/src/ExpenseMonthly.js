@@ -27,11 +27,11 @@ const getFullLabel = (mk) => {
 
 // Premium turquoise dark theme tokens
 const DK = {
-  bg: "#041418",
-  card: "#0A1F24",
-  cardAlt: "#0D2A30",
-  cardBorder: "rgba(13,148,136,0.15)",
-  cardBorderHover: "rgba(13,148,136,0.3)",
+  bg: "#0B2027",
+  card: "#122E36",
+  cardAlt: "#163840",
+  cardBorder: "rgba(13,148,136,0.18)",
+  cardBorderHover: "rgba(13,148,136,0.35)",
   // Category colors
   blue: "#06B6D4",
   blueSoft: "rgba(6,182,212,0.08)",
