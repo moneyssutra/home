@@ -29,7 +29,7 @@ const FinancialIntelligence = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(`${API}/api/expenses/overspend-analysis`, { withCredentials: true });
+        const res = await axios.get(`${API}/api/expenses/overspend-analysis?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
         setData(res.data);
       } catch (e) {
         console.error(e);

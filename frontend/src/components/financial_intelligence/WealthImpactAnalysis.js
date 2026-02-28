@@ -55,7 +55,7 @@ const WealthImpactAnalysis = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await axios.get(`${backendUrl}/api/expenses/wealth-impact`, { withCredentials: true });
+      const res = await axios.get(`${backendUrl}/api/expenses/wealth-impact?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
       setData(res.data);
       const votes = {};
       (res.data.lifestyleOver5k || []).forEach((e) => {
