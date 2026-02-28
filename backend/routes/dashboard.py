@@ -346,8 +346,9 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
             if entry_expected["amount"] > 0:
                 expected.append(entry_expected)
         elif schedule_day > 0:
-            # Known schedule day
-            if schedule_day <= current_day:
+            # Known schedule day — cap to actual days in month
+            effective_day = min(schedule_day, days_in_month)
+            if effective_day <= current_day:
                 received.append(entry)
             else:
                 expected.append(entry)
