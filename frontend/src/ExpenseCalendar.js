@@ -105,20 +105,15 @@ const ExpenseCalendar = ({ embedded = false }) => {
   const todayMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
   const isCurrentMonth = currentMonthKey === todayMonthKey;
 
-  const fetchExpenses = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/expenses/by-month?month=${currentMonthKey}`, { withCredentials: true });
-      setMonthExpenses(res.data || []);
-    } catch (err) {
-      console.error("Calendar fetch error:", err);
-      setMonthExpenses([]);
-    } finally {
-      setIsLoading(false);
-    }
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/expenses/by-month?month=${currentMonthKey}`, { withCredentials: true })
+      .then(res => { if (!cancelled) setMonthExpenses(res.data || []); })
+      .catch(() => { if (!cancelled) setMonthExpenses([]); })
+      .finally(() => { if (!cancelled) setIsLoading(false); });
+    return () => { cancelled = true; };
   }, [currentMonthKey]);
-
-  useEffect(() => { fetchExpenses(); }, [fetchExpenses]);
   const calendarDays = useMemo(() => getCalendarDays(currentMonthKey), [currentMonthKey]);
 
   const dayExpenseMap = useMemo(() => {
