@@ -25,17 +25,17 @@ const getFullLabel = (mk) => {
   return `${MONTH_NAMES_FULL[parseInt(m) - 1]} ${y}`;
 };
 
-// Premium dark navy design tokens
+// Premium turquoise dark theme tokens
 const DK = {
-  bg: "#060D1B",
-  card: "#0C1829",
-  cardAlt: "#0F1D32",
-  cardBorder: "rgba(56,97,150,0.15)",
-  cardBorderHover: "rgba(56,97,150,0.3)",
+  bg: "#041418",
+  card: "#0A1F24",
+  cardAlt: "#0D2A30",
+  cardBorder: "rgba(13,148,136,0.15)",
+  cardBorderHover: "rgba(13,148,136,0.3)",
   // Category colors
-  blue: "#3B82F6",
-  blueSoft: "rgba(59,130,246,0.08)",
-  blueBorder: "rgba(59,130,246,0.25)",
+  blue: "#06B6D4",
+  blueSoft: "rgba(6,182,212,0.08)",
+  blueBorder: "rgba(6,182,212,0.25)",
   orange: "#FB923C",
   orangeHot: "#F97316",
   orangeSoft: "rgba(251,146,60,0.08)",
@@ -45,7 +45,7 @@ const DK = {
   greenBorder: "rgba(52,211,153,0.25)",
   // Warm spectrum
   teal: "#2DD4BF",
-  cyan: "#22D3EE",
+  cyan: "#14B8A6",
   amber: "#F59E0B",
   amberSoft: "rgba(245,158,11,0.06)",
   amberBorder: "rgba(245,158,11,0.2)",
@@ -54,11 +54,11 @@ const DK = {
   goldBorder: "rgba(251,191,36,0.15)",
   red: "#EF4444",
   redSoft: "rgba(239,68,68,0.1)",
-  textPrimary: "#E8EDF5",
-  textSecondary: "#8B9DC3",
-  textMuted: "#546A8D",
-  barTrack: "#121E33",
-  divider: "rgba(86,122,170,0.1)",
+  textPrimary: "#E8F5F2",
+  textSecondary: "#8BC4B8",
+  textMuted: "#547D73",
+  barTrack: "#0C2A30",
+  divider: "rgba(45,212,191,0.1)",
 };
 
 const ExpenseMonthly = () => {
