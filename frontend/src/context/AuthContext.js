@@ -68,6 +68,7 @@ export const AuthProvider = ({ children }) => {
       );
       setUser(response.data);
       setIsAuthenticated(true);
+      syncThemeFromBackend();
       return { success: true, user: response.data };
     } catch (error) {
       return { 
