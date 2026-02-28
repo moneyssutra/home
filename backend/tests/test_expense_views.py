@@ -19,7 +19,7 @@ def session():
     
     # Login
     login_resp = s.post(f"{BASE_URL}/api/auth/login", json={
-        "email": TEST_EMAIL,
+        "username": TEST_EMAIL,
         "password": TEST_PASSWORD
     })
     if login_resp.status_code != 200:
