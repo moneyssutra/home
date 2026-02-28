@@ -204,12 +204,19 @@ def _calc_monthly_income(incomes, other_incomes, current_month, current_year):
 
 def _calc_monthly_expenses(expenses, current_month, current_year):
     """Calculate normalized monthly expense total."""
+    import calendar
+    days_in_month = calendar.monthrange(current_year, current_month)[1]
     monthly_expenses = 0
     for expense in expenses:
         amount = expense.get('expectedAmount', 0)
         freq = expense.get('frequency', 'Monthly')
-        if freq == 'Daily': monthly_expenses += amount * 30
-        elif freq == 'Weekly': monthly_expenses += amount * 4
+        if freq == 'Daily': monthly_expenses += amount * days_in_month
+        elif freq == 'Weekly':
+            day_name = expense.get('selectedDay', '')
+            if day_name:
+                monthly_expenses += amount * count_weekday_occurrences(current_year, current_month, day_name)
+            else:
+                monthly_expenses += amount * 4.33
         elif freq == 'Monthly': monthly_expenses += amount
         elif freq == 'Quarterly': monthly_expenses += amount / 3
         elif freq == 'Half-Yearly': monthly_expenses += amount / 6
