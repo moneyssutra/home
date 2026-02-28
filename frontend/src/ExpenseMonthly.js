@@ -218,7 +218,7 @@ const ExpenseMonthly = () => {
           <h3 className="text-sm font-bold mb-3" style={{ color: DK.textPrimary }}>6-Month Trend</h3>
           <div className="h-[160px]" style={{ outline: "none" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} barSize={26} style={{ outline: "none" }} onClick={(e) => { if (e?.activeTooltipIndex !== undefined) setSelectedIdx(e.activeTooltipIndex); }}>
+              <BarChart data={chartData} barSize={26} style={{ outline: "none" }} accessibilityLayer={false} onClick={(e) => { if (e?.activeTooltipIndex !== undefined) setSelectedIdx(e.activeTooltipIndex); }}>
                 <XAxis dataKey="name" tick={{ fill: DK.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: DK.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={formatK} width={42} />
                 <Tooltip
