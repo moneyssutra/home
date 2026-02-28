@@ -21,7 +21,7 @@ const AdminLayout = () => {
         const res = await axios.get(`${backendUrl}/api/admin/verify`, { withCredentials: true });
         if (res.data) setVerified(true);
       } catch {
-        navigate("/home");
+        navigate("/admin/login");
       }
     })();
   }, [navigate]);
