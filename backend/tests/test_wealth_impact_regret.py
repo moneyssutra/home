@@ -23,7 +23,7 @@ class TestAuth:
         """Authenticate and return session with valid cookies"""
         response = session.post(
             f"{BASE_URL}/api/auth/login",
-            json={"email": "test@moneyssutra.com", "password": "test"},
+            json={"username": "test@moneyssutra.com", "password": "test"},
             headers={"Content-Type": "application/json"}
         )
         assert response.status_code == 200, f"Login failed: {response.text}"
