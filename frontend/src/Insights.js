@@ -1174,15 +1174,23 @@ const Insights = () => {
 
   return (
     <div className="min-h-screen pb-32" style={isRedZone ? { ...RED_ZONE_STYLES, backgroundColor: RED_ZONE_STYLES["--bg-app"] } : { backgroundColor: "var(--bg-app)" }} data-testid={isRedZone ? "insights-red-zone" : "insights-page"}>
-      <header className="sticky top-0 z-30 px-4 py-3 flex items-center gap-3" style={isRedZone ? { backgroundColor: RED_ZONE_STYLES["--bg-app"], borderBottom: `1px solid ${RED_ZONE_STYLES["--border-light"]}` } : { backgroundColor: "var(--bg-app)", borderBottom: "1px solid var(--border-light)" }}>
-        <button onClick={() => navigate(-1)} data-testid="insights-back-btn"><ArrowLeft className="h-5 w-5" style={{ color: isRedZone ? "#F5E6E6" : "var(--text-primary)" }} /></button>
-        <h1 className="text-lg font-black" style={{ color: isRedZone ? "#EF4444" : "var(--text-primary)" }}>
-          {isRedZone ? "RED ZONE" : "Health"}
-        </h1>
-        {isRedZone && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse" style={{ backgroundColor: "#EF444420", color: "#EF4444", border: "1px solid #EF444440" }}>CRITICAL</span>}
-        <div className="ml-auto flex items-center gap-2">
-          <button onClick={() => setShowShareCard(true)} className="p-2 rounded-xl" style={{ backgroundColor: isRedZone ? RED_ZONE_STYLES["--bg-card"] : "var(--bg-card)" }} data-testid="share-btn"><Share2 className="h-4 w-4" style={{ color: isRedZone ? "#8B5555" : "var(--text-muted)" }} /></button>
-          <button onClick={refresh} className="p-2 rounded-xl" style={{ backgroundColor: isRedZone ? RED_ZONE_STYLES["--bg-card"] : "var(--bg-card)" }} data-testid="refresh-btn"><RefreshCw className="h-4 w-4" style={{ color: isRedZone ? "#8B5555" : "var(--text-muted)" }} /></button>
+      <header className="relative overflow-hidden" style={isRedZone ? { backgroundColor: RED_ZONE_STYLES["--bg-app"], borderBottom: `1px solid ${RED_ZONE_STYLES["--border-light"]}` } : { background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
+        <div className="relative px-5 pt-4 pb-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <ProfileMenu userName={null} userPicture={null} />
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowShareCard(true)} className="p-2 rounded-xl bg-white/10" data-testid="share-btn"><Share2 className="h-4 w-4 text-white" /></button>
+              <button onClick={refresh} className="p-2 rounded-xl bg-white/10" data-testid="refresh-btn"><RefreshCw className="h-4 w-4 text-white" /></button>
+              <NotificationBell />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold" style={{ color: isRedZone ? "#EF4444" : "#fff", fontFamily: "'Manrope', sans-serif" }}>
+            {isRedZone ? "RED ZONE" : "Health"}
+          </h1>
+          {isRedZone && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse mt-1 inline-block" style={{ backgroundColor: "#EF444420", color: "#EF4444", border: "1px solid #EF444440" }}>CRITICAL</span>}
+          {!isRedZone && <p className="text-white/70 text-sm">Your financial intelligence lab</p>}
         </div>
       </header>
 
