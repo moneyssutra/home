@@ -79,6 +79,7 @@ import OtherIncomeForm from "@/OtherIncomeForm";
 
 // Insights & Settings Pages
 import Insights from "@/Insights";
+import Wealth from "@/Wealth";
 import Analytics from "@/Analytics";
 import Reports from "@/Reports";
 import Settings from "@/Settings";
