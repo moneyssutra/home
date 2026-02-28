@@ -129,7 +129,7 @@ const ExpenseMonthly = () => {
           <div className="flex items-start justify-between mb-1">
             <div>
               <p className="text-2xl sm:text-3xl font-bold" style={{ color: DK.textWhite }}>
-                {formatINR(sel.total)} <span className="text-sm sm:text-base font-medium" style={{ color: DK.textSecondary }}>Spent This Month</span>
+                {formatINR(spentDisplay)} <span className="text-sm sm:text-base font-medium" style={{ color: DK.textSecondary }}>Spent So Far</span>
               </p>
               <p className="text-xs sm:text-sm mt-1 font-medium" style={{ color: DK.textSecondary }}>
                 {sel.percentOfIncome}% of Income{sel.changeVsLastMonth !== undefined ? ` | ${sel.changeVsLastMonth > 0 ? "+" : ""}${sel.changeVsLastMonth}% vs Last Month` : ""}
