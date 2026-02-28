@@ -228,7 +228,7 @@ const ExpenseMonthly = () => {
                   itemStyle={{ color: "#E8F5F2" }}
                   cursor={false}
                 />
-                <Bar dataKey="total" radius={[6, 6, 0, 0]} cursor="pointer" onClick={(_, idx) => setSelectedIdx(idx)}>
+                <Bar dataKey="total" radius={[6, 6, 0, 0]}>
                   {chartData.map((entry, idx) => {
                     let fill;
                     if (entry.isSelected) fill = DK.blue;
