@@ -5,15 +5,24 @@
 @tailwind utilities;
 
 /* Fix Recharts focus/selection outlines */
+.recharts-surface,
 .recharts-surface:focus,
-.recharts-wrapper:focus,
 .recharts-surface:focus-visible,
-.recharts-wrapper:focus-visible {
+.recharts-surface:active,
+.recharts-wrapper,
+.recharts-wrapper:focus,
+.recharts-wrapper:focus-visible,
+.recharts-wrapper:active,
+.recharts-wrapper svg,
+.recharts-wrapper svg:focus,
+.recharts-wrapper svg:focus-visible {
   outline: none !important;
   box-shadow: none !important;
+  border: none !important;
 }
 .recharts-wrapper svg {
   outline: none !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
 
