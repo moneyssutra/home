@@ -183,6 +183,9 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
         else:
             user_id = user["user_id"]
 
+        # Ensure test account has sample data
+        await _seed_test_account(user_id)
+
         session_token = str(uuid.uuid4())
         session_days = 30 if request.remember_me else 7
         expires_at = datetime.now(timezone.utc) + timedelta(days=session_days)
