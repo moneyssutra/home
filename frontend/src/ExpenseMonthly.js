@@ -132,7 +132,7 @@ const ExpenseMonthly = () => {
                 {formatINR(spentDisplay)} <span className="text-sm sm:text-base font-medium" style={{ color: DK.textSecondary }}>Spent So Far</span>
               </p>
               <p className="text-xs sm:text-sm mt-1 font-medium" style={{ color: DK.textSecondary }}>
-                {sel.percentOfIncome}% of Income{sel.changeVsLastMonth !== undefined ? ` | ${sel.changeVsLastMonth > 0 ? "+" : ""}${sel.changeVsLastMonth}% vs Last Month` : ""}
+                {upcomingDisplay > 0 ? `₹${formatINR(upcomingDisplay)} upcoming | ` : ""}{sel.percentOfIncome}% of Income{sel.changeVsLastMonth !== undefined ? ` | ${sel.changeVsLastMonth > 0 ? "+" : ""}${sel.changeVsLastMonth}% vs Last Month` : ""}
               </p>
             </div>
             {sel.changeVsLastMonth !== undefined && (
