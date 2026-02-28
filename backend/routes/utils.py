@@ -131,3 +131,88 @@ async def create_notification_and_cleanup(notification: dict):
 def now_iso() -> str:
     """Get current UTC time as ISO string"""
     return datetime.now(timezone.utc).isoformat()
+
+
+# ─── Shared Financial Normalization Helpers ───
+
+def count_weekday_occurrences(year: int, month: int, day_name: str, up_to_day: int = None) -> int:
+    """Count how many times a named weekday occurs in a month, optionally up to a specific day."""
+    import calendar
+    day_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3,
+               "Friday": 4, "Saturday": 5, "Sunday": 6}
+    target = day_map.get(day_name, 0)
+    days_in_month = calendar.monthrange(year, month)[1]
+    end = min(up_to_day or days_in_month, days_in_month)
+    count = 0
+    for d in range(1, end + 1):
+        if datetime(year, month, d).weekday() == target:
+            count += 1
+    return count
+
+
+def normalize_expense_for_month(amount, frequency, year, month, expense=None):
+    """Normalize an expense amount to its total for a specific month. Canonical logic used everywhere."""
+    import calendar
+    days_in_month = calendar.monthrange(year, month)[1]
+    if frequency == 'Daily':
+        return amount * days_in_month
+    elif frequency == 'Weekly':
+        day_name = (expense or {}).get('selectedDay', '')
+        if day_name:
+            return amount * count_weekday_occurrences(year, month, day_name)
+        return amount * 4.33
+    elif frequency == 'Bi-Weekly':
+        return amount * 2.17
+    elif frequency == 'Monthly':
+        return amount
+    elif frequency == 'One-Time':
+        ot = (expense or {}).get('oneTimeDate', '')
+        if ot and ot[:7] == f"{year}-{month:02d}":
+            return amount
+        return 0
+    elif frequency == 'Quarterly':
+        return amount  # caller already checks if the month applies
+    elif frequency == 'Half-Yearly':
+        return amount
+    elif frequency == 'Yearly':
+        return amount
+    return amount
+
+
+def split_expense_for_month(amount, frequency, year, month, current_day, expense=None):
+    """Split an expense into (done, upcoming) for the current month. Canonical logic used everywhere."""
+    import calendar
+    days_in_month = calendar.monthrange(year, month)[1]
+
+    if frequency == 'Daily':
+        done = amount * current_day
+        upcoming = amount * (days_in_month - current_day)
+        return done, upcoming
+
+    if frequency in ('Weekly', 'Bi-Weekly'):
+        day_name = (expense or {}).get('selectedDay', '')
+        if day_name and frequency == 'Weekly':
+            past_count = count_weekday_occurrences(year, month, day_name, current_day)
+            total_count = count_weekday_occurrences(year, month, day_name)
+            return amount * past_count, amount * (total_count - past_count)
+        # Fallback for bi-weekly or missing day name
+        total = normalize_expense_for_month(amount, frequency, year, month, expense)
+        # Approximate split by proportion of month elapsed
+        ratio = current_day / days_in_month
+        return round(total * ratio, 2), round(total * (1 - ratio), 2)
+
+    # For Monthly, Quarterly, Half-Yearly, Yearly, One-Time: check selectedDate
+    normalized = normalize_expense_for_month(amount, frequency, year, month, expense)
+    if normalized == 0:
+        return 0, 0
+
+    sd_str = (expense or {}).get('selectedDate')
+    try:
+        sd = min(int(sd_str), days_in_month) if sd_str else 1
+    except (ValueError, TypeError):
+        sd = 1
+
+    if sd <= current_day:
+        return normalized, 0
+    else:
+        return 0, normalized
