@@ -169,7 +169,7 @@ const ExpenseGroup = () => {
                 </button>
 
                 {/* Expense list under category */}
-                {data.expenses.slice(0, 3).map((exp, i) => (
+                {data.expenses.slice(0, expandedCats[category] ? undefined : 3).map((exp, i) => (
                   <button
                     key={exp.id}
                     onClick={() => navigate(`/expense/${exp.id}`)}
@@ -187,11 +187,16 @@ const ExpenseGroup = () => {
                 ))}
                 {data.expenses.length > 3 && (
                   <button
-                    onClick={() => navigate(`/expenses/${category.toLowerCase().replace(/\s+/g, "-")}`)}
-                    className="w-full py-2 text-center text-xs font-semibold transition-colors hover:bg-gray-50"
+                    onClick={() => setExpandedCats(prev => ({ ...prev, [category]: !prev[category] }))}
+                    className="w-full flex items-center justify-center gap-1 py-2.5 text-xs font-semibold transition-colors hover:bg-gray-50"
                     style={{ borderTop: "1px solid var(--border-light)", color: config.color }}
+                    data-testid={`toggle-${category}`}
                   >
-                    View all {data.count} expenses
+                    {expandedCats[category] ? (
+                      <><ChevronUp className="h-3.5 w-3.5" /> Show less</>
+                    ) : (
+                      <><ChevronDown className="h-3.5 w-3.5" /> View all {data.count} expenses</>
+                    )}
                   </button>
                 )}
               </div>
