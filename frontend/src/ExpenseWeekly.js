@@ -223,7 +223,7 @@ const ExpenseWeekly = () => {
                   itemStyle={{ color: "#E8F5F2" }}
                   cursor={false}
                 />
-                <Bar dataKey="total" radius={[5, 5, 0, 0]} cursor="pointer" onClick={(_, idx) => setSelectedWeek(idx === selectedWeek ? null : idx)}>
+                <Bar dataKey="total" radius={[5, 5, 0, 0]}>
                   {trendData.map((entry, idx) => {
                     const ratio = maxTrend > 0 ? entry.total / maxTrend : 0;
                     let fill;
