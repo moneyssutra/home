@@ -125,12 +125,19 @@ async def get_breakdown():
 
 
 def _calc_monthly_income(incomes, other_incomes, current_month, current_year):
+    import calendar
+    days_in_month = calendar.monthrange(current_year, current_month)[1]
     monthly_income = 0
     for income in incomes:
         amount = income.get('expectedAmount', 0)
         freq = income.get('frequency', 'Monthly')
-        if freq == 'Daily': monthly_income += amount * 30
-        elif freq == 'Weekly': monthly_income += amount * 4
+        if freq == 'Daily': monthly_income += amount * days_in_month
+        elif freq == 'Weekly':
+            day_name = income.get('selectedDay', '')
+            if day_name:
+                monthly_income += amount * count_weekday_occurrences(current_year, current_month, day_name)
+            else:
+                monthly_income += amount * 4.33
         elif freq == 'Monthly': monthly_income += amount
         elif freq == 'Quarterly':
             sq = income.get('selectedQuarter', '')
