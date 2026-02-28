@@ -331,8 +331,8 @@ const ExpenseCalendar = ({ embedded = false }) => {
         </button>
       </div>
 
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
+      {!embedded && <BottomNav onAddClick={() => setShowAddSheet(true)} />}
+      {!embedded && <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />}
     </div>
   );
 };
