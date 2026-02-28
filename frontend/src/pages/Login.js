@@ -62,22 +62,33 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
-    if (!identifier.trim()) {
+    // Read values directly from DOM inputs to handle browser autofill
+    // (browser autofill sets DOM value but may not trigger React onChange)
+    const form = e.target;
+    const domIdentifier = form.querySelector('[data-testid="identifier-input"]')?.value || "";
+    const domPassword = form.querySelector('[data-testid="password-input"]')?.value || "";
+    const finalIdentifier = domIdentifier || identifier;
+    const finalPassword = domPassword || password;
+
+    // Sync React state if DOM values differ
+    if (finalIdentifier !== identifier) setIdentifier(finalIdentifier);
+    if (finalPassword !== password) setPassword(finalPassword);
+
+    if (!finalIdentifier.trim()) {
       setError("Please enter your email ID or mobile number");
       return;
     }
-    if (!password) {
+    if (!finalPassword) {
       setError("Please enter your password");
       return;
     }
 
     setIsSubmitting(true);
-    const result = await login(identifier, password, rememberMe);
+    const result = await login(finalIdentifier, finalPassword, rememberMe);
     
     if (result.success) {
-      // Save or clear remembered credentials
       if (rememberMe) {
-        localStorage.setItem("moneyssutra_remember", JSON.stringify({ email: identifier, password }));
+        localStorage.setItem("moneyssutra_remember", JSON.stringify({ email: finalIdentifier, password: finalPassword }));
       } else {
         localStorage.removeItem("moneyssutra_remember");
       }

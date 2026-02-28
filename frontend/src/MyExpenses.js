@@ -334,7 +334,7 @@ const MyExpenses = () => {
 
       {/* Expense Allocation (only on current month view) */}
       {isCurrentMonth && expenseByCategory.length > 0 && (
-        <div className="px-6 -mt-4">
+        <div className="px-6 mt-4">
           <div
             className="w-full rounded-2xl p-5 shadow-card text-left transition-all hover:shadow-lg"
             style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}

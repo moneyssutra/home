@@ -33,7 +33,9 @@ const UpcomingExpenses = () => {
   }, []);
 
   const formatAmount = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n));
-  const today = new Date().getDate();
+  const now = new Date();
+  const today = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}>
@@ -74,7 +76,8 @@ const UpcomingExpenses = () => {
           </div>
         ) : items.map((item, idx) => {
           const TypeIcon = categoryIcons[item.type] || ShoppingCart;
-          const daysUntil = item.scheduleDay - today;
+          const effectiveDay = Math.min(item.scheduleDay, daysInMonth);
+          const daysUntil = effectiveDay - today;
           return (
             <div
               key={idx}
