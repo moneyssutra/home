@@ -894,6 +894,10 @@ async def get_weekly_summary(request: Request, last: int = 8):
 
     DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
+    ESSENTIAL_CATS = {"Housing", "Utilities", "Food", "Medical", "Education", "Insurance", "EMI"}
+    LIFESTYLE_CATS = {"Travel", "Shopping", "Subscriptions", "Business Expense", "Salary Paid"}
+    WEALTH_CATS = {"Investments", "Savings"}
+
     result = []
     for week in weeks:
         ws, we = week["start"], week["end"]
@@ -902,6 +906,9 @@ async def get_weekly_summary(request: Request, last: int = 8):
         weekend_total = 0
         weekday_total = 0
         categories = {}
+        essential_total = 0
+        lifestyle_total = 0
+        wealth_total = 0
 
         for exp in all_expenses:
             if exp.get('linkedPaymentId'):
