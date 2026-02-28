@@ -12,18 +12,18 @@ const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "Ju
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
 const DK = {
-  bg: "#0B1120",
-  card: "#111827",
-  cardBorder: "rgba(59,130,246,0.08)",
-  blue: "#3B82F6",
-  orange: "#F97316",
-  green: "#22C55E",
-  amber: "#F59E0B",
-  textPrimary: "#F1F5F9",
-  textSecondary: "#94A3B8",
-  textMuted: "#64748B",
-  barTrack: "#1E293B",
-  divider: "rgba(148,163,184,0.08)",
+  bg: "#041418",
+  card: "#0A1F24",
+  cardBorder: "rgba(13,148,136,0.15)",
+  blue: "#14B8A6",
+  orange: "#F59E0B",
+  green: "#2DD4BF",
+  amber: "#FBBF24",
+  textPrimary: "#E8F5F2",
+  textSecondary: "#8BC4B8",
+  textMuted: "#547D73",
+  barTrack: "#0C2A30",
+  divider: "rgba(45,212,191,0.1)",
 };
 
 function getMonthKey(offset = 0) {
