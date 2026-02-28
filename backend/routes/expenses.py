@@ -274,21 +274,27 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
                 result.append(exp)
 
     # Enrich each expense with payment status for the target month
+    # Batch query: get all prepaid records for this month at once
+    expense_ids = [exp.get('id') for exp in result if exp.get('id') and not exp.get('_displayStatus')]
+    prepaid_map = {}
+    if expense_ids:
+        prepaid_records = await db.expenses.find({
+            "linkedPaymentId": {"$in": expense_ids},
+            "expenseMonth": target_month,
+            "prepaidFlag": True
+        }, {"_id": 0, "linkedPaymentId": 1}).to_list(500)
+        for rec in prepaid_records:
+            prepaid_map[rec.get("linkedPaymentId")] = True
+
     for exp in result:
         if not exp.get('_displayStatus'):
-            # Check if there's a prepaid record for this expense in the target month
-            if exp.get('id'):
-                prepaid = await db.expenses.find_one({
-                    "linkedPaymentId": exp['id'],
-                    "expenseMonth": target_month,
-                    "prepaidFlag": True
-                }, {"_id": 0})
-                if prepaid:
-                    exp['_displayStatus'] = 'prepaid'
-                elif exp.get('isPaid') and exp.get('lastPaidDate', '')[:7] == target_month:
-                    exp['_displayStatus'] = 'paid'
-                else:
-                    exp['_displayStatus'] = 'pending'
+            exp_id = exp.get('id')
+            if exp_id and prepaid_map.get(exp_id):
+                exp['_displayStatus'] = 'prepaid'
+            elif exp.get('isPaid') and exp.get('lastPaidDate', '')[:7] == target_month:
+                exp['_displayStatus'] = 'paid'
+            else:
+                exp['_displayStatus'] = 'pending'
 
     return result
 
