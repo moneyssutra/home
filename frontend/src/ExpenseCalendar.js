@@ -63,19 +63,18 @@ const formatAmount = (amount) => {
   return new Intl.NumberFormat("en-IN").format(Math.round(amount));
 };
 
-// Heatmap color interpolation: blue → teal → orange → red
+// Heatmap color interpolation: light pastels for light bg
 function getHeatColor(value, maxValue) {
   if (!value || !maxValue) return "transparent";
   const ratio = Math.min(1, value / maxValue);
   if (ratio < 0.33) {
-    const t = ratio / 0.33;
-    return `rgba(59, ${Math.round(100 + t * 30)}, ${Math.round(200 + t * 46)}, ${0.3 + t * 0.2})`;
+    return `rgba(59, 130, 246, ${0.08 + ratio * 0.3})`;
   } else if (ratio < 0.66) {
     const t = (ratio - 0.33) / 0.33;
-    return `rgba(${Math.round(6 + t * 39)}, ${Math.round(182 - t * 24)}, ${Math.round(212 - t * 23)}, ${0.5 + t * 0.15})`;
+    return `rgba(${Math.round(6 + t * 239)}, ${Math.round(182 - t * 24)}, ${Math.round(212 - t * 201)}, ${0.12 + t * 0.1})`;
   } else {
     const t = (ratio - 0.66) / 0.34;
-    return `rgba(${Math.round(45 + t * 200)}, ${Math.round(158 + t * 0)}, ${Math.round(11 + t * 0)}, ${0.65 + t * 0.25})`;
+    return `rgba(245, ${Math.round(158 - t * 90)}, ${Math.round(11)}, ${0.12 + t * 0.15})`;
   }
 }
 
@@ -271,11 +270,11 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
                     }}
                     data-testid={`cal-day-${day}`}
                   >
-                    <span className="text-[11px] font-semibold" style={{ color: isSelected ? "#fff" : isToday ? DK.blue : hasExpenses ? "#E2E8F0" : DK.textMuted }}>
+                    <span className="text-[11px] font-semibold" style={{ color: isSelected ? "#fff" : isToday ? DK.blue : hasExpenses ? DK.textPrimary : DK.textMuted }}>
                       {day}
                     </span>
                     {hasExpenses && (
-                      <span className="text-[8px] font-bold mt-0.5" style={{ color: isSelected ? "rgba(255,255,255,0.9)" : "#E2E8F0" }}>
+                      <span className="text-[8px] font-bold mt-0.5" style={{ color: isSelected ? "rgba(255,255,255,0.9)" : DK.textSecondary }}>
                         ₹{formatAmount(dayTotal)}
                       </span>
                     )}
@@ -289,7 +288,7 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
           <div className="mt-3 pt-2 flex items-center justify-between" style={{ borderTop: `1px solid ${DK.divider}` }}>
             <span className="text-[9px]" style={{ color: DK.textMuted }}>₹0</span>
             <div className="flex-1 mx-2 h-2 rounded-full overflow-hidden flex">
-              <div className="flex-1" style={{ background: "linear-gradient(90deg, rgba(30,41,59,0.8), rgba(59,130,246,0.6), rgba(6,182,212,0.7), rgba(245,158,11,0.9))" }} />
+              <div className="flex-1" style={{ background: "linear-gradient(90deg, rgba(59,130,246,0.1), rgba(59,130,246,0.25), rgba(6,182,212,0.2), rgba(245,158,11,0.25))" }} />
             </div>
             <span className="text-[9px]" style={{ color: DK.textMuted }}>₹{formatAmount(maxDailySpend)}</span>
           </div>
@@ -342,7 +341,7 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
                     <button
                       key={exp.id}
                       onClick={() => navigate(`/expense/${exp.id}`)}
-                      className="w-full flex items-center gap-3 px-4 py-3 transition-all hover:bg-white/5"
+                      className="w-full flex items-center gap-3 px-4 py-3 transition-all hover:bg-gray-50"
                       style={{ borderTop: i > 0 ? `1px solid ${DK.divider}` : "none" }}
                       data-testid={`cal-expense-${exp.id}`}
                     >
