@@ -134,6 +134,17 @@ const NotificationBell = () => {
       handleClose();
       const mappedUrl = mapActionUrl(notification.actionUrl);
       navigate(mappedUrl);
+      return;
+    }
+    
+    // Fallback: type-based routing for notifications without actionUrl
+    const typeRoutes = {
+      gamification: '/health', achievement: '/health', streak: '/health',
+      income_reminder: '/my-income', auto_entry: '/my-income',
+    };
+    if (typeRoutes[notification.type]) {
+      handleClose();
+      navigate(typeRoutes[notification.type]);
     }
   };
   
