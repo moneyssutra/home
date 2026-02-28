@@ -14,6 +14,7 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - New/Empty User: `newuser@test.com` / `password`
 
 ## Implemented Features (Latest First)
+- **Premium Dark Navy UI Redesign** (Feb 28) — Redesigned Weekly and Monthly views with warm heatmap colors (teal→cyan→amber→orange), gradient progress bars, color-coded category tags, and premium dark navy theme matching user reference images
 - **Behavior Connection Insights** (Feb 28) — Cross-analysis of spending patterns in Monthly view: weekend vs weekday spending, salary week spike detection, spending distribution bars, recurring category tags, category growth trends, income coverage ratio
 - **Multi-Level Expense Intelligence** (Feb 28) — 4-view system (List/Daily/Weekly/Monthly) with premium dark theme, calendar heatmap, weekly trends, monthly summary charts
 - **Backend Performance Fix** (Feb 28) — Optimized /api/expenses/by-month from >8s to ~1.5s via MongoDB indexes
@@ -30,6 +31,13 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - **Undo Mark Paid/Prepay** (Feb 27) — Undo buttons on paid/prepaid expense cards
 - **Prepayment System** (Feb 27) — 5 endpoints: by-month, mark-paid, prepay, unmark-paid, undo-prepay
 
+## Design System — Dark Navy Theme
+- Background: `#060D1B`
+- Card: `#0C1829`, Alt: `#0F1D32`
+- Warm spectrum: Teal `#2DD4BF`, Cyan `#22D3EE`, Amber `#F59E0B`, Orange `#FB923C`, Gold `#FBBF24`
+- Category colors: Blue `#3B82F6` (Essential), Orange `#F97316` (Lifestyle), Green `#34D399` (Wealth)
+- Text: Primary `#E8EDF5`, Secondary `#8B9DC3`, Muted `#546A8D`
+
 ## Key API Endpoints
 - `GET /api/expenses/behavior-insights` — Cross-analysis behavioral spending insights
 - `GET /api/expenses/monthly-summary` — Aggregated expense data per month
@@ -37,13 +45,6 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - `GET /api/expenses/by-month` — Expenses filtered by YYYY-MM
 - `GET /api/data/sample-excel` — Downloads blank Excel template
 - `POST /api/data/import-excel` — Uploads and processes filled Excel
-- `POST /api/family` — Create family group
-- `GET /api/family` — Get user's family group
-- `POST /api/family/add-member` — Add family member
-- `DELETE /api/family/member/{id}` — Remove member
-- `POST /api/family/join/{code}` — Join via invite code
-- `GET /api/family/member/{id}/summary` — Individual member financial summary
-- `GET /api/family/combined-summary` — Aggregated family summary
 
 ## Prioritized Backlog
 ### P0: None currently
