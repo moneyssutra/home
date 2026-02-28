@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, CalendarDays, Check, Clock, FastForward, Receipt } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
+
+const API = process.env.REACT_APP_BACKEND_URL;
 
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
