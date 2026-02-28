@@ -6,12 +6,14 @@ import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
-import { useExpenseList, useExpensesByMonth } from "@/hooks/useApi";
+import { useExpenseList } from "@/hooks/useApi";
 import { mutate } from "swr";
 import { normalizeToMonthly } from "@/lib/formatters";
 import ExpenseWeekly from "@/ExpenseWeekly";
 import ExpenseMonthly from "@/ExpenseMonthly";
 import ExpenseCalendar from "@/ExpenseCalendar";
+
+const API = process.env.REACT_APP_BACKEND_URL;
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
