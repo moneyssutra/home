@@ -56,9 +56,9 @@ const DK = {
   redSoft: "rgba(239,68,68,0.1)",
   textPrimary: "#E8F5F2",
   textSecondary: "#8BC4B8",
-  textMuted: "#547D73",
-  barTrack: "#0C2A30",
-  divider: "rgba(45,212,191,0.1)",
+  textMuted: "#5E9188",
+  barTrack: "#153840",
+  divider: "rgba(45,212,191,0.12)",
 };
 
 const ExpenseMonthly = () => {
