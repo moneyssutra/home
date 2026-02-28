@@ -16,6 +16,7 @@ import ResetPassword from "@/pages/ResetPassword";
 
 // Admin Pages
 import AdminLayout from "@/pages/admin/AdminLayout";
+import AdminLogin from "@/pages/admin/AdminLogin";
 import CommandCenter from "@/pages/admin/CommandCenter";
 import UserIntelligence from "@/pages/admin/UserIntelligence";
 import RiskRadar from "@/pages/admin/RiskRadar";
