@@ -1200,6 +1200,208 @@ def _future_value(principal: float, rate: float, years: int) -> float:
     return round(principal * ((1 + rate) ** years))
 
 
+
+# ─────────────────────────────────────────────────────────
+# REGRET FLAG — Mark lifestyle expenses with regret metadata
+# ─────────────────────────────────────────────────────────
+
+@router.patch("/{expense_id}/regret")
+async def set_regret_flag(expense_id: str, request: Request):
+    """Set or clear the regret flag on an expense."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    body = await request.json()
+    regret = body.get("regret", False)
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    result = await db.expenses.update_one(user_filter, {"$set": {"regret": regret}})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    return {"id": expense_id, "regret": regret}
+
+
+# ─────────────────────────────────────────────────────────
+# WEALTH IMPACT ANALYSIS — Grade + Opportunity Cost + Regret
+# ─────────────────────────────────────────────────────────
+
+def _wealth_grade(essential_pct: float, lifestyle_pct: float, wealth_pct: float) -> dict:
+    """
+    Calculates Wealth Grade (A+ to F) based on 50/30/20 rule.
+    Lower deviation = better grade. Savings weight is doubled.
+    """
+    # Deviation from ideal (positive = over-allocating, negative = under for savings)
+    e_dev = max(0, essential_pct - 50)
+    l_dev = max(0, lifestyle_pct - 30)
+    w_dev = max(0, 20 - wealth_pct)  # under-saving is bad
+    total_dev = e_dev + l_dev + (w_dev * 2)  # double-weight savings shortfall
+
+    if total_dev == 0:
+        grade, color = "A+", "#10B981"
+    elif total_dev <= 5:
+        grade, color = "A", "#10B981"
+    elif total_dev <= 12:
+        grade, color = "B+", "#22C55E"
+    elif total_dev <= 20:
+        grade, color = "B", "#84CC16"
+    elif total_dev <= 30:
+        grade, color = "C+", "#EAB308"
+    elif total_dev <= 45:
+        grade, color = "C", "#F59E0B"
+    elif total_dev <= 65:
+        grade, color = "D", "#EF4444"
+    else:
+        grade, color = "F", "#DC2626"
+
+    return {"grade": grade, "color": color, "deviation": round(total_dev, 1)}
+
+
+@router.get("/wealth-impact")
+async def get_wealth_impact(request: Request):
+    """
+    Wealth Impact Analysis:
+    1. Wealth Grade (A+ to F) from 50/30/20 rule
+    2. Regret-tagged expenses with opportunity cost
+    3. Sutra Swap suggestions
+    """
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    now = datetime.now(timezone.utc)
+    current_month_str = f"{now.year}-{now.month:02d}"
+
+    # ── Gather data ──
+    all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
+    incomes = await db.income.find({"userId": user.get("user_id")}, {"_id": 0}).to_list(500)
+    loans = await db.liquid_assets.find({"userId": user.get("user_id"), "type": {"$in": ["Personal Loan", "Home Loan", "Car Loan", "Education Loan", "Other Loan"]}}, {"_id": 0}).to_list(100)
+    insurance = await db.liquid_assets.find({"userId": user.get("user_id"), "type": {"$in": ["Health Insurance", "Life Insurance", "Term Insurance"]}}, {"_id": 0}).to_list(100)
+    goals = await db.goals.find({"userId": user.get("user_id")}, {"_id": 0}).to_list(100)
+
+    total_monthly_income = sum(float(i.get("amount", 0)) for i in incomes)
+
+    # ── Current month expenses by group ──
+    essential_total = 0
+    lifestyle_total = 0
+    wealth_total = 0
+    regret_expenses = []
+    lifestyle_over_5k = []
+
+    for exp in all_expenses:
+        created = exp.get("createdAt", "")
+        if isinstance(created, datetime):
+            exp_month = f"{created.year}-{created.month:02d}"
+        elif isinstance(created, str) and len(created) >= 7:
+            exp_month = created[:7]
+        else:
+            continue
+        if exp_month != current_month_str:
+            continue
+
+        amt = float(exp.get("expectedAmount", 0))
+        cat = exp.get("category", "")
+        group = _classify_category(cat)
+
+        if group == "essential":
+            essential_total += amt
+        elif group == "lifestyle":
+            lifestyle_total += amt
+            if amt >= 5000:
+                lifestyle_over_5k.append({
+                    "id": exp.get("id", ""),
+                    "name": exp.get("expenseName", ""),
+                    "amount": round(amt),
+                    "category": cat,
+                    "regret": exp.get("regret"),
+                })
+        elif group == "wealth":
+            wealth_total += amt
+
+        if exp.get("regret") is True:
+            regret_expenses.append({
+                "id": exp.get("id", ""),
+                "name": exp.get("expenseName", ""),
+                "amount": round(amt),
+                "category": cat,
+            })
+
+    total_spend = essential_total + lifestyle_total + wealth_total
+    base = total_monthly_income if total_monthly_income > 0 else (total_spend if total_spend > 0 else 1)
+    essential_pct = round(essential_total / base * 100, 1)
+    lifestyle_pct = round(lifestyle_total / base * 100, 1)
+    wealth_pct = round(wealth_total / base * 100, 1)
+
+    grade_info = _wealth_grade(essential_pct, lifestyle_pct, wealth_pct)
+
+    # ── Opportunity Cost for regret spend ──
+    total_regret = sum(r["amount"] for r in regret_expenses)
+    opportunity_swaps = []
+
+    if total_regret > 0:
+        # Loan payoff opportunity
+        for loan in loans:
+            principal = float(loan.get("balance", loan.get("amount", 0)))
+            if principal > 0:
+                pct_payoff = round(total_regret / principal * 100, 1)
+                opportunity_swaps.append({
+                    "icon": "landmark",
+                    "text": f"Could have paid off {pct_payoff}% of your {loan.get('name', loan.get('type', 'Loan'))} principal",
+                    "amount": total_regret,
+                })
+                break
+
+        # Insurance funding opportunity
+        for ins in insurance:
+            premium = float(ins.get("premium", ins.get("amount", 0)))
+            if premium > 0:
+                months_covered = round(total_regret / premium, 1)
+                opportunity_swaps.append({
+                    "icon": "shield",
+                    "text": f"Could have funded {months_covered} months of {ins.get('name', ins.get('type', 'Insurance'))}",
+                    "amount": total_regret,
+                })
+                break
+
+        # Goal funding opportunity
+        for goal in goals:
+            target = float(goal.get("targetAmount", 0))
+            current = float(goal.get("currentAmount", 0))
+            gap = target - current
+            if gap > 0:
+                pct_goal = round(total_regret / gap * 100, 1)
+                opportunity_swaps.append({
+                    "icon": "target",
+                    "text": f"Could have covered {pct_goal}% of your '{goal.get('name', 'Goal')}' gap",
+                    "amount": total_regret,
+                })
+                break
+
+        # Emergency fund / investment growth
+        fv_1yr = _future_value(total_regret * 12, GROWTH_RATE, 1)
+        opportunity_swaps.append({
+            "icon": "trending-up",
+            "text": f"Invested monthly, this could grow to ₹{fv_1yr:,.0f} in 1 year at 10% returns",
+            "amount": total_regret * 12,
+        })
+
+    return {
+        "wealthGrade": grade_info,
+        "allocation": {
+            "essential": {"amount": round(essential_total), "pct": essential_pct, "target": 50},
+            "lifestyle": {"amount": round(lifestyle_total), "pct": lifestyle_pct, "target": 30},
+            "wealth": {"amount": round(wealth_total), "pct": wealth_pct, "target": 20},
+        },
+        "totalIncome": round(total_monthly_income),
+        "totalSpend": round(total_spend),
+        "regretExpenses": regret_expenses,
+        "totalRegret": total_regret,
+        "lifestyleOver5k": lifestyle_over_5k,
+        "opportunitySwaps": opportunity_swaps,
+        "month": current_month_str,
+    }
+
+
+
 @router.get("/overspend-analysis")
 async def get_overspend_analysis(request: Request):
     """
