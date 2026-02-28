@@ -101,8 +101,23 @@ const ExpenseMonthly = () => {
   return (
     <div className="pb-6" style={{ backgroundColor: DK.bg }} data-testid="expense-monthly">
 
-      {/* Main Summary Card */}
+      {/* Month Selector — at top */}
       <div className="px-4 pt-4 mb-3">
+        <div className="flex items-center justify-between rounded-2xl px-2 py-2" style={{ backgroundColor: DK.barTrack, border: `1px solid ${DK.cardBorder}` }}>
+          <button onClick={() => setSelectedIdx(i => Math.max(0, i - 1))} className="p-1.5 rounded-lg" style={{ color: DK.textMuted }} data-testid="month-nav-prev"><ChevronLeft className="h-4 w-4" /></button>
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+            {months.map((m, i) => (
+              <button key={m.month} onClick={() => setSelectedIdx(i)} className="px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap" style={{ backgroundColor: i === selectedIdx ? DK.monthPillActive : "transparent", color: i === selectedIdx ? "#fff" : DK.textMuted }} data-testid={`month-pill-${m.month}`}>
+                {getMonthLabel(m.month)}
+              </button>
+            ))}
+          </div>
+          <button onClick={() => setSelectedIdx(i => Math.min(months.length - 1, i + 1))} className="p-1.5 rounded-lg" style={{ color: DK.textMuted }} data-testid="month-nav-next"><ChevronRight className="h-4 w-4" /></button>
+        </div>
+      </div>
+
+      {/* Main Summary Card */}
+      <div className="px-4 mb-3">
         <div className="rounded-2xl p-4 sm:p-5" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }} data-testid="monthly-summary-card">
           <div className="flex items-start justify-between mb-1">
             <div>
