@@ -307,202 +307,6 @@ def _parse_month_num(m):
     return months.get(m)
 
 
-@router.post("/{expense_id}/prepay")
-async def prepay_expense(expense_id: str, request: Request):
-    """Mark an expense as prepaid for next month. Creates a record for next month and marks it paid."""
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
-    user_filter["id"] = expense_id
-
-    expense = await db.expenses.find_one(user_filter, {"_id": 0})
-    if not expense:
-        raise HTTPException(status_code=404, detail="Expense not found")
-
-    now = datetime.now(timezone.utc)
-    current_month = f"{now.year}-{now.month:02d}"
-
-    # Calculate next month
-    if now.month == 12:
-        next_month = f"{now.year + 1}-01"
-    else:
-        next_month = f"{now.year}-{now.month + 1:02d}"
-
-    # Check if already prepaid for next month
-    existing = await db.expenses.find_one({
-        "userId": user.get("user_id"),
-        "linkedPaymentId": expense_id,
-        "expenseMonth": next_month
-    }, {"_id": 0})
-    if existing:
-        raise HTTPException(status_code=400, detail="Already prepaid for next month")
-
-    import uuid
-    prepaid_id = str(uuid.uuid4())
-
-    # Create a prepaid record for next month
-    prepaid_doc = {
-        "id": prepaid_id,
-        "userId": user.get("user_id"),
-        "expenseName": expense.get("expenseName", ""),
-        "expenseType": expense.get("expenseType", "Fixed"),
-        "category": expense.get("category", ""),
-        "expectedAmount": expense.get("expectedAmount", 0),
-        "frequency": "One-Time",
-        "expenseMonth": next_month,
-        "dueDate": f"{next_month}-{expense.get('selectedDate', '01')}",
-        "paidDate": now.date().isoformat(),
-        "prepaidFlag": True,
-        "isPaid": True,
-        "linkedPaymentId": expense_id,
-        "selectedDate": expense.get("selectedDate"),
-        "createdAt": now.isoformat(),
-    }
-    await db.expenses.insert_one(prepaid_doc)
-
-    # Update original expense to note the prepayment
-    await db.expenses.update_one(
-        {"id": expense_id},
-        {"$set": {"lastPaidDate": now.date().isoformat()}}
-    )
-
-    return {
-        "message": f"Prepaid {expense.get('expenseName')} for {next_month}",
-        "prepaidId": prepaid_id,
-        "expenseMonth": next_month,
-        "amount": expense.get("expectedAmount", 0),
-        "paidDate": now.date().isoformat()
-    }
-
-
-@router.post("/{expense_id}/mark-paid")
-async def mark_expense_paid(expense_id: str, request: Request):
-    """Mark an expense as paid for the current month."""
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
-    user_filter["id"] = expense_id
-
-    expense = await db.expenses.find_one(user_filter, {"_id": 0})
-    if not expense:
-        raise HTTPException(status_code=404, detail="Expense not found")
-
-    now = datetime.now(timezone.utc)
-    await db.expenses.update_one(
-        {"id": expense_id},
-        {"$set": {
-            "isPaid": True,
-            "paidDate": now.date().isoformat(),
-            "lastPaidDate": now.date().isoformat()
-        }}
-    )
-    return {"message": "Expense marked as paid", "id": expense_id, "paidDate": now.date().isoformat()}
-
-
-@router.post("/{expense_id}/unmark-paid")
-async def unmark_expense_paid(expense_id: str, request: Request):
-    """Undo marking an expense as paid."""
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
-    user_filter["id"] = expense_id
-
-    expense = await db.expenses.find_one(user_filter, {"_id": 0})
-    if not expense:
-        raise HTTPException(status_code=404, detail="Expense not found")
-
-    await db.expenses.update_one(
-        {"id": expense_id},
-        {"$set": {"isPaid": False, "paidDate": None, "lastPaidDate": None}}
-    )
-    return {"message": "Payment undone", "id": expense_id}
-
-
-@router.post("/{expense_id}/undo-prepay")
-async def undo_prepay_expense(expense_id: str, request: Request):
-    """Undo a prepayment — deletes the prepaid child record for next month."""
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
-    user_filter["id"] = expense_id
-
-    expense = await db.expenses.find_one(user_filter, {"_id": 0})
-    if not expense:
-        raise HTTPException(status_code=404, detail="Expense not found")
-
-    now = datetime.now(timezone.utc)
-    if now.month == 12:
-        next_month = f"{now.year + 1}-01"
-    else:
-        next_month = f"{now.year}-{now.month + 1:02d}"
-
-    result = await db.expenses.delete_one({
-        "linkedPaymentId": expense_id,
-        "expenseMonth": next_month,
-        "userId": user.get("user_id")
-    })
-
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="No prepaid record found for next month")
-
-    return {"message": f"Prepayment undone for {next_month}", "id": expense_id}
-
-
-# ---- Parameterized {expense_id} routes MUST be last to avoid path conflicts ----
-
-@router.get("/{expense_id}")
-async def get_expense(expense_id: str, request: Request):
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
-    user_filter["id"] = expense_id
-    expense = await db.expenses.find_one(user_filter, {"_id": 0})
-    if not expense:
-        raise HTTPException(status_code=404, detail="Expense not found")
-    if isinstance(expense.get('createdAt'), str):
-        expense['createdAt'] = datetime.fromisoformat(expense['createdAt'])
-    return expense
-
-
-@router.put("/{expense_id}")
-async def update_expense(expense_id: str, input: ExpenseCreate, request: Request):
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
-    user_filter["id"] = expense_id
-    existing = await db.expenses.find_one(user_filter, {"_id": 0})
-    if not existing:
-        raise HTTPException(status_code=404, detail="Expense not found")
-    expense_dict = input.model_dump()
-    expense_dict['id'] = expense_id
-    expense_dict['userId'] = user.get('user_id')
-    expense_dict['createdAt'] = existing['createdAt']
-    await db.expenses.replace_one({"id": expense_id}, expense_dict)
-    if isinstance(expense_dict.get('createdAt'), str):
-        expense_dict['createdAt'] = datetime.fromisoformat(expense_dict['createdAt'])
-    return expense_dict
-
-
-@router.delete("/{expense_id}")
-async def delete_expense(expense_id: str, request: Request):
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
-    user_filter["id"] = expense_id
-    existing = await db.expenses.find_one(user_filter, {"_id": 0})
-    if not existing:
-        raise HTTPException(status_code=404, detail="Expense not found")
-    await db.expenses.delete_one({"id": expense_id})
-    return {"message": "Expense deleted successfully", "id": expense_id}
-
-
 
 @router.get("/monthly-summary")
 async def get_monthly_summary(request: Request, last: int = 6):
@@ -818,3 +622,200 @@ async def get_weekly_summary(request: Request, last: int = 8):
         "weeks": result,
         "insights": insights[:3],
     }
+
+@router.post("/{expense_id}/prepay")
+async def prepay_expense(expense_id: str, request: Request):
+    """Mark an expense as prepaid for next month. Creates a record for next month and marks it paid."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    now = datetime.now(timezone.utc)
+    current_month = f"{now.year}-{now.month:02d}"
+
+    # Calculate next month
+    if now.month == 12:
+        next_month = f"{now.year + 1}-01"
+    else:
+        next_month = f"{now.year}-{now.month + 1:02d}"
+
+    # Check if already prepaid for next month
+    existing = await db.expenses.find_one({
+        "userId": user.get("user_id"),
+        "linkedPaymentId": expense_id,
+        "expenseMonth": next_month
+    }, {"_id": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail="Already prepaid for next month")
+
+    import uuid
+    prepaid_id = str(uuid.uuid4())
+
+    # Create a prepaid record for next month
+    prepaid_doc = {
+        "id": prepaid_id,
+        "userId": user.get("user_id"),
+        "expenseName": expense.get("expenseName", ""),
+        "expenseType": expense.get("expenseType", "Fixed"),
+        "category": expense.get("category", ""),
+        "expectedAmount": expense.get("expectedAmount", 0),
+        "frequency": "One-Time",
+        "expenseMonth": next_month,
+        "dueDate": f"{next_month}-{expense.get('selectedDate', '01')}",
+        "paidDate": now.date().isoformat(),
+        "prepaidFlag": True,
+        "isPaid": True,
+        "linkedPaymentId": expense_id,
+        "selectedDate": expense.get("selectedDate"),
+        "createdAt": now.isoformat(),
+    }
+    await db.expenses.insert_one(prepaid_doc)
+
+    # Update original expense to note the prepayment
+    await db.expenses.update_one(
+        {"id": expense_id},
+        {"$set": {"lastPaidDate": now.date().isoformat()}}
+    )
+
+    return {
+        "message": f"Prepaid {expense.get('expenseName')} for {next_month}",
+        "prepaidId": prepaid_id,
+        "expenseMonth": next_month,
+        "amount": expense.get("expectedAmount", 0),
+        "paidDate": now.date().isoformat()
+    }
+
+
+@router.post("/{expense_id}/mark-paid")
+async def mark_expense_paid(expense_id: str, request: Request):
+    """Mark an expense as paid for the current month."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    now = datetime.now(timezone.utc)
+    await db.expenses.update_one(
+        {"id": expense_id},
+        {"$set": {
+            "isPaid": True,
+            "paidDate": now.date().isoformat(),
+            "lastPaidDate": now.date().isoformat()
+        }}
+    )
+    return {"message": "Expense marked as paid", "id": expense_id, "paidDate": now.date().isoformat()}
+
+
+@router.post("/{expense_id}/unmark-paid")
+async def unmark_expense_paid(expense_id: str, request: Request):
+    """Undo marking an expense as paid."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    await db.expenses.update_one(
+        {"id": expense_id},
+        {"$set": {"isPaid": False, "paidDate": None, "lastPaidDate": None}}
+    )
+    return {"message": "Payment undone", "id": expense_id}
+
+
+@router.post("/{expense_id}/undo-prepay")
+async def undo_prepay_expense(expense_id: str, request: Request):
+    """Undo a prepayment — deletes the prepaid child record for next month."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    now = datetime.now(timezone.utc)
+    if now.month == 12:
+        next_month = f"{now.year + 1}-01"
+    else:
+        next_month = f"{now.year}-{now.month + 1:02d}"
+
+    result = await db.expenses.delete_one({
+        "linkedPaymentId": expense_id,
+        "expenseMonth": next_month,
+        "userId": user.get("user_id")
+    })
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="No prepaid record found for next month")
+
+    return {"message": f"Prepayment undone for {next_month}", "id": expense_id}
+
+
+# ---- Parameterized {expense_id} routes MUST be last to avoid path conflicts ----
+
+@router.get("/{expense_id}")
+async def get_expense(expense_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    if isinstance(expense.get('createdAt'), str):
+        expense['createdAt'] = datetime.fromisoformat(expense['createdAt'])
+    return expense
+
+
+@router.put("/{expense_id}")
+async def update_expense(expense_id: str, input: ExpenseCreate, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    existing = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    expense_dict = input.model_dump()
+    expense_dict['id'] = expense_id
+    expense_dict['userId'] = user.get('user_id')
+    expense_dict['createdAt'] = existing['createdAt']
+    await db.expenses.replace_one({"id": expense_id}, expense_dict)
+    if isinstance(expense_dict.get('createdAt'), str):
+        expense_dict['createdAt'] = datetime.fromisoformat(expense_dict['createdAt'])
+    return expense_dict
+
+
+@router.delete("/{expense_id}")
+async def delete_expense(expense_id: str, request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    existing = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    await db.expenses.delete_one({"id": expense_id})
+    return {"message": "Expense deleted successfully", "id": expense_id}
+
+
