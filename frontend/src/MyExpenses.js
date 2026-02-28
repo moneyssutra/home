@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronRight, ChevronLeft, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal, TrendingUp, PiggyBank, Check, Clock, CalendarDays, FastForward, Undo2, List, Calendar, BarChart3, LineChart } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -29,10 +29,16 @@ function getMonthLabel(monthKey) {
 
 const MyExpenses = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [monthOffset, setMonthOffset] = useState(0);
   const [actionLoading, setActionLoading] = useState(null);
-  const [activeView, setActiveView] = useState("list");
+  const [activeView, setActiveView] = useState(searchParams.get("tab") || "list");
+
+  const handleViewChange = (view) => {
+    setActiveView(view);
+    setSearchParams({ tab: view }, { replace: true });
+  };
 
   const currentMonthKey = getMonthKey(monthOffset);
   const isCurrentMonth = monthOffset === 0;
