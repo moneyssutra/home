@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Wallet, ShoppingBag, PiggyBank, HelpCircle, Receipt, Home, Zap, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, TrendingUp, MoreHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Wallet, ShoppingBag, PiggyBank, HelpCircle, Receipt, Home, Zap, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, TrendingUp, MoreHorizontal } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { useExpenseList } from "@/hooks/useApi";
