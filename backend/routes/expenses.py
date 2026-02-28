@@ -1208,7 +1208,7 @@ async def get_overspend_analysis(request: Request):
     Returns: overspend alerts, safety/growth/goal impact, reallocation advice.
     """
     user = await get_current_user(request)
-    user_filter = await get_user_filter(request)
+    user_filter = get_user_filter(user)
 
     now = datetime.now(timezone.utc)
     current_month = f"{now.year}-{now.month:02d}"
