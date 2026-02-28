@@ -20,10 +20,10 @@ TEST_PASSWORD = "test"
 def session():
     """Authenticated session."""
     sess = requests.Session()
-    # Login
+    # Login - use "test" as username shorthand
     resp = sess.post(f"{BASE_URL}/api/auth/login", json={
-        "email": TEST_EMAIL,
-        "password": TEST_PASSWORD
+        "username": "test",
+        "password": "test"
     })
     assert resp.status_code == 200, f"Login failed: {resp.text}"
     return sess
