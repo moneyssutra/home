@@ -211,7 +211,8 @@ const MyExpenses = () => {
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-expenses-page">
       {/* Header */}
-      <header className="px-4 sm:px-6 pt-6 sm:pt-8 pb-3 sm:pb-4" style={{ background: "linear-gradient(135deg, #0D9488 0%, #14B8A6 40%, #06B6D4 100%)" }}>
+      <div style={{ background: "linear-gradient(135deg, #0D9488 0%, #14B8A6 40%, #06B6D4 100%)" }}>
+      <header className="px-4 sm:px-6 pt-6 sm:pt-8 pb-3 sm:pb-4">
         <div className="flex items-center gap-3 mb-3">
           <button
             type="button"
@@ -251,6 +252,7 @@ const MyExpenses = () => {
           ))}
         </div>
       </header>
+      </div>
 
       {/* Conditional Views */}
       {activeView === "daily" && <ExpenseCalendar embedded expenses={monthExpenses} monthKey={currentMonthKey} monthOffset={monthOffset} setMonthOffset={setMonthOffset} dataLoading={loading} />}
