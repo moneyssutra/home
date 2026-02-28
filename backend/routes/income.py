@@ -6,7 +6,7 @@ from datetime import datetime
 from database import db
 from server_models import IncomeSource, IncomeSourceCreate
 from routes.auth import get_current_user
-from routes.utils import get_user_filter
+from routes.utils import get_user_filter, get_user_now, count_weekday_occurrences
 
 router = APIRouter(prefix="/income", tags=["Income"])
 
