@@ -1402,6 +1402,219 @@ async def get_wealth_impact(request: Request):
 
 
 
+# ─────────────────────────────────────────────────────────
+# SPENDING INSIGHTS — Rule-based insight cards (max 3)
+# ─────────────────────────────────────────────────────────
+
+@router.get("/spending-insights")
+async def get_spending_insights(request: Request):
+    """
+    Generate deterministic spending insights for current month.
+    5 rules: Category Growth, Subscription Concentration,
+    Lifestyle vs Wealth Imbalance, Budget Breach, Drift vs 3-Month Average.
+    Returns top 3 insights sorted by severity.
+    """
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+
+    now = get_user_now(request)
+    current_month_str = f"{now.year}-{now.month:02d}"
+
+    # Build last month and 3-month-ago keys
+    def month_key(offset):
+        y, m = now.year, now.month - offset
+        while m <= 0:
+            m += 12
+            y -= 1
+        return f"{y}-{m:02d}"
+
+    last_month_str = month_key(1)
+    three_month_keys = [month_key(1), month_key(2), month_key(3)]
+
+    # ── Gather data ──
+    all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
+    incomes = await db.income_sources.find(user_filter, {"_id": 0}).to_list(500)
+    total_monthly_income = sum(float(i.get("expectedAmount", 0)) for i in incomes)
+
+    ESSENTIAL_CATS = {"Housing", "Utilities", "Food", "Medical", "Education", "Insurance", "EMI"}
+    LIFESTYLE_CATS = {"Travel", "Shopping", "Subscriptions", "Business Expense", "Salary Paid"}
+    WEALTH_CATS = {"Investments", "Savings"}
+
+    def classify(cat):
+        if cat in ESSENTIAL_CATS: return "essential"
+        if cat in LIFESTYLE_CATS: return "lifestyle"
+        if cat in WEALTH_CATS: return "wealth"
+        return "lifestyle"
+
+    def get_month_of_expense(exp):
+        created = exp.get("createdAt", "")
+        if isinstance(created, datetime):
+            return f"{created.year}-{created.month:02d}"
+        if isinstance(created, str) and len(created) >= 7:
+            return created[:7]
+        return ""
+
+    # Aggregate by month and category
+    monthly_data = {}  # {month_key: {category: total, ...}}
+    for exp in all_expenses:
+        m = get_month_of_expense(exp)
+        if not m:
+            continue
+        cat = exp.get("category", "Other")
+        amt = float(exp.get("expectedAmount", 0))
+        if m not in monthly_data:
+            monthly_data[m] = {}
+        monthly_data[m][cat] = monthly_data[m].get(cat, 0) + amt
+
+    current_cats = monthly_data.get(current_month_str, {})
+    last_cats = monthly_data.get(last_month_str, {})
+
+    # 3-month average by category
+    avg_cats = {}
+    valid_months = [k for k in three_month_keys if k in monthly_data]
+    if valid_months:
+        all_cats_set = set()
+        for mk in valid_months:
+            all_cats_set.update(monthly_data[mk].keys())
+        for cat in all_cats_set:
+            total = sum(monthly_data[mk].get(cat, 0) for mk in valid_months)
+            avg_cats[cat] = total / len(valid_months)
+
+    current_total = sum(current_cats.values())
+    last_total = sum(last_cats.values())
+
+    # Group totals
+    current_groups = {"essential": 0, "lifestyle": 0, "wealth": 0}
+    last_groups = {"essential": 0, "lifestyle": 0, "wealth": 0}
+    avg_groups = {"essential": 0, "lifestyle": 0, "wealth": 0}
+    for cat, amt in current_cats.items():
+        current_groups[classify(cat)] += amt
+    for cat, amt in last_cats.items():
+        last_groups[classify(cat)] += amt
+    for cat, amt in avg_cats.items():
+        avg_groups[classify(cat)] += amt
+
+    # Recurring expense total (subscriptions, EMIs)
+    recurring_total = sum(
+        float(e.get("expectedAmount", 0))
+        for e in all_expenses
+        if e.get("frequency", "") == "Monthly" and e.get("category", "") in {"Subscriptions", "EMI", "Insurance"}
+    )
+
+    insights = []
+
+    # ── RULE A: Category Growth (15%+ increase vs last month) ──
+    for cat, amt in current_cats.items():
+        last_amt = last_cats.get(cat, 0)
+        if last_amt > 0:
+            growth_pct = round((amt - last_amt) / last_amt * 100, 1)
+            if growth_pct >= 15:
+                severity = "high" if growth_pct >= 40 else "medium"
+                insights.append({
+                    "id": f"growth_{cat}",
+                    "title": f"{cat} Up {growth_pct}%",
+                    "subtitle": "Compared to last month",
+                    "severity": severity,
+                    "value": min(growth_pct, 100),
+                    "category": cat.lower(),
+                    "rule": "A",
+                })
+
+    # ── RULE B: Subscription Concentration (>10% of income) ──
+    if total_monthly_income > 0 and recurring_total > 0:
+        sub_pct = round(recurring_total / total_monthly_income * 100, 1)
+        if sub_pct >= 10:
+            insights.append({
+                "id": "subscriptions",
+                "title": f"Recurring Costs: ₹{recurring_total:,.0f}",
+                "subtitle": f"{sub_pct}% of income in recurring commitments",
+                "severity": "medium",
+                "value": min(sub_pct, 100),
+                "category": "subscriptions",
+                "rule": "B",
+            })
+
+    # ── RULE C: Lifestyle vs Wealth Imbalance ──
+    lifestyle_spend = current_groups["lifestyle"]
+    wealth_spend = current_groups["wealth"]
+    base = total_monthly_income if total_monthly_income > 0 else (current_total if current_total > 0 else 1)
+    wealth_pct = round(wealth_spend / base * 100, 1)
+    if lifestyle_spend > wealth_spend and wealth_spend >= 0:
+        gap = round(lifestyle_spend - wealth_spend)
+        insights.append({
+            "id": "lifestyle_vs_wealth",
+            "title": "Lifestyle Higher Than Savings!",
+            "subtitle": f"Gap of ₹{gap:,} — consider rebalancing",
+            "severity": "high",
+            "value": min(round(lifestyle_spend / max(wealth_spend, 1) * 30), 100),
+            "category": "lifestyle",
+            "rule": "C",
+        })
+    elif wealth_pct < 15 and current_total > 0:
+        insights.append({
+            "id": "low_savings",
+            "title": f"Savings Only {wealth_pct}%",
+            "subtitle": "Target at least 20% towards wealth",
+            "severity": "medium",
+            "value": min(round((20 - wealth_pct) * 5), 100),
+            "category": "savings",
+            "rule": "C",
+        })
+
+    # ── RULE D: Budget Breach (spend >= 85% of income before month end) ──
+    if total_monthly_income > 0:
+        spend_ratio = round(current_total / total_monthly_income * 100, 1)
+        days_left = (datetime(now.year, now.month % 12 + 1, 1) - timedelta(days=1)).day - now.day if now.month < 12 else (datetime(now.year, 12, 31).day - now.day)
+        if spend_ratio >= 85 and days_left > 3:
+            insights.append({
+                "id": "budget_breach",
+                "title": "Spending Near Income Limit",
+                "subtitle": f"{spend_ratio}% spent with {days_left} days left",
+                "severity": "high",
+                "value": min(spend_ratio, 100),
+                "category": "budget",
+                "rule": "D",
+            })
+
+    # ── RULE E: Drift vs 3-Month Average (>20% above normal) ──
+    for group_name, group_spend in current_groups.items():
+        avg_spend = avg_groups.get(group_name, 0)
+        if avg_spend > 0 and group_spend > avg_spend * 1.20:
+            drift_pct = round((group_spend - avg_spend) / avg_spend * 100, 1)
+            label = group_name.capitalize()
+            insights.append({
+                "id": f"drift_{group_name}",
+                "title": f"{label} {drift_pct}% Above Normal",
+                "subtitle": "Compared to 3-month average pattern",
+                "severity": "medium" if drift_pct < 40 else "high",
+                "value": min(drift_pct, 100),
+                "category": group_name,
+                "rule": "E",
+            })
+
+    # Sort by severity (high first), then by value (higher first)
+    severity_order = {"high": 0, "medium": 1, "low": 2}
+    insights.sort(key=lambda x: (severity_order.get(x["severity"], 2), -x["value"]))
+
+    return {
+        "insights": insights[:3],
+        "month": current_month_str,
+        "totalInsights": len(insights),
+        "summary": {
+            "currentTotal": round(current_total),
+            "lastTotal": round(last_total),
+            "income": round(total_monthly_income),
+            "essential": round(current_groups["essential"]),
+            "lifestyle": round(current_groups["lifestyle"]),
+            "wealth": round(current_groups["wealth"]),
+        }
+    }
+
+
+
+
 @router.get("/overspend-analysis")
 async def get_overspend_analysis(request: Request):
     """
