@@ -327,6 +327,15 @@ const MyExpenses = () => {
           )}
         </div>
       </div>
+      )}
+      </div>
+
+      {/* Conditional Views */}
+      {activeView === "daily" && <ExpenseCalendar embedded expenses={monthExpenses} monthKey={currentMonthKey} monthOffset={monthOffset} setMonthOffset={setMonthOffset} dataLoading={loading} />}
+      {activeView === "weekly" && <ExpenseWeekly />}
+      {activeView === "monthly" && <ExpenseMonthly />}
+      {activeView === "list" && (
+      <>
 
       {/* Expense Allocation (only on current month view) */}
       {isCurrentMonth && expenseByCategory.length > 0 && (
