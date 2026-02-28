@@ -1177,7 +1177,7 @@ const Insights = () => {
       <header className="sticky top-0 z-30 px-4 py-3 flex items-center gap-3" style={isRedZone ? { backgroundColor: RED_ZONE_STYLES["--bg-app"], borderBottom: `1px solid ${RED_ZONE_STYLES["--border-light"]}` } : { backgroundColor: "var(--bg-app)", borderBottom: "1px solid var(--border-light)" }}>
         <button onClick={() => navigate(-1)} data-testid="insights-back-btn"><ArrowLeft className="h-5 w-5" style={{ color: isRedZone ? "#F5E6E6" : "var(--text-primary)" }} /></button>
         <h1 className="text-lg font-black" style={{ color: isRedZone ? "#EF4444" : "var(--text-primary)" }}>
-          {isRedZone ? "RED ZONE" : "Insights"}
+          {isRedZone ? "RED ZONE" : "Health"}
         </h1>
         {isRedZone && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse" style={{ backgroundColor: "#EF444420", color: "#EF4444", border: "1px solid #EF444440" }}>CRITICAL</span>}
         <div className="ml-auto flex items-center gap-2">
