@@ -4,6 +4,7 @@ import axios from "axios";
 import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Zap, Calendar, Briefcase, Scale, Clock, AlertTriangle, ArrowUpRight, Rocket, Shield, AlertCircle, PiggyBank, Brain, Eye } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import FinancialIntelligence from "@/components/FinancialIntelligence";
+import WealthImpactAnalysis from "@/components/financial_intelligence/WealthImpactAnalysis";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const MONTH_NAMES_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -351,6 +352,11 @@ const ExpenseMonthly = () => {
       {/* Financial Intelligence Engine */}
       <div className="px-4 mb-3">
         <FinancialIntelligence />
+      </div>
+
+      {/* Wealth Impact Analysis */}
+      <div className="px-4 mb-6">
+        <WealthImpactAnalysis />
       </div>
 
     </div>
