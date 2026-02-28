@@ -1,7 +1,8 @@
 """Admin Command Center — Internal analytics and intelligence routes."""
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Response
 import logging
+import uuid
 
 from database import db
 from routes.utils import get_user_filter, get_user_now
@@ -10,7 +11,29 @@ from routes.auth import get_current_user
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+ADMIN_CREDENTIALS = {
+    "admin@moneyssutra.com": "admin123",
+}
 ADMIN_EMAILS = {"test@moneyssutra.com", "admin@moneyssutra.com"}
+
+# In-memory admin sessions (simple approach)
+admin_sessions = {}
+
+
+@router.post("/login")
+async def admin_login(request: Request, response: Response):
+    """Admin-specific login endpoint."""
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    password = body.get("password") or ""
+
+    if email not in ADMIN_CREDENTIALS or ADMIN_CREDENTIALS[email] != password:
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+
+    token = str(uuid.uuid4())
+    admin_sessions[token] = {"email": email, "created": datetime.now(timezone.utc).isoformat()}
+    response.set_cookie("admin_token", token, httponly=True, samesite="none", secure=True, max_age=86400)
+    return {"success": True, "email": email}
 
 
 @router.get("/verify")
@@ -19,7 +42,14 @@ async def verify_admin(request: Request):
     await _require_admin(request)
     return {"admin": True}
 
+
 async def _require_admin(request: Request):
+    # Check admin_token cookie first (standalone admin login)
+    admin_token = request.cookies.get("admin_token")
+    if admin_token and admin_token in admin_sessions:
+        return admin_sessions[admin_token]
+
+    # Fallback: check main app session
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
