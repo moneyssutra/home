@@ -140,6 +140,34 @@ const ExpenseCalendar = ({ embedded = false }) => {
           </div>
         </div>
       </header>
+      )}
+
+      {/* Embedded month selector */}
+      {embedded && (
+        <div className="px-5 pt-4 pb-2">
+          <div className="flex items-center justify-between rounded-xl px-4 py-2.5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <button onClick={() => { setMonthOffset(p => Math.max(-2, p - 1)); setSelectedDay(null); }} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+              <ChevronLeft className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
+            </button>
+            <div className="text-center">
+              <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{getMonthLabel(currentMonthKey)}</p>
+            </div>
+            <button onClick={() => { setMonthOffset(p => Math.min(3, p + 1)); setSelectedDay(null); }} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
+              <ChevronRight className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between mt-2 px-1">
+            <div>
+              <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Total</p>
+              <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(totalForMonth)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Settled</p>
+              <p className="text-sm font-bold" style={{ color: "#059669" }}>₹{formatAmount(paidForMonth)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Calendar Grid */}
       <div className="px-4 -mt-3">
