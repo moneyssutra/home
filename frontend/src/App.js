@@ -92,6 +92,12 @@ import TermsOfService from "@/pages/TermsOfService";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import DataDeletion from "@/pages/DataDeletion";
 
+// Expense Intelligence Pages
+import ExpenseOverview from "@/pages/expenses/ExpenseOverview";
+import ExpenseDaily from "@/pages/expenses/ExpenseDaily";
+import ExpenseWeeklyView from "@/pages/expenses/ExpenseWeeklyView";
+import ExpenseMonthlyView from "@/pages/expenses/ExpenseMonthlyView";
+
 // Cashflow Detail Pages
 import IncomeReceived from "@/pages/IncomeReceived";
 import ExpectedIncome from "@/pages/ExpectedIncome";
@@ -184,7 +190,13 @@ function AppRouter() {
       <Route path="/account" element={<ProtectedRoute><AccountForm /></ProtectedRoute>} />
       <Route path="/account/:id" element={<ProtectedRoute><AccountForm /></ProtectedRoute>} />
       
-      {/* Expenses */}
+      {/* Expense Intelligence */}
+      <Route path="/wealth/expenses/overview" element={<ProtectedRoute><ExpenseOverview /></ProtectedRoute>} />
+      <Route path="/wealth/expenses/daily" element={<ProtectedRoute><ExpenseDaily /></ProtectedRoute>} />
+      <Route path="/wealth/expenses/weekly" element={<ProtectedRoute><ExpenseWeeklyView /></ProtectedRoute>} />
+      <Route path="/wealth/expenses/monthly" element={<ProtectedRoute><ExpenseMonthlyView /></ProtectedRoute>} />
+      
+      {/* Expenses (legacy) */}
       <Route path="/my-expenses" element={<ProtectedRoute><MyExpenses /></ProtectedRoute>} />
       <Route path="/expense-calendar" element={<ProtectedRoute><ExpenseCalendar /></ProtectedRoute>} />
       <Route path="/expense-breakdown" element={<ProtectedRoute><ExpenseBreakdown /></ProtectedRoute>} />
