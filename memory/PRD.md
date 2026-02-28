@@ -14,42 +14,40 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 
 ## Implemented Features
 
+### Timezone-Aware Calculations (Mar 1, 2026)
+- `get_user_now(request)` in utils.py reads `tz_offset` from query params
+- Frontend sends `new Date().getTimezoneOffset()` with all dashboard/expense API calls
+- Ensures IST users see correct month data even when server runs UTC
+- Applied to: dashboard/networth, expenses/monthly-summary, behavior-insights, weekly-summary, overspend-analysis, wealth-impact, spending-insights
+
+### Spending Insights Module (Mar 1, 2026)
+- Endpoint: `GET /api/expenses/spending-insights?tz_offset=`
+- **5 Rules**: Category Growth (15%+), Subscription Concentration (>10% income), Lifestyle vs Wealth Imbalance, Budget Breach (>85% income), Drift vs 3-Month Average (>20%)
+- Returns top 3 insights sorted by severity (High → Medium → Low)
+- Frontend: Glass cards with severity gradients, animated progress bars, fade-in animations
+- Placement: Bottom of Monthly tab above Financial Intelligence
+
 ### Financial Intelligence Engine (Rule-Based)
 - Endpoint: `GET /api/expenses/overspend-analysis`
 - 3-Layer Trigger: Budget Breach, Behavioral Drift, Income Ratio
 
 ### Wealth Impact Analysis System
-- **Wealth Grading** (A+ to F): `GET /api/expenses/wealth-impact`
-- **Regret Flag**: `PATCH /api/expenses/{id}/regret` — Lifestyle > ₹5K
-- **Opportunity Cost (Sutra Swap)**: Loan payoff %, insurance months, goal gap %, investment growth
-- **UI**: Expandable bottom-sheet at bottom of Monthly tab
+- Wealth Grading (A+ to F): `GET /api/expenses/wealth-impact`
+- Regret Flag: `PATCH /api/expenses/{id}/regret`
+- Opportunity Cost (Sutra Swap): loan payoff %, insurance months, goal gap %
 
-### Theme Persistence (Feb 28, 2026)
-- Preferences saved to backend via `POST /api/settings/preferences` (fixed from PUT→POST)
-- `ThemeContext.syncThemeFromBackend()` called after login/auth check
-- Theme survives logout/login and cross-device sessions
+### Theme Persistence
+- POST /api/settings/preferences saves theme
+- syncThemeFromBackend() on login/auth check
 
-### Test Account Seed Data (Feb 28, 2026)
-- `_seed_test_account()` in auth.py auto-populates on first login:
-  - 5 assets (real estate, gold, vehicle, FD, emergency fund)
-  - 3 credit cards (HDFC, ICICI, SBI)
-  - 3 loans (home, car, personal)
-  - 2 insurance policies (health, term life)
+### Test Account Seed Data
+- Auto-populates assets, credit cards, loans, insurance on first login
 
-### Navigation & UI
-- All Wealth sub-pages → back to `/wealth`
-- Expense tabs → URL param `?tab=` preserves active tab
-- Notifications: type-based fallback routing
-- MyExpenses: header + tabs + month selector in single gradient wrapper (no gap)
-
-## Bug Fixes Log
-- Insurance page crash, Wealth back buttons, ProfileMenu dropdown clipping
-- Login: DOM value read for browser autofill
-- Feb date: schedule_day capped to days_in_month
-- MyExpenses UI overlap: single gradient wrapper
-- Badges/Challenges: X/Y summary in accordion headers
-- Notification redirect: type-based fallback routes
-- Theme: PUT→POST fix + backend sync on login
+## Bug Fixes
+- Insurance crash, Wealth back buttons, ProfileMenu clipping
+- Login browser autofill, Feb date capping, UI overlap
+- Badges/Challenges accordion summary, Notification redirects
+- Theme PUT→POST, Timezone UTC→user local
 
 ## Prioritized Backlog
 ### P1: Cash Flow Engine - Phase 1 (Rolling Balance Engine)
@@ -57,6 +55,7 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 ### P2: Cash Flow Timeline Engine
 ### P2: Financial Command Center enhancements
 ### P2: Decision Impact Engine (financial simulation)
+### P2: Spending Insights Phase 2 (Safety Days Impact + Future Value for high-severity)
 ### P2: Theme - Mint Green (#98FF98) & wide tracking typography
 
 ## Mocked
