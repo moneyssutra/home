@@ -282,7 +282,7 @@ const ExpenseMonthly = () => {
       )}
 
       {/* Stats Footer */}
-      <div className="px-5">
+      <div className="px-5 mb-4">
         <div className="grid grid-cols-2 gap-2.5">
           <div className="rounded-xl p-3" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }}>
             <p className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: DK.textMuted }}>Avg Monthly</p>
@@ -294,6 +294,109 @@ const ExpenseMonthly = () => {
           </div>
         </div>
       </div>
+
+      {/* Behavior Connection */}
+      {behaviorData?.insights?.length > 0 && (
+        <div className="px-5 mb-4" data-testid="behavior-connection">
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <div className="h-px flex-1" style={{ backgroundColor: DK.divider }} />
+            <div className="flex items-center gap-1.5">
+              <Brain className="h-3.5 w-3.5" style={{ color: "#A78BFA" }} />
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: DK.textSecondary }}>Behavior Connection</p>
+            </div>
+            <div className="h-px flex-1" style={{ backgroundColor: DK.divider }} />
+          </div>
+
+          <div className="space-y-2.5">
+            {behaviorData.insights.map((insight, i) => {
+              const iconMap = {
+                calendar: Calendar, briefcase: Briefcase, scale: Scale,
+                "trending-up": TrendingUp, clock: Clock, "alert-triangle": AlertTriangle,
+                "arrow-up-right": ArrowUpRight, rocket: Rocket, shield: Shield,
+                "alert-circle": AlertCircle, "piggy-bank": PiggyBank,
+              };
+              const trendColors = {
+                warning: { bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)", accent: "#F59E0B" },
+                positive: { bg: "rgba(34,197,94,0.08)", border: "rgba(34,197,94,0.2)", accent: "#22C55E" },
+                neutral: { bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.2)", accent: "#3B82F6" },
+              };
+              const IconComp = iconMap[insight.icon] || Zap;
+              const colors = trendColors[insight.trend] || trendColors.neutral;
+
+              return (
+                <div
+                  key={i}
+                  className="rounded-xl p-3.5 flex items-start gap-3"
+                  style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}
+                  data-testid={`behavior-insight-${insight.type}`}
+                >
+                  <div className="mt-0.5 p-1.5 rounded-lg flex-shrink-0" style={{ backgroundColor: `${colors.accent}15` }}>
+                    <IconComp className="h-4 w-4" style={{ color: colors.accent }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="text-xs font-bold" style={{ color: DK.textPrimary }}>{insight.title}</p>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.accent}20`, color: colors.accent }}>
+                        {insight.metric}
+                      </span>
+                    </div>
+                    <p className="text-[11px] leading-relaxed" style={{ color: DK.textSecondary }}>{insight.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Spending Distribution Mini-Bar */}
+          {behaviorData.summary && (
+            <div className="mt-3 rounded-xl p-3.5" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }} data-testid="spending-distribution">
+              <p className="text-[10px] uppercase tracking-wider mb-2.5 font-semibold" style={{ color: DK.textMuted }}>Spending Distribution</p>
+              <div className="space-y-2">
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[11px] font-medium" style={{ color: DK.textSecondary }}>Weekday</span>
+                    <span className="text-[11px] font-bold" style={{ color: DK.blue }}>{behaviorData.summary.weekdayPct}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full" style={{ backgroundColor: DK.barTrack }}>
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${behaviorData.summary.weekdayPct}%`, backgroundColor: DK.blue }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[11px] font-medium" style={{ color: DK.textSecondary }}>Weekend</span>
+                    <span className="text-[11px] font-bold" style={{ color: DK.orange }}>{behaviorData.summary.weekendPct}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full" style={{ backgroundColor: DK.barTrack }}>
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${behaviorData.summary.weekendPct}%`, backgroundColor: DK.orange }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-[11px] font-medium" style={{ color: DK.textSecondary }}>First Week (Salary)</span>
+                    <span className="text-[11px] font-bold" style={{ color: DK.amber }}>{behaviorData.summary.firstWeekPct}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full" style={{ backgroundColor: DK.barTrack }}>
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.min(100, behaviorData.summary.firstWeekPct)}%`, backgroundColor: DK.amber }} />
+                  </div>
+                </div>
+              </div>
+
+              {behaviorData.summary.consistentCategories?.length > 0 && (
+                <div className="mt-3 pt-2.5" style={{ borderTop: `1px solid ${DK.divider}` }}>
+                  <p className="text-[10px] uppercase tracking-wider mb-1.5 font-semibold" style={{ color: DK.textMuted }}>Recurring Categories</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {behaviorData.summary.consistentCategories.map((cat) => (
+                      <span key={cat} className="text-[10px] font-medium px-2 py-1 rounded-full" style={{ backgroundColor: "rgba(148,163,184,0.08)", color: DK.textSecondary, border: `1px solid ${DK.divider}` }}>
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
