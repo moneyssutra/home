@@ -46,7 +46,8 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 
 ## Credentials
 - Test user: test@moneyssutra.com / test
-- Admin: /admin route
+- **Admin login**: `/admin/login` with admin@moneyssutra.com / admin123
+- Admin also accessible via main app login (test@moneyssutra.com) then navigating to `/admin`
 - Family member: Priya Sharma (wife, no financial data)
 
 ## 3rd Party Integrations
