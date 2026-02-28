@@ -52,7 +52,7 @@ const PreferencesSettings = () => {
     
     // Save to backend
     try {
-      await axios.put(`${backendUrl}/api/settings/preferences`, {
+      await axios.post(`${backendUrl}/api/settings/preferences`, {
         theme: newTheme,
         accentColor: accentColor,
         currency: "INR",
@@ -75,7 +75,7 @@ const PreferencesSettings = () => {
     
     // Save to backend
     try {
-      await axios.put(`${backendUrl}/api/settings/preferences`, {
+      await axios.post(`${backendUrl}/api/settings/preferences`, {
         theme: theme,
         accentColor: color,
         currency: "INR",
