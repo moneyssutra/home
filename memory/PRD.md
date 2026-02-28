@@ -1,57 +1,56 @@
 # MoneySSutra - Product Requirements Document
 
-## Core Architecture
-- **Frontend**: React + TailwindCSS + Shadcn/UI
-- **Backend**: FastAPI + MongoDB
-- **Auth**: JWT + Google OAuth (Emergent-managed)
+## Original Problem Statement
+MoneySutra is a premium personal finance application (PWA) built with React + FastAPI + MongoDB. It tracks expenses, income, investments, assets, loans, and provides rule-based financial analysis with AI-powered insights.
+
+## Architecture
+- **Frontend**: React (CRA) with ShadCN UI, Recharts, SWR for data fetching
+- **Backend**: FastAPI with async MongoDB (motor)
+- **Database**: MongoDB Atlas
+- **Auth**: Session-based + Emergent Google OAuth
 - **AI**: OpenAI GPT-5.2 via emergentintegrations
-- **Test Credentials**: `test@moneyssutra.com` / `test`
 
-## Implemented Features
+## Completed Features
+- Full CRUD for expenses, income, investments, assets, loans, accounts
+- Dashboard with net worth, cash flow, received/expected splits
+- Expense views: List, Calendar, Weekly, Monthly tabs
+- Spending Insights module (rule-based)
+- Theme persistence (light/dark)
+- Family/Workspace management with member switching
+- Admin Command Center Phase 1 (dark theme, KPIs, User Intelligence, Risk Radar)
+- Gamification/Challenges system
+- Timezone-aware backend with tz_offset sync
+- Test account data seeding
 
-### Admin Command Center — "Financial Behavior Observatory" (Mar 1, 2026)
-- **Route**: `/admin`, `/admin/users`, `/admin/risk`
-- **Access**: Email whitelist (`ADMIN_EMAILS` in admin.py)
-- **Command Center**: 6 KPI glass cards, PFSI ring (Safety×0.4 + Wealth×0.3 + Health×0.3), Risk Distribution bars, Monetization Buckets
-- **User Intelligence**: Filterable table (risk, search), user drawer with sparkline metrics
-- **Risk Radar**: 4 risk bucket cards (Critical/High/Moderate/Stable), Risk Drivers panel
-- Dark premium theme (#0A0F1C), glass-morphism, animations
+## Recent Fixes (Feb 28, 2026)
+- **P0 - Expense Data Consistency**: Harmonized expense calculations across dashboard, monthly-summary, and weekly-summary. All endpoints now use count_weekday_occurrences for Weekly, days_in_month for Daily, and consistent quarterly logic ((month-start)%3==0).
+- **P0 - Income Data Consistency**: Created /api/income/monthly-summary endpoint. MyIncome.js now uses backend for received/pending instead of client-side approximations. Dashboard and MyIncome show identical numbers.
+- **P0 - User Switching**: Fixed FamilyContext to auto-reset to personal view when navigating away from /home. Dashboard shows member summary even with zero data. No more UI crashes.
 
-### Timezone-Aware Calculations (Mar 1, 2026)
-- `get_user_now(request)` reads `tz_offset` from query params
-- Frontend sends `new Date().getTimezoneOffset()` with all API calls
-- Fixes IST users seeing wrong month data
+## Key Technical Decisions
+- Shared utility functions in utils.py: count_weekday_occurrences, normalize_expense_for_month, split_expense_for_month
+- Dashboard derives monthlyExpenses/monthlyIncome from split totals (done+upcoming, received+expected) for guaranteed consistency
+- Missing selectedDate treated as "expected/not yet received" (conservative approach)
+- linkedPaymentId expenses excluded from totals to avoid double-counting
 
-### Spending Insights Module (Mar 1, 2026)
-- `GET /api/expenses/spending-insights` — 5 rules, top 3 cards by severity
-- Glass cards with severity gradients, animated progress bars
+## Backlog
+### P1
+- [ ] Admin Command Center: Dark → Light theme
+- [ ] Slow Challenge Loading optimization (gamification.py)
+- [ ] Admin Phase 2: Spending Intelligence Heatmap, Monetization Engine, Campaign Manager
 
-### "Spent So Far" Fix (Mar 1, 2026)
-- Monthly summary returns `spentSoFar` (schedule_day ≤ today) and `upcoming`
-- Monthly tab shows "Spent So Far" instead of full month total
+### P2
+- [ ] Admin Phase 3: Financial Impact Analytics, Compliance Panel
+- [ ] Cash Flow Engine: Rolling Balance, Timeline, Negative Balance Handling
+- [ ] Decision Impact Engine: Financial simulation for large purchases
 
-### Financial Intelligence Engine + Wealth Impact + Theme Persistence + Seed Data
-(See previous sessions)
+## Credentials
+- Test user: test@moneyssutra.com / test
+- Admin: /admin route
+- Family member: Priya Sharma (wife, no financial data)
 
-## Key API Endpoints
-- `GET /api/admin/verify` — Lightweight admin check
-- `GET /api/admin/command-center` — KPIs + PFSI + user metrics
-- `GET /api/admin/risk-radar` — Risk buckets + drivers
-- `GET /api/expenses/spending-insights` — Rule-based insights
-- `GET /api/expenses/wealth-impact` — Grade + Regret + Opportunity Cost
-- `PATCH /api/expenses/{id}/regret` — Set regret flag
-- `GET /api/expenses/monthly-summary` — Now includes spentSoFar/upcoming
-
-## Prioritized Backlog
-### P1: Admin Phase 2 — Spending Intelligence Heatmap, Monetization Engine, Campaign Manager
-### P1: Admin Phase 3 — Financial Impact Analytics, Compliance Panel
-### P1: Cash Flow Engine - Phase 1 (Rolling Balance Engine)
-### P2: Cash Flow Timeline, Financial Command Center, Decision Impact Engine
-### P2: Spending Insights Phase 2 (Safety Days Impact + Future Value)
-### P2: Theme - Mint Green (#98FF98) & wide tracking typography
-
-## Mocked
-- 2FA/Biometric Login (UI only)
-
-## 3rd Party
-openpyxl, recharts, reportlab, @dnd-kit/core, Emergent Google Auth, OpenAI GPT-5.2, MongoDB Atlas
+## 3rd Party Integrations
+- OpenAI GPT-5.2 (emergentintegrations)
+- Emergent Google Auth
+- MongoDB Atlas
+- openpyxl, apscheduler, recharts, reportlab, @dnd-kit/core
