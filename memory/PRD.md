@@ -16,40 +16,66 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 ```
 Home | Wealth | + | Health | Goals
 ```
-All pages share consistent header: ProfileMenu avatar + NotificationBell
-
-1. **Home** (`/home`) — Days of Safety hero, Rolling Balance, Alerts, Financial Health Score
-2. **Wealth** (`/wealth`) — Simple list: Income, Expenses, Assets, Investments, Loans, Credit Cards, Insurance, Accounts. Each card clickable -> detail page
-3. **Add (+)** — Quick Add action sheet
-4. **Health** (`/health`) — Financial Safety Score (186 Days), Shock Test, Badges, Challenges. Share/Refresh/Notification in header
-5. **Goals** (`/my-goals`) — Financial goals with progress tracking
 
 ## My Expenses Page (`/my-expenses`)
-Tabbed interface: List | Daily | Weekly | Monthly
-- All tabs use consistent light theme (matching List page colors)
-- **List**: Month selector, summary card, expense breakdown by category, fixed/variable split, expense list
-- **Daily**: Calendar heatmap with color-coded spend intensity, week stats, selected day detail, categories
-- **Weekly**: Week summary, day-by-day horizontal bars, categories, 8-week trend chart, behavior insights
-- **Monthly**: Summary card, expense breakdown (Essential/Lifestyle/Wealth Building), 6-month bar chart, spending insights, top categories, behavior insights, spending distribution
+Tabbed interface: **List** | **Daily** | **Weekly** | **Monthly**
+
+### List Tab
+- Month selector, summary card with Paid/Prepaid vs Pending split
+- Expense breakdown by category, fixed/variable split, expense list
+- Auto-paid detection: expenses with due date <= today show as "Paid" in current month
+
+### Daily Tab
+- Calendar heatmap with color-coded spend intensity
+- Week stats, selected day detail, categories
+
+### Weekly Tab (Redesigned Feb 28, 2026)
+- **Week selector pills** at top (8 weeks)
+- Summary card with total, budget bar (Essential/Lifestyle/Wealth), weekday/weekend split
+- **Expense Breakdown**: 3 clickable cards (Essential, Lifestyle, Wealth Building) → navigate to group pages
+- Day-by-day horizontal bars with color coding
+- Categories section (clickable → `/expenses/:category`)
+- 8-week trend chart with drill-down
+- Behavior insights
+
+### Monthly Tab (Updated Feb 28, 2026)
+- **Month selector pills** at top (6 months)
+- Summary card with total, % of income, budget bar
+- **Expense Breakdown**: 3 clickable cards → navigate to group pages
+- 6-month trend bar chart (clickable bars update selection)
+- **Top Categories**: clickable → navigate to `/expenses/:category`
+- Spending insights, behavior patterns, spending distribution
+
+## Expense Group Pages (NEW Feb 28, 2026)
+Routes: `/expenses/group/essential`, `/expenses/group/lifestyle`, `/expenses/group/wealth-building`
+- Colored header with group name, description, monthly total
+- Categories within the group with expense counts
+- Individual expenses listed under each category (clickable → expense detail)
+- Smart back button (navigate(-1) with fallback to /my-expenses)
+
+### Category Mapping
+- **Essential**: Housing, Utilities, Food, Medical, Education, Insurance, EMI
+- **Lifestyle**: Travel, Shopping, Subscriptions, Business Expense, Salary Paid
+- **Wealth Building**: Investments, Savings
 
 ## Key API Endpoints
-- `GET /api/dashboard/networth` — Net worth, income, expense summary
-- `GET /api/expenses/monthly-summary?last=6` — 6-month expense aggregation
-- `GET /api/expenses/weekly-summary?last=8` — Weekly expense data
-- `GET /api/expenses/by-month?month=YYYY-MM` — Month-specific expenses
-- `GET /api/expenses/behavior-insights` — Behavioral spending patterns
-- `GET /api/income`, `/assets`, `/investments`, `/loans`, `/insurances`, `/accounts`, `/credit-cards`
+- `GET /api/expenses/by-month?month=YYYY-MM` — with auto-paid status detection
+- `GET /api/expenses/weekly-summary?last=8` — now includes essential/lifestyle/wealth per week
+- `GET /api/expenses/monthly-summary?last=6` — with essential/lifestyle/wealth
+- `GET /api/expenses/behavior-insights` — behavioral patterns
+- `GET /api/dashboard/networth`, `/api/income`, `/assets`, `/investments`, `/loans`
 
-## Completed Features (Latest)
-- [Feb 28, 2026] Bug Fix: ProfileMenu avatar shows correct user initials on Health & Goals pages
-- [Feb 28, 2026] Bug Fix: Removed visible scrollbar on Wealth page
-- [Feb 28, 2026] Changed Daily/Weekly/Monthly expense tabs from dark navy to light theme matching List page
-- Navigation overhaul: Home | Wealth | + | Health | Goals
-- Wealth page redesign (portfolio-style list)
-- Financial Health Score on Home & Health pages
-- Standardized headers across all pages
-- Back button consistency
-- Mobile responsiveness fixes
+## Completed Features (Latest Session)
+- [Feb 28, 2026] Bug fix: ProfileMenu avatar shows correct initials on Health & Goals pages
+- [Feb 28, 2026] Bug fix: Hidden scrollbar on Wealth page
+- [Feb 28, 2026] Bug fix: Auto-paid status — expenses due before today show as "Paid" in List tab
+- [Feb 28, 2026] Weekly tab redesigned to match Monthly (week pills, Expense Breakdown, budget bar)
+- [Feb 28, 2026] Monthly tab: month pills moved to top, top categories clickable
+- [Feb 28, 2026] Expense Breakdown cards clickable → new group detail pages
+- [Feb 28, 2026] Created ExpenseGroup pages (Essential, Lifestyle, Wealth Building)
+- [Feb 28, 2026] Smart back button logic across expense pages
+- [Feb 28, 2026] Backend: weekly summary now returns essential/lifestyle/wealth breakdown
+- Light theme consistency across all expense tabs
 
 ## Prioritized Backlog
 ### P1: Cash Flow Engine - Phase 1 (Rolling Balance Engine)
@@ -59,5 +85,4 @@ Tabbed interface: List | Daily | Weekly | Monthly
 ### P2: Decision Impact Engine (financial simulation)
 
 ## Mocked: 2FA and Biometric Login toggles (UI only)
-
 ## 3rd Party: openpyxl, recharts, reportlab, @dnd-kit/core, Emergent Google Auth, OpenAI GPT-5.2, MongoDB Atlas
