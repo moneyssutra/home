@@ -1,6 +1,7 @@
 """Common utilities shared across route modules."""
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
+from fastapi import Request
 import uuid
 import logging
 
@@ -8,6 +9,19 @@ from database import db
 from server_models import ROLE_PERMISSIONS, MAX_NOTIFICATIONS_PER_USER
 
 logger = logging.getLogger(__name__)
+
+
+def get_user_now(request: Request) -> datetime:
+    """Get the current time adjusted for the user's timezone.
+    Frontend sends tz_offset (from JS Date.getTimezoneOffset()) which is
+    minutes BEHIND UTC. IST (UTC+5:30) sends -330.
+    user_local = utc_now - timedelta(minutes=tz_offset)
+    """
+    try:
+        tz_offset = int(request.query_params.get("tz_offset", 0))
+    except (ValueError, TypeError):
+        tz_offset = 0
+    return datetime.now(timezone.utc) - timedelta(minutes=tz_offset)
 
 
 def get_user_filter(user):
