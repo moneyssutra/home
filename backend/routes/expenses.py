@@ -459,9 +459,68 @@ async def get_monthly_summary(request: Request, last: int = 6):
         # Sort categories
         top_categories = sorted(category_breakdown.items(), key=lambda x: -x[1])[:5]
 
+        # For the current month, compute spentSoFar (schedule day <= today)
+        current_month_str = f"{now.year}-{now.month:02d}"
+        spent_so_far = round(total)
+        upcoming_total = 0
+        if mk == current_month_str:
+            import calendar as cal_mod
+            days_in_m = cal_mod.monthrange(y, m)[1]
+            current_day = now.day
+            done_amt = 0
+            upcoming_amt = 0
+            for exp in all_expenses:
+                if exp.get('linkedPaymentId'):
+                    continue
+                freq = exp.get('frequency', 'Monthly')
+                amt_raw = exp.get('expectedAmount', 0) or 0
+                cat_raw = exp.get('category', 'Other')
+
+                applies_here = False
+                amt_here = amt_raw
+                if freq == 'One-Time':
+                    ot = exp.get('oneTimeDate', '')
+                    if ot and ot[:7] == mk:
+                        applies_here = True
+                elif freq == 'Monthly':
+                    applies_here = True
+                elif freq in ('Daily',):
+                    applies_here = True
+                    amt_here = amt_raw * days_in_m
+                elif freq in ('Weekly', 'Bi-Weekly'):
+                    applies_here = True
+                    amt_here = amt_raw * (4.33 if freq == 'Weekly' else 2.17)
+                elif freq == 'Quarterly':
+                    start = _parse_quarter_start(exp.get('selectedQuarter'))
+                    if start and (m - start) % 3 == 0:
+                        applies_here = True
+                elif freq == 'Half-Yearly':
+                    start = _parse_half_start(exp.get('selectedHalf'))
+                    if start and (m - start) % 6 == 0:
+                        applies_here = True
+                elif freq == 'Yearly':
+                    sm = _parse_month_num(exp.get('selectedMonth'))
+                    if sm == m:
+                        applies_here = True
+
+                if applies_here:
+                    sday = exp.get('selectedDate')
+                    try:
+                        sd = min(int(sday), days_in_m) if sday else 1
+                    except (ValueError, TypeError):
+                        sd = 1
+                    if sd <= current_day:
+                        done_amt += amt_here
+                    else:
+                        upcoming_amt += amt_here
+            spent_so_far = round(done_amt)
+            upcoming_total = round(upcoming_amt)
+
         result.append({
             "month": mk,
             "total": round(total),
+            "spentSoFar": spent_so_far,
+            "upcoming": upcoming_total,
             "essential": round(essential),
             "lifestyle": round(lifestyle),
             "wealth": round(wealth),
