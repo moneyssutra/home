@@ -239,7 +239,6 @@ def _is_due_this_month(freq, item, current_month, current_year, is_income=True):
     """Check if this item is due in the current month based on its frequency."""
     month_map = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,
                  "July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
-    quarter_months = {'Q1': [1,2,3], 'Q2': [4,5,6], 'Q3': [7,8,9], 'Q4': [10,11,12]}
 
     if freq == 'Monthly' or freq == 'Daily' or freq == 'Weekly':
         return True
