@@ -24,44 +24,26 @@ All pages share consistent header: ProfileMenu avatar + NotificationBell
 4. **Health** (`/health`) — Financial Safety Score (186 Days), Shock Test, Badges, Challenges. Share/Refresh/Notification in header
 5. **Goals** (`/my-goals`) — Financial goals with progress tracking
 
-## Expense Intelligence System (NEW - Feb 28, 2026)
-Premium dark navy glassmorphism UI with 4 routed pages:
-
-### Routes
-- `/wealth/expenses/overview` — Monthly summary, expense breakdown, top categories, insights, smart action CTA
-- `/wealth/expenses/daily` — Calendar heatmap, Expenses/Income/EMIs sub-tabs, click-to-drill daily breakdown
-- `/wealth/expenses/weekly` — Weekly bar chart (Mon-Sun), week selector, week comparison bars, categories
-- `/wealth/expenses/monthly` — 6-month stacked bar chart (Essential/Lifestyle/Wealth), trend insights, behavior patterns, long-term suggestions
-
-### Design System
-- Background: `#0B1220` to `#0F1B2D` gradient
-- Cards: Glassmorphism (rgba backdrop-filter blur + subtle border)
-- Colors: Essential (#3B82F6), Lifestyle (#F59E0B), Wealth (#10B981), Accent (#6366F1)
-- All data dynamically computed from backend APIs
-
-### Files
-- `src/pages/expenses/ExpenseLayout.js` — Shared header + tab navigation
-- `src/pages/expenses/ExpenseOverview.js` — Overview page
-- `src/pages/expenses/ExpenseDaily.js` — Daily/Calendar page
-- `src/pages/expenses/ExpenseWeeklyView.js` — Weekly bar chart page
-- `src/pages/expenses/ExpenseMonthlyView.js` — Monthly comparison page
-
-## Key Pages & Features
-- **Family Tracking**: Family groups, member summaries, dashboard toggle
-- **Excel Import/Export**: Bulk data management
+## My Expenses Page (`/my-expenses`)
+Tabbed interface: List | Daily | Weekly | Monthly
+- All tabs use consistent light theme (matching List page colors)
+- **List**: Month selector, summary card, expense breakdown by category, fixed/variable split, expense list
+- **Daily**: Calendar heatmap with color-coded spend intensity, week stats, selected day detail, categories
+- **Weekly**: Week summary, day-by-day horizontal bars, categories, 8-week trend chart, behavior insights
+- **Monthly**: Summary card, expense breakdown (Essential/Lifestyle/Wealth Building), 6-month bar chart, spending insights, top categories, behavior insights, spending distribution
 
 ## Key API Endpoints
 - `GET /api/dashboard/networth` — Net worth, income, expense summary
-- `GET /api/expenses/monthly-summary?last=6` — 6-month expense aggregation with Essential/Lifestyle/Wealth breakdown
-- `GET /api/expenses/weekly-summary?last=8` — Weekly expense data with by-day breakdown
-- `GET /api/expenses/by-month?month=YYYY-MM` — Month-specific expenses with payment status
-- `GET /api/expenses/behavior-insights` — Behavioral spending pattern analysis
+- `GET /api/expenses/monthly-summary?last=6` — 6-month expense aggregation
+- `GET /api/expenses/weekly-summary?last=8` — Weekly expense data
+- `GET /api/expenses/by-month?month=YYYY-MM` — Month-specific expenses
+- `GET /api/expenses/behavior-insights` — Behavioral spending patterns
 - `GET /api/income`, `/assets`, `/investments`, `/loans`, `/insurances`, `/accounts`, `/credit-cards`
 
 ## Completed Features (Latest)
 - [Feb 28, 2026] Bug Fix: ProfileMenu avatar shows correct user initials on Health & Goals pages
 - [Feb 28, 2026] Bug Fix: Removed visible scrollbar on Wealth page
-- [Feb 28, 2026] Feature: Premium Expense Intelligence System (4 pages) with dark navy glassmorphism UI
+- [Feb 28, 2026] Changed Daily/Weekly/Monthly expense tabs from dark navy to light theme matching List page
 - Navigation overhaul: Home | Wealth | + | Health | Goals
 - Wealth page redesign (portfolio-style list)
 - Financial Health Score on Home & Health pages
