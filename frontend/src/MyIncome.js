@@ -188,6 +188,7 @@ const MyIncome = () => {
       Interest: "/my-interest",
       Dividend: "/my-dividend",
       "Other Income": "/my-other-income",
+      "Other": "/my-other-income",
     };
     return paths[type] || "/my-income";
   };
