@@ -286,7 +286,7 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
           <div className="mt-3 pt-2 flex items-center justify-between" style={{ borderTop: `1px solid ${DK.divider}` }}>
             <span className="text-[9px]" style={{ color: DK.textMuted }}>₹0</span>
             <div className="flex-1 mx-2 h-2 rounded-full overflow-hidden flex">
-              <div className="flex-1" style={{ background: "linear-gradient(90deg, rgba(20,40,80,0.7), rgba(30,90,130,0.8), rgba(210,120,50,0.8), rgba(245,60,20,0.9))" }} />
+              <div className="flex-1" style={{ background: "linear-gradient(90deg, rgba(10,80,70,0.7), rgba(20,140,120,0.8), rgba(40,180,170,0.8), rgba(245,158,11,0.9))" }} />
             </div>
             <span className="text-[9px]" style={{ color: DK.textMuted }}>₹{formatAmount(maxDailySpend)}</span>
           </div>
