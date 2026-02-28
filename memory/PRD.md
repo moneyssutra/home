@@ -14,6 +14,9 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - New/Empty User: `newuser@test.com` / `password`
 
 ## Implemented Features (Latest First)
+- **Behavior Connection Insights** (Feb 28) — Cross-analysis of spending patterns in Monthly view: weekend vs weekday spending, salary week spike detection, spending distribution bars, recurring category tags, category growth trends, income coverage ratio
+- **Multi-Level Expense Intelligence** (Feb 28) — 4-view system (List/Daily/Weekly/Monthly) with premium dark theme, calendar heatmap, weekly trends, monthly summary charts
+- **Backend Performance Fix** (Feb 28) — Optimized /api/expenses/by-month from >8s to ~1.5s via MongoDB indexes
 - **Excel Import/Export** (Feb 27) — Download sample template with 9 sheets, upload filled Excel to bulk import data
 - **Family Financial Tracking** (Feb 27) — Create family groups, add/remove members, invite code, combined/individual financial summaries, dashboard family toggle
 - **Settings Quick Actions** (Feb 27) — Import from Excel & Family Hub accessible from Settings page
@@ -28,6 +31,10 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - **Prepayment System** (Feb 27) — 5 endpoints: by-month, mark-paid, prepay, unmark-paid, undo-prepay
 
 ## Key API Endpoints
+- `GET /api/expenses/behavior-insights` — Cross-analysis behavioral spending insights
+- `GET /api/expenses/monthly-summary` — Aggregated expense data per month
+- `GET /api/expenses/weekly-summary` — Aggregated expense data per week
+- `GET /api/expenses/by-month` — Expenses filtered by YYYY-MM
 - `GET /api/data/sample-excel` — Downloads blank Excel template
 - `POST /api/data/import-excel` — Uploads and processes filled Excel
 - `POST /api/family` — Create family group
