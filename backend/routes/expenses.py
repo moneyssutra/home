@@ -419,7 +419,12 @@ async def get_monthly_summary(request: Request, last: int = 6):
                 amt = amt * monthrange(y, m)[1]
             elif freq in ('Weekly', 'Bi-Weekly'):
                 applies = True
-                amt = amt * (4.33 if freq == 'Weekly' else 2.17)
+                day_name = exp.get('selectedDay', '')
+                if day_name and freq == 'Weekly':
+                    from routes.utils import count_weekday_occurrences
+                    amt = amt * count_weekday_occurrences(y, m, day_name)
+                else:
+                    amt = amt * (4.33 if freq == 'Weekly' else 2.17)
             elif freq == 'Monthly':
                 applies = True
             elif freq == 'Quarterly':
