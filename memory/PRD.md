@@ -17,56 +17,50 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 ### Financial Intelligence Engine (Rule-Based)
 - Endpoint: `GET /api/expenses/overspend-analysis`
 - 3-Layer Trigger: Budget Breach, Behavioral Drift, Income Ratio
-- Per-category impact: Safety days, Growth FV, Goal %
 
-### Wealth Impact Analysis System (Feb 28, 2026)
+### Wealth Impact Analysis System
 - **Wealth Grading** (A+ to F): `GET /api/expenses/wealth-impact`
-  - Based on 50/30/20 rule (Needs ≤50%, Wants ≤30%, Savings ≥20%)
-  - Deviation scoring: double-weight savings shortfall
-- **Regret Flag**: `PATCH /api/expenses/{id}/regret`
-  - Lifestyle/Want expenses > ₹5,000 trigger Regret Check
-  - Happy face (regret=false) vs Regret face (regret=true) stored as permanent metadata
-- **Opportunity Cost (Sutra Swap)**:
-  - For regret spend, calculates: loan payoff %, insurance months, goal gap %, investment growth
-  - Rule-based, deterministic calculations (no AI)
-- **UI**: Expandable bottom-sheet at bottom of Monthly tab in My Expenses
-  - Grade ring visualization, allocation bars with targets, Regret Check cards, Sutra Swap suggestions
+- **Regret Flag**: `PATCH /api/expenses/{id}/regret` — Lifestyle > ₹5K
+- **Opportunity Cost (Sutra Swap)**: Loan payoff %, insurance months, goal gap %, investment growth
+- **UI**: Expandable bottom-sheet at bottom of Monthly tab
 
-### Navigation & Back Buttons
-- All Wealth sub-pages -> back to `/wealth`
-- Expense tabs -> URL param `?tab=` preserves active tab
-- Notifications: type-based fallback routing (gamification/achievement/streak -> /health)
+### Theme Persistence (Feb 28, 2026)
+- Preferences saved to backend via `POST /api/settings/preferences` (fixed from PUT→POST)
+- `ThemeContext.syncThemeFromBackend()` called after login/auth check
+- Theme survives logout/login and cross-device sessions
+
+### Test Account Seed Data (Feb 28, 2026)
+- `_seed_test_account()` in auth.py auto-populates on first login:
+  - 5 assets (real estate, gold, vehicle, FD, emergency fund)
+  - 3 credit cards (HDFC, ICICI, SBI)
+  - 3 loans (home, car, personal)
+  - 2 insurance policies (health, term life)
+
+### Navigation & UI
+- All Wealth sub-pages → back to `/wealth`
+- Expense tabs → URL param `?tab=` preserves active tab
+- Notifications: type-based fallback routing
+- MyExpenses: header + tabs + month selector in single gradient wrapper (no gap)
 
 ## Bug Fixes Log
-- Insurance page crash: guard for invalid date values
-- Wealth sub-page back buttons -> `/wealth`
-- ProfileMenu dropdown clipped on Wealth page: removed `overflow-hidden`
-- Login: Read DOM values directly on form submit (browser autofill fix)
-- Feb date: Cap schedule_day to days_in_month
-- MyExpenses UI overlap: removed negative margins
+- Insurance page crash, Wealth back buttons, ProfileMenu dropdown clipping
+- Login: DOM value read for browser autofill
+- Feb date: schedule_day capped to days_in_month
+- MyExpenses UI overlap: single gradient wrapper
 - Badges/Challenges: X/Y summary in accordion headers
-- Notification redirect: type-based fallback routes for notifications without actionUrl
-
-## Key API Endpoints
-- `POST /api/auth/login`
-- `GET /api/expenses/wealth-impact` (Wealth Grade + Regret + Opportunity Cost)
-- `PATCH /api/expenses/{id}/regret` (Set regret flag)
-- `GET /api/expenses/overspend-analysis` (Financial Intelligence)
-- `GET /api/expenses/weekly-summary`
-- `GET /api/expenses/monthly-summary`
-- `GET /api/dashboard/networth`
+- Notification redirect: type-based fallback routes
+- Theme: PUT→POST fix + backend sync on login
 
 ## Prioritized Backlog
 ### P1: Cash Flow Engine - Phase 1 (Rolling Balance Engine)
 ### P1: Cash Flow Engine - Phase 4 (Negative Balance Handling UI)
-### P2: Cash Flow Engine - Phase 3 (Cash Flow Timeline Engine)
+### P2: Cash Flow Timeline Engine
 ### P2: Financial Command Center enhancements
 ### P2: Decision Impact Engine (financial simulation)
-### P2: Theme refinement - Mint Green (#98FF98) & wide tracking typography (app-wide or section-specific TBD)
+### P2: Theme - Mint Green (#98FF98) & wide tracking typography
 
 ## Mocked
 - 2FA and Biometric Login toggles (UI only)
-- Reallocate/Ignore buttons in Financial Intelligence (UI only)
 
-## 3rd Party Integrations
+## 3rd Party
 openpyxl, recharts, reportlab, @dnd-kit/core, Emergent Google Auth, OpenAI GPT-5.2, MongoDB Atlas
