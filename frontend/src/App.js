@@ -49,6 +49,7 @@ import MyAccounts from "@/MyAccounts";
 import ExpenseForm from "@/ExpenseForm";
 import MyExpenses from "@/MyExpenses";
 import ExpenseBreakdown from "@/ExpenseBreakdown";
+import ExpenseGroup from "@/ExpenseGroup";
 import CategoryExpenses from "@/CategoryExpenses";
 import FixedExpenses from "@/FixedExpenses";
 import VariableExpenses from "@/VariableExpenses";
