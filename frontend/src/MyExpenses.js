@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, ChevronLeft, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal, TrendingUp, PiggyBank, Check, Clock, CalendarDays, FastForward, Undo2 } from "lucide-react";
+import { ChevronRight, ChevronLeft, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal, TrendingUp, PiggyBank, Check, Clock, CalendarDays, FastForward, Undo2, List, Calendar, BarChart3, LineChart } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
@@ -9,6 +9,9 @@ import BackButton from "@/components/BackButton";
 import { useExpenseList, useExpensesByMonth } from "@/hooks/useApi";
 import { mutate } from "swr";
 import { normalizeToMonthly } from "@/lib/formatters";
+import ExpenseWeekly from "@/ExpenseWeekly";
+import ExpenseMonthly from "@/ExpenseMonthly";
+import ExpenseCalendar from "@/ExpenseCalendar";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
