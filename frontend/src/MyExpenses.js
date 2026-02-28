@@ -15,8 +15,6 @@ import ExpenseCalendar from "@/ExpenseCalendar";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
-const API = process.env.REACT_APP_BACKEND_URL;
-
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 function getMonthKey(offset = 0) {
