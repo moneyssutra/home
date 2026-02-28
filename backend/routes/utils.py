@@ -13,9 +13,6 @@ logger = logging.getLogger(__name__)
 def get_user_filter(user):
     """Get filter for user data isolation"""
     user_id = user.get('user_id')
-    user_email = user.get('email', '')
-    if user_email == 'test@moneyssutra.com' or user_id == 'test':
-        return {"$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]}
     return {"userId": user_id}
 
 
