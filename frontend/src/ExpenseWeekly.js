@@ -198,7 +198,7 @@ const ExpenseWeekly = () => {
               <BarChart data={trendData} barSize={18} style={{ outline: "none" }} accessibilityLayer={false} onClick={(e) => { if (e?.activeTooltipIndex !== undefined) setSelectedWeek(e.activeTooltipIndex === selectedWeek ? null : e.activeTooltipIndex); }}>
                 <XAxis dataKey="name" tick={{ fill: DK.textMuted, fontSize: 9 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: DK.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={formatK} width={38} />
-                <Tooltip formatter={(val) => [formatINR(val), "Spend"]} contentStyle={{ backgroundColor: DK.cardHighlight, border: `1px solid rgba(100,140,200,0.2)`, borderRadius: "10px", color: DK.textWhite, fontSize: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.5)" }} labelStyle={{ color: DK.blue, fontWeight: "bold" }} itemStyle={{ color: DK.textWhite }} cursor={false} />
+                <Tooltip formatter={(val) => [formatINR(val), "Spend"]} contentStyle={{ backgroundColor: DK.cardHighlight, border: `1px solid ${DK.cardBorder}`, borderRadius: "10px", color: DK.textWhite, fontSize: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} labelStyle={{ color: DK.blue, fontWeight: "bold" }} itemStyle={{ color: DK.textWhite }} cursor={false} />
                 <Bar dataKey="total" radius={[4, 4, 0, 0]}>
                   {trendData.map((entry, idx) => {
                     const ratio = maxTrend > 0 ? entry.total / maxTrend : 0;
