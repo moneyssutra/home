@@ -12,6 +12,13 @@ router = APIRouter()
 
 ADMIN_EMAILS = {"test@moneyssutra.com", "admin@moneyssutra.com"}
 
+
+@router.get("/verify")
+async def verify_admin(request: Request):
+    """Lightweight admin verification."""
+    await _require_admin(request)
+    return {"admin": True}
+
 async def _require_admin(request: Request):
     user = await get_current_user(request)
     if not user:
