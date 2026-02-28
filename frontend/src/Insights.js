@@ -1272,11 +1272,11 @@ const Insights = () => {
             <PersonalityEvolutionWidget data={personalityHistory} currentPersonality={moneyPattern?.personality} />
           </AccordionModule>
 
-          <AccordionModule title="Badges" icon={Trophy} iconColor="#F59E0B" isOpen={openModule === "badges"} onToggle={() => handleToggle("badges")} locked={false} unlockStage={0} stageNum={stageNum} testId="accordion-badges">
+          <AccordionModule title="Badges" icon={Trophy} iconColor="#F59E0B" isOpen={openModule === "badges"} onToggle={() => handleToggle("badges")} locked={false} unlockStage={0} stageNum={stageNum} testId="accordion-badges" meta={gamification?.allAchievements ? `${gamification.allAchievements.filter(a => a.unlocked).length}/${gamification.allAchievements.length}` : null}>
             <BadgesWidget data={gamification} />
           </AccordionModule>
 
-          <AccordionModule title="Challenges" icon={Swords} iconColor="#8B5CF6" isOpen={openModule === "challenges"} onToggle={() => handleToggle("challenges")} locked={false} unlockStage={0} stageNum={stageNum} testId="accordion-challenges">
+          <AccordionModule title="Challenges" icon={Swords} iconColor="#8B5CF6" isOpen={openModule === "challenges"} onToggle={() => handleToggle("challenges")} locked={false} unlockStage={0} stageNum={stageNum} testId="accordion-challenges" meta={challenges ? `${(challenges.completed || []).length}/${(challenges.active || []).length + (challenges.available || []).length + (challenges.completed || []).length}` : null}>
             <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
           </AccordionModule>
         </div>
