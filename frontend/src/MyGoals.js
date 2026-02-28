@@ -280,26 +280,22 @@ const MyGoals = () => {
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-goals-page">
       {/* Header */}
-      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)" }}>
+      <header className="px-5 pt-4 pb-8" style={{ background: "linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)" }}>
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <BackButton forceNavigate="/" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
-            <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
-              My Goals
-            </h1>
+          <div className="flex items-center gap-2">
+            <ProfileMenu userName={null} userPicture={null} />
           </div>
-          
-          {filteredGoals.length > 1 && !isReorderMode && (
-            <button
-              onClick={() => setIsReorderMode(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/20 text-white text-sm font-medium hover:bg-white/30 transition-colors"
-              data-testid="reorder-btn"
-            >
-              <ArrowUpDown className="h-4 w-4" />
-              Reorder
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {filteredGoals.length > 1 && !isReorderMode && (
+              <button onClick={() => setIsReorderMode(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 text-white text-sm font-medium hover:bg-white/30 transition-colors" data-testid="reorder-btn">
+                <ArrowUpDown className="h-4 w-4" />
+                Reorder
+              </button>
+            )}
+            <NotificationBell />
+          </div>
         </div>
+        <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Manrope', sans-serif" }}>My Goals</h1>
 
         {/* Summary Card */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="goals-summary">
