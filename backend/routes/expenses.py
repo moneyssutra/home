@@ -1224,3 +1224,313 @@ async def delete_expense(expense_id: str, request: Request):
     return {"message": "Expense deleted successfully", "id": expense_id}
 
 
+
+
+# ─────────────────────────────────────────────────────────
+# FINANCIAL INTELLIGENCE ENGINE — Rule-Based Overspend Analysis
+# ─────────────────────────────────────────────────────────
+
+ESSENTIAL_CATS = {"Housing", "Utilities", "Food", "Medical", "Education", "Insurance", "EMI"}
+LIFESTYLE_CATS = {"Travel", "Shopping", "Subscriptions", "Business Expense", "Salary Paid"}
+WEALTH_CATS = {"Investments", "Savings"}
+GROWTH_RATE = 0.10  # Conservative 10% annual return
+RECOMMENDED_RATIOS = {"essential": 50, "lifestyle": 30, "wealth": 20}
+
+
+def _classify_category(cat: str) -> str:
+    if cat in ESSENTIAL_CATS:
+        return "essential"
+    elif cat in LIFESTYLE_CATS:
+        return "lifestyle"
+    elif cat in WEALTH_CATS:
+        return "wealth"
+    return "essential"
+
+
+def _future_value(principal: float, rate: float, years: int) -> float:
+    """FV = P × (1 + r)^n — conservative compounding"""
+    return round(principal * ((1 + rate) ** years))
+
+
+@router.get("/overspend-analysis")
+async def get_overspend_analysis(request: Request):
+    """
+    Rule-based Financial Intelligence Engine.
+    3-Layer Trigger: Budget Breach, Behavioral Drift, Income Ratio.
+    Returns: overspend alerts, safety/growth/goal impact, reallocation advice.
+    """
+    user = await get_current_user(request)
+    user_filter = await get_user_filter(request)
+
+    now = datetime.now(timezone.utc)
+    current_month = f"{now.year}-{now.month:02d}"
+
+    # ── Gather 6 months of expense data ──
+    all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
+
+    # Build monthly category totals for last 6 months
+    months_data = {}
+    for i in range(6):
+        d = now - timedelta(days=30 * i)
+        mk = f"{d.year}-{d.month:02d}"
+        months_data[mk] = {"categories": {}, "essential": 0, "lifestyle": 0, "wealth": 0, "total": 0}
+
+    for exp in all_expenses:
+        freq = exp.get("frequency", "Monthly")
+        amt = exp.get("expectedAmount", 0) or 0
+        cat = exp.get("category", "Other")
+        group = _classify_category(cat)
+
+        if freq == "Daily":
+            monthly_amt = amt * 30
+        elif freq == "Weekly":
+            monthly_amt = amt * 4.33
+        elif freq == "Quarterly":
+            monthly_amt = amt / 3
+        elif freq == "Half-Yearly":
+            monthly_amt = amt / 6
+        elif freq == "Yearly":
+            monthly_amt = amt / 12
+        else:
+            monthly_amt = amt
+
+        # Add to all 6 months (since these are recurring)
+        for mk in months_data:
+            if cat not in months_data[mk]["categories"]:
+                months_data[mk]["categories"][cat] = 0
+            months_data[mk]["categories"][cat] += monthly_amt
+            months_data[mk][group] += monthly_amt
+            months_data[mk]["total"] += monthly_amt
+
+    # One-time expenses: add only to their specific month
+    for exp in all_expenses:
+        if exp.get("frequency") == "One-Time" and exp.get("oneTimeDate"):
+            otd = exp["oneTimeDate"][:7]
+            if otd in months_data:
+                cat = exp.get("category", "Other")
+                amt = exp.get("expectedAmount", 0) or 0
+                group = _classify_category(cat)
+                months_data[otd]["categories"][cat] = months_data[otd]["categories"].get(cat, 0) + amt
+                months_data[otd][group] += amt
+                months_data[otd]["total"] += amt
+
+    # ── Get income ──
+    incomes = await db.income.find(user_filter, {"_id": 0}).to_list(500)
+    monthly_income = 0
+    for inc in incomes:
+        iamt = inc.get("amount", 0) or 0
+        ifreq = inc.get("frequency", "Monthly")
+        if ifreq == "Monthly":
+            monthly_income += iamt
+        elif ifreq == "Yearly":
+            monthly_income += iamt / 12
+        elif ifreq == "Weekly":
+            monthly_income += iamt * 4.33
+        elif ifreq == "Daily":
+            monthly_income += iamt * 30
+        elif ifreq == "Quarterly":
+            monthly_income += iamt / 3
+    if monthly_income == 0:
+        monthly_income = 313000  # fallback
+
+    # ── Get goals ──
+    goals = await db.goals.find(user_filter, {"_id": 0}).to_list(100)
+    top_goal = None
+    for g in goals:
+        gap = (g.get("targetAmount", 0) or 0) - (g.get("currentAmount", 0) or 0)
+        if gap > 0:
+            if not top_goal or gap < top_goal["gap"]:
+                top_goal = {"name": g.get("name", "Financial Goal"), "target": g.get("targetAmount", 0), "current": g.get("currentAmount", 0), "gap": gap}
+
+    # ── Get liquid assets for Days of Safety ──
+    assets = await db.assets.find(user_filter, {"_id": 0}).to_list(500)
+    liquid_assets = sum(a.get("currentValue", 0) or 0 for a in assets if a.get("assetType") in ("Cash", "Savings", "Fixed Deposit", "Liquid Fund", "Emergency Fund", None))
+    if liquid_assets == 0:
+        # fallback: use savings from investments
+        investments = await db.investments.find(user_filter, {"_id": 0}).to_list(500)
+        liquid_assets = sum(inv.get("currentValue", 0) or 0 for inv in investments if inv.get("investmentType") in ("Liquid Fund", "Savings", "FD", None))
+
+    # ── Current month data ──
+    cm = months_data.get(current_month, {"categories": {}, "essential": 0, "lifestyle": 0, "wealth": 0, "total": 0})
+    daily_essential = cm["essential"] / 30 if cm["essential"] > 0 else 1
+
+    # ── 3-Month Average (excluding current month) ──
+    past_months = sorted(months_data.keys())[:-1][:3]  # last 3 months before current
+    avg_by_category = {}
+    avg_essential = 0
+    avg_lifestyle = 0
+    avg_wealth = 0
+    if past_months:
+        for mk in past_months:
+            for cat, amt in months_data[mk]["categories"].items():
+                avg_by_category[cat] = avg_by_category.get(cat, 0) + amt
+            avg_essential += months_data[mk]["essential"]
+            avg_lifestyle += months_data[mk]["lifestyle"]
+            avg_wealth += months_data[mk]["wealth"]
+        n = len(past_months)
+        avg_by_category = {k: v / n for k, v in avg_by_category.items()}
+        avg_essential /= n
+        avg_lifestyle /= n
+        avg_wealth /= n
+
+    # ═══════════════════════════════════════
+    # LAYER 1: Category-Level Overspend Alerts
+    # ═══════════════════════════════════════
+    overspend_alerts = []
+    for cat, current_amt in cm["categories"].items():
+        cat_avg = avg_by_category.get(cat, 0)
+        if cat_avg <= 0:
+            continue
+
+        overspend = current_amt - cat_avg
+        drift_pct = (overspend / cat_avg * 100) if cat_avg > 0 else 0
+
+        # Rule 1: Budget Breach (> 3-month avg)
+        # Rule 2: Behavioral Drift (> 3M avg × 1.20)
+        if drift_pct < 10:
+            continue  # No alert for < 10% drift
+
+        severity = 1 if drift_pct < 20 else (2 if drift_pct < 30 else 3)
+
+        # Safety Impact: overspend / daily essential = extra safety days lost
+        safety_days = round(overspend / daily_essential, 1) if daily_essential > 0 else 0
+
+        # Growth Impact: FV at 10% for 5yr and 10yr
+        fv_5yr = _future_value(overspend * 12, GROWTH_RATE, 5)
+        fv_10yr = _future_value(overspend * 12, GROWTH_RATE, 10)
+
+        # Goal Impact
+        goal_impact_pct = round(overspend / top_goal["gap"] * 100, 1) if top_goal and top_goal["gap"] > 0 else 0
+
+        overspend_alerts.append({
+            "category": cat,
+            "group": _classify_category(cat),
+            "currentAmount": round(current_amt),
+            "threeMonthAvg": round(cat_avg),
+            "overspendAmount": round(overspend),
+            "driftPercent": round(drift_pct, 1),
+            "severity": severity,
+            "safetyDaysImpact": safety_days,
+            "futureValue5yr": fv_5yr,
+            "futureValue10yr": fv_10yr,
+            "goalImpactPercent": goal_impact_pct,
+            "goalName": top_goal["name"] if top_goal else None,
+        })
+
+    overspend_alerts.sort(key=lambda x: -x["severity"])
+
+    # ═══════════════════════════════════════
+    # LAYER 2: Income Ratio Triggers
+    # ═══════════════════════════════════════
+    income_ratio_alerts = []
+    lifestyle_pct = round(cm["lifestyle"] / monthly_income * 100, 1) if monthly_income > 0 else 0
+    wealth_pct = round(cm["wealth"] / monthly_income * 100, 1) if monthly_income > 0 else 0
+    essential_pct = round(cm["essential"] / monthly_income * 100, 1) if monthly_income > 0 else 0
+
+    if lifestyle_pct > 40:
+        income_ratio_alerts.append({
+            "type": "lifestyle_over_40",
+            "message": f"Lifestyle spending is {lifestyle_pct}% of income — above the 40% threshold.",
+            "severity": 2,
+            "metric": f"{lifestyle_pct}%",
+        })
+
+    if cm["lifestyle"] > cm["wealth"] and cm["wealth"] > 0:
+        ratio = round(cm["lifestyle"] / cm["wealth"], 1)
+        income_ratio_alerts.append({
+            "type": "lifestyle_exceeds_wealth",
+            "message": f"You are spending {ratio}x more on lifestyle than wealth building.",
+            "severity": 2,
+            "metric": f"{ratio}x",
+        })
+
+    # ═══════════════════════════════════════
+    # LAYER 3: Monthly Structural Health
+    # ═══════════════════════════════════════
+    actual_ratios = {
+        "essential": round(cm["essential"] / cm["total"] * 100, 1) if cm["total"] > 0 else 0,
+        "lifestyle": round(cm["lifestyle"] / cm["total"] * 100, 1) if cm["total"] > 0 else 0,
+        "wealth": round(cm["wealth"] / cm["total"] * 100, 1) if cm["total"] > 0 else 0,
+    }
+
+    structural_alerts = []
+    if actual_ratios["wealth"] < 15:
+        structural_alerts.append({
+            "type": "wealth_below_threshold",
+            "message": f"Wealth allocation at {actual_ratios['wealth']}% — below recommended 20%.",
+            "severity": 2,
+        })
+
+    if actual_ratios["essential"] > 65:
+        structural_alerts.append({
+            "type": "essential_heavy",
+            "message": f"Essential spending at {actual_ratios['essential']}% — above 50% target. Review fixed costs.",
+            "severity": 1,
+        })
+
+    # ═══════════════════════════════════════
+    # Wealth Shift Score
+    # ═══════════════════════════════════════
+    lifestyle_drift = cm["lifestyle"] - avg_lifestyle if avg_lifestyle > 0 else 0
+    wealth_shift_alert = None
+    if lifestyle_drift > cm["wealth"] and cm["wealth"] > 0:
+        wealth_shift_alert = {
+            "message": "You are drifting more than you are investing.",
+            "lifestyleDrift": round(lifestyle_drift),
+            "wealthAllocation": round(cm["wealth"]),
+            "severity": 3,
+        }
+
+    # ═══════════════════════════════════════
+    # Template Selection (deterministic)
+    # ═══════════════════════════════════════
+    days_of_safety = round(liquid_assets / daily_essential) if daily_essential > 0 else 0
+
+    if days_of_safety < 90:
+        template = "safety_growth"
+        primary_advice = f"Focus on building your safety buffer. Current: {days_of_safety} days. Target: 180 days."
+    elif actual_ratios["wealth"] < 15:
+        template = "long_term_wealth"
+        primary_advice = f"Increase wealth allocation from {actual_ratios['wealth']}% toward 20%."
+    elif any(a["severity"] >= 2 for a in overspend_alerts):
+        template = "debt_reduction"
+        total_overspend = sum(a["overspendAmount"] for a in overspend_alerts if a["severity"] >= 2)
+        primary_advice = f"Reduce category overspends totaling ₹{total_overspend:,.0f} to stabilize monthly budget."
+    elif top_goal and top_goal["gap"] > 0:
+        template = "goal_acceleration"
+        primary_advice = f"Redirect savings toward {top_goal['name']} — ₹{top_goal['gap']:,.0f} remaining."
+    else:
+        template = "maintain"
+        primary_advice = "Your financial structure is healthy. Maintain current allocation."
+
+    # ═══════════════════════════════════════
+    # Suggested Reallocation
+    # ═══════════════════════════════════════
+    reallocation = None
+    total_overspend = sum(a["overspendAmount"] for a in overspend_alerts if a["severity"] >= 2)
+    if total_overspend > 0:
+        reallocation = {
+            "amount": round(total_overspend * 0.75),  # suggest shifting 75%
+            "source": "Lifestyle overspend",
+            "destination": "Wealth Allocation" if actual_ratios["wealth"] < 20 else top_goal["name"] if top_goal else "Savings",
+            "safetyDaysGained": round(total_overspend * 0.75 / daily_essential, 1) if daily_essential > 0 else 0,
+            "futureValue10yr": _future_value(total_overspend * 0.75 * 12, GROWTH_RATE, 10),
+        }
+
+    return {
+        "month": current_month,
+        "monthlyIncome": round(monthly_income),
+        "monthlySpend": round(cm["total"]),
+        "daysOfSafety": days_of_safety,
+        "liquidAssets": round(liquid_assets),
+        "actualRatios": actual_ratios,
+        "recommendedRatios": RECOMMENDED_RATIOS,
+        "overspendAlerts": overspend_alerts,
+        "incomeRatioAlerts": income_ratio_alerts,
+        "structuralAlerts": structural_alerts,
+        "wealthShiftAlert": wealth_shift_alert,
+        "template": template,
+        "primaryAdvice": primary_advice,
+        "reallocation": reallocation,
+        "topGoal": top_goal,
+    }
