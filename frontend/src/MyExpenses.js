@@ -298,7 +298,7 @@ const MyExpenses = () => {
             </div>
           )}
         </div>
-      </header>
+      </div>
 
       {/* Expense Allocation (only on current month view) */}
       {isCurrentMonth && expenseByCategory.length > 0 && (
