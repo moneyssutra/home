@@ -18,7 +18,7 @@ const AdminLayout = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(`${backendUrl}/api/admin/command-center?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
+        const res = await axios.get(`${backendUrl}/api/admin/verify`, { withCredentials: true });
         if (res.data) setVerified(true);
       } catch {
         navigate("/home");
