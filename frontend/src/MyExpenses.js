@@ -186,22 +186,48 @@ const MyExpenses = () => {
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-expenses-page">
       {/* Header */}
-      <header className="px-6 pt-8 pb-8" style={{ background: "linear-gradient(135deg, #F87171 0%, #FB923C 100%)" }}>
-        <div className="flex items-center gap-4 mb-6">
+      <header className="px-6 pt-8 pb-4" style={{ background: "linear-gradient(135deg, #F87171 0%, #FB923C 100%)" }}>
+        <div className="flex items-center gap-4 mb-4">
           <BackButton fallbackPath="/" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             My Expenses
           </h1>
-          <button
-            onClick={() => navigate("/expense-calendar")}
-            className="ml-auto p-2 rounded-xl bg-white/15 hover:bg-white/25 transition-colors border border-white/20"
-            data-testid="calendar-view-btn"
-          >
-            <CalendarDays className="h-5 w-5 text-white" />
-          </button>
         </div>
 
-        {/* Month Selector */}
+        {/* View Toggle */}
+        <div className="flex bg-white/15 rounded-xl p-1 backdrop-blur-sm" data-testid="expense-view-toggle">
+          {[
+            { id: "list", label: "List", icon: List },
+            { id: "daily", label: "Daily", icon: Calendar },
+            { id: "weekly", label: "Weekly", icon: BarChart3 },
+            { id: "monthly", label: "Monthly", icon: LineChart },
+          ].map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActiveView(id)}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold transition-all"
+              style={{
+                backgroundColor: activeView === id ? "rgba(255,255,255,0.95)" : "transparent",
+                color: activeView === id ? "#EA580C" : "rgba(255,255,255,0.8)",
+                boxShadow: activeView === id ? "0 2px 8px rgba(0,0,0,0.1)" : "none",
+              }}
+              data-testid={`view-toggle-${id}`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Conditional Views */}
+      {activeView === "daily" && <ExpenseCalendar embedded />}
+      {activeView === "weekly" && <ExpenseWeekly />}
+      {activeView === "monthly" && <ExpenseMonthly />}
+      {activeView === "list" && (
+      <>
+      {/* Month Selector (List view only) */}
+      <div className="px-6 -mt-2 pb-4" style={{ background: "linear-gradient(135deg, #F87171 0%, #FB923C 100%)" }}>
         <div className="flex items-center justify-between mb-5 bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/20" data-testid="month-selector">
           <button
             onClick={() => setMonthOffset(Math.max(-2, monthOffset - 1))}
