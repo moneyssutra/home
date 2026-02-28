@@ -3,8 +3,15 @@ import axios from 'axios';
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
-// Global fetcher with credentials
-const fetcher = (url) => axios.get(url, { withCredentials: true }).then(res => res.data);
+// Append user's timezone offset to URL for correct month calculations
+const TZ_OFFSET = new Date().getTimezoneOffset(); // IST = -330
+export const appendTz = (url) => {
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}tz_offset=${TZ_OFFSET}`;
+};
+
+// Global fetcher with credentials + timezone
+const fetcher = (url) => axios.get(appendTz(url), { withCredentials: true }).then(res => res.data);
 
 // SWR configuration for optimal mobile performance
 const defaultConfig = {
