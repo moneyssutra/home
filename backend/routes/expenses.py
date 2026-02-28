@@ -7,7 +7,7 @@ from calendar import monthrange
 from database import db
 from server_models import Expense, ExpenseCreate
 from routes.auth import get_current_user
-from routes.utils import get_user_filter
+from routes.utils import get_user_filter, get_user_now
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
