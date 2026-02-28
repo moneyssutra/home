@@ -1,67 +1,50 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Zap, Eye } from "lucide-react";
+import { TrendingUp, TrendingDown, Eye, Zap } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-// Premium turquoise dark theme tokens
 const DK = {
-  bg: "#0B2027",
-  card: "#122E36",
-  cardAlt: "#163840",
-  cardBorder: "rgba(13,148,136,0.18)",
-  cardBorderHover: "rgba(13,148,136,0.35)",
-  // Warm spectrum
+  bg: "#0E1421",
+  card: "#1A2332",
+  cardHighlight: "#222D3F",
+  cardBorder: "rgba(100,140,200,0.12)",
   teal: "#2DD4BF",
-  tealSoft: "rgba(45,212,191,0.08)",
-  tealBorder: "rgba(45,212,191,0.2)",
-  cyan: "#14B8A6",
+  cyan: "#06B6D4",
   amber: "#F59E0B",
-  amberSoft: "rgba(245,158,11,0.06)",
-  amberBorder: "rgba(245,158,11,0.2)",
   orange: "#FB923C",
   orangeHot: "#F97316",
-  orangeSoft: "rgba(251,146,60,0.08)",
-  orangeBorder: "rgba(251,146,60,0.2)",
-  green: "#34D399",
-  greenSoft: "rgba(52,211,153,0.08)",
-  greenBorder: "rgba(52,211,153,0.2)",
-  blue: "#06B6D4",
-  blueSoft: "rgba(6,182,212,0.08)",
-  blueBorder: "rgba(6,182,212,0.2)",
+  green: "#22C55E",
+  blue: "#3B82F6",
   gold: "#FBBF24",
-  goldSoft: "rgba(251,191,36,0.06)",
-  goldBorder: "rgba(251,191,36,0.15)",
   red: "#EF4444",
-  redSoft: "rgba(239,68,68,0.1)",
-  textPrimary: "#E8F5F2",
-  textSecondary: "#8BC4B8",
-  textMuted: "#5E9188",
-  barTrack: "#153840",
-  divider: "rgba(45,212,191,0.12)",
+  textWhite: "#FFFFFF",
+  textPrimary: "#E2E8F0",
+  textSecondary: "#94A3B8",
+  textMuted: "#64748B",
+  barTrack: "#1E293B",
+  divider: "rgba(100,140,200,0.1)",
 };
 
+const formatINR = (v) => `₹${Math.round(v).toLocaleString("en-IN")}`;
 const formatK = (v) => {
   if (v >= 100000) return `₹${(v / 100000).toFixed(1)}L`;
   if (v >= 1000) return `₹${Math.round(v / 1000)}k`;
   return `₹${v}`;
 };
 
-const formatFull = (v) => `₹${v.toLocaleString("en-IN")}`;
-
-// Warm heatmap: teal → cyan → amber → orange based on intensity
 const getDayBarColor = (amount, max, isWeekend) => {
   if (amount === 0) return DK.barTrack;
   const ratio = max > 0 ? amount / max : 0;
-  if (isWeekend) {
-    return ratio > 0.6 ? DK.orangeHot : DK.orange;
-  }
+  if (isWeekend) return ratio > 0.6 ? DK.orangeHot : DK.orange;
   if (ratio > 0.7) return DK.amber;
   if (ratio > 0.4) return DK.cyan;
   return DK.teal;
 };
+
+const CAT_COLORS = [DK.blue, DK.orangeHot, DK.green, DK.amber, DK.cyan, DK.teal];
 
 const ExpenseWeekly = () => {
   const [data, setData] = useState(null);
@@ -103,127 +86,120 @@ const ExpenseWeekly = () => {
   const prevWeek = weeks.length >= 2 ? weeks[weeks.length - 2] : null;
   const wowChange = prevWeek && prevWeek.total > 0 ? Math.round((currentWeek.total - prevWeek.total) / prevWeek.total * 100) : null;
 
-  const trendData = weeks.map(w => ({
-    name: w.label.split(" - ")[0],
-    total: w.total,
-    label: w.label,
-  }));
+  const trendData = weeks.map(w => ({ name: w.label.split(" - ")[0], total: w.total }));
+  const maxTrend = Math.max(...trendData.map(t => t.total));
 
   const dayData = DAY_NAMES.map(d => ({
-    name: d,
-    amount: currentWeek.byDay[d] || 0,
-    isWeekend: d === "Sat" || d === "Sun",
+    name: d, amount: currentWeek.byDay[d] || 0, isWeekend: d === "Sat" || d === "Sun",
   }));
-
   const maxDayAmt = Math.max(...dayData.map(d => d.amount));
   const avgDaily = currentWeek.total > 0 ? Math.round(currentWeek.total / 7) : 0;
   const drillWeek = selectedWeek !== null ? weeks[selectedWeek] : null;
-  const maxTrend = Math.max(...trendData.map(t => t.total));
 
   return (
     <div className="pb-6" style={{ backgroundColor: DK.bg }} data-testid="expense-weekly">
-      {/* Current Week Summary */}
-      <div className="px-5 pt-4 mb-4">
-        <div className="rounded-2xl p-5" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }} data-testid="weekly-summary-card">
+      {/* Summary Card */}
+      <div className="px-4 pt-4 mb-3">
+        <div className="rounded-2xl p-4" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }} data-testid="weekly-summary-card">
           <div className="flex items-start justify-between mb-1">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: DK.textMuted }}>{currentWeek.label}</p>
-              <p className="text-3xl font-bold tracking-tight" style={{ color: DK.textPrimary, fontFamily: "'Manrope', sans-serif" }}>{formatFull(currentWeek.total)}</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider mb-1" style={{ color: DK.textMuted }}>{currentWeek.label}</p>
+              <p className="text-2xl sm:text-3xl font-bold" style={{ color: DK.textWhite }}>{formatINR(currentWeek.total)}</p>
             </div>
             {wowChange !== null && (
-              <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold" style={{ backgroundColor: wowChange > 0 ? DK.redSoft : DK.greenSoft, color: wowChange > 0 ? DK.red : DK.green, border: `1px solid ${wowChange > 0 ? 'rgba(239,68,68,0.2)' : DK.greenBorder}` }}>
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold" style={{ backgroundColor: wowChange > 0 ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)", color: wowChange > 0 ? DK.red : DK.green }}>
                 {wowChange > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                 {wowChange > 0 ? "+" : ""}{wowChange}%
               </div>
             )}
           </div>
 
-          {/* Weekday vs Weekend — styled cards */}
-          <div className="grid grid-cols-2 gap-3 mt-4">
-            <div className="rounded-xl p-3.5" style={{ background: `linear-gradient(135deg, ${DK.blueSoft} 0%, rgba(34,211,238,0.04) 100%)`, border: `1px solid ${DK.blueBorder}` }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: DK.blue }}>Weekdays</p>
-              <p className="text-xl font-bold" style={{ color: DK.textPrimary }}>{formatK(currentWeek.weekdayTotal)}</p>
+          {/* Weekday/Weekend */}
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <div className="rounded-xl p-3" style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.12) 0%, rgba(6,182,212,0.05) 100%)", border: `1px solid rgba(59,130,246,0.2)` }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: DK.blue }}>Weekdays</p>
+              <p className="text-lg font-bold" style={{ color: DK.textWhite }}>{formatK(currentWeek.weekdayTotal)}</p>
             </div>
-            <div className="rounded-xl p-3.5" style={{ background: `linear-gradient(135deg, ${DK.orangeSoft} 0%, rgba(245,158,11,0.04) 100%)`, border: `1px solid ${DK.orangeBorder}` }}>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: DK.orange }}>Weekends</p>
-              <p className="text-xl font-bold" style={{ color: DK.textPrimary }}>{formatK(currentWeek.weekendTotal)}</p>
+            <div className="rounded-xl p-3" style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.12) 0%, rgba(251,146,60,0.05) 100%)", border: `1px solid rgba(249,115,22,0.2)` }}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: DK.orangeHot }}>Weekends</p>
+              <p className="text-lg font-bold" style={{ color: DK.textWhite }}>{formatK(currentWeek.weekendTotal)}</p>
             </div>
           </div>
 
-          {/* Week Total / Avg Daily Footer */}
-          <div className="flex items-center justify-center gap-4 mt-4 pt-3" style={{ borderTop: `1px solid ${DK.divider}` }}>
-            <span className="text-xs" style={{ color: DK.textMuted }}>Week Total: <span className="font-bold" style={{ color: DK.textPrimary }}>{formatFull(currentWeek.total)}</span></span>
+          <div className="flex items-center justify-center gap-3 mt-3 pt-2.5 text-xs" style={{ borderTop: `1px solid ${DK.divider}` }}>
+            <span style={{ color: DK.textMuted }}>Week Total: <span className="font-bold" style={{ color: DK.textWhite }}>{formatINR(currentWeek.total)}</span></span>
             <span style={{ color: DK.divider }}>|</span>
-            <span className="text-xs" style={{ color: DK.textMuted }}>Avg. Daily: <span className="font-bold" style={{ color: DK.textPrimary }}>{formatK(avgDaily)}</span></span>
+            <span style={{ color: DK.textMuted }}>Avg Daily: <span className="font-bold" style={{ color: DK.textWhite }}>{formatINR(avgDaily)}</span></span>
           </div>
         </div>
       </div>
 
-      {/* Day Breakdown — warm heatmap bars */}
-      <div className="px-5 mb-4">
+      {/* Day Breakdown */}
+      <div className="px-4 mb-3">
         <div className="rounded-2xl p-4" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }} data-testid="weekly-day-breakdown">
-          <h3 className="text-sm font-bold mb-3" style={{ color: DK.textPrimary }}>This Week by Day</h3>
-          <div className="space-y-2.5">
+          <h3 className="text-sm font-bold mb-3" style={{ color: DK.textWhite }}>This Week by Day</h3>
+          <div className="space-y-2">
             {dayData.map(d => {
               const barColor = getDayBarColor(d.amount, maxDayAmt, d.isWeekend);
               return (
-                <div key={d.name} className="flex items-center gap-3">
-                  <span className="text-[11px] w-8 font-semibold" style={{ color: d.isWeekend ? DK.orange : DK.textSecondary }}>{d.name}</span>
-                  <div className="flex-1 h-6 rounded-lg overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
-                    <div
-                      className="h-full rounded-lg transition-all duration-700 ease-out"
-                      style={{
-                        width: `${maxDayAmt > 0 ? Math.max(2, d.amount / maxDayAmt * 100) : 0}%`,
-                        background: d.amount > 0 ? `linear-gradient(90deg, ${barColor}CC, ${barColor})` : DK.barTrack,
-                      }}
-                    />
+                <div key={d.name} className="flex items-center gap-2.5">
+                  <span className="text-[11px] w-7 font-bold" style={{ color: d.isWeekend ? DK.orangeHot : DK.textSecondary }}>{d.name}</span>
+                  <div className="flex-1 h-5 rounded-md overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
+                    <div className="h-full rounded-md transition-all duration-500" style={{ width: `${maxDayAmt > 0 ? Math.max(2, d.amount / maxDayAmt * 100) : 0}%`, background: d.amount > 0 ? `linear-gradient(90deg, ${barColor}AA, ${barColor})` : DK.barTrack }} />
                   </div>
-                  <span className="text-xs w-14 text-right font-bold tabular-nums" style={{ color: d.amount > 0 ? DK.textPrimary : DK.textMuted }}>
-                    {d.amount > 0 ? formatK(d.amount) : "—"}
-                  </span>
+                  <span className="text-[11px] w-16 text-right font-bold tabular-nums" style={{ color: d.amount > 0 ? DK.textWhite : DK.textMuted }}>{d.amount > 0 ? formatINR(d.amount) : "—"}</span>
                 </div>
               );
             })}
           </div>
-          {/* Color legend */}
-          <div className="flex items-center justify-center gap-4 mt-3 pt-2.5" style={{ borderTop: `1px solid ${DK.divider}` }}>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: DK.teal }} />
-              <span className="text-[10px]" style={{ color: DK.textMuted }}>Low</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: DK.cyan }} />
-              <span className="text-[10px]" style={{ color: DK.textMuted }}>Medium</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: DK.amber }} />
-              <span className="text-[10px]" style={{ color: DK.textMuted }}>High</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: DK.orangeHot }} />
-              <span className="text-[10px]" style={{ color: DK.textMuted }}>Weekend</span>
-            </div>
+          <div className="flex items-center justify-center gap-3 mt-2.5 pt-2" style={{ borderTop: `1px solid ${DK.divider}` }}>
+            {[{ label: "Low", color: DK.teal }, { label: "Medium", color: DK.cyan }, { label: "High", color: DK.amber }, { label: "Weekend", color: DK.orangeHot }].map(({ label, color }) => (
+              <div key={label} className="flex items-center gap-1"><div className="w-2 h-2 rounded-sm" style={{ backgroundColor: color }} /><span className="text-[9px]" style={{ color: DK.textMuted }}>{label}</span></div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* 8-Week Trend — warm gradient bars */}
-      <div className="px-5 mb-4">
+      {/* Categories for Current Week */}
+      {currentWeek.topCategories?.length > 0 && (
+        <div className="px-4 mb-3">
+          <div className="rounded-2xl p-4" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }} data-testid="weekly-categories">
+            <h3 className="text-sm font-bold mb-3" style={{ color: DK.textWhite }}>This Week — Categories</h3>
+            <div className="space-y-2">
+              {currentWeek.topCategories.slice(0, 6).map((c, i) => {
+                const pct = currentWeek.total > 0 ? Math.round(c.amount / currentWeek.total * 100) : 0;
+                const color = CAT_COLORS[i % CAT_COLORS.length];
+                return (
+                  <button key={c.category} className="w-full text-left" data-testid={`weekly-cat-${c.category}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                        <span className="text-xs font-medium" style={{ color: DK.textSecondary }}>{c.category}</span>
+                      </div>
+                      <span className="text-xs font-bold" style={{ color: DK.textWhite }}>{formatINR(c.amount)}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}60, ${color})` }} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 8-Week Trend */}
+      <div className="px-4 mb-3">
         <div className="rounded-2xl p-4" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }} data-testid="weekly-trend-chart">
-          <h3 className="text-sm font-bold mb-3" style={{ color: DK.textPrimary }}>8-Week Trend</h3>
-          <div className="h-[160px]" style={{ outline: "none" }}>
+          <h3 className="text-sm font-bold mb-3" style={{ color: DK.textWhite }}>8-Week Trend</h3>
+          <div className="h-[140px] sm:h-[160px]" style={{ outline: "none" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={trendData} barSize={20} style={{ outline: "none" }} accessibilityLayer={false} onClick={(e) => { if (e?.activeTooltipIndex !== undefined) setSelectedWeek(e.activeTooltipIndex === selectedWeek ? null : e.activeTooltipIndex); }}>
+              <BarChart data={trendData} barSize={18} style={{ outline: "none" }} accessibilityLayer={false} onClick={(e) => { if (e?.activeTooltipIndex !== undefined) setSelectedWeek(e.activeTooltipIndex === selectedWeek ? null : e.activeTooltipIndex); }}>
                 <XAxis dataKey="name" tick={{ fill: DK.textMuted, fontSize: 9 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: DK.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={formatK} width={38} />
-                <Tooltip
-                  formatter={(val) => [formatFull(val), "Spend"]}
-                  contentStyle={{ backgroundColor: "#163840", border: "1px solid rgba(45,212,191,0.3)", borderRadius: "12px", color: "#E8F5F2", fontSize: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}
-                  labelStyle={{ color: "#2DD4BF", fontWeight: "bold" }}
-                  itemStyle={{ color: "#E8F5F2" }}
-                  cursor={false}
-                />
-                <Bar dataKey="total" radius={[5, 5, 0, 0]}>
+                <Tooltip formatter={(val) => [formatINR(val), "Spend"]} contentStyle={{ backgroundColor: DK.cardHighlight, border: `1px solid rgba(100,140,200,0.2)`, borderRadius: "10px", color: DK.textWhite, fontSize: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.5)" }} labelStyle={{ color: DK.blue, fontWeight: "bold" }} itemStyle={{ color: DK.textWhite }} cursor={false} />
+                <Bar dataKey="total" radius={[4, 4, 0, 0]}>
                   {trendData.map((entry, idx) => {
                     const ratio = maxTrend > 0 ? entry.total / maxTrend : 0;
                     let fill;
@@ -231,7 +207,7 @@ const ExpenseWeekly = () => {
                     else if (idx === trendData.length - 1) fill = DK.teal;
                     else if (ratio > 0.7) fill = DK.amber;
                     else fill = DK.cyan;
-                    return <Cell key={idx} fill={fill} fillOpacity={idx === selectedWeek ? 1 : 0.7} />;
+                    return <Cell key={idx} fill={fill} fillOpacity={idx === selectedWeek ? 1 : 0.65} />;
                   })}
                 </Bar>
               </BarChart>
@@ -240,15 +216,15 @@ const ExpenseWeekly = () => {
         </div>
       </div>
 
-      {/* Week Drill-down */}
+      {/* Drill-down on trend click */}
       {drillWeek && (
-        <div className="px-5 mb-4 animate-in fade-in slide-in-from-bottom-3 duration-300" data-testid="week-drilldown">
-          <div className="rounded-2xl p-4" style={{ backgroundColor: DK.cardAlt, border: `1px solid ${DK.goldBorder}` }}>
+        <div className="px-4 mb-3 animate-in fade-in slide-in-from-bottom-3 duration-300" data-testid="week-drilldown">
+          <div className="rounded-2xl p-4" style={{ backgroundColor: DK.cardHighlight, border: `1px solid rgba(251,191,36,0.2)` }}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-sm font-bold" style={{ color: DK.gold }}>{drillWeek.label}</h3>
-              <button onClick={() => setSelectedWeek(null)} className="text-[11px] px-2.5 py-1 rounded-lg font-medium" style={{ color: DK.textMuted, backgroundColor: DK.barTrack, border: `1px solid ${DK.divider}` }}>Close</button>
+              <button onClick={() => setSelectedWeek(null)} className="text-[11px] px-2 py-1 rounded-lg font-medium" style={{ color: DK.textMuted, backgroundColor: DK.barTrack }}>Close</button>
             </div>
-            <p className="text-xl font-bold mb-3" style={{ color: DK.textPrimary }}>{formatFull(drillWeek.total)}</p>
+            <p className="text-xl font-bold mb-2" style={{ color: DK.textWhite }}>{formatINR(drillWeek.total)}</p>
             <div className="space-y-1.5">
               {DAY_NAMES.map(d => {
                 const val = drillWeek.byDay[d] || 0;
@@ -256,60 +232,47 @@ const ExpenseWeekly = () => {
                 const isWknd = d === "Sat" || d === "Sun";
                 return (
                   <div key={d} className="flex items-center gap-2">
-                    <span className="text-[11px] w-7 font-medium" style={{ color: isWknd ? DK.orange : DK.textMuted }}>{d}</span>
-                    <div className="flex-1 h-4 rounded-md overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
+                    <span className="text-[11px] w-7 font-medium" style={{ color: isWknd ? DK.orangeHot : DK.textMuted }}>{d}</span>
+                    <div className="flex-1 h-3.5 rounded-md overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
                       <div className="h-full rounded-md" style={{ width: `${max > 0 ? val / max * 100 : 0}%`, backgroundColor: getDayBarColor(val, max, isWknd) }} />
                     </div>
-                    <span className="text-[10px] w-12 text-right font-medium" style={{ color: DK.textSecondary }}>{val > 0 ? formatK(val) : "—"}</span>
+                    <span className="text-[10px] w-14 text-right font-bold" style={{ color: DK.textSecondary }}>{val > 0 ? formatINR(val) : "—"}</span>
                   </div>
                 );
               })}
             </div>
             {drillWeek.topCategories?.length > 0 && (
-              <div className="mt-3 pt-2.5" style={{ borderTop: `1px solid ${DK.divider}` }}>
-                <p className="text-[10px] uppercase tracking-wider font-semibold mb-1.5" style={{ color: DK.textMuted }}>Top Categories</p>
-                {drillWeek.topCategories.map((c, i) => {
-                  const catColors = [DK.teal, DK.amber, DK.orange];
-                  return (
-                    <div key={c.category} className="flex items-center justify-between py-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: catColors[i] || DK.cyan }} />
-                        <span className="text-xs" style={{ color: DK.textSecondary }}>{c.category}</span>
-                      </div>
-                      <span className="text-xs font-bold" style={{ color: DK.textPrimary }}>{formatK(c.amount)}</span>
-                    </div>
-                  );
-                })}
+              <div className="mt-2.5 pt-2" style={{ borderTop: `1px solid ${DK.divider}` }}>
+                <p className="text-[10px] uppercase tracking-wider font-bold mb-1.5" style={{ color: DK.textMuted }}>Categories</p>
+                {drillWeek.topCategories.slice(0, 4).map((c, i) => (
+                  <div key={c.category} className="flex items-center justify-between py-0.5">
+                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ backgroundColor: CAT_COLORS[i] }} /><span className="text-xs" style={{ color: DK.textSecondary }}>{c.category}</span></div>
+                    <span className="text-xs font-bold" style={{ color: DK.textWhite }}>{formatINR(c.amount)}</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Behavior Insights — Premium styled cards */}
+      {/* Behavior Insights */}
       {data.insights?.length > 0 && (
-        <div className="px-5" data-testid="weekly-insights">
-          <div className="flex items-center gap-2 mb-3 px-1">
+        <div className="px-4" data-testid="weekly-insights">
+          <div className="flex items-center gap-2 mb-2">
             <div className="h-px flex-1" style={{ backgroundColor: DK.divider }} />
-            <div className="flex items-center gap-1.5">
-              <Eye className="h-3.5 w-3.5" style={{ color: DK.gold }} />
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: DK.textSecondary }}>Behavior Insights</p>
-            </div>
+            <div className="flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" style={{ color: DK.gold }} /><p className="text-xs font-bold uppercase tracking-wider" style={{ color: DK.textSecondary }}>Behavior Insights</p></div>
             <div className="h-px flex-1" style={{ backgroundColor: DK.divider }} />
           </div>
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {data.insights.map((insight, i) => {
-              const styles = [
-                { bg: DK.tealSoft, border: DK.tealBorder, accent: DK.teal, barBg: `linear-gradient(90deg, ${DK.teal}40, ${DK.teal})` },
-                { bg: DK.amberSoft, border: DK.amberBorder, accent: DK.amber, barBg: `linear-gradient(90deg, ${DK.amber}40, ${DK.amber})` },
-                { bg: DK.orangeSoft, border: DK.orangeBorder, accent: DK.orange, barBg: `linear-gradient(90deg, ${DK.orange}40, ${DK.orange})` },
-              ];
-              const s = styles[i % styles.length];
+              const colors = [DK.teal, DK.amber, DK.orangeHot];
+              const c = colors[i % colors.length];
               return (
-                <div key={i} className="rounded-xl p-3.5" style={{ backgroundColor: s.bg, border: `1px solid ${s.border}` }}>
-                  <p className="text-[12px] leading-relaxed font-medium" style={{ color: DK.textPrimary }}>{insight}</p>
-                  <div className="h-1 rounded-full mt-2.5 overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
-                    <div className="h-full rounded-full" style={{ width: "60%", background: s.barBg }} />
+                <div key={i} className="rounded-xl p-3" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }}>
+                  <p className="text-[11px] sm:text-xs leading-snug font-semibold" style={{ color: DK.textPrimary }}>{insight}</p>
+                  <div className="h-1 rounded-full mt-2 overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
+                    <div className="h-full rounded-full" style={{ width: "55%", background: `linear-gradient(90deg, ${c}50, ${c})` }} />
                   </div>
                 </div>
               );
