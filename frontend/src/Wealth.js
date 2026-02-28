@@ -263,7 +263,7 @@ const Wealth = () => {
             {portfolioSections.map((section) => {
               const Icon = section.icon;
               return (
-                <button key={section.title} onClick={() => navigate(section.path)} className="w-full rounded-2xl p-4 shadow-card flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid={`portfolio-${section.title.toLowerCase()}`}>
+                <button key={section.title} onClick={() => navigate(section.path)} className="w-full rounded-2xl p-4 shadow-card flex items-center gap-4 hover:shadow-md transition-all active:scale-[0.99]" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid={`portfolio-${section.title.toLowerCase().replace(/\s/g, "-")}`}>
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${section.color} flex items-center justify-center shadow-lg`}>
                     <Icon className="h-6 w-6 text-white" />
                   </div>
