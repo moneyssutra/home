@@ -910,13 +910,22 @@ async def get_weekly_summary(request: Request, last: int = 8):
         lifestyle_total = 0
         wealth_total = 0
 
+        def _classify(cat_name, amount):
+            nonlocal essential_total, lifestyle_total, wealth_total
+            if cat_name in ESSENTIAL_CATS:
+                essential_total += amount
+            elif cat_name in LIFESTYLE_CATS:
+                lifestyle_total += amount
+            elif cat_name in WEALTH_CATS:
+                wealth_total += amount
+            else:
+                essential_total += amount
+
         for exp in all_expenses:
             if exp.get('linkedPaymentId'):
                 continue
             freq = exp.get('frequency', 'Monthly')
             amt = exp.get('expectedAmount', 0) or 0
-
-            if freq == 'Daily':
                 daily_amt = amt
                 for d_offset in range(7):
                     day_date = ws + timedelta(days=d_offset)
