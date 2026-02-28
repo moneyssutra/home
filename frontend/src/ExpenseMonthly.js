@@ -88,6 +88,8 @@ const ExpenseMonthly = () => {
   const months = data.months;
   const sel = months[selectedIdx] || months[months.length - 1];
   const prevMonth = selectedIdx > 0 ? months[selectedIdx - 1] : null;
+  const spentDisplay = sel.spentSoFar !== undefined ? sel.spentSoFar : sel.total;
+  const upcomingDisplay = sel.upcoming || 0;
   const remaining = Math.max(0, sel.incomeTotal - sel.total);
 
   const chartData = months.map((m, i) => ({
