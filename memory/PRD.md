@@ -13,47 +13,40 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 - Username: `test@moneyssutra.com`, Password: `test`
 
 ## Navigation & Back Buttons
-- All Wealth sub-pages (Income, Expenses, Assets, Investments, Insurance, Loans, Credit Cards, Accounts) → back to `/wealth`
-- Category/Group pages → back via `navigate(-1)` with `/my-expenses` fallback
-- Expense tabs → URL param `?tab=` preserves active tab
+- All Wealth sub-pages (Income, Expenses, Assets, Investments, Insurance, Loans, Credit Cards, Accounts) -> back to `/wealth`
+- Category/Group pages -> back via `navigate(-1)` with `/my-expenses` fallback
+- Expense tabs -> URL param `?tab=` preserves active tab
 
-## Financial Intelligence Engine (NEW Feb 28, 2026)
+## Financial Intelligence Engine (Feb 28, 2026)
 Rule-based overspend analysis — NO AI, pure math.
 
 ### Backend Endpoint: `GET /api/expenses/overspend-analysis`
 **3-Layer Trigger System:**
-1. **Budget Breach**: category spend > 3-month average
-2. **Behavioral Drift**: current > 3M avg × 1.20 (10%/20%/30% escalation levels)
-3. **Income Ratio**: lifestyle > 40% income OR lifestyle > wealth allocation
+1. Budget Breach: category spend > 3-month average
+2. Behavioral Drift: current > 3M avg x 1.20 (10%/20%/30% escalation levels)
+3. Income Ratio: lifestyle > 40% income OR lifestyle > wealth allocation
 
 **Per-Overspend Impact Calculations:**
-- Safety Impact: `overspend / daily_essential_expense` = safety days lost
-- Growth Impact: `FV = P × (1.10)^10` — conservative 10% annual return
-- Goal Impact: `overspend / goal_gap × 100`%
-
-**Monthly Structural Health:**
-- Actual vs Recommended (50/30/20) allocation ratios
-- Wealth Shift Score: alert when lifestyle drift > wealth allocation
-- Template selection: safety_growth / long_term_wealth / debt_reduction / goal_acceleration / maintain
-
-**Reallocation Suggestion:**
-- Suggests shifting 75% of L2+ overspend to wealth/goals
-- Shows safety days gained + 10yr future value
+- Safety Impact: overspend / daily_essential_expense = safety days lost
+- Growth Impact: FV = P x (1.10)^10 — conservative 10% annual return
+- Goal Impact: overspend / goal_gap x 100 %
 
 ### Frontend: `FinancialIntelligence.js`
 - Monthly Allocation bar (actual vs 50/30/20)
 - Days of Safety with Strong/Moderate/Build Up badge
 - Primary Focus advice (template-based)
-- Overspend alerts (expandable with Safety/Growth/Goal impact cards)
-- Income ratio alerts, structural alerts, wealth shift alert
-- Reallocation card with [Reallocate] / [Ignore This Month] buttons
+- Overspend alerts with Safety/Growth/Goal impact cards
 
-## Key Bug Fixes (Feb 28, 2026)
+## Bug Fixes (Feb 28, 2026)
 - Insurance page: `getNextPremiumDate` guard for invalid date values
-- All Wealth sub-page back buttons → `/wealth` (not `/home` or `/my-liabilities`)
+- All Wealth sub-page back buttons -> `/wealth`
 - ProfileMenu: consistent single initial across all pages
 - Tab persistence via URL search params
 - Auto-paid detection for current month expenses
+- Login: Read DOM values directly on form submit to handle browser autofill
+- Feb date: Cap schedule_day to days_in_month in backend and frontend
+- MyExpenses UI: Removed negative margins causing overlap between sections
+- Badges/Challenges: Show X/Y summary in accordion headers
 
 ## Prioritized Backlog
 ### P1: Cash Flow Engine - Phase 1 (Rolling Balance Engine)
