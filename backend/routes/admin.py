@@ -53,13 +53,13 @@ async def _compute_user_metrics(user_id: str, now: datetime):
         db.liquid_assets.find({"userId": user_id, "type": {"$regex": "Loan", "$options": "i"}}, {"_id": 0, "emiAmount": 1}).to_list(100),
         db.liquid_assets.find({"userId": user_id, "type": {"$nin": ["Personal Loan", "Home Loan", "Car Loan", "Education Loan", "Other Loan"]}}, {"_id": 0, "balance": 1, "amount": 1}).to_list(100),
     )
-    total_income = sum(float(i.get("expectedAmount", 0)) for i in incomes)
-    total_emi = sum(float(l.get("emiAmount", 0)) for l in loans)
-    total_assets_val = sum(float(a.get("value", 0)) for a in assets)
+    total_income = sum(float(i.get("expectedAmount", 0)) for i in inc_q)
+    total_emi = sum(float(l.get("emiAmount", 0)) for l in loan_q)
+    total_assets_val = sum(float(a.get("value", 0)) for a in asset_q)
 
     # Current month spend by group
     essential = lifestyle = wealth = 0
-    for exp in expenses:
+    for exp in exp_q:
         amt = float(exp.get("expectedAmount", 0))
         cat = exp.get("category", "Other")
         g = _classify(cat)
@@ -72,8 +72,7 @@ async def _compute_user_metrics(user_id: str, now: datetime):
 
     # Safety days
     daily_essential = essential / 30 if essential > 0 else 1
-    liquid_assets = await db.liquid_assets.find({"userId": user_id, "type": {"$nin": ["Personal Loan", "Home Loan", "Car Loan", "Education Loan", "Other Loan"]}}, {"_id": 0}).to_list(100)
-    liquid_balance = sum(float(a.get("balance", a.get("amount", 0))) for a in liquid_assets)
+    liquid_balance = sum(float(a.get("balance", a.get("amount", 0))) for a in liquid_q)
     safety_days = round(liquid_balance / daily_essential) if daily_essential > 0 else 0
 
     # Percentages
