@@ -7,7 +7,22 @@ import BackButton from "@/components/BackButton";
 import { useExpensesByMonth } from "@/hooks/useApi";
 
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+
+const DK = {
+  bg: "#0B1120",
+  card: "#111827",
+  cardBorder: "rgba(59,130,246,0.08)",
+  blue: "#3B82F6",
+  orange: "#F97316",
+  green: "#22C55E",
+  amber: "#F59E0B",
+  textPrimary: "#F1F5F9",
+  textSecondary: "#94A3B8",
+  textMuted: "#64748B",
+  barTrack: "#1E293B",
+  divider: "rgba(148,163,184,0.08)",
+};
 
 function getMonthKey(offset = 0) {
   const d = new Date();
@@ -48,11 +63,33 @@ const formatAmount = (amount) => {
   return new Intl.NumberFormat("en-IN").format(amount);
 };
 
-const STATUS_COLORS = {
-  paid: { dot: "#10B981", bg: "#D1FAE5" },
-  prepaid: { dot: "#2563EB", bg: "#DBEAFE" },
-  pending: { dot: "#F59E0B", bg: "#FEF3C7" },
-};
+// Heatmap color interpolation: blue → teal → orange → red
+function getHeatColor(value, maxValue) {
+  if (!value || !maxValue) return "transparent";
+  const ratio = Math.min(1, value / maxValue);
+  if (ratio < 0.33) {
+    // Blue range
+    const t = ratio / 0.33;
+    const r = Math.round(20 + t * 10);
+    const g = Math.round(40 + t * 50);
+    const b = Math.round(80 + t * 50);
+    return `rgba(${r}, ${g}, ${b}, 0.7)`;
+  } else if (ratio < 0.66) {
+    // Teal to orange range
+    const t = (ratio - 0.33) / 0.33;
+    const r = Math.round(30 + t * 180);
+    const g = Math.round(90 + t * 30);
+    const b = Math.round(130 - t * 80);
+    return `rgba(${r}, ${g}, ${b}, 0.8)`;
+  } else {
+    // Orange to red range
+    const t = (ratio - 0.66) / 0.34;
+    const r = Math.round(210 + t * 35);
+    const g = Math.round(120 - t * 60);
+    const b = Math.round(50 - t * 30);
+    return `rgba(${r}, ${g}, ${b}, 0.9)`;
+  }
+}
 
 const ExpenseCalendar = ({ embedded = false }) => {
   const navigate = useNavigate();
@@ -69,7 +106,6 @@ const ExpenseCalendar = ({ embedded = false }) => {
   const { data: monthExpenses = [], isLoading } = useExpensesByMonth(currentMonthKey);
   const calendarDays = useMemo(() => getCalendarDays(currentMonthKey), [currentMonthKey]);
 
-  // Map expenses to their due days
   const dayExpenseMap = useMemo(() => {
     const map = {};
     monthExpenses.forEach((exp) => {
@@ -82,106 +118,109 @@ const ExpenseCalendar = ({ embedded = false }) => {
     return map;
   }, [monthExpenses]);
 
-  // Expenses without a specific due day
   const unscheduledExpenses = useMemo(() => {
     return monthExpenses.filter((exp) => !getDueDay(exp));
   }, [monthExpenses]);
 
-  // Selected day's expenses
   const selectedExpenses = selectedDay ? (dayExpenseMap[selectedDay] || []) : [];
 
-  // Stats
   const totalForMonth = monthExpenses.reduce((s, e) => s + (e.expectedAmount || 0), 0);
   const paidForMonth = monthExpenses.filter(e => e._displayStatus === "paid" || e._displayStatus === "prepaid").reduce((s, e) => s + (e.expectedAmount || 0), 0);
 
+  // Max daily spend for heatmap scaling
+  const maxDailySpend = useMemo(() => {
+    let max = 0;
+    Object.values(dayExpenseMap).forEach(exps => {
+      const t = exps.reduce((s, e) => s + (e.expectedAmount || 0), 0);
+      if (t > max) max = t;
+    });
+    return max;
+  }, [dayExpenseMap]);
+
+  // Week stats for selected day's week
+  const weekStats = useMemo(() => {
+    if (!selectedDay) return null;
+    const [year, month] = currentMonthKey.split("-").map(Number);
+    const dayDate = new Date(year, month - 1, selectedDay);
+    const dayOfWeek = dayDate.getDay();
+    const weekStart = selectedDay - dayOfWeek;
+    let total = 0;
+    let count = 0;
+    for (let d = weekStart; d <= weekStart + 6; d++) {
+      if (dayExpenseMap[d]) {
+        total += dayExpenseMap[d].reduce((s, e) => s + (e.expectedAmount || 0), 0);
+        count += dayExpenseMap[d].length;
+      }
+    }
+    return { total, count, avgDaily: count > 0 ? Math.round(total / 7) : 0 };
+  }, [selectedDay, dayExpenseMap, currentMonthKey]);
+
   const getStatusIcon = (status) => {
     switch (status) {
-      case "paid": return <Check className="h-3 w-3" style={{ color: "#10B981" }} />;
-      case "prepaid": return <FastForward className="h-3 w-3" style={{ color: "#2563EB" }} />;
-      default: return <Clock className="h-3 w-3" style={{ color: "#F59E0B" }} />;
+      case "paid": return <Check className="h-3 w-3" style={{ color: DK.green }} />;
+      case "prepaid": return <FastForward className="h-3 w-3" style={{ color: DK.blue }} />;
+      default: return <Clock className="h-3 w-3" style={{ color: DK.amber }} />;
     }
   };
 
-  return (
-    <div className={embedded ? "" : "min-h-screen pb-32"} style={{ backgroundColor: "var(--bg-app)" }} data-testid="expense-calendar-page">
-      {/* Header - only show when standalone */}
-      {!embedded && (
-      <header className="px-6 pt-8 pb-6" style={{ background: "linear-gradient(135deg, #8B5CF6 0%, #A78BFA 50%, #C4B5FD 100%)" }}>
-        <div className="flex items-center gap-4 mb-5">
-          <BackButton fallbackPath="/my-expenses" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
-            Expense Calendar
-          </h1>
-        </div>
+  const STATUS_COLORS = {
+    paid: { dot: DK.green, bg: "rgba(34,197,94,0.12)" },
+    prepaid: { dot: DK.blue, bg: "rgba(59,130,246,0.12)" },
+    pending: { dot: DK.amber, bg: "rgba(245,158,11,0.12)" },
+  };
 
-        {/* Month Selector */}
-        <div className="flex items-center justify-between bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/20" data-testid="calendar-month-selector">
-          <button onClick={() => { setMonthOffset(p => Math.max(-2, p - 1)); setSelectedDay(null); }} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors" data-testid="cal-month-prev">
-            <ChevronLeft className="h-5 w-5 text-white" />
+  return (
+    <div className={embedded ? "" : "min-h-screen pb-32"} style={{ backgroundColor: DK.bg }} data-testid="expense-calendar-page">
+      {/* Header - standalone mode */}
+      {!embedded && (
+        <header className="px-5 pt-6 pb-4" style={{ backgroundColor: DK.bg }}>
+          <div className="flex items-center gap-3 mb-4">
+            <BackButton fallbackPath="/my-expenses" forceNavigate={true} className="text-white" />
+            <h1 className="text-xl font-bold" style={{ color: DK.textPrimary }}>Expense Calendar</h1>
+          </div>
+        </header>
+      )}
+
+      {/* Month Selector */}
+      <div className={embedded ? "px-5 pt-4 pb-2" : "px-5 pb-3"}>
+        <div className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }}>
+          <button onClick={() => { setMonthOffset(p => Math.max(-2, p - 1)); setSelectedDay(null); }} className="p-1.5 rounded-lg transition-colors" style={{ color: DK.textMuted }} data-testid="cal-month-prev">
+            <ChevronLeft className="h-4 w-4" />
           </button>
           <div className="text-center">
-            <p className="text-white font-semibold text-base" data-testid="cal-month-label">{getMonthLabel(currentMonthKey)}</p>
-            <p className="text-white/60 text-xs">{isCurrentMonth ? "Current Month" : monthOffset > 0 ? `+${monthOffset} months` : `${monthOffset} months`}</p>
+            <p className="font-bold text-sm" style={{ color: DK.textPrimary }} data-testid="cal-month-label">{getMonthLabel(currentMonthKey)}</p>
           </div>
-          <button onClick={() => { setMonthOffset(p => Math.min(3, p + 1)); setSelectedDay(null); }} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors" data-testid="cal-month-next">
-            <ChevronRight className="h-5 w-5 text-white" />
+          <button onClick={() => { setMonthOffset(p => Math.min(3, p + 1)); setSelectedDay(null); }} className="p-1.5 rounded-lg transition-colors" style={{ color: DK.textMuted }} data-testid="cal-month-next">
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
 
-        {/* Summary */}
-        <div className="mt-4 flex items-center justify-between text-sm">
+        {/* Quick Stats */}
+        <div className="flex items-center justify-between mt-2 px-1">
           <div>
-            <p className="text-white/60 text-xs">Total Expenses</p>
-            <p className="text-white font-bold text-lg">₹{formatAmount(totalForMonth)}</p>
+            <p className="text-[10px] uppercase tracking-wider" style={{ color: DK.textMuted }}>Total</p>
+            <p className="text-sm font-bold" style={{ color: DK.textPrimary }}>₹{formatAmount(totalForMonth)}</p>
           </div>
           <div className="text-right">
-            <p className="text-white/60 text-xs">Settled</p>
-            <p className="font-bold text-lg" style={{ color: "#A7F3D0" }}>₹{formatAmount(paidForMonth)}</p>
+            <p className="text-[10px] uppercase tracking-wider" style={{ color: DK.textMuted }}>Settled</p>
+            <p className="text-sm font-bold" style={{ color: DK.green }}>₹{formatAmount(paidForMonth)}</p>
           </div>
         </div>
-      </header>
-      )}
-
-      {/* Embedded month selector */}
-      {embedded && (
-        <div className="px-5 pt-4 pb-2">
-          <div className="flex items-center justify-between rounded-xl px-4 py-2.5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-            <button onClick={() => { setMonthOffset(p => Math.max(-2, p - 1)); setSelectedDay(null); }} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-              <ChevronLeft className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
-            </button>
-            <div className="text-center">
-              <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{getMonthLabel(currentMonthKey)}</p>
-            </div>
-            <button onClick={() => { setMonthOffset(p => Math.min(3, p + 1)); setSelectedDay(null); }} className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors">
-              <ChevronRight className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
-            </button>
-          </div>
-          <div className="flex items-center justify-between mt-2 px-1">
-            <div>
-              <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Total</p>
-              <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(totalForMonth)}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Settled</p>
-              <p className="text-sm font-bold" style={{ color: "#059669" }}>₹{formatAmount(paidForMonth)}</p>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Calendar Grid */}
-      <div className="px-4 -mt-3">
-        <div className="rounded-2xl p-4 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="calendar-grid">
+      <div className="px-4 mt-2">
+        <div className="rounded-2xl p-3" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }} data-testid="calendar-grid">
           {/* Day headers */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {DAY_LABELS.map(d => (
-              <div key={d} className="text-center text-[10px] font-bold uppercase py-1" style={{ color: "var(--text-muted)" }}>{d}</div>
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {DAY_LABELS.map((d, i) => (
+              <div key={`${d}-${i}`} className="text-center text-[10px] font-bold uppercase py-1" style={{ color: DK.textMuted }}>{d}</div>
             ))}
           </div>
 
-          {/* Calendar cells */}
+          {/* Calendar cells with heatmap */}
           {isLoading ? (
-            <div className="flex items-center justify-center py-12" style={{ color: "var(--text-muted)" }}>Loading...</div>
+            <div className="flex items-center justify-center py-12" style={{ color: DK.textMuted }}>Loading...</div>
           ) : (
             <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((day, idx) => {
@@ -191,34 +230,27 @@ const ExpenseCalendar = ({ embedded = false }) => {
                 const isToday = isCurrentMonth && day === todayDay;
                 const isSelected = day === selectedDay;
                 const dayTotal = expenses.reduce((s, e) => s + (e.expectedAmount || 0), 0);
-                const allPaid = expenses.length > 0 && expenses.every(e => e._displayStatus === "paid" || e._displayStatus === "prepaid");
-                const hasPending = expenses.some(e => e._displayStatus === "pending");
+                const heatBg = hasExpenses ? getHeatColor(dayTotal, maxDailySpend) : "transparent";
 
                 return (
                   <button
                     key={day}
                     onClick={() => setSelectedDay(isSelected ? null : day)}
-                    className="relative flex flex-col items-center rounded-xl p-1 min-h-[56px] transition-all"
+                    className="relative flex flex-col items-center justify-center rounded-lg min-h-[52px] transition-all"
                     style={{
-                      backgroundColor: isSelected ? "var(--brand-primary)" : isToday ? "var(--brand-primary-soft)" : hasExpenses ? "var(--bg-subtle)" : "transparent",
-                      border: isToday && !isSelected ? "2px solid var(--brand-primary)" : "2px solid transparent",
+                      backgroundColor: isSelected ? DK.blue : heatBg,
+                      border: isToday && !isSelected ? `1.5px solid ${DK.blue}` : "1.5px solid transparent",
+                      boxShadow: isSelected ? `0 0 12px rgba(59,130,246,0.3)` : "none",
                     }}
                     data-testid={`cal-day-${day}`}
                   >
-                    <span className="text-xs font-semibold" style={{ color: isSelected ? "white" : isToday ? "var(--brand-primary)" : "var(--text-primary)" }}>
+                    <span className="text-[11px] font-semibold" style={{ color: isSelected ? "#fff" : isToday ? DK.blue : hasExpenses ? "#E2E8F0" : DK.textMuted }}>
                       {day}
                     </span>
                     {hasExpenses && (
-                      <>
-                        <div className="flex gap-0.5 mt-0.5">
-                          {allPaid && <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#10B981" }} />}
-                          {hasPending && <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#F59E0B" }} />}
-                          {!allPaid && !hasPending && <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#2563EB" }} />}
-                        </div>
-                        <span className="text-[8px] font-bold mt-0.5" style={{ color: isSelected ? "white" : "var(--text-muted)" }}>
-                          ₹{dayTotal >= 1000 ? `${(dayTotal / 1000).toFixed(0)}K` : dayTotal}
-                        </span>
-                      </>
+                      <span className="text-[8px] font-bold mt-0.5" style={{ color: isSelected ? "rgba(255,255,255,0.9)" : "#E2E8F0" }}>
+                        ₹{formatAmount(dayTotal)}
+                      </span>
                     )}
                   </button>
                 );
@@ -226,110 +258,107 @@ const ExpenseCalendar = ({ embedded = false }) => {
             </div>
           )}
 
-          {/* Legend */}
-          <div className="flex items-center gap-4 mt-3 pt-3 border-t" style={{ borderColor: "var(--border-light)" }}>
-            {[
-              { label: "Paid", color: "#10B981" },
-              { label: "Pending", color: "#F59E0B" },
-              { label: "Prepaid", color: "#2563EB" },
-            ].map(({ label, color }) => (
-              <div key={label} className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-                <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>{label}</span>
-              </div>
-            ))}
+          {/* Heatmap Legend */}
+          <div className="mt-3 pt-2 flex items-center justify-between" style={{ borderTop: `1px solid ${DK.divider}` }}>
+            <span className="text-[9px]" style={{ color: DK.textMuted }}>₹0</span>
+            <div className="flex-1 mx-2 h-2 rounded-full overflow-hidden flex">
+              <div className="flex-1" style={{ background: "linear-gradient(90deg, rgba(20,40,80,0.7), rgba(30,90,130,0.8), rgba(210,120,50,0.8), rgba(245,60,20,0.9))" }} />
+            </div>
+            <span className="text-[9px]" style={{ color: DK.textMuted }}>₹{formatAmount(maxDailySpend)}</span>
           </div>
         </div>
       </div>
 
-      {/* Selected Day Detail */}
-      {selectedDay && (
-        <div className="px-4 mt-4" data-testid="selected-day-detail">
-          <h3 className="text-sm font-bold mb-2 px-1" style={{ color: "var(--text-primary)" }}>
-            {getMonthLabel(currentMonthKey).split(" ")[0]} {selectedDay}
-            <span className="font-normal ml-2" style={{ color: "var(--text-muted)" }}>
-              {selectedExpenses.length} expense{selectedExpenses.length !== 1 ? "s" : ""}
-            </span>
-          </h3>
-
-          {selectedExpenses.length === 0 ? (
-            <div className="rounded-xl p-6 text-center" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-              <CalendarDays className="h-8 w-8 mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>No expenses due on this date</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {selectedExpenses.map(exp => {
-                const status = exp._displayStatus || "pending";
-                const sc = STATUS_COLORS[status] || STATUS_COLORS.pending;
-                return (
-                  <button
-                    key={exp.id}
-                    onClick={() => navigate(`/expense/${exp.id}`)}
-                    className="w-full flex items-center gap-3 rounded-xl p-3 transition-all"
-                    style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-                    data-testid={`cal-expense-${exp.id}`}
-                  >
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: sc.bg }}>
-                      {getStatusIcon(status)}
-                    </div>
-                    <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>{exp.expenseName}</p>
-                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>{exp.category} · {exp.frequency}</p>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-sm font-bold" style={{ color: status === "pending" ? "var(--text-primary)" : sc.dot }}>
-                        ₹{formatAmount(exp.expectedAmount)}
-                      </p>
-                      <p className="text-[10px] capitalize" style={{ color: sc.dot }}>{status === "prepaid" ? "Paid Early" : status}</p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+      {/* Week Stats */}
+      {weekStats && selectedDay && (
+        <div className="px-4 mt-3">
+          <div className="flex items-center justify-center gap-4 py-2 rounded-xl" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }}>
+            <p className="text-xs" style={{ color: DK.textSecondary }}>
+              Week Total: <span className="font-bold" style={{ color: DK.textPrimary }}>₹{formatAmount(weekStats.total)}</span>
+            </p>
+            <div className="w-px h-4" style={{ backgroundColor: DK.divider }} />
+            <p className="text-xs" style={{ color: DK.textSecondary }}>
+              Avg Daily: <span className="font-bold" style={{ color: DK.textPrimary }}>₹{formatAmount(weekStats.avgDaily)}</span>
+            </p>
+          </div>
         </div>
       )}
 
-      {/* Unscheduled Expenses */}
-      {unscheduledExpenses.length > 0 && (
-        <div className="px-4 mt-4" data-testid="unscheduled-expenses">
-          <h3 className="text-sm font-bold mb-2 px-1" style={{ color: "var(--text-primary)" }}>
-            No Specific Date
-            <span className="font-normal ml-2" style={{ color: "var(--text-muted)" }}>{unscheduledExpenses.length} expenses</span>
-          </h3>
-          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+      {/* Selected Day Detail */}
+      {selectedDay && (
+        <div className="px-4 mt-3" data-testid="selected-day-detail">
+          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }}>
+            <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: `1px solid ${DK.divider}` }}>
+              <h3 className="text-sm font-bold" style={{ color: DK.textPrimary }}>
+                {getMonthLabel(currentMonthKey).split(" ")[0]} {selectedDay}
+              </h3>
+              <span className="text-xs px-2 py-0.5 rounded-md" style={{ backgroundColor: DK.barTrack, color: DK.textMuted }}>
+                {selectedExpenses.length} expense{selectedExpenses.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+
+            {selectedExpenses.length === 0 ? (
+              <div className="p-6 text-center">
+                <CalendarDays className="h-7 w-7 mx-auto mb-2" style={{ color: DK.textMuted }} />
+                <p className="text-xs" style={{ color: DK.textMuted }}>No expenses due</p>
+              </div>
+            ) : (
+              <div>
+                {selectedExpenses.map((exp, i) => {
+                  const status = exp._displayStatus || "pending";
+                  const sc = STATUS_COLORS[status] || STATUS_COLORS.pending;
+                  const catColors = { "Housing": DK.blue, "Utilities": DK.amber, "Food": DK.green, "Travel": "#8B5CF6", "Shopping": DK.orange, "Medical": "#EF4444", "EMI": "#F97316", "Investments": "#22C55E", "Insurance": "#06B6D4" };
+                  const catColor = catColors[exp.category] || DK.blue;
+                  const expTotal = selectedExpenses.reduce((s, e) => s + (e.expectedAmount || 0), 0);
+                  const pct = expTotal > 0 ? Math.round(exp.expectedAmount / expTotal * 100) : 0;
+
+                  return (
+                    <button
+                      key={exp.id}
+                      onClick={() => navigate(`/expense/${exp.id}`)}
+                      className="w-full flex items-center gap-3 px-4 py-3 transition-all hover:bg-white/5"
+                      style={{ borderTop: i > 0 ? `1px solid ${DK.divider}` : "none" }}
+                      data-testid={`cal-expense-${exp.id}`}
+                    >
+                      <div className="w-2 h-8 rounded-full" style={{ backgroundColor: catColor }} />
+                      <div className="flex-1 text-left min-w-0">
+                        <p className="text-sm font-medium truncate" style={{ color: DK.textPrimary }}>{exp.expenseName}</p>
+                        <p className="text-[10px]" style={{ color: DK.textMuted }}>{exp.category}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-16 h-2 rounded-full overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${catColor}, ${catColor}dd)` }} />
+                        </div>
+                        <p className="text-sm font-bold w-16 text-right" style={{ color: DK.textPrimary }}>₹{formatAmount(exp.expectedAmount)}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Unscheduled */}
+      {unscheduledExpenses.length > 0 && !selectedDay && (
+        <div className="px-4 mt-3" data-testid="unscheduled-expenses">
+          <p className="text-xs font-semibold uppercase tracking-wider mb-2 px-1" style={{ color: DK.textMuted }}>No Specific Date</p>
+          <div className="rounded-xl overflow-hidden" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }}>
             {unscheduledExpenses.map((exp, i) => {
               const status = exp._displayStatus || "pending";
               const sc = STATUS_COLORS[status] || STATUS_COLORS.pending;
               return (
-                <div
-                  key={exp.id}
-                  className="flex items-center gap-3 px-4 py-3"
-                  style={{ borderTop: i > 0 ? "1px solid var(--border-light)" : "none" }}
-                >
+                <div key={exp.id} className="flex items-center gap-3 px-4 py-2.5" style={{ borderTop: i > 0 ? `1px solid ${DK.divider}` : "none" }}>
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: sc.dot }} />
-                  <p className="flex-1 text-sm truncate" style={{ color: "var(--text-primary)" }}>{exp.expenseName}</p>
-                  <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>₹{formatAmount(exp.expectedAmount)}</p>
+                  <p className="flex-1 text-xs truncate" style={{ color: DK.textSecondary }}>{exp.expenseName}</p>
+                  <p className="text-xs font-semibold" style={{ color: DK.textPrimary }}>₹{formatAmount(exp.expectedAmount)}</p>
                 </div>
               );
             })}
           </div>
         </div>
       )}
-
-      {/* Link back */}
-      <div className="px-4 mt-6">
-        <button
-          onClick={() => navigate("/my-expenses")}
-          className="w-full flex items-center justify-center gap-2 rounded-xl py-3 text-sm font-medium transition-all"
-          style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-secondary)", border: "1px solid var(--border-light)" }}
-          data-testid="back-to-list-btn"
-        >
-          <Receipt className="h-4 w-4" />
-          View as List
-        </button>
-      </div>
 
       {!embedded && <BottomNav onAddClick={() => setShowAddSheet(true)} />}
       {!embedded && <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />}
