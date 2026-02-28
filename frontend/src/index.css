@@ -4,6 +4,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fix Recharts focus/selection outlines */
+.recharts-surface:focus,
+.recharts-wrapper:focus,
+.recharts-surface:focus-visible,
+.recharts-wrapper:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.recharts-wrapper svg {
+  outline: none !important;
+}
+
+
 /* MONEYSSUTRA COLOR TOKEN SYSTEM - LIGHT THEME */
 :root {
     /* Brand Colors */
