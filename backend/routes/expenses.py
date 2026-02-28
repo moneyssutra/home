@@ -926,6 +926,8 @@ async def get_weekly_summary(request: Request, last: int = 8):
                 continue
             freq = exp.get('frequency', 'Monthly')
             amt = exp.get('expectedAmount', 0) or 0
+
+            if freq == 'Daily':
                 daily_amt = amt
                 for d_offset in range(7):
                     day_date = ws + timedelta(days=d_offset)
