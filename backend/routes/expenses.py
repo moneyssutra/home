@@ -977,6 +977,7 @@ async def get_weekly_summary(request: Request, last: int = 8):
                                     weekday_total += amt
                                 cat = exp.get('category', 'Other')
                                 categories[cat] = categories.get(cat, 0) + amt
+                                _classify(cat, amt)
                                 break
                     except (ValueError, TypeError):
                         pass
