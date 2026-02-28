@@ -664,7 +664,6 @@ async def get_monthly_summary(request: Request, last: int = 6):
         lowest_idx = totals.index(min(totals))
         month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         h_m = int(result[highest_idx]["month"].split("-")[1])
-        l_m = int(result[lowest_idx]["month"].split("-")[1])
         insights.append(f"Highest month: {month_names[h_m - 1]} (₹{max(totals):,.0f})")
 
     # Lifestyle % check
