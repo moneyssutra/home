@@ -4,6 +4,8 @@ import AddActionSheet from "@/components/AddActionSheet";
 import ShareScoreCard from "@/components/ShareScoreCard";
 import RunwaySimulator from "@/components/RunwaySimulator";
 import MoneyPatternWidget from "@/components/MoneyPatternWidget";
+import NotificationBell from "@/components/NotificationBell";
+import ProfileMenu from "@/components/ProfileMenu";
 import { useState, useEffect } from "react";
 import { useIntelligenceData } from "@/hooks/useIntelligenceData";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
