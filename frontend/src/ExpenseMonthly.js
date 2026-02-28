@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import { TrendingUp, TrendingDown, Lightbulb, ChevronLeft, ChevronRight, Zap } from "lucide-react";
+import { TrendingUp, TrendingDown, ChevronLeft, ChevronRight, Zap, Calendar, Briefcase, Scale, Clock, AlertTriangle, ArrowUpRight, Rocket, Shield, AlertCircle, PiggyBank, Brain } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 const API = process.env.REACT_APP_BACKEND_URL;
