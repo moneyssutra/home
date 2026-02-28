@@ -346,6 +346,10 @@ async def get_monthly_summary(request: Request, last: int = 6):
     income_sources = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
 
     now = get_user_now(request)
+    months = []
+    for i in range(last - 1, -1, -1):
+        y = now.year
+        m = now.month - i
         while m <= 0:
             m += 12
             y -= 1
