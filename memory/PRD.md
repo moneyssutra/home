@@ -12,68 +12,48 @@ MoneySSutra is a sophisticated personal finance application — a "Financial Con
 ## Test Credentials
 - Username: `test@moneyssutra.com`, Password: `test`
 
-## Navigation Structure
-```
-Home | Wealth | + | Health | Goals
-```
+## Navigation & Back Buttons
+- All Wealth sub-pages (Income, Expenses, Assets, Investments, Insurance, Loans, Credit Cards, Accounts) → back to `/wealth`
+- Category/Group pages → back via `navigate(-1)` with `/my-expenses` fallback
+- Expense tabs → URL param `?tab=` preserves active tab
 
-## My Expenses Page (`/my-expenses`)
-Tabbed interface with URL persistence: **List** (`?tab=list`) | **Daily** (`?tab=daily`) | **Weekly** (`?tab=weekly`) | **Monthly** (`?tab=monthly`)
+## Financial Intelligence Engine (NEW Feb 28, 2026)
+Rule-based overspend analysis — NO AI, pure math.
 
-### List Tab
-- Auto-paid detection: expenses due before today show as "Paid" in current month
-- Paid/Prepaid vs Pending summary with percentage
+### Backend Endpoint: `GET /api/expenses/overspend-analysis`
+**3-Layer Trigger System:**
+1. **Budget Breach**: category spend > 3-month average
+2. **Behavioral Drift**: current > 3M avg × 1.20 (10%/20%/30% escalation levels)
+3. **Income Ratio**: lifestyle > 40% income OR lifestyle > wealth allocation
 
-### Daily Tab
-- Calendar heatmap, week stats, selected day detail
-- **Categories clickable** → navigate to `/expenses/:category`
+**Per-Overspend Impact Calculations:**
+- Safety Impact: `overspend / daily_essential_expense` = safety days lost
+- Growth Impact: `FV = P × (1.10)^10` — conservative 10% annual return
+- Goal Impact: `overspend / goal_gap × 100`%
 
-### Weekly Tab (Redesigned)
-- Week selector pills at top, summary card with budget bar (Essential/Lifestyle/Wealth)
-- Expense Breakdown: 3 clickable cards → navigate to group pages
-- Day-by-day bars, categories (clickable), 8-week trend, behavior insights
+**Monthly Structural Health:**
+- Actual vs Recommended (50/30/20) allocation ratios
+- Wealth Shift Score: alert when lifestyle drift > wealth allocation
+- Template selection: safety_growth / long_term_wealth / debt_reduction / goal_acceleration / maintain
 
-### Monthly Tab
-- **Month selector pills at top** (6 months, clickable)
-- Summary card, Expense Breakdown (clickable → group pages)
-- 6-month trend chart, **Top Categories clickable** → `/expenses/:category`
-- Spending insights, behavior patterns
+**Reallocation Suggestion:**
+- Suggests shifting 75% of L2+ overspend to wealth/goals
+- Shows safety days gained + 10yr future value
 
-## Expense Group Pages (`/expenses/group/:group`)
-Routes: `/expenses/group/essential`, `/expenses/group/lifestyle`, `/expenses/group/wealth-building`
-- Colored header, categories with expenses listed (first 3 shown)
-- **"View all X expenses" expands inline** (toggle, no page navigation)
-- Smart back button (navigate(-1) with /my-expenses fallback)
+### Frontend: `FinancialIntelligence.js`
+- Monthly Allocation bar (actual vs 50/30/20)
+- Days of Safety with Strong/Moderate/Build Up badge
+- Primary Focus advice (template-based)
+- Overspend alerts (expandable with Safety/Growth/Goal impact cards)
+- Income ratio alerts, structural alerts, wealth shift alert
+- Reallocation card with [Reallocate] / [Ignore This Month] buttons
 
-### Category Mapping
-- **Essential**: Housing, Utilities, Food, Medical, Education, Insurance, EMI
-- **Lifestyle**: Travel, Shopping, Subscriptions, Business Expense, Salary Paid
-- **Wealth Building**: Investments, Savings
-
-## Key Fixes
-- ProfileMenu: single initial (e.g., "R") consistent across all 4 main pages
-- Health page header: removed `overflow-hidden` so dropdown isn't cut off
-- My Income: "Other" category now navigates to `/my-other-income`
-- Tab persistence: URL search params preserve active tab across navigation
-
-## Key API Endpoints
-- `GET /api/expenses/by-month?month=YYYY-MM` — with auto-paid status detection
-- `GET /api/expenses/weekly-summary?last=8` — includes essential/lifestyle/wealth
-- `GET /api/expenses/monthly-summary?last=6` — with essential/lifestyle/wealth
-- `GET /api/expenses/behavior-insights`
-- `GET /api/dashboard/networth`, `/api/income`, `/assets`, `/investments`, `/loans`
-
-## Completed Features
-- [Feb 28, 2026] Fix: ProfileMenu dropdown cut off on Health page
-- [Feb 28, 2026] Fix: Consistent single-letter avatar initial across all pages
-- [Feb 28, 2026] Fix: "Other" clickable in My Income → /my-other-income
-- [Feb 28, 2026] Fix: Back button preserves active tab (Monthly/Weekly/Daily)
-- [Feb 28, 2026] Feature: Categories clickable in Daily & Weekly tabs
-- [Feb 28, 2026] Feature: Inline expand for "View all X expenses" in group pages
-- [Feb 28, 2026] Fix: Auto-paid status for expenses past due date
-- [Feb 28, 2026] Weekly tab redesigned (week pills, Expense Breakdown, budget bar)
-- [Feb 28, 2026] Monthly tab: month pills moved to top, categories clickable
-- [Feb 28, 2026] Expense Group pages (Essential, Lifestyle, Wealth Building)
+## Key Bug Fixes (Feb 28, 2026)
+- Insurance page: `getNextPremiumDate` guard for invalid date values
+- All Wealth sub-page back buttons → `/wealth` (not `/home` or `/my-liabilities`)
+- ProfileMenu: consistent single initial across all pages
+- Tab persistence via URL search params
+- Auto-paid detection for current month expenses
 
 ## Prioritized Backlog
 ### P1: Cash Flow Engine - Phase 1 (Rolling Balance Engine)
@@ -82,5 +62,5 @@ Routes: `/expenses/group/essential`, `/expenses/group/lifestyle`, `/expenses/gro
 ### P2: Financial Command Center enhancements
 ### P2: Decision Impact Engine (financial simulation)
 
-## Mocked: 2FA and Biometric Login toggles (UI only)
+## Mocked: 2FA and Biometric Login toggles (UI only), Reallocate/Ignore buttons (UI only)
 ## 3rd Party: openpyxl, recharts, reportlab, @dnd-kit/core, Emergent Google Auth, OpenAI GPT-5.2, MongoDB Atlas
