@@ -34,7 +34,7 @@ const IncomeReceived = () => {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true });
+        const res = await axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
         setItems(res.data.incomeReceivedList || []);
         setTotal(res.data.incomeReceived || 0);
       } catch {}

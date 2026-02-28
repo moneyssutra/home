@@ -23,7 +23,7 @@ const UpcomingExpenses = () => {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true });
+        const res = await axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
         setItems((res.data.upcomingExpensesList || []).sort((a, b) => a.scheduleDay - b.scheduleDay));
         setTotal(res.data.upcomingExpenses || 0);
       } catch {}

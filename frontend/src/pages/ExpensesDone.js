@@ -23,7 +23,7 @@ const ExpensesDone = () => {
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await axios.get(`${backendUrl}/api/dashboard/networth`, { withCredentials: true });
+        const res = await axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
         setItems(res.data.expensesDoneList || []);
         setTotal(res.data.expensesDone || 0);
       } catch {}
