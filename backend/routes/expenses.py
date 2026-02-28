@@ -286,6 +286,12 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
         for rec in prepaid_records:
             prepaid_map[rec.get("linkedPaymentId")] = True
 
+    # Determine if this is the current month
+    now = datetime.now(timezone.utc)
+    current_month_key = f"{now.year}-{now.month:02d}"
+    is_current_month = (target_month == current_month_key)
+    today_day = now.day
+
     for exp in result:
         if not exp.get('_displayStatus'):
             exp_id = exp.get('id')
@@ -293,6 +299,19 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
                 exp['_displayStatus'] = 'prepaid'
             elif exp.get('isPaid') and exp.get('lastPaidDate', '')[:7] == target_month:
                 exp['_displayStatus'] = 'paid'
+            elif is_current_month:
+                # Auto-mark as paid if due date has passed in the current month
+                due_day = None
+                sd = exp.get('selectedDate')
+                if sd:
+                    try:
+                        due_day = int(sd)
+                    except (ValueError, TypeError):
+                        pass
+                if due_day and due_day <= today_day:
+                    exp['_displayStatus'] = 'paid'
+                else:
+                    exp['_displayStatus'] = 'pending'
             else:
                 exp['_displayStatus'] = 'pending'
 
