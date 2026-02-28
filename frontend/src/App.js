@@ -14,6 +14,12 @@ import Login from "@/pages/Login";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 
+// Admin Pages
+import AdminLayout from "@/pages/admin/AdminLayout";
+import CommandCenter from "@/pages/admin/CommandCenter";
+import UserIntelligence from "@/pages/admin/UserIntelligence";
+import RiskRadar from "@/pages/admin/RiskRadar";
+
 // Pages
 import Dashboard from "@/Dashboard";
 import Welcome from "@/Welcome";
@@ -254,6 +260,13 @@ function AppRouter() {
       
       {/* Workspace Settings */}
       <Route path="/workspace-settings" element={<ProtectedRoute><WorkspaceSettings /></ProtectedRoute>} />
+
+      {/* Admin Command Center */}
+      <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+        <Route index element={<CommandCenter />} />
+        <Route path="users" element={<UserIntelligence />} />
+        <Route path="risk" element={<RiskRadar />} />
+      </Route>
     </Routes>
   );
 }
