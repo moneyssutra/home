@@ -106,13 +106,12 @@ const ExpenseCalendar = ({ embedded = false }) => {
   const isCurrentMonth = currentMonthKey === todayMonthKey;
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
     setIsLoading(true);
-    axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/expenses/by-month?month=${currentMonthKey}`, { withCredentials: true })
-      .then(res => { if (!cancelled) setMonthExpenses(res.data || []); })
-      .catch(() => { if (!cancelled) setMonthExpenses([]); })
-      .finally(() => { if (!cancelled) setIsLoading(false); });
-    return () => { cancelled = true; };
+    axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/expenses/by-month?month=${currentMonthKey}`, { withCredentials: true, signal: controller.signal })
+      .then(res => { setMonthExpenses(res.data || []); setIsLoading(false); })
+      .catch(err => { if (!controller.signal.aborted) { setMonthExpenses([]); setIsLoading(false); } });
+    return () => controller.abort();
   }, [currentMonthKey]);
   const calendarDays = useMemo(() => getCalendarDays(currentMonthKey), [currentMonthKey]);
 
