@@ -33,6 +33,7 @@ const MyExpenses = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [monthOffset, setMonthOffset] = useState(0);
   const [actionLoading, setActionLoading] = useState(null);
+  const [activeView, setActiveView] = useState("list");
 
   const currentMonthKey = getMonthKey(monthOffset);
   const isCurrentMonth = monthOffset === 0;
