@@ -270,16 +270,9 @@ const MyIncome = () => {
     return { received: monthlyAmount, pending: 0 };
   };
 
-  const { receivedIncome, pendingIncome } = incomes.reduce(
-    (acc, inc) => {
-      const { received, pending } = getReceivedAndPending(inc);
-      return {
-        receivedIncome: acc.receivedIncome + received,
-        pendingIncome: acc.pendingIncome + pending
-      };
-    },
-    { receivedIncome: 0, pendingIncome: 0 }
-  );
+  // Use backend-calculated received/pending for consistency with dashboard
+  const receivedIncome = incomeSummary?.receivedIncome || 0;
+  const pendingIncome = incomeSummary?.pendingIncome || 0;
 
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-income-page">
