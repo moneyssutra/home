@@ -205,17 +205,17 @@ const MyExpenses = () => {
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-expenses-page">
       {/* Header */}
-      <header className="px-6 pt-8 pb-4" style={{ background: "linear-gradient(135deg, #0D9488 0%, #14B8A6 40%, #06B6D4 100%)" }}>
-        <div className="flex items-center gap-4 mb-4">
+      <header className="px-4 sm:px-6 pt-6 sm:pt-8 pb-3 sm:pb-4" style={{ background: "linear-gradient(135deg, #0D9488 0%, #14B8A6 40%, #06B6D4 100%)" }}>
+        <div className="flex items-center gap-3 mb-3">
           <button
             type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-full transition-colors bg-white/20 border border-white/30 text-white hover:bg-white/30"
+            className="flex h-9 w-9 items-center justify-center rounded-full transition-colors bg-white/20 border border-white/30 text-white hover:bg-white/30"
             onClick={() => activeView !== "list" ? setActiveView("list") : navigate("/")}
             data-testid="back-button"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+          <h1 className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             My Expenses
           </h1>
         </div>
@@ -231,7 +231,7 @@ const MyExpenses = () => {
             <button
               key={id}
               onClick={() => setActiveView(id)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold transition-all"
+              className="flex-1 flex items-center justify-center gap-1 py-2 px-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all"
               style={{
                 backgroundColor: activeView === id ? "rgba(255,255,255,0.95)" : "transparent",
                 color: activeView === id ? "#0D9488" : "rgba(255,255,255,0.8)",
@@ -239,8 +239,8 @@ const MyExpenses = () => {
               }}
               data-testid={`view-toggle-${id}`}
             >
-              <Icon className="h-3.5 w-3.5" />
-              <span>{label}</span>
+              <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className="truncate">{label}</span>
             </button>
           ))}
         </div>
