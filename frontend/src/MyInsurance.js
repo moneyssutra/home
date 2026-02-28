@@ -62,6 +62,8 @@ const MyInsurance = () => {
     }
     
     const baseDate = new Date(insurance.premiumPaymentDate);
+    if (isNaN(baseDate.getTime())) return null;
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
