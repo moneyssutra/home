@@ -229,6 +229,10 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
     if not verify_password(request.password, user.get("password_hash", "")):
         raise HTTPException(status_code=401, detail="Invalid email/mobile or password")
 
+    # Seed test data if this is the test account
+    if user.get("email", "").lower() == "test@moneyssutra.com":
+        await _seed_test_account(user["user_id"])
+
     session_token = str(uuid.uuid4())
     session_days = 30 if request.remember_me else 7
     expires_at = datetime.now(timezone.utc) + timedelta(days=session_days)
