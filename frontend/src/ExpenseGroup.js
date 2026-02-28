@@ -101,7 +101,7 @@ const ExpenseGroup = () => {
       <header className="px-4 sm:px-6 pt-6 sm:pt-8 pb-5" style={{ background: `linear-gradient(135deg, ${config.color}DD, ${config.color})` }}>
         <div className="flex items-center gap-3 mb-3">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => window.history.length > 2 ? navigate(-1) : navigate("/my-expenses")}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 border border-white/30 text-white hover:bg-white/30 transition-colors"
             data-testid="back-button"
           >
