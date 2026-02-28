@@ -46,7 +46,7 @@ const Wealth = () => {
         axios.get(`${API}/api/insurances`, { withCredentials: true }),
         axios.get(`${API}/api/accounts`, { withCredentials: true }),
         axios.get(`${API}/api/credit-cards`, { withCredentials: true }),
-        axios.get(`${API}/api/income-sources`, { withCredentials: true }),
+        axios.get(`${API}/api/income`, { withCredentials: true }),
         axios.get(`${API}/api/expenses/by-month?month=${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`, { withCredentials: true }),
       ]);
       const nw = nwRes.data;
