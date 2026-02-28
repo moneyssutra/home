@@ -26,8 +26,16 @@ const MyIncome = () => {
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
+
+  // Fetch received/pending from backend (same logic as dashboard for consistency)
+  const tzOffset = new Date().getTimezoneOffset();
+  const { data: incomeSummary, isLoading: summaryLoading } = useSWR(
+    `${backendUrl}/api/income/monthly-summary?tz_offset=${tzOffset}`,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 60000 }
+  );
   
-  const loading = incomeLoading || otherLoading;
+  const loading = incomeLoading || otherLoading || summaryLoading;
 
   const formatAmount = (amount) => {
     if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
