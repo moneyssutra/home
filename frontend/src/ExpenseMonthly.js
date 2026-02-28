@@ -348,6 +348,11 @@ const ExpenseMonthly = () => {
         </div>
       </div>
 
+      {/* Financial Intelligence Engine */}
+      <div className="px-4 mb-3">
+        <FinancialIntelligence />
+      </div>
+
     </div>
   );
 };
