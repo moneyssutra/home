@@ -48,15 +48,15 @@ const ProfileMenu = ({ userName: propName, userPicture: propPicture }) => {
         className="flex items-center justify-center w-9 h-9 rounded-full overflow-hidden transition-all hover:ring-2 hover:ring-white/30 active:scale-95"
         data-testid="profile-menu-button"
       >
-        {userPicture ? (
+        {resolvedPicture ? (
           <img 
-            src={userPicture} 
-            alt={userName || "User"} 
+            src={resolvedPicture} 
+            alt={resolvedName || "User"} 
             className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full bg-white/20 flex items-center justify-center text-white text-sm font-semibold">
-            {getInitials(userName)}
+            {getInitials(resolvedName)}
           </div>
         )}
       </button>
@@ -76,7 +76,7 @@ const ProfileMenu = ({ userName: propName, userPicture: propPicture }) => {
           {/* User Info Header */}
           <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
             <p className="text-sm font-semibold text-gray-900 truncate">
-              {userName || "User"}
+              {resolvedName || "User"}
             </p>
             <p className="text-xs text-gray-500 truncate">
               Manage your account
