@@ -345,8 +345,7 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
               <div>
                 {selectedExpenses.map((exp, i) => {
                   const status = exp._displayStatus || "pending";
-                  const sc = STATUS_COLORS[status] || STATUS_COLORS.pending;
-                  const catColors = { "Housing": DK.blue, "Utilities": DK.amber, "Food": DK.green, "Travel": "#8B5CF6", "Shopping": DK.orange, "Medical": "#EF4444", "EMI": "#F97316", "Investments": "#22C55E", "Insurance": "#06B6D4" };
+                  const catColors = { "Housing": "#3B82F6", "Utilities": "#F59E0B", "Food": "#22C55E", "Travel": "#8B5CF6", "Shopping": "#FB923C", "Medical": "#EF4444", "EMI": "#F97316", "Investments": "#22C55E", "Insurance": "#06B6D4" };
                   const catColor = catColors[exp.category] || DK.blue;
                   const expTotal = selectedExpenses.reduce((s, e) => s + (e.expectedAmount || 0), 0);
                   const pct = expTotal > 0 ? Math.round(exp.expectedAmount / expTotal * 100) : 0;
@@ -359,22 +358,49 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
                       style={{ borderTop: i > 0 ? `1px solid ${DK.divider}` : "none" }}
                       data-testid={`cal-expense-${exp.id}`}
                     >
-                      <div className="w-2 h-8 rounded-full" style={{ backgroundColor: catColor }} />
+                      <div className="w-1.5 self-stretch rounded-full" style={{ backgroundColor: catColor }} />
                       <div className="flex-1 text-left min-w-0">
                         <p className="text-sm font-medium truncate" style={{ color: DK.textPrimary }}>{exp.expenseName}</p>
-                        <p className="text-[10px]" style={{ color: DK.textMuted }}>{exp.category}</p>
+                        <p className="text-[10px] font-medium" style={{ color: DK.textSecondary }}>{exp.category}</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-2 rounded-full overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
-                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${catColor}, ${catColor}dd)` }} />
-                        </div>
-                        <p className="text-sm font-bold w-16 text-right" style={{ color: DK.textPrimary }}>₹{formatAmount(exp.expectedAmount)}</p>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <p className="text-sm font-bold" style={{ color: DK.textPrimary }}>₹{formatAmount(exp.expectedAmount)}</p>
                       </div>
                     </button>
                   );
                 })}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Monthly Categories */}
+      {categorySummary.length > 0 && (
+        <div className="px-4 mt-3" data-testid="daily-categories">
+          <div className="rounded-2xl p-4" style={{ backgroundColor: DK.card, border: `1px solid ${DK.cardBorder}` }}>
+            <h3 className="text-sm font-bold mb-3" style={{ color: DK.textPrimary }}>Categories — {getMonthLabel(currentMonthKey).split(" ")[0]}</h3>
+            <div className="space-y-2">
+              {categorySummary.slice(0, 6).map((c, i) => {
+                const catColors = ["#3B82F6", "#F97316", "#22C55E", "#F59E0B", "#06B6D4", "#8B5CF6"];
+                const color = catColors[i % catColors.length];
+                const pct = totalForMonth > 0 ? Math.round(c.amount / totalForMonth * 100) : 0;
+                return (
+                  <button key={c.category} className="w-full text-left" data-testid={`daily-cat-${c.category}`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                        <span className="text-xs font-medium" style={{ color: DK.textSecondary }}>{c.category}</span>
+                      </div>
+                      <span className="text-xs font-bold" style={{ color: DK.textPrimary }}>₹{formatAmount(c.amount)} <span style={{ color: DK.textMuted, fontWeight: 400 }}>({pct}%)</span></span>
+                    </div>
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}60, ${color})` }} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
