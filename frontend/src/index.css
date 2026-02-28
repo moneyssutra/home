@@ -22,6 +22,11 @@
 .recharts-wrapper svg:focus-visible,
 .recharts-wrapper svg:active,
 .recharts-surface:focus,
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 .recharts-surface:focus-visible {
   outline: none !important;
   outline-offset: 0 !important;
