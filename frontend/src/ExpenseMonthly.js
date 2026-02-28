@@ -244,7 +244,7 @@ const ExpenseMonthly = () => {
                 const pct = sel.total > 0 ? Math.round(c.amount / sel.total * 100) : 0;
                 const color = catColors[i % catColors.length];
                 return (
-                  <div key={c.category}>
+                  <button key={c.category} onClick={() => navigate(`/expenses/${c.category.toLowerCase().replace(/\s+/g, "-")}`)} className="w-full text-left" data-testid={`top-cat-${c.category}`}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
@@ -255,7 +255,7 @@ const ExpenseMonthly = () => {
                     <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: DK.barTrack }}>
                       <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${color}60, ${color})` }} />
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
