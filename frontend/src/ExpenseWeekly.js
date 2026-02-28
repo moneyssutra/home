@@ -8,11 +8,11 @@ const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 // Premium turquoise dark theme tokens
 const DK = {
-  bg: "#041418",
-  card: "#0A1F24",
-  cardAlt: "#0D2A30",
-  cardBorder: "rgba(13,148,136,0.15)",
-  cardBorderHover: "rgba(13,148,136,0.3)",
+  bg: "#0B2027",
+  card: "#122E36",
+  cardAlt: "#163840",
+  cardBorder: "rgba(13,148,136,0.18)",
+  cardBorderHover: "rgba(13,148,136,0.35)",
   // Warm spectrum
   teal: "#2DD4BF",
   tealSoft: "rgba(45,212,191,0.08)",
