@@ -76,9 +76,10 @@ const Dashboard = () => {
       setLoading(true);
       const res = await axios.get(`${backendUrl}/api/family/member/${activeViewId}/summary`, { withCredentials: true });
       setMemberSummary(res.data);
+      setData(null);
     } catch (error) {
       console.error("Error fetching member summary:", error);
-      setMemberSummary(null);
+      setMemberSummary({ member: { name: "Unknown" }, summary: { netWorth: 0, monthlyIncome: 0, monthlyExpenses: 0, totalInvestments: 0, totalAssets: 0, totalLoans: 0, liquidBalance: 0, counts: { income: 0, expenses: 0, investments: 0, assets: 0, loans: 0, accounts: 0 } } });
     } finally {
       setLoading(false);
     }
