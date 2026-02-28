@@ -244,10 +244,12 @@ def _is_due_this_month(freq, item, current_month, current_year, is_income=True):
     if freq == 'Monthly' or freq == 'Daily' or freq == 'Weekly':
         return True
     elif freq == 'Quarterly':
+        # Quarterly: due once every 3 months starting from the quarter start month
+        quarter_start = {'Q1': 1, 'Q2': 4, 'Q3': 7, 'Q4': 10}
         sq = item.get('selectedQuarter', '')
-        for qp, ms in quarter_months.items():
+        for qp, start in quarter_start.items():
             if sq and sq.startswith(qp):
-                return current_month in ms
+                return (current_month - start) % 3 == 0
         return current_month in [1, 4, 7, 10]
     elif freq == 'Half-Yearly':
         sh = item.get('selectedHalf', '')
