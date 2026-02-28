@@ -93,33 +93,41 @@ function getHeatColor(value, maxValue) {
   }
 }
 
-const ExpenseCalendar = ({ embedded = false }) => {
+const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: propMonthKey, monthOffset: propMonthOffset, setMonthOffset: propSetMonthOffset, dataLoading: propLoading }) => {
   const navigate = useNavigate();
-  const [monthOffset, setMonthOffset] = useState(0);
+  const [localMonthOffset, setLocalMonthOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState(null);
   const [showAddSheet, setShowAddSheet] = useState(false);
-  const [monthExpenses, setMonthExpenses] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [localExpenses, setLocalExpenses] = useState([]);
+  const [localLoading, setLocalLoading] = useState(!embedded);
 
-  const currentMonthKey = getMonthKey(monthOffset);
+  // Use props when embedded, local state when standalone
+  const monthOffset = embedded ? (propMonthOffset ?? 0) : localMonthOffset;
+  const setMonthOffset = embedded ? (propSetMonthOffset ?? setLocalMonthOffset) : setLocalMonthOffset;
+  const currentMonthKey = embedded ? (propMonthKey ?? getMonthKey(monthOffset)) : getMonthKey(monthOffset);
+  const monthExpenses = embedded ? (propExpenses ?? []) : localExpenses;
+  const isLoading = embedded ? (propLoading ?? false) : localLoading;
+
   const today = new Date();
   const todayDay = today.getDate();
   const todayMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
   const isCurrentMonth = currentMonthKey === todayMonthKey;
 
+  // Fetch data only when standalone (not embedded)
   useEffect(() => {
-    setIsLoading(true);
+    if (embedded) return;
+    setLocalLoading(true);
     axios.get(`${API}/api/expenses/by-month`, {
       params: { month: currentMonthKey },
       withCredentials: true,
     }).then(res => {
-      setMonthExpenses(Array.isArray(res.data) ? res.data : []);
-      setIsLoading(false);
+      setLocalExpenses(Array.isArray(res.data) ? res.data : []);
+      setLocalLoading(false);
     }).catch(() => {
-      setMonthExpenses([]);
-      setIsLoading(false);
+      setLocalExpenses([]);
+      setLocalLoading(false);
     });
-  }, [currentMonthKey]);
+  }, [currentMonthKey, embedded]);
   const calendarDays = useMemo(() => getCalendarDays(currentMonthKey), [currentMonthKey]);
 
   const dayExpenseMap = useMemo(() => {
