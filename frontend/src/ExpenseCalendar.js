@@ -103,8 +103,9 @@ const ExpenseCalendar = ({ embedded = false }) => {
   };
 
   return (
-    <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="expense-calendar-page">
-      {/* Header */}
+    <div className={embedded ? "" : "min-h-screen pb-32"} style={{ backgroundColor: "var(--bg-app)" }} data-testid="expense-calendar-page">
+      {/* Header - only show when standalone */}
+      {!embedded && (
       <header className="px-6 pt-8 pb-6" style={{ background: "linear-gradient(135deg, #8B5CF6 0%, #A78BFA 50%, #C4B5FD 100%)" }}>
         <div className="flex items-center gap-4 mb-5">
           <BackButton fallbackPath="/my-expenses" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
