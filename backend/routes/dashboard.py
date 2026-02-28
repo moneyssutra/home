@@ -45,7 +45,6 @@ async def get_networth_summary(request: Request):
     current_month = get_user_now(request).month
     current_year = get_user_now(request).year
     monthly_income = _calc_monthly_income(incomes, other_incomes, current_month, current_year)
-    monthly_expenses = _calc_monthly_expenses(expenses, current_month, current_year)
     net_worth = total_assets + total_investments + liquid_balance - total_liabilities
 
     # Calculate schedule-based received/expected and done/upcoming
@@ -62,6 +61,9 @@ async def get_networth_summary(request: Request):
     income_expected = sum(i['amount'] for i in income_expected_list) + sum(i['amount'] for i in oi_expected)
     expenses_done = sum(e['amount'] for e in expense_done_list)
     upcoming_expenses = sum(e['amount'] for e in expense_upcoming_list)
+
+    # Derive monthlyExpenses from the split for perfect consistency
+    monthly_expenses = expenses_done + upcoming_expenses
 
     return {
         "netWorth": net_worth, "totalAssets": total_assets, "totalInvestments": total_investments,
