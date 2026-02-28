@@ -99,7 +99,7 @@ const Wealth = () => {
   ];
 
   return (
-    <div className="min-h-screen pb-28 overflow-y-auto" style={{ backgroundColor: "var(--bg-app)", scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }} data-testid="wealth-page">
+    <div className="min-h-screen pb-28 overflow-y-auto no-scrollbar" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wealth-page">
       {/* Header — same as Dashboard */}
       <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
         <div className="relative px-5 pt-4 pb-5">
