@@ -156,6 +156,16 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
   const totalForMonth = monthExpenses.reduce((s, e) => s + (e.expectedAmount || 0), 0);
   const paidForMonth = monthExpenses.filter(e => e._displayStatus === "paid" || e._displayStatus === "prepaid").reduce((s, e) => s + (e.expectedAmount || 0), 0);
 
+  // Category summary for the month
+  const categorySummary = useMemo(() => {
+    const cats = {};
+    monthExpenses.forEach(exp => {
+      const cat = exp.category || "Other";
+      cats[cat] = (cats[cat] || 0) + (exp.expectedAmount || 0);
+    });
+    return Object.entries(cats).sort(([, a], [, b]) => b - a).map(([category, amount]) => ({ category, amount }));
+  }, [monthExpenses]);
+
   // Max daily spend for heatmap scaling
   const maxDailySpend = useMemo(() => {
     let max = 0;
