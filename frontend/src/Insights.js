@@ -585,16 +585,24 @@ const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
   );
   const active = challenges.active || [];
   const available = challenges.available || [];
+  const completed = challenges.completed || [];
+  const totalChallenges = active.length + available.length + completed.length;
 
   return (
     <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="challenges-widget">
       <div className="p-5 pb-3">
-        <div className="flex items-center gap-2">
-          <Swords className="h-5 w-5" style={{ color: "#8B5CF6" }} />
-          <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Challenges</h3>
-          <span className="ml-auto text-xs font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#8B5CF615", color: "#8B5CF6" }}>
-            {active.length} active
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Swords className="h-5 w-5" style={{ color: "#8B5CF6" }} />
+            <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Challenges</h3>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="font-black" style={{ color: "var(--text-primary)" }}>{completed.length}</span>
+            <span style={{ color: "var(--text-muted)" }}>/ {totalChallenges}</span>
+            <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: "#8B5CF615", color: "#8B5CF6" }}>
+              {active.length} active
+            </span>
+          </div>
         </div>
       </div>
 
