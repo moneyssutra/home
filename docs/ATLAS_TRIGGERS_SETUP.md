@@ -30,7 +30,7 @@ Before creating triggers, set up environment variables:
 | Name | Type | Value |
 |------|------|-------|
 | `DB_NAME` | Value | `moneyssutra` (or your database name) |
-| `BACKEND_URL` | Value | `https://family-finance-dev.preview.emergentagent.com` |
+| `BACKEND_URL` | Value | `https://wealth-dashboard-186.preview.emergentagent.com` |
 | `INTERNAL_API_KEY` | Secret | (Generate a secure key for internal API calls) |
 
 ---
