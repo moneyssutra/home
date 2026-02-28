@@ -43,14 +43,16 @@ def _classify(cat):
 
 async def _compute_user_metrics(user_id: str, now: datetime):
     """Compute financial metrics for a single user."""
-    current_month = f"{now.year}-{now.month:02d}"
-
-    expenses = await db.expenses.find({"userId": user_id}, {"_id": 0}).to_list(5000)
-    incomes = await db.income_sources.find({"userId": user_id}, {"_id": 0}).to_list(500)
-    goals = await db.goals.find({"userId": user_id}, {"_id": 0}).to_list(100)
-    assets = await db.assets.find({"userId": user_id}, {"_id": 0}).to_list(500)
-    loans = await db.liquid_assets.find({"userId": user_id, "type": {"$regex": "Loan", "$options": "i"}}, {"_id": 0}).to_list(100)
-
+    import asyncio
+    # Parallel DB queries
+    exp_q, inc_q, goal_q, asset_q, loan_q, liquid_q = await asyncio.gather(
+        db.expenses.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1, "category": 1, "frequency": 1}).to_list(5000),
+        db.income_sources.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1}).to_list(500),
+        db.goals.find({"userId": user_id}, {"_id": 0, "targetAmount": 1, "currentAmount": 1}).to_list(100),
+        db.assets.find({"userId": user_id}, {"_id": 0, "value": 1}).to_list(500),
+        db.liquid_assets.find({"userId": user_id, "type": {"$regex": "Loan", "$options": "i"}}, {"_id": 0, "emiAmount": 1}).to_list(100),
+        db.liquid_assets.find({"userId": user_id, "type": {"$nin": ["Personal Loan", "Home Loan", "Car Loan", "Education Loan", "Other Loan"]}}, {"_id": 0, "balance": 1, "amount": 1}).to_list(100),
+    )
     total_income = sum(float(i.get("expectedAmount", 0)) for i in incomes)
     total_emi = sum(float(l.get("emiAmount", 0)) for l in loans)
     total_assets_val = sum(float(a.get("value", 0)) for a in assets)
