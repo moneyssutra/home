@@ -223,7 +223,7 @@ const ExpenseMonthly = () => {
                 <YAxis tick={{ fill: DK.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={formatK} width={42} />
                 <Tooltip
                   formatter={(val) => [formatFull(val), "Spend"]}
-                  contentStyle={{ backgroundColor: "#0D2A30", border: "1px solid rgba(45,212,191,0.3)", borderRadius: "12px", color: "#E8F5F2", fontSize: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}
+                  contentStyle={{ backgroundColor: "#163840", border: "1px solid rgba(45,212,191,0.3)", borderRadius: "12px", color: "#E8F5F2", fontSize: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.4)" }}
                   labelStyle={{ color: "#2DD4BF", fontWeight: "bold" }}
                   itemStyle={{ color: "#E8F5F2" }}
                   cursor={false}
