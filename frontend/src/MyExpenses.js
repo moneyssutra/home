@@ -206,9 +206,16 @@ const MyExpenses = () => {
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-expenses-page">
       {/* Header */}
-      <header className="px-6 pt-8 pb-4" style={{ background: "linear-gradient(135deg, #F87171 0%, #FB923C 100%)" }}>
+      <header className="px-6 pt-8 pb-4" style={{ background: "linear-gradient(135deg, #0D9488 0%, #14B8A6 40%, #06B6D4 100%)" }}>
         <div className="flex items-center gap-4 mb-4">
-          <BackButton fallbackPath="/" forceNavigate={true} className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full transition-colors bg-white/20 border border-white/30 text-white hover:bg-white/30"
+            onClick={() => activeView !== "list" ? setActiveView("list") : navigate("/")}
+            data-testid="back-button"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
           <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
             My Expenses
           </h1>
@@ -228,7 +235,7 @@ const MyExpenses = () => {
               className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-semibold transition-all"
               style={{
                 backgroundColor: activeView === id ? "rgba(255,255,255,0.95)" : "transparent",
-                color: activeView === id ? "#EA580C" : "rgba(255,255,255,0.8)",
+                color: activeView === id ? "#0D9488" : "rgba(255,255,255,0.8)",
                 boxShadow: activeView === id ? "0 2px 8px rgba(0,0,0,0.1)" : "none",
               }}
               data-testid={`view-toggle-${id}`}
@@ -247,7 +254,7 @@ const MyExpenses = () => {
       {activeView === "list" && (
       <>
       {/* Month Selector (List view only) */}
-      <div className="px-6 -mt-2 pb-4" style={{ background: "linear-gradient(135deg, #F87171 0%, #FB923C 100%)" }}>
+      <div className="px-6 -mt-2 pb-4" style={{ background: "linear-gradient(135deg, #0D9488 0%, #14B8A6 40%, #06B6D4 100%)" }}>
         <div className="flex items-center justify-between mb-5 bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2.5 border border-white/20" data-testid="month-selector">
           <button
             onClick={() => setMonthOffset(Math.max(-2, monthOffset - 1))}
