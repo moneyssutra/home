@@ -60,9 +60,7 @@ function getDueDay(expense) {
 }
 
 const formatAmount = (amount) => {
-  if (amount >= 100000) return `${(amount / 100000).toFixed(1)}L`;
-  if (amount >= 1000) return `${(amount / 1000).toFixed(1)}K`;
-  return new Intl.NumberFormat("en-IN").format(amount);
+  return new Intl.NumberFormat("en-IN").format(Math.round(amount));
 };
 
 // Heatmap color interpolation: blue → teal → orange → red
