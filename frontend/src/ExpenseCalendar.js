@@ -114,11 +114,15 @@ const ExpenseCalendar = ({ embedded = false }) => {
       params: { month: currentMonthKey },
       withCredentials: true,
     }).then(res => {
-      if (active) setMonthExpenses(Array.isArray(res.data) ? res.data : []);
+      if (active) {
+        setMonthExpenses(Array.isArray(res.data) ? res.data : []);
+        setIsLoading(false);
+      }
     }).catch(() => {
-      if (active) setMonthExpenses([]);
-    }).finally(() => {
-      if (active) setIsLoading(false);
+      if (active) {
+        setMonthExpenses([]);
+        setIsLoading(false);
+      }
     });
     return () => { active = false; };
   }, [currentMonthKey]);
