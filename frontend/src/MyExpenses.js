@@ -43,8 +43,28 @@ const MyExpenses = () => {
 
   // Fetch summary for totals (all expenses)
   const { data: allExpenses = [] } = useExpenseList();
-  // Fetch month-specific data
-  const { data: monthExpenses = [], isLoading: loading, mutate: mutateMonth } = useExpensesByMonth(currentMonthKey);
+  // Fetch month-specific data with direct axios (avoid SWR caching issues)
+  const [monthExpenses, setMonthExpenses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchMonthExpenses = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API}/api/expenses/by-month`, {
+        params: { month: currentMonthKey },
+        withCredentials: true,
+      });
+      setMonthExpenses(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setMonthExpenses([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentMonthKey]);
+
+  useEffect(() => { fetchMonthExpenses(); }, [fetchMonthExpenses]);
+
+  const mutateMonth = fetchMonthExpenses;
 
   const formatAmount = (amount) => {
     if (amount >= 10000000) return `${(amount / 10000000).toFixed(2)} Cr`;
