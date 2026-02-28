@@ -109,7 +109,7 @@ async def get_income_monthly_summary(request: Request):
 
     month_map = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,
                  "July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
-    quarter_months = {'Q1': [1,2,3], 'Q2': [4,5,6], 'Q3': [7,8,9], 'Q4': [10,11,12]}
+    quarter_start_map = {'Q1': 1, 'Q2': 4, 'Q3': 7, 'Q4': 10}
 
     total_income = 0
     received_income = 0
@@ -124,9 +124,9 @@ async def get_income_monthly_summary(request: Request):
             applies = True
         elif freq == 'Quarterly':
             sq = inc.get('selectedQuarter', '')
-            for qp, ms in quarter_months.items():
+            for qp, start in quarter_start_map.items():
                 if sq and sq.startswith(qp):
-                    applies = current_month in ms
+                    applies = (current_month - start) % 3 == 0
                     break
             if not applies and not sq:
                 applies = current_month in [1, 4, 7, 10]
