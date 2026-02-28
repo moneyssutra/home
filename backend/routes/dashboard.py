@@ -296,20 +296,6 @@ def _get_schedule_day(item, is_income=True):
     return 0  # 0 = unknown, will be treated conservatively
 
 
-def _count_weekday_occurrences(year, month, day_name, up_to_day=None):
-    """Count how many times a named weekday occurs in a month, optionally up to a specific day."""
-    import calendar
-    day_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
-    target = day_map.get(day_name, 0)
-    days_in_month = calendar.monthrange(year, month)[1]
-    end = min(up_to_day or days_in_month, days_in_month)
-    count = 0
-    for d in range(1, end + 1):
-        if datetime(year, month, d).weekday() == target:
-            count += 1
-    return count
-
-
 def _split_by_schedule_date(items, current_day, current_month, current_year, is_income=True):
     """Split items into received/done vs expected/upcoming based on schedule date."""
     import calendar
