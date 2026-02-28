@@ -216,7 +216,7 @@ const MyExpenses = () => {
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-full transition-colors bg-white/20 border border-white/30 text-white hover:bg-white/30"
-            onClick={() => activeView !== "list" ? handleViewChange("list") : navigate("/")}
+            onClick={() => activeView !== "list" ? handleViewChange("list") : navigate("/wealth")}
             data-testid="back-button"
           >
             <ChevronLeft className="h-5 w-5" />
