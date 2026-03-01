@@ -72,6 +72,10 @@ const Dashboard = () => {
       console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
+      // Lazy-load opportunities after main content
+      axios.get(`${backendUrl}/api/opportunities/eligible`, { withCredentials: true })
+        .then(r => setOpportunities(r.data.opportunities || []))
+        .catch(() => {});
     }
   };
 
