@@ -28,10 +28,24 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 - Family combined net worth view aggregating all members
 - FamilyToggle shows: Personal, Members (Priya/Son), Family Combined
 - Context-aware headers on all pages: "Sharma Family Wealth", "Priya's Health", etc.
-- Financial Health widget: Score 0 for members with no data, derived combined score (71/100) for Family view
+- Financial Health widget: Score 0 for members with no data (cards visible with "No Data"), derived combined score (80/100) for Family view
 - Combined Family view correctly shows Insurance (9), Credit Cards (4), and all aggregated financial data
 - Dropdown z-index fixed via React Portal (z-index: 999999)
 - useEffect dependencies fixed to use activeViewId for proper refetch on view switch
+
+### Family Combined View Enhancements (Mar 1, 2026)
+- Dashboard: Received income (₹1.5L) and Spent expenses (₹2L) show real data instead of 0
+- Health Page: Full survival clock with 70 days runway, "Shielded" stage, fund breakdown, allStages progression
+- Financial Health: Derives Emergency Fund, Savings Rate (51.8%), Credit Utilization, Debt-to-Asset metrics from combined data
+- Analytics Page: Context-aware with family combined data (net worth, income, investments, loans)
+- Reports Page: Context-aware header ("Sharma Family Reports")
+- Backend: Enhanced /api/family/combined-summary returns received/expected splits, survivalDays, effectiveFunds, savingsRate, totalEMI
+
+### Family Member Phone & Smart Linking (Mar 1, 2026)
+- Phone number is now mandatory when adding family members
+- Smart linking: if phone/email matches an existing MoneySutra account, member is auto-linked
+- Linked members show a "Linked" badge in the member list
+- Phone number displayed in member cards
 
 ### Admin Command Center (All 6 Phases Complete)
 - Phase 1: Executive Overview + User Growth Analytics
@@ -43,9 +57,6 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 - Mobile responsive admin with hamburger menu
 
 ## Backlog
-### P1
-- Clarify requirements for independent family member accounts (Priya having own login vs linked accounts)
-
 ### P2
 - Cash Flow Engine: Rolling Balance, Timeline, Negative Balance Handling
 - Decision Impact Engine: Financial simulation for large purchases
