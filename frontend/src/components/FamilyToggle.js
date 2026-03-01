@@ -65,11 +65,11 @@ const FamilyToggle = () => {
                 data-testid={`toggle-member-${member.id}`}
               >
                 <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: "#F3E8FF", color: "#7C3AED" }}>
-                  {member.name.charAt(0)}
+                  {(member.name || member.relationship || "?").charAt(0)}
                 </div>
                 <div className="flex-1 text-left">
-                  <span className="text-sm text-gray-700 block">{member.name}</span>
-                  <span className="text-[10px] text-gray-400">{member.relationship}</span>
+                  <span className="text-sm text-gray-700 block">{member.name || member.relationship || "Member"}</span>
+                  {member.name && member.relationship && <span className="text-[10px] text-gray-400">{member.relationship}</span>}
                 </div>
                 {activeViewId === member.id && <Check className="h-4 w-4 text-green-500" />}
               </button>
