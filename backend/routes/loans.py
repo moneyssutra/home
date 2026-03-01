@@ -109,6 +109,153 @@ async def delete_loan(loan_id: str, request: Request):
     return {"message": "Loan deleted successfully", "id": loan_id}
 
 
+@router.post("/trigger-emi-update")
+async def trigger_emi_update(request: Request):
+    """Manually trigger EMI processing for the current user's loans."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_id = user.get('user_id')
+    today = datetime.now(timezone.utc)
+    today_str = today.strftime("%Y-%m-%d")
+
+    loans = await db.loans.find({
+        "userId": user_id,
+        "emiAmount": {"$exists": True, "$gt": 0},
+        "outstandingAmount": {"$gt": 0}
+    }, {"_id": 0}).to_list(1000)
+
+    results = []
+    for loan in loans:
+        emi_amount = loan.get("emiAmount", 0)
+        interest_rate = loan.get("interestRate", 0)
+        outstanding = loan.get("outstandingAmount", 0)
+        frequency = loan.get("emiFrequency", "Monthly")
+        start_date_str = loan.get("startDate", "")
+        last_update = loan.get("lastEmiUpdateDate")
+        emi_selected_date = loan.get("emiSelectedDate")
+
+        already_processed = last_update == today_str
+
+        # Determine due date
+        target_day = None
+        if emi_selected_date:
+            try:
+                target_day = int(emi_selected_date)
+            except (ValueError, TypeError):
+                pass
+        elif start_date_str:
+            try:
+                start = datetime.strptime(start_date_str, "%Y-%m-%d")
+                target_day = start.day
+            except (ValueError, TypeError):
+                pass
+
+        is_due = False
+        if frequency == "Monthly":
+            is_due = target_day == today.day if target_day else False
+        elif frequency == "Quarterly" and target_day and start_date_str:
+            try:
+                start = datetime.strptime(start_date_str, "%Y-%m-%d")
+                months_diff = (today.year - start.year) * 12 + (today.month - start.month)
+                is_due = (months_diff % 3 == 0) and (target_day == today.day)
+            except (ValueError, TypeError):
+                pass
+        elif frequency == "Half-Yearly" and target_day and start_date_str:
+            try:
+                start = datetime.strptime(start_date_str, "%Y-%m-%d")
+                months_diff = (today.year - start.year) * 12 + (today.month - start.month)
+                is_due = (months_diff % 6 == 0) and (target_day == today.day)
+            except (ValueError, TypeError):
+                pass
+
+        # Calculate breakdown
+        periods_per_year = {"Monthly": 12, "Quarterly": 4, "Half-Yearly": 2}.get(frequency, 12)
+        interest_portion = round((interest_rate / periods_per_year / 100) * outstanding, 2)
+        principal_portion = round(max(0, emi_amount - interest_portion), 2)
+
+        detail = {
+            "loanName": loan.get("loanName"),
+            "emiAmount": emi_amount,
+            "frequency": frequency,
+            "emiDueDay": target_day,
+            "isDueToday": is_due,
+            "alreadyProcessed": already_processed,
+            "outstandingAmount": outstanding,
+            "principalPortion": principal_portion,
+            "interestPortion": interest_portion,
+            "wouldReduceTo": round(max(0, outstanding - principal_portion), 2) if is_due and not already_processed else outstanding,
+        }
+        results.append(detail)
+
+        # Execute the update if due and not already done
+        if is_due and not already_processed:
+            new_outstanding = max(0, outstanding - principal_portion)
+            await db.loans.update_one(
+                {"id": loan["id"]},
+                {"$set": {
+                    "outstandingAmount": round(new_outstanding, 2),
+                    "lastEmiUpdateDate": today_str
+                }}
+            )
+            emi_transaction = {
+                "id": str(uuid.uuid4()),
+                "userId": user_id,
+                "loanId": loan["id"],
+                "loanName": loan.get("loanName", ""),
+                "emiAmount": emi_amount,
+                "principalPortion": principal_portion,
+                "interestPortion": interest_portion,
+                "outstandingBefore": outstanding,
+                "outstandingAfter": round(new_outstanding, 2),
+                "transactionDate": today_str,
+                "frequency": frequency,
+                "source": "manual_trigger",
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            await db.emi_transactions.insert_one(emi_transaction)
+
+    return {
+        "date": today_str,
+        "totalLoans": len(loans),
+        "processedToday": len([r for r in results if r["isDueToday"] and not r["alreadyProcessed"]]),
+        "details": results
+    }
+
+
+@router.get("/emi-ledger/{loan_id}")
+async def get_emi_ledger(loan_id: str, request: Request):
+    """Get EMI transaction ledger for a specific loan."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_id = user.get('user_id')
+    transactions = await db.emi_transactions.find(
+        {"userId": user_id, "loanId": loan_id},
+        {"_id": 0}
+    ).sort("transactionDate", -1).to_list(500)
+
+    return {"loanId": loan_id, "totalTransactions": len(transactions), "transactions": transactions}
+
+
+@router.get("/emi-ledger-all")
+async def get_all_emi_ledger(request: Request):
+    """Get all EMI transactions for the current user."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_id = user.get('user_id')
+    transactions = await db.emi_transactions.find(
+        {"userId": user_id},
+        {"_id": 0}
+    ).sort("transactionDate", -1).to_list(1000)
+
+    return {"totalTransactions": len(transactions), "transactions": transactions}
+
+
 @router.get("/{loan_id}/linked-assets")
 async def get_loan_linked_assets(loan_id: str, request: Request):
     user = await get_current_user(request)
