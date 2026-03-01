@@ -347,11 +347,10 @@ def _compute_user_metrics(incomes, expenses, loans, investments, accounts, insur
 
     total_emi = sum(l.get("emiAmount", 0) for l in loans)
     total_investments = sum(inv.get("currentValue", 0) for inv in investments)
-    total_assets = sum(a.get("currentValue", 0) for a in assets)
     liquid_funds = sum(acc.get("currentBalance", 0) for acc in accounts)
     total_loans = sum(l.get("outstandingAmount", 0) for l in loans)
     idle_cash = liquid_funds
-    total_wealth = total_investments + total_assets + liquid_funds
+    total_wealth = total_investments + liquid_funds
 
     # Days of safety
     days_of_safety = (liquid_funds / (monthly_expense / 30)) if monthly_expense > 0 else 999
