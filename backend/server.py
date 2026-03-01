@@ -237,6 +237,7 @@ app.include_router(gamification_router, prefix="/api")
 app.include_router(data_import_router, prefix="/api")
 app.include_router(family_router, prefix="/api")
 app.include_router(admin_router, prefix="/api/admin")
+app.include_router(events_router, prefix="/api")
 
 
 # ============ LIFECYCLE EVENTS ============
