@@ -1,0 +1,90 @@
+{
+  "summary": "Bug fix verification complete: All 4 bugs fixed correctly. 1) Loan/Investment navigation from all pages goes to /wealth/:type/:id detail page. 2) Past EMIs without ledger data show status='paid' not 'missed' - HDFC Loan shows 72 Paid, 0 Missed, 75 Pending. 3) Extra payment modal has 3 modes (Reduce Tenure, Reduce EMI, Prepay Principal). 4) reduce_principal mode keeps emiAmount and tenureMonths unchanged.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_loan_investment_navigation_fixes.py",
+    "/app/test_reports/pytest/loan_investment_navigation_fixes_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_loan_investment_navigation_fixes.py"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (all navigation and modal tests passed)"
+  },
+  "test_credentials": {
+    "username": "test@moneyssutra.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Used existing test data - HDFC Home Loan ID: 886f8ea0-1f10-4a3e-8280-eefc1567bc5e, SBI FD ID: c269922d-630f-429f-b025-2b8462ab8190",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bug fixes verified: 1) Navigation from MyLiabilities, CategoryLoan, CategoryInvestment, MyExpenses, CategoryExpenses all use /wealth/loans/:id and /wealth/investments/:id routes. 2) EMI status fix verified - HDFC Loan shows 72 Paid, 0 Missed, 75 Pending (no missed EMIs). 3) Extra payment modal has 3 modes working correctly. 4) reduce_principal mode only updates outstandingAmount, keeps EMI and tenure unchanged.",
+  "features_tested": {
+    "navigation_from_my_liabilities": {
+      "result": "VERIFIED IN CODE",
+      "details": "MyLiabilities.js line 266 uses navigate(`/wealth/loans/${loan.id}`) - correct"
+    },
+    "navigation_from_category_loan": {
+      "result": "PASS",
+      "details": "CategoryLoan.js line 142 navigate to /wealth/loans/:id. Playwright verified: clicked loan card navigated to /wealth/loans/886f8ea0-1f10-4a3e-8280-eefc1567bc5e"
+    },
+    "navigation_from_category_investment": {
+      "result": "PASS",
+      "details": "CategoryInvestment.js line 143 navigate to /wealth/investments/:id. Playwright verified: clicked investment card navigated to /wealth/investments/c269922d-630f-429f-b025-2b8462ab8190"
+    },
+    "navigation_from_my_expenses": {
+      "result": "VERIFIED IN CODE",
+      "details": "MyExpenses.js lines 480-482 use /wealth/loans/:id and /wealth/investments/:id for linked expenses"
+    },
+    "navigation_from_category_expenses": {
+      "result": "VERIFIED IN CODE",
+      "details": "CategoryExpenses.js lines 396-400 use /wealth/loans/:id and /wealth/investments/:id for linked expenses"
+    },
+    "past_emis_paid_not_missed": {
+      "result": "PASS",
+      "details": "Backend code (loans.py line 392-394) sets past EMIs without ledger to 'paid'. API test confirms missedEMIs=0 for HDFC Loan. Frontend shows 72 Paid, 0 Missed, 75 Pending."
+    },
+    "extra_payment_3_modes": {
+      "result": "PASS",
+      "details": "LoanDetail.js has 3 mode buttons: mode-reduce-tenure, mode-reduce-emi, mode-reduce-principal. Screenshot confirms all 3 visible in modal."
+    },
+    "reduce_principal_mode_behavior": {
+      "result": "PASS",
+      "details": "POST /api/loans/:id/extra-payment with mode=reduce_principal reduces outstanding but keeps emiAmount and tenureMonths unchanged. Verified by API test."
+    },
+    "loan_detail_page_loads": {
+      "result": "PASS",
+      "details": "GET /api/loans/:id returns correct data. Frontend loads at /wealth/loans/886f8ea0-1f10-4a3e-8280-eefc1567bc5e showing HDFC Home Loan."
+    },
+    "investment_detail_page_loads": {
+      "result": "PASS",
+      "details": "GET /api/investments/:id returns correct data. Frontend loads at /wealth/investments/:id showing SBI FD."
+    }
+  },
+  "backend_tests_summary": {
+    "test_get_amortization_schedule_returns_200": "PASS",
+    "test_amortization_has_schedule_and_summary": "PASS",
+    "test_past_emis_are_paid_not_missed": "PASS - missedEMIs=0",
+    "test_summary_counts_match_schedule": "PASS",
+    "test_get_loan_initial_state": "PASS",
+    "test_extra_payment_reduce_principal_mode": "PASS - EMI and tenure unchanged",
+    "test_extra_payment_recorded": "PASS",
+    "test_get_investment_detail": "PASS",
+    "test_get_investment_by_id": "PASS",
+    "test_get_loan_by_id": "PASS",
+    "test_get_loan_insights": "PASS",
+    "test_get_loans_list": "PASS",
+    "test_get_investments_list": "PASS"
+  }
+}
