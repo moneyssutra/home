@@ -14,6 +14,7 @@ const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const Analytics = () => {
   const navigate = useNavigate();
+  const { isPersonalView, isFamilyView, activeViewId, activeViewLabel } = useFamilyContext();
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState("6M");
