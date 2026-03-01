@@ -236,6 +236,7 @@ function AppRouter() {
       
       {/* Credit Cards */}
       <Route path="/my-credit-cards" element={<ProtectedRoute><MyCreditCards /></ProtectedRoute>} />
+      <Route path="/wealth/credit-cards/:id" element={<ProtectedRoute><CreditCardDetail /></ProtectedRoute>} />
       <Route path="/credit-card" element={<ProtectedRoute><CreditCardForm /></ProtectedRoute>} />
       <Route path="/credit-card/:id" element={<ProtectedRoute><CreditCardForm /></ProtectedRoute>} />
       
