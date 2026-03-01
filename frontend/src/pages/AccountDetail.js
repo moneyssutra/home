@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit3, Landmark, TrendingUp, TrendingDown, DollarSign, ArrowDownLeft, ArrowUpRight, Link2, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit3, Landmark, TrendingUp, TrendingDown, DollarSign, ArrowDownLeft, ArrowUpRight, Link2, Loader2, BookOpen } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -9,6 +9,8 @@ import { toast } from "sonner";
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 const fmt = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n || 0));
 const fmtCompact = (n) => { const a = Math.abs(n || 0); if (a >= 10000000) return `${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `${(n/100000).toFixed(1)}L`; if (a >= 1000) return `${(n/1000).toFixed(0)}K`; return Math.round(n || 0).toString(); };
+
+const formatDate = (d) => { if (!d) return ""; try { const dt = new Date(d); if (isNaN(dt.getTime())) return d; return dt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); } catch { return d; } };
 
 const TYPE_COLORS = { "Savings": "#059669", "Current": "#3B82F6", "Salary": "#8B5CF6", "Fixed Deposit": "#F59E0B", "NRE": "#EC4899", "NRO": "#F97316" };
 
