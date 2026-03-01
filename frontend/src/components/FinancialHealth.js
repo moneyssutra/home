@@ -694,6 +694,8 @@ const FinancialHealth = () => {
       const orderMap = {};
       customOrder.forEach((key, i) => { orderMap[key] = i; });
       return [...healthModules].sort((a, b) => {
+        if (a.key === "netWorthTrend") return 1;
+        if (b.key === "netWorthTrend") return -1;
         const ai = orderMap[a.key] ?? 999;
         const bi = orderMap[b.key] ?? 999;
         return ai - bi;
