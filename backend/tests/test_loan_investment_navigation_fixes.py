@@ -178,9 +178,10 @@ class TestInvestmentDetailPage:
         assert response.status_code == 200, f"Expected 200, got {response.status_code}: {response.text}"
         
         data = response.json()
-        assert "investment" in data or "investmentName" in data, "Missing investment data"
+        # Detail endpoint returns flat structure with category, currentValue, etc.
+        assert "category" in data or "currentValue" in data, "Missing investment data"
         
-        print(f"PASS: Investment detail endpoint works")
+        print(f"PASS: Investment detail endpoint works - category={data.get('category')}")
     
     def test_get_investment_by_id(self, auth_session):
         """GET /api/investments/{id} returns basic investment"""
