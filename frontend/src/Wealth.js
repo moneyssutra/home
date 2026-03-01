@@ -136,8 +136,8 @@ const Wealth = () => {
   const totalAssets = data.overrideAssets ?? (data.assets || []).reduce((s, a) => s + (a.currentValue || 0), 0);
   const totalInvestments = data.overrideInvestments ?? (data.investments || []).reduce((s, i) => s + (i.currentValue || 0), 0);
   const totalLoans = data.overrideLoans ?? (data.loans || []).reduce((s, l) => s + (l.outstandingAmount || 0), 0);
-  const totalCC = (data.creditCards || []).reduce((s, c) => s + (c.outstandingAmount || 0), 0);
-  const totalCoverage = (data.insurances || []).reduce((s, i) => s + (i.coverageAmount || 0), 0);
+  const totalCC = data.overrideCC ?? (data.creditCards || []).reduce((s, c) => s + (c.outstandingAmount || 0), 0);
+  const totalCoverage = data.overrideCoverage ?? (data.insurances || []).reduce((s, i) => s + (i.coverageAmount || 0), 0);
   const totalBalance = data.overrideBalance ?? (data.accounts || []).filter(a => a.accountType !== "Credit Card").reduce((s, a) => s + (a.currentBalance || 0), 0);
 
   const sections = [
