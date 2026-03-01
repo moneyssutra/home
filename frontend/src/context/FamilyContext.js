@@ -12,6 +12,7 @@ export const FamilyProvider = ({ children }) => {
   const { user } = useAuth();
   const [family, setFamily] = useState(null);
   const [activeViewId, setActiveViewId] = useState(null); // null = personal (self)
+  const [loading, setLoading] = useState(false);
 
   const fetchFamily = useCallback(async () => {
     if (!user) return;
