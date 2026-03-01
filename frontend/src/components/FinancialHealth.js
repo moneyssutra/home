@@ -446,6 +446,17 @@ const FinancialHealth = () => {
         debtToAsset: { ratio: 0, totalDebt: 0, totalWorth: 0, status: "No Data", action: "No debt data for this member." },
         netWorthTrend: { currentNetWorth: 0, previousNetWorth: 0, growthPercent: 0, status: "No Data", action: "No net worth data for this member." },
         retirementReadiness: { status: "No Data", action: "No retirement data for this member." },
+        contributions: {
+          emergencyFund: { rawScore: 0, weight: 18, contribution: 0, maxContribution: 17.5 },
+          lifeInsurance: { rawScore: 0, weight: 8, contribution: 0, maxContribution: 7.5 },
+          healthInsurance: { rawScore: 0, weight: 8, contribution: 0, maxContribution: 7.5 },
+          savingsRate: { rawScore: 0, weight: 13, contribution: 0, maxContribution: 12.5 },
+          loanBurden: { rawScore: 0, weight: 13, contribution: 0, maxContribution: 12.5 },
+          creditUtilization: { rawScore: 0, weight: 10, contribution: 0, maxContribution: 10 },
+          investmentAllocation: { rawScore: 0, weight: 13, contribution: 0, maxContribution: 12.5 },
+          retirementReadiness: { rawScore: 0, weight: 10, contribution: 0, maxContribution: 10 },
+          debtToAsset: { rawScore: 0, weight: 10, contribution: 0, maxContribution: 10 },
+        }
       };
       setHealthData(emptyHealth);
       setOverallScore(0);
