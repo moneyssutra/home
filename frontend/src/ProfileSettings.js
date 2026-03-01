@@ -513,12 +513,13 @@ const ProfileSettings = () => {
 
       {/* Sticky Save Button */}
       {isEditing && (
-        <div className="fixed bottom-0 left-0 right-0 p-4" style={{ backgroundColor: "var(--bg-app)" }}>
+        <div className="fixed bottom-0 left-0 right-0 p-4" style={{ backgroundColor: "var(--bg-app)", zIndex: 50, paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full py-4 rounded-2xl font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            className="w-full py-4 rounded-2xl font-semibold text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 active:scale-[0.98]"
             style={{ backgroundColor: "var(--brand-primary)" }}
+            data-testid="save-profile-btn"
           >
             {saving ? (
               <>
