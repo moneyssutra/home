@@ -814,3 +814,336 @@ async def segmentation_lab(request: Request):
             "genders": all_genders,
         },
     }
+
+
+
+# ────────────────────────────────────────────
+# PHASE 4 — SUPPORT INTELLIGENCE (FAQ & Search)
+# ────────────────────────────────────────────
+
+@router.get("/support-intelligence")
+async def support_intelligence(request: Request):
+    """Aggregate FAQ searches and in-app search queries from events."""
+    await _require_admin(request)
+    now = get_user_now(request)
+    month_ago_str = (now - timedelta(days=30)).strftime("%Y-%m-%d")
+    week_ago_str = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+
+    # Get all search events
+    search_events = await db.user_events.find(
+        {"eventType": {"$in": ["search", "faq_search", "faq_view", "help_search"]}},
+        {"_id": 0, "eventType": 1, "metadata": 1, "timestamp": 1, "userId": 1}
+    ).to_list(50000)
+
+    # Get page_view events for FAQ/Help pages
+    faq_views = await db.user_events.find(
+        {"eventType": "page_view", "pageName": {"$regex": "help|faq|support|search", "$options": "i"}},
+        {"_id": 0, "pageName": 1, "timestamp": 1, "userId": 1}
+    ).to_list(10000)
+
+    # Aggregate search terms
+    search_terms = {}
+    for ev in search_events:
+        term = (ev.get("metadata", {}).get("query", "") or
+                ev.get("metadata", {}).get("term", "") or
+                ev.get("metadata", {}).get("search_term", "")).strip().lower()
+        if not term:
+            continue
+        ts = ev.get("timestamp", "")
+        is_recent = ts >= week_ago_str if ts else False
+        if term not in search_terms:
+            search_terms[term] = {"count": 0, "users": set(), "lastSearched": "", "recentCount": 0}
+        search_terms[term]["count"] += 1
+        search_terms[term]["users"].add(ev.get("userId", ""))
+        if ts > search_terms[term]["lastSearched"]:
+            search_terms[term]["lastSearched"] = ts
+        if is_recent:
+            search_terms[term]["recentCount"] += 1
+
+    top_searches = sorted(
+        [{"term": t, "count": d["count"], "uniqueUsers": len(d["users"]), "lastSearched": d["lastSearched"], "trending": d["recentCount"] > d["count"] * 0.5} for t, d in search_terms.items()],
+        key=lambda x: -x["count"]
+    )[:50]
+
+    # Aggregate FAQ page views
+    faq_pages = {}
+    for ev in faq_views:
+        page = ev.get("pageName", "")
+        if page not in faq_pages:
+            faq_pages[page] = {"visits": 0, "users": set()}
+        faq_pages[page]["visits"] += 1
+        faq_pages[page]["users"].add(ev.get("userId", ""))
+
+    top_faq_pages = sorted(
+        [{"page": p, "visits": d["visits"], "uniqueUsers": len(d["users"])} for p, d in faq_pages.items()],
+        key=lambda x: -x["visits"]
+    )[:20]
+
+    # Unanswered queries (searches with no subsequent page_view within same session)
+    # Simplified: just count unique search terms
+    total_searches = sum(d["count"] for d in search_terms.values())
+    unique_searchers = len(set(ev.get("userId", "") for ev in search_events))
+
+    return {
+        "topSearches": top_searches,
+        "topFaqPages": top_faq_pages,
+        "totalSearches": total_searches,
+        "uniqueSearchers": unique_searchers,
+        "totalSearchTerms": len(search_terms),
+        "searchEvents30d": len([e for e in search_events if e.get("timestamp", "") >= month_ago_str]),
+        "searchEvents7d": len([e for e in search_events if e.get("timestamp", "") >= week_ago_str]),
+    }
+
+
+# ────────────────────────────────────────────
+# PHASE 5 — CAMPAIGN MANAGER (Targeted Campaigns)
+# ────────────────────────────────────────────
+
+@router.get("/campaigns")
+async def list_campaigns(request: Request):
+    """List all campaigns."""
+    await _require_admin(request)
+    campaigns = await db.admin_campaigns.find({}, {"_id": 0}).sort("createdAt", -1).to_list(200)
+    return {"campaigns": campaigns}
+
+
+@router.post("/campaigns")
+async def create_campaign(request: Request):
+    """Create a new campaign/announcement."""
+    await _require_admin(request)
+    body = await request.json()
+    now = datetime.now(timezone.utc).isoformat()
+    campaign = {
+        "id": str(uuid.uuid4()),
+        "title": body.get("title", ""),
+        "message": body.get("message", ""),
+        "type": body.get("type", "banner"),  # banner, notification, popup
+        "status": body.get("status", "draft"),  # draft, active, paused, expired
+        "targeting": body.get("targeting", {"audience": "all"}),
+        "startDate": body.get("startDate", now[:10]),
+        "endDate": body.get("endDate", ""),
+        "priority": body.get("priority", "normal"),  # low, normal, high, urgent
+        "ctaText": body.get("ctaText", ""),
+        "ctaUrl": body.get("ctaUrl", ""),
+        "impressions": 0,
+        "clicks": 0,
+        "dismissals": 0,
+        "createdAt": now,
+        "updatedAt": now,
+    }
+    await db.admin_campaigns.insert_one(campaign)
+    campaign.pop("_id", None)
+    return {"success": True, "campaign": campaign}
+
+
+@router.put("/campaigns/{campaign_id}")
+async def update_campaign(campaign_id: str, request: Request):
+    """Update an existing campaign."""
+    await _require_admin(request)
+    body = await request.json()
+    now = datetime.now(timezone.utc).isoformat()
+    update_fields = {}
+    for key in ["title", "message", "type", "status", "targeting", "startDate", "endDate", "priority", "ctaText", "ctaUrl"]:
+        if key in body:
+            update_fields[key] = body[key]
+    update_fields["updatedAt"] = now
+    result = await db.admin_campaigns.update_one({"id": campaign_id}, {"$set": update_fields})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    updated = await db.admin_campaigns.find_one({"id": campaign_id}, {"_id": 0})
+    return {"success": True, "campaign": updated}
+
+
+@router.delete("/campaigns/{campaign_id}")
+async def delete_campaign(campaign_id: str, request: Request):
+    """Delete a campaign."""
+    await _require_admin(request)
+    result = await db.admin_campaigns.delete_one({"id": campaign_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    return {"success": True}
+
+
+@router.post("/campaigns/{campaign_id}/toggle")
+async def toggle_campaign(campaign_id: str, request: Request):
+    """Toggle campaign status between active and paused."""
+    await _require_admin(request)
+    campaign = await db.admin_campaigns.find_one({"id": campaign_id}, {"_id": 0})
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    new_status = "paused" if campaign.get("status") == "active" else "active"
+    await db.admin_campaigns.update_one(
+        {"id": campaign_id},
+        {"$set": {"status": new_status, "updatedAt": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"success": True, "status": new_status}
+
+
+# ────────────────────────────────────────────
+# PHASE 6 — BEHAVIORAL PATTERNS & CHURN
+# ────────────────────────────────────────────
+
+@router.get("/behavioral-insights")
+async def behavioral_insights(request: Request):
+    """Behavioral patterns, churn risk, and financial improvement tracking."""
+    await _require_admin(request)
+    now = get_user_now(request)
+
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
+    all_profiles = await db.profiles.find({}, {"_id": 0}).to_list(10000)
+    profile_map = {p["userId"]: p for p in all_profiles}
+
+    week_ago_str = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+    two_weeks_ago_str = (now - timedelta(days=14)).strftime("%Y-%m-%d")
+    month_ago_str = (now - timedelta(days=30)).strftime("%Y-%m-%d")
+
+    # Get recent events per user
+    recent_events = await db.user_events.find(
+        {"timestamp": {"$gte": month_ago_str}},
+        {"_id": 0, "userId": 1, "timestamp": 1, "eventType": 1}
+    ).to_list(100000)
+
+    user_event_counts = {}
+    user_recent_events = {}
+    user_last_event = {}
+    for ev in recent_events:
+        uid = ev.get("userId", "")
+        ts = ev.get("timestamp", "")
+        if uid not in user_event_counts:
+            user_event_counts[uid] = {"total": 0, "week1": 0, "week2": 0}
+            user_recent_events[uid] = 0
+            user_last_event[uid] = ""
+        user_event_counts[uid]["total"] += 1
+        if ts >= week_ago_str:
+            user_event_counts[uid]["week1"] += 1
+            user_recent_events[uid] += 1
+        elif ts >= two_weeks_ago_str:
+            user_event_counts[uid]["week2"] += 1
+        if ts > user_last_event.get(uid, ""):
+            user_last_event[uid] = ts
+
+    # Get financial snapshots for improvement tracking
+    snapshots = await db.user_financial_snapshots.find(
+        {}, {"_id": 0, "user_id": 1, "control_score": 1, "survival_days": 1, "created_at": 1}
+    ).sort("created_at", -1).to_list(10000)
+
+    user_snapshots = {}
+    for s in snapshots:
+        uid = s.get("user_id", "")
+        if uid not in user_snapshots:
+            user_snapshots[uid] = []
+        if len(user_snapshots[uid]) < 4:
+            user_snapshots[uid].append(s)
+
+    # Build user behavior profiles
+    user_behaviors = []
+    churn_risk_users = []
+    improving_users = []
+    declining_users = []
+
+    for u in all_users:
+        uid = u.get("user_id", "")
+        if not uid:
+            continue
+        profile = profile_map.get(uid, {})
+        ec = user_event_counts.get(uid, {"total": 0, "week1": 0, "week2": 0})
+        last_event = user_last_event.get(uid, "")
+
+        # Activity decay: compare this week vs last week
+        activity_this_week = ec["week1"]
+        activity_last_week = ec["week2"]
+        if activity_last_week > 0:
+            activity_change = round((activity_this_week - activity_last_week) / activity_last_week * 100, 1)
+        else:
+            activity_change = 100 if activity_this_week > 0 else 0
+
+        # Days since last activity
+        days_inactive = 999
+        if last_event:
+            try:
+                last_dt = datetime.fromisoformat(last_event.replace("Z", "+00:00"))
+                days_inactive = (now - last_dt).days
+            except (ValueError, TypeError):
+                pass
+
+        # Financial improvement from snapshots
+        snaps = user_snapshots.get(uid, [])
+        score_trend = "stable"
+        score_change = 0
+        if len(snaps) >= 2:
+            latest_score = snaps[0].get("control_score", 0)
+            prev_score = snaps[-1].get("control_score", 0)
+            score_change = latest_score - prev_score
+            if score_change > 5:
+                score_trend = "improving"
+            elif score_change < -5:
+                score_trend = "declining"
+
+        # Churn risk scoring (0-100, higher = more likely to churn)
+        churn_score = 0
+        if days_inactive >= 14:
+            churn_score += 40
+        elif days_inactive >= 7:
+            churn_score += 20
+        elif days_inactive >= 3:
+            churn_score += 10
+        if activity_change < -50:
+            churn_score += 25
+        elif activity_change < -20:
+            churn_score += 10
+        if score_trend == "declining":
+            churn_score += 15
+        if ec["total"] < 5:
+            churn_score += 20
+        churn_score = min(churn_score, 100)
+
+        churn_risk = "high" if churn_score >= 60 else "medium" if churn_score >= 30 else "low"
+
+        behavior = {
+            "userId": uid[:8] + "****",
+            "name": profile.get("name", ""),
+            "email": u.get("email", ""),
+            "totalEvents30d": ec["total"],
+            "eventsThisWeek": activity_this_week,
+            "eventsLastWeek": activity_last_week,
+            "activityChange": activity_change,
+            "daysInactive": days_inactive if days_inactive < 999 else None,
+            "scoreTrend": score_trend,
+            "scoreChange": score_change,
+            "churnScore": churn_score,
+            "churnRisk": churn_risk,
+            "lastActive": last_event[:10] if last_event else None,
+        }
+        user_behaviors.append(behavior)
+
+        if churn_risk in ("high", "medium"):
+            churn_risk_users.append(behavior)
+        if score_trend == "improving":
+            improving_users.append(behavior)
+        if score_trend == "declining":
+            declining_users.append(behavior)
+
+    # Sort by churn score descending
+    user_behaviors.sort(key=lambda x: -x["churnScore"])
+    churn_risk_users.sort(key=lambda x: -x["churnScore"])
+
+    # Aggregate patterns
+    total = len(user_behaviors) or 1
+    high_churn = sum(1 for u in user_behaviors if u["churnRisk"] == "high")
+    medium_churn = sum(1 for u in user_behaviors if u["churnRisk"] == "medium")
+    low_churn = sum(1 for u in user_behaviors if u["churnRisk"] == "low")
+    active_users = sum(1 for u in user_behaviors if (u["daysInactive"] or 999) <= 7)
+    dormant_users = sum(1 for u in user_behaviors if (u["daysInactive"] or 999) > 14)
+
+    return {
+        "totalUsers": len(user_behaviors),
+        "activeUsers": active_users,
+        "dormantUsers": dormant_users,
+        "churnDistribution": {"high": high_churn, "medium": medium_churn, "low": low_churn},
+        "improvingCount": len(improving_users),
+        "decliningCount": len(declining_users),
+        "users": user_behaviors[:50],
+        "highChurnUsers": churn_risk_users[:20],
+        "improvingUsers": improving_users[:10],
+        "decliningUsers": declining_users[:10],
+    }
