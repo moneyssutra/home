@@ -66,7 +66,7 @@ export default function Opportunities() {
         </div>
       </header>
 
-      <div className="px-5 -mt-3 space-y-5">
+      <div className="px-5 pt-4 pb-6 space-y-5">
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--brand-primary)" }} />
