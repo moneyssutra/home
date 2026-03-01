@@ -46,14 +46,13 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 - Reports Page: Context-aware header
 - Backend: Enhanced /api/family/combined-summary returns received/expected splits, survivalDays, effectiveFunds, savingsRate, totalEMI
 
-### Family Member Management (Mar 1, 2026)
-- Phone number is now mandatory when adding family members
-- Smart linking: if phone/email matches an existing MoneySutra account, member is auto-linked
-- Linked members show a "Linked" badge in the member list
-- Phone number displayed in member cards
-- Edit button (pencil icon) for non-owner members with inline edit form
-- PUT /api/family/edit-member/{member_id} endpoint for updating member details
-- Family Hub member list has proper spacing (space-y-3) preventing overlap
+### Data Consistency & Accuracy Fixes (Mar 1, 2026)
+- Runway Simulator & Shock Test now use family combined data (70 days) in family view instead of personal data (186 days)
+- Both components do local simulation in family view (no personal API calls)
+- Health Insurance shows actual health coverage (₹10L) not total insurance (₹2.7Cr); backend splits life/health types
+- Money Personality shows proper personality (Buffer Builder/Wealth Builder) with personalityId, zone, confidence, spendingDNA
+- Priya's Financial Health: All 10 module cards consistently show "No Data" status (not mixed N/A)
+- Family member edit: pencil icon + inline form + PUT /api/family/edit-member endpoint
 
 ### Admin Command Center (All 6 Phases Complete)
 - Phase 1: Executive Overview + User Growth Analytics
