@@ -84,13 +84,14 @@ async def get_eligible_opportunities(request: Request):
             except (ValueError, TypeError):
                 pass
 
-        # Skip if shown in last 7 days
+        # Skip if shown in last 7 days (but not within last hour, to allow page refreshes)
         if log and log.get("shown_at"):
             try:
                 shown_dt = datetime.fromisoformat(log["shown_at"])
                 if shown_dt.tzinfo is None:
                     shown_dt = shown_dt.replace(tzinfo=timezone.utc)
-                if now - shown_dt < timedelta(days=7):
+                time_since_shown = now - shown_dt
+                if timedelta(hours=1) < time_since_shown < timedelta(days=7):
                     continue
             except (ValueError, TypeError):
                 pass
