@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { X, Shield, TrendingUp, Wallet, Heart, ChevronRight } from "lucide-react";
+import { X, Shield, TrendingUp, Wallet, Heart, ChevronRight, Crown } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 
@@ -62,7 +62,14 @@ export function OpportunityCard({ opportunity, onDismiss }) {
           <Icon className="h-5 w-5" style={{ color: config.color }} />
         </div>
         <div className="flex-1 min-w-0 pr-6">
-          <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: config.color }}>{config.label}</span>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: config.color }}>{config.label}</span>
+            {opportunity.premium_only && (
+              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700" data-testid="premium-badge">
+                <Crown className="h-2.5 w-2.5" /> PREMIUM
+              </span>
+            )}
+          </div>
           <h4 className="text-sm font-bold mt-0.5 leading-tight" style={{ color: "var(--text-primary)" }}>{opportunity.title}</h4>
           <p className="text-xs mt-1 leading-relaxed" style={{ color: "var(--text-secondary)" }}>{opportunity.description}</p>
           <button
