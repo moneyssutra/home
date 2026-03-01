@@ -245,6 +245,124 @@ async def auto_record_fixed_income():
         logger.error(f"Error auto-recording fixed income: {str(e)}")
 
 
+async def auto_update_sip_investments():
+    """Auto-update investment values for recurring SIP investments when due."""
+    try:
+        today = datetime.now()
+        today_str = today.strftime("%Y-%m-%d")
+        logger.info(f"Checking for SIP investment updates due on: {today_str}")
+
+        sip_investments = await db.investments.find({
+            "sipAmount": {"$exists": True, "$ne": None, "$gt": 0},
+            "investmentFrequency": {"$exists": True, "$ne": None}
+        }, {"_id": 0}).to_list(5000)
+
+        updated_count = 0
+        for inv in sip_investments:
+            inv_id = inv.get("id")
+            user_id = inv.get("userId")
+            sip_amount = inv.get("sipAmount", 0)
+            frequency = inv.get("investmentFrequency", "")
+            selected_date = inv.get("sipSelectedDate")
+            selected_day = inv.get("sipSelectedDay")
+            selected_month = inv.get("sipSelectedMonth")
+            last_update = inv.get("lastSipUpdateDate")
+
+            if not sip_amount or not frequency:
+                continue
+
+            # Skip if already updated today
+            if last_update == today_str:
+                continue
+
+            is_due_today = False
+
+            if frequency == "Daily":
+                is_due_today = True
+            elif frequency == "Weekly":
+                if selected_day:
+                    day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                    is_due_today = day_names[today.weekday()] == selected_day
+            elif frequency == "Monthly":
+                if selected_date:
+                    try:
+                        target_day = int(selected_date) if not "-" in selected_date else datetime.strptime(selected_date, "%Y-%m-%d").day
+                        is_due_today = target_day == today.day
+                    except (ValueError, TypeError):
+                        pass
+            elif frequency == "Quarterly":
+                if selected_date:
+                    try:
+                        target_day = int(selected_date) if not "-" in selected_date else datetime.strptime(selected_date, "%Y-%m-%d").day
+                        start_date_str = inv.get("startDate", "")
+                        if start_date_str:
+                            start = datetime.strptime(start_date_str, "%Y-%m-%d")
+                            months_diff = (today.year - start.year) * 12 + (today.month - start.month)
+                            is_due_today = (months_diff % 3 == 0) and (target_day == today.day)
+                    except (ValueError, TypeError):
+                        pass
+            elif frequency == "Half-Yearly":
+                if selected_date:
+                    try:
+                        target_day = int(selected_date) if not "-" in selected_date else datetime.strptime(selected_date, "%Y-%m-%d").day
+                        start_date_str = inv.get("startDate", "")
+                        if start_date_str:
+                            start = datetime.strptime(start_date_str, "%Y-%m-%d")
+                            months_diff = (today.year - start.year) * 12 + (today.month - start.month)
+                            is_due_today = (months_diff % 6 == 0) and (target_day == today.day)
+                    except (ValueError, TypeError):
+                        pass
+            elif frequency == "Yearly":
+                if selected_month:
+                    months = ["January", "February", "March", "April", "May", "June",
+                              "July", "August", "September", "October", "November", "December"]
+                    try:
+                        target_month_idx = months.index(selected_month) + 1
+                        target_day = 1
+                        if selected_date:
+                            target_day = int(selected_date) if not "-" in selected_date else datetime.strptime(selected_date, "%Y-%m-%d").day
+                        is_due_today = (today.month == target_month_idx) and (today.day == target_day)
+                    except (ValueError, IndexError):
+                        pass
+
+            if not is_due_today:
+                continue
+
+            # Update investment: add SIP amount to currentValue and principal
+            current_value = inv.get("currentValue", 0)
+            principal = inv.get("principal", 0)
+            new_current_value = current_value + sip_amount
+            new_principal = principal + sip_amount
+
+            await db.investments.update_one(
+                {"id": inv_id},
+                {"$set": {
+                    "currentValue": new_current_value,
+                    "principal": new_principal,
+                    "lastSipUpdateDate": today_str
+                }}
+            )
+            updated_count += 1
+            logger.info(f"SIP updated for '{inv.get('name')}': +₹{sip_amount} → currentValue=₹{new_current_value}")
+
+            # Create a notification for the user
+            if user_id:
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "title": f"SIP Investment Updated: {inv.get('name', 'Investment')}",
+                    "message": f"Your {frequency} SIP of ₹{sip_amount:,.0f} has been added to {inv.get('name')}. New value: ₹{new_current_value:,.0f}",
+                    "type": "sip_update",
+                    "isRead": False,
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                await create_notification_and_cleanup(notification)
+
+        logger.info(f"SIP investment update complete. Updated: {updated_count} investments.")
+    except Exception as e:
+        logger.error(f"Error updating SIP investments: {str(e)}")
+
+
 async def check_and_send_reminders():
     """Background task that runs every minute to check for income reminders."""
     global scheduler_running
@@ -263,6 +381,7 @@ async def check_and_send_reminders():
                 logger.info(f"Running daily checks for {today}")
                 await check_and_process_due_premiums()
                 await auto_record_fixed_income()
+                await auto_update_sip_investments()
                 last_premium_check_date = today
 
             logger.debug(f"Checking reminders for time: {current_time}")
