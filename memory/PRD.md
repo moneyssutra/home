@@ -35,17 +35,25 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 
 ### Family Combined View Enhancements (Mar 1, 2026)
 - Dashboard: Received income (₹1.5L) and Spent expenses (₹2L) show real data instead of 0
+- Dashboard: Liabilities shows correct total (₹63.47L = loans + CC outstanding)
 - Health Page: Full survival clock with 70 days runway, "Shielded" stage, fund breakdown, allStages progression
-- Financial Health: Derives Emergency Fund, Savings Rate (51.8%), Credit Utilization, Debt-to-Asset metrics from combined data
-- Analytics Page: Context-aware with family combined data (net worth, income, investments, loans)
-- Reports Page: Context-aware header ("Sharma Family Reports")
+- Health Page: Financial Score shows proper score (~75) with Grade, breakdown bars (Savings Rate 25/25, EMI Load 22/25, Safety Buffer 10/25, Income Consistency 18/25)
+- Health Page: ActionSection shows actual improvement suggestions (not "strong stability" contradiction)
+- Health Page: Money Personality works for family view (Wealth Builder/Balanced Planner based on savings)
+- Health Page: Emergency Runway shows Liquid Buffer, Extended Buffer, Net Worth values
+- Financial Health Widget: Derives all 9 modules (except Retirement Readiness) from combined data
+- Analytics Page: Context-aware with family combined data
+- Reports Page: Context-aware header
 - Backend: Enhanced /api/family/combined-summary returns received/expected splits, survivalDays, effectiveFunds, savingsRate, totalEMI
 
-### Family Member Phone & Smart Linking (Mar 1, 2026)
+### Family Member Management (Mar 1, 2026)
 - Phone number is now mandatory when adding family members
 - Smart linking: if phone/email matches an existing MoneySutra account, member is auto-linked
 - Linked members show a "Linked" badge in the member list
 - Phone number displayed in member cards
+- Edit button (pencil icon) for non-owner members with inline edit form
+- PUT /api/family/edit-member/{member_id} endpoint for updating member details
+- Family Hub member list has proper spacing (space-y-3) preventing overlap
 
 ### Admin Command Center (All 6 Phases Complete)
 - Phase 1: Executive Overview + User Growth Analytics
