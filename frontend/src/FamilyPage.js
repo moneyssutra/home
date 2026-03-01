@@ -304,7 +304,9 @@ const FamilyPage = () => {
                     <option value="">Select Relationship</option>
                     {["Wife", "Husband", "Son", "Daughter", "Father", "Mother", "Brother", "Sister", "Other"].map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
+                  <input value={memberPhone} onChange={(e) => setMemberPhone(e.target.value)} placeholder="Phone Number *" type="tel" className="w-full rounded-xl px-4 py-2.5 text-sm" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="member-phone-input" />
                   <input value={memberEmail} onChange={(e) => setMemberEmail(e.target.value)} placeholder="Email (optional)" type="email" className="w-full rounded-xl px-4 py-2.5 text-sm" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="member-email-input" />
+                  <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>If this person already has a MoneySutra account with the same phone, their data will be automatically linked.</p>
                   <div className="flex gap-2">
                     <button onClick={() => { setShowAddMember(false); setMemberName(""); setMemberRelation(""); }} className="flex-1 rounded-xl py-2.5 text-sm" style={{ border: "1px solid var(--border-light)", color: "var(--text-secondary)" }}>Cancel</button>
                     <button onClick={handleAddMember} className="flex-1 rounded-xl py-2.5 text-sm font-medium text-white" style={{ backgroundColor: "#7C3AED" }} data-testid="confirm-add-member-btn">Add Member</button>
