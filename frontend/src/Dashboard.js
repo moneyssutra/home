@@ -44,6 +44,7 @@ const Dashboard = () => {
   const [goalsSummary, setGoalsSummary] = useState(null);
   const [familyData, setFamilyData] = useState(null);
   const [opportunities, setOpportunities] = useState([]);
+  const [isPremium, setIsPremium] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
