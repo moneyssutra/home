@@ -92,8 +92,9 @@ export function useIntelligenceData() {
       try {
         const res = await axios.get(`${backendUrl}/api/family/combined-summary`, { withCredentials: true });
         const cs = res.data.combinedSummary || {};
-        const monthlyIncome = cs.monthlyIncome || 0;
-        const monthlyExpenses = cs.monthlyExpenses || 0;
+        // Use normalized (frequency-based) values for health scoring — matches personal /api/financial-health algorithm
+        const monthlyIncome = cs.normalizedMonthlyIncome || cs.monthlyIncome || 0;
+        const monthlyExpenses = cs.normalizedMonthlyExpense || cs.monthlyExpenses || 0;
         const liquidBalance = cs.liquidBalance || 0;
         const effectiveFunds = cs.effectiveFunds || liquidBalance;
         const survivalDays = cs.survivalDays || (monthlyExpenses > 0 ? Math.round(effectiveFunds / (monthlyExpenses / 30)) : 0);
