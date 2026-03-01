@@ -344,18 +344,18 @@ const FinancialHealth = () => {
             action: emergencyMonths < 6 ? `Build family emergency fund to ₹${Math.round(monthlyExpenses * 6).toLocaleString('en-IN')} (6 months)` : "Family emergency fund is well-funded!"
           },
           lifeInsurance: {
-            current: totalInsuranceCoverage,
+            current: lifeInsuranceCoverage,
             target: lifeInsTarget,
-            gap: Math.max(0, lifeInsTarget - totalInsuranceCoverage),
-            status: totalInsuranceCoverage >= lifeInsTarget ? "Excellent" : totalInsuranceCoverage >= lifeInsTarget * 0.5 ? "Adequate" : "Needs Improvement",
-            action: totalInsuranceCoverage < lifeInsTarget ? `Family needs ₹${Math.round(lifeInsTarget).toLocaleString('en-IN')} coverage (10x income). Gap: ₹${Math.round(Math.max(0, lifeInsTarget - totalInsuranceCoverage)).toLocaleString('en-IN')}` : "Family life insurance coverage is adequate!"
+            gap: Math.max(0, lifeInsTarget - lifeInsuranceCoverage),
+            status: lifeInsuranceCoverage >= lifeInsTarget ? "Excellent" : lifeInsuranceCoverage >= lifeInsTarget * 0.5 ? "Adequate" : "Needs Improvement",
+            action: lifeInsuranceCoverage < lifeInsTarget ? `Family needs ₹${Math.round(lifeInsTarget).toLocaleString('en-IN')} life coverage (10x income). Gap: ₹${Math.round(Math.max(0, lifeInsTarget - lifeInsuranceCoverage)).toLocaleString('en-IN')}` : "Family life insurance coverage is adequate!"
           },
           healthInsurance: {
-            current: totalInsuranceCoverage,
+            current: healthInsuranceCoverage,
             target: healthInsTarget,
-            gap: Math.max(0, healthInsTarget - totalInsuranceCoverage),
-            status: totalInsuranceCoverage >= healthInsTarget ? "Excellent" : totalInsuranceCoverage >= healthInsTarget * 0.5 ? "Adequate" : "Needs Improvement",
-            action: "Combined health coverage across all family members."
+            gap: Math.max(0, healthInsTarget - healthInsuranceCoverage),
+            status: healthInsuranceCoverage >= healthInsTarget ? "Excellent" : healthInsuranceCoverage >= healthInsTarget * 0.5 ? "Adequate" : "Needs Improvement",
+            action: healthInsuranceCoverage < healthInsTarget ? `Family needs ₹${Math.round(healthInsTarget).toLocaleString('en-IN')} health coverage. Current: ₹${Math.round(healthInsuranceCoverage).toLocaleString('en-IN')}` : "Family health insurance coverage is adequate!"
           },
           investmentAllocation: {
             actualEquity: Math.round(equityPercent),
