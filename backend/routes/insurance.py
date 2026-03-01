@@ -128,3 +128,80 @@ async def delete_insurance(insurance_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Insurance not found")
     await db.insurances.delete_one({"id": insurance_id})
     return {"message": "Insurance deleted successfully", "id": insurance_id}
+
+
+
+@router.get("/{insurance_id}/detail")
+async def get_insurance_detail(insurance_id: str, request: Request):
+    """Get comprehensive insurance detail with premium schedule."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = insurance_id
+    ins = await db.insurances.find_one(user_filter, {"_id": 0})
+    if not ins:
+        raise HTTPException(status_code=404, detail="Insurance not found")
+
+    from dateutil.relativedelta import relativedelta
+    premium = ins.get("premiumAmount", 0)
+    freq = ins.get("premiumFrequency", "Yearly")
+    start_str = ins.get("startDate", "")
+    end_str = ins.get("endDate")
+    coverage = ins.get("coverageAmount", 0)
+
+    try:
+        start = datetime.strptime(start_str, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        start = datetime.now()
+
+    period_months = {"Monthly": 1, "Quarterly": 3, "Half-Yearly": 6, "Yearly": 12, "One-Time": 0}.get(freq, 12)
+    today = datetime.now()
+    today_str = today.strftime("%Y-%m-%d")
+
+    # Generate premium schedule
+    schedule = []
+    if period_months > 0:
+        max_entries = 120
+        for i in range(max_entries):
+            due = start + relativedelta(months=period_months * i)
+            if end_str:
+                try:
+                    end = datetime.strptime(end_str, "%Y-%m-%d")
+                    if due > end:
+                        break
+                except (ValueError, TypeError):
+                    pass
+            if due > today + relativedelta(years=5):
+                break
+            status = "paid" if due.strftime("%Y-%m-%d") <= today_str else "upcoming"
+            schedule.append({
+                "premiumNo": i + 1,
+                "dueDate": due.strftime("%Y-%m-%d"),
+                "amount": premium,
+                "status": status,
+            })
+
+    total_paid = sum(1 for s in schedule if s["status"] == "paid")
+    total_upcoming = sum(1 for s in schedule if s["status"] == "upcoming")
+    total_premium_paid = total_paid * premium
+
+    # Monthly income
+    user_id = user.get("user_id")
+    incomes = await db.income_sources.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1}).to_list(100)
+    monthly_income = sum(i.get("expectedAmount", 0) for i in incomes)
+    premium_to_income = round((premium / monthly_income * 100), 1) if monthly_income > 0 and freq == "Monthly" else round(((premium / (12 / max(period_months, 1))) / monthly_income * 100), 1) if monthly_income > 0 else 0
+
+    return {
+        **{k: v for k, v in ins.items() if k != "createdAt"},
+        "createdAt": ins.get("createdAt") if isinstance(ins.get("createdAt"), str) else ins.get("createdAt", datetime.now()).isoformat() if ins.get("createdAt") else None,
+        "schedule": schedule[:50],
+        "totalScheduleEntries": len(schedule),
+        "summary": {
+            "totalPremiumsPaid": total_paid,
+            "totalPremiumsUpcoming": total_upcoming,
+            "totalAmountPaid": total_premium_paid,
+            "coverageToPremiaPaidRatio": round(coverage / total_premium_paid, 1) if total_premium_paid > 0 else 0,
+            "premiumToIncomePercent": premium_to_income,
+        }
+    }
