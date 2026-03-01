@@ -220,6 +220,7 @@ function AppRouter() {
       <Route path="/expenses/fixed" element={<ProtectedRoute><FixedExpenses /></ProtectedRoute>} />
       <Route path="/expenses/variable" element={<ProtectedRoute><VariableExpenses /></ProtectedRoute>} />
       <Route path="/expense" element={<ProtectedRoute><ExpenseForm /></ProtectedRoute>} />
+      <Route path="/wealth/expenses/:id" element={<ProtectedRoute><ExpenseDetail /></ProtectedRoute>} />
       <Route path="/expense/:id" element={<ProtectedRoute><ExpenseForm /></ProtectedRoute>} />
       
       {/* Insurance */}
