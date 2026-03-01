@@ -54,6 +54,7 @@ import LoanForm from "@/LoanForm";
 import MyLoans from "@/MyLoans";
 import LoanBreakdown from "@/LoanBreakdown";
 import CategoryLoan from "@/CategoryLoan";
+import LoanDetail from "@/pages/LoanDetail";
 import AssetForm from "@/AssetForm";
 import MyAssets from "@/MyAssets";
 import AssetBreakdown from "@/AssetBreakdown";
