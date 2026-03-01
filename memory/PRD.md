@@ -24,9 +24,14 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 
 ### Family Member Switching (Fixed Mar 1, 2026)
 - Unified dashboard UI for all views (personal, member, family)
-- Member context preserved across page navigation (Dashboard → Wealth)
+- Member context preserved across ALL page navigations (Dashboard → Wealth → Health → Goals → back)
 - Family combined net worth view aggregating all members
 - FamilyToggle shows: Personal, Members (Priya/Son), Family Combined
+- Context-aware headers on all pages: "Sharma Family Wealth", "Priya's Health", etc.
+- Financial Health widget: Score 0 for members with no data, derived combined score (71/100) for Family view
+- Combined Family view correctly shows Insurance (9), Credit Cards (4), and all aggregated financial data
+- Dropdown z-index fixed via React Portal (z-index: 999999)
+- useEffect dependencies fixed to use activeViewId for proper refetch on view switch
 
 ### Admin Command Center (All 6 Phases Complete)
 - Phase 1: Executive Overview + User Growth Analytics
