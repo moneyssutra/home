@@ -27,6 +27,7 @@ import SegmentationLab from "@/pages/admin/SegmentationLab";
 import SupportIntelligence from "@/pages/admin/SupportIntelligence";
 import CampaignManager from "@/pages/admin/CampaignManager";
 import BehavioralInsights from "@/pages/admin/BehavioralInsights";
+import MonetizationEngine from "@/pages/admin/MonetizationEngine";
 
 // Pages
 import Dashboard from "@/Dashboard";
@@ -89,6 +90,7 @@ import AssetDetail from "@/pages/AssetDetail";
 import IncomeDetail from "@/pages/IncomeDetail";
 import ExpenseDetail from "@/pages/ExpenseDetail";
 import AccountDetail from "@/pages/AccountDetail";
+import Opportunities from "@/pages/Opportunities";
 
 // Goal Pages
 import MyGoals from "@/MyGoals";
@@ -284,6 +286,7 @@ function AppRouter() {
       
       {/* Workspace Settings */}
       <Route path="/workspace-settings" element={<ProtectedRoute><WorkspaceSettings /></ProtectedRoute>} />
+      <Route path="/opportunities" element={<ProtectedRoute><Opportunities /></ProtectedRoute>} />
 
       {/* All admin routes handled by AdminRouter */}
     </Routes>
@@ -303,6 +306,7 @@ function AdminRouter() {
         <Route path="support" element={<SupportIntelligence />} />
         <Route path="campaigns" element={<CampaignManager />} />
         <Route path="behavioral" element={<BehavioralInsights />} />
+        <Route path="monetization" element={<MonetizationEngine />} />
         <Route path="users" element={<UserIntelligence />} />
         <Route path="risk" element={<RiskRadar />} />
       </Route>
