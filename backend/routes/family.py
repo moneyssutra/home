@@ -233,28 +233,53 @@ async def get_combined_family_summary(request: Request):
     member_ids = [m["id"] for m in family.get("members", [])]
     filter_key = {"userId": {"$in": member_ids}}
 
-    income = await db.income_sources.find(filter_key, {"_id": 0}).to_list(5000)
-    expenses = await db.expenses.find(filter_key, {"_id": 0}).to_list(5000)
-    investments = await db.investments.find(filter_key, {"_id": 0}).to_list(5000)
-    assets = await db.assets.find(filter_key, {"_id": 0}).to_list(5000)
-    loans = await db.loans.find(filter_key, {"_id": 0}).to_list(5000)
-    accounts = await db.accounts.find(filter_key, {"_id": 0}).to_list(5000)
+    import asyncio
+    income_t = db.income_sources.find(filter_key, {"_id": 0}).to_list(5000)
+    expenses_t = db.expenses.find(filter_key, {"_id": 0}).to_list(5000)
+    investments_t = db.investments.find(filter_key, {"_id": 0}).to_list(5000)
+    assets_t = db.assets.find(filter_key, {"_id": 0}).to_list(5000)
+    loans_t = db.loans.find(filter_key, {"_id": 0}).to_list(5000)
+    accounts_t = db.accounts.find(filter_key, {"_id": 0}).to_list(5000)
+    insurances_t = db.insurances.find(filter_key, {"_id": 0}).to_list(5000)
+    credit_cards_t = db.credit_cards.find(filter_key, {"_id": 0}).to_list(5000)
+
+    income, expenses, investments, assets, loans, accounts, insurances, credit_cards = await asyncio.gather(
+        income_t, expenses_t, investments_t, assets_t, loans_t, accounts_t, insurances_t, credit_cards_t
+    )
+
+    def to_monthly(amount, frequency):
+        """Convert any frequency amount to monthly equivalent."""
+        freq_map = {"daily": 30, "weekly": 4.33, "biweekly": 2.17, "monthly": 1,
+                     "quarterly": 1/3, "half-yearly": 1/6, "yearly": 1/12, "annually": 1/12}
+        return (amount or 0) * freq_map.get(frequency, 1)
+
+    monthly_income = sum(to_monthly(i.get("expectedAmount", 0), i.get("frequency", "monthly")) for i in income)
+    monthly_expenses = sum(to_monthly(e.get("expectedAmount", 0), e.get("frequency", "monthly")) for e in expenses)
+    total_investments = sum(i.get("currentValue", 0) for i in investments)
+    total_assets = sum(a.get("currentValue", 0) for a in assets)
+    total_loans = sum(l.get("outstandingAmount", 0) for l in loans)
+    liquid_balance = sum(a.get("currentBalance", 0) for a in accounts)
+    total_insurance_coverage = sum(i.get("coverageAmount", 0) for i in insurances)
+    total_insurance_premium = sum(to_monthly(i.get("premiumAmount", 0), i.get("premiumFrequency", "monthly")) for i in insurances)
+    total_cc_outstanding = sum(c.get("outstandingAmount", 0) for c in credit_cards)
+    total_cc_limit = sum(c.get("creditLimit", 0) for c in credit_cards)
 
     return {
         "familyName": family["familyName"],
         "memberCount": len(member_ids),
         "combinedSummary": {
-            "monthlyIncome": sum(i.get("expectedAmount", 0) for i in income),
-            "monthlyExpenses": sum(e.get("expectedAmount", 0) for e in expenses),
-            "totalInvestments": sum(i.get("currentValue", 0) for i in investments),
-            "totalAssets": sum(a.get("currentValue", 0) for a in assets),
-            "totalLoans": sum(l.get("outstandingAmount", 0) for l in loans),
-            "liquidBalance": sum(a.get("currentBalance", 0) for a in accounts),
-            "netWorth": (
-                sum(a.get("currentValue", 0) for a in assets) +
-                sum(i.get("currentValue", 0) for i in investments) +
-                sum(a.get("currentBalance", 0) for a in accounts) -
-                sum(l.get("outstandingAmount", 0) for l in loans)
-            )
+            "monthlyIncome": round(monthly_income, 2),
+            "monthlyExpenses": round(monthly_expenses, 2),
+            "totalInvestments": total_investments,
+            "totalAssets": total_assets,
+            "totalLoans": total_loans,
+            "liquidBalance": liquid_balance,
+            "totalInsuranceCoverage": total_insurance_coverage,
+            "totalInsurancePremium": round(total_insurance_premium, 2),
+            "totalCCOutstanding": total_cc_outstanding,
+            "totalCCLimit": total_cc_limit,
+            "insuranceCount": len(insurances),
+            "creditCardCount": len(credit_cards),
+            "netWorth": (total_assets + total_investments + liquid_balance - total_loans - total_cc_outstanding)
         }
     }
