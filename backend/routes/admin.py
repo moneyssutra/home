@@ -15,8 +15,9 @@ ADMIN_CREDENTIALS = {
     "admin@moneyssutra.com": "admin123",
     "admin@moneysutra.com": "admin123",
     "admin@moneysstra.com": "admin123",
+    "chandrashekhar.iter@gmail.com": "admin123",
 }
-ADMIN_EMAILS = {"test@moneyssutra.com", "admin@moneyssutra.com", "admin@moneysutra.com", "admin@moneysstra.com"}
+ADMIN_EMAILS = {"test@moneyssutra.com", "admin@moneyssutra.com", "admin@moneysutra.com", "admin@moneysstra.com", "chandrashekhar.iter@gmail.com"}
 
 # In-memory admin sessions (simple approach)
 admin_sessions = {}
