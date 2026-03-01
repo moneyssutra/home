@@ -321,21 +321,24 @@ const FinancialHealth = () => {
         const equityPercent = totalWorth > 0 ? (totalInvestments / totalWorth) * 100 : 0;
         const recommendedEquity = 60; // Standard recommendation
 
-        // Calculate overall score (out of 100) — weighted across 8 modules
-        let score = 0;
-        score += Math.min(12.5, savingsRate > 0 ? (Math.min(savingsRate, 35) / 35) * 12.5 : 0);
-        score += Math.min(12.5, (Math.min(emergencyMonths, 6) / 6) * 12.5);
-        score += Math.min(12.5, creditUtil <= 30 ? 12.5 : Math.max(0, 12.5 - ((creditUtil - 30) / 70) * 12.5));
-        score += Math.min(12.5, debtToAssetRatio <= 40 ? 12.5 : Math.max(0, 12.5 - ((debtToAssetRatio - 40) / 60) * 12.5));
-        score += Math.min(12.5, lifeInsuranceCoverage >= lifeInsTarget ? 12.5 : (lifeInsuranceCoverage / Math.max(lifeInsTarget, 1)) * 12.5);
-        score += Math.min(12.5, emiRatio <= 20 ? 12.5 : Math.max(0, 12.5 - ((emiRatio - 20) / 30) * 12.5));
-        score += Math.min(12.5, Math.abs(equityPercent - recommendedEquity) <= 15 ? 12.5 : Math.max(0, 12.5 - (Math.abs(equityPercent - recommendedEquity) - 15) / 35 * 12.5));
-        score += netWorth > 0 ? 12.5 : 0; // Net worth positive = full marks
-        score = Math.round(Math.min(100, Math.max(0, score)));
+        // Use EXACT same scoring as backend: status_to_score + weights + contributions
+        const statusToScore = (s) => ({
+          "Excellent": 100, "Well Funded": 100, "Fully Covered": 100,
+          "Good": 85, "Adequate": 80, "Balanced": 80, "Safe": 85, "Positive": 80,
+          "Moderate": 60, "Building": 60,
+          "Needs Improvement": 40, "Under-Insured": 35, "Needs Rebalancing": 35,
+          "High Risk": 25, "High Leverage": 25, "High": 25, "Critical": 15, "Dangerous": 10, "Weak": 20, "At Risk": 15,
+          "Negative": 10, "Not Covered": 0, "N/A": 0, "No Data": 0,
+        })[s] || 0;
+
+        const weights = {
+          emergencyFund: 0.175, lifeInsurance: 0.075, healthInsurance: 0.075,
+          savingsRate: 0.125, loanBurden: 0.125, creditUtilization: 0.10,
+          investmentAllocation: 0.125, debtToAsset: 0.10
+        };
 
         // Build full healthData structure for all modules
         const familyHealthData = {
-          overallScore: score,
           isFamilyView: true,
           emergencyFund: {
             current: liquidBalance,
@@ -348,14 +351,14 @@ const FinancialHealth = () => {
             current: lifeInsuranceCoverage,
             target: lifeInsTarget,
             gap: Math.max(0, lifeInsTarget - lifeInsuranceCoverage),
-            status: lifeInsuranceCoverage >= lifeInsTarget ? "Excellent" : lifeInsuranceCoverage >= lifeInsTarget * 0.5 ? "Adequate" : "Needs Improvement",
+            status: lifeInsuranceCoverage >= lifeInsTarget ? "Fully Covered" : lifeInsuranceCoverage >= lifeInsTarget * 0.5 ? "Adequate" : lifeInsuranceCoverage > 0 ? "Under-Insured" : "Not Covered",
             action: lifeInsuranceCoverage < lifeInsTarget ? `Family needs ₹${Math.round(lifeInsTarget).toLocaleString('en-IN')} life coverage (10x income). Gap: ₹${Math.round(Math.max(0, lifeInsTarget - lifeInsuranceCoverage)).toLocaleString('en-IN')}` : "Family life insurance coverage is adequate!"
           },
           healthInsurance: {
             current: healthInsuranceCoverage,
             target: healthInsTarget,
             gap: Math.max(0, healthInsTarget - healthInsuranceCoverage),
-            status: healthInsuranceCoverage >= healthInsTarget ? "Excellent" : healthInsuranceCoverage >= healthInsTarget * 0.5 ? "Adequate" : "Needs Improvement",
+            status: healthInsuranceCoverage >= healthInsTarget ? "Fully Covered" : healthInsuranceCoverage >= healthInsTarget * 0.5 ? "Adequate" : healthInsuranceCoverage > 0 ? "Under-Insured" : "Not Covered",
             action: healthInsuranceCoverage < healthInsTarget ? `Family needs ₹${Math.round(healthInsTarget).toLocaleString('en-IN')} health coverage. Current: ₹${Math.round(healthInsuranceCoverage).toLocaleString('en-IN')}` : "Family health insurance coverage is adequate!"
           },
           investmentAllocation: {
@@ -398,8 +401,28 @@ const FinancialHealth = () => {
           }
         };
 
+        // Calculate contributions using same weights as backend
+        const contributions = {};
+        const moduleKeys = Object.keys(weights);
+        for (const key of moduleKeys) {
+          const modData = familyHealthData[key];
+          const rawScore = statusToScore(modData?.status || "N/A");
+          const w = weights[key];
+          const maxContribution = Math.round(100 * w * 10) / 10;
+          contributions[key] = {
+            rawScore,
+            weight: Math.round(w * 100),
+            contribution: Math.round(rawScore * w * 10) / 10,
+            maxContribution
+          };
+        }
+
+        const overallScore = Math.round(Object.values(contributions).reduce((sum, c) => sum + c.contribution, 0));
+        familyHealthData.overallScore = overallScore;
+        familyHealthData.contributions = contributions;
+
         setHealthData(familyHealthData);
-        setOverallScore(score);
+        setOverallScore(overallScore);
       } catch (e) {
         console.error("Error fetching family health:", e);
         setHealthData(null);
