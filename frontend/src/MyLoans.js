@@ -291,7 +291,7 @@ const MyLoans = () => {
                       border: `1px solid ${isClosed ? "var(--status-success)" : "var(--border-light)"}`,
                       opacity: isClosed ? 0.8 : 1
                     }}
-                    onClick={() => navigate(`/loan/${loan.id}`)}
+                    onClick={() => navigate(`/wealth/loans/${loan.id}`)}
                     data-testid={`loan-card-${loan.id}`}
                   >
                     <div className="flex items-start justify-between">
