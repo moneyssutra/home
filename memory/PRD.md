@@ -1,7 +1,7 @@
 # MoneySSutra - Product Requirements Document
 
 ## Original Problem Statement
-MoneySutra is a premium personal finance application (PWA) built with React + FastAPI + MongoDB. Full financial management engine with detailed entity pages, smart schedulers, AI insights, and a native opportunity system.
+MoneySutra is a premium personal finance application (PWA) built with React + FastAPI + MongoDB. Full financial management engine with detailed entity pages, smart schedulers, AI insights, and a native opportunity system with premium mode.
 
 ## Architecture
 - **Frontend**: React (CRA) with ShadCN UI, Recharts, SWR
@@ -32,60 +32,50 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 | Expense | `/wealth/expenses/:id` | Monthly/yearly cost, expense-to-income % |
 | Account | `/wealth/accounts/:id` | Transaction ledger, inflow/outflow/net monthly flow |
 
-### Opportunity System (NEW - March 2026)
-**Backend - Opportunity Engine** (`backend/routes/opportunities.py`):
+### Opportunity System (March 2026)
+**Backend Engine** (`backend/routes/opportunities.py`):
 - MongoDB collections: `opportunities`, `campaigns`, `user_opportunity_logs`, `opportunity_events`
-- User API: `GET /api/opportunities/eligible` (returns max 2 based on rule-based eligibility)
-- Dismiss API: `POST /api/opportunities/dismiss` (30-day cooldown)
-- Tracking API: `POST /api/opportunities/track` (click/convert events)
-- Admin CRUD: `GET /admin/list`, `POST /admin/create`, `PUT /admin/{id}`, `DELETE /admin/{id}`
-- Admin Stats: `GET /admin/stats` (impressions, clicks, CTR)
-- Campaign Launcher: `POST /admin/campaign/launch`
-- Eligibility rules: days_of_safety, wealth_percent, monthly_income, emi_percent, idle_cash, no_active_sip, no_insurance
-- Frequency: 7-day cooldown per opportunity, 30-day dismiss, max 2 per request
-- Lazy-loads after main content
+- User API: `GET /eligible` (max 2, rule-based), `POST /dismiss` (30-day), `POST /track`
+- Admin CRUD + Stats + Campaign launcher
+- Eligibility rules engine with financial metric evaluation
 
-**Frontend - OpportunityCard** (`frontend/src/components/OpportunityCard.js`):
-- Category-specific colors (Safety=green, Growth=blue, Debt=amber, Protection=purple)
-- Soft badge, dismiss X button, CTA button with navigation
-- No flashing, no popups, native app feel
+**Frontend**:
+- `OpportunityCard` component with category colors, dismiss, CTA, premium badge
+- `/opportunities` page grouped by category
+- Dashboard integration (lazy-loaded, max 1 card)
+- Admin Monetization Engine at `/admin/monetization`
 
-**Frontend - Opportunities Tab** (`frontend/src/pages/Opportunities.js`):
-- Route: `/opportunities`
-- Grouped by category with headers
-- Scrollable, clean layout
+### Premium Mode (March 2026)
+**Backend**:
+- `is_premium` and `partner_consent` fields in PreferencesSettings model
+- Premium users: campaign-type opportunities hidden, premium_only opportunities shown
+- Non-premium users: premium_only opportunities hidden
+- `premium_only` flag on opportunities (admin-configurable)
 
-**Frontend - Dashboard Integration** (`frontend/src/Dashboard.js`):
-- "Smart Opportunities" section at bottom, max 1 card
-- "View All" link to /opportunities page
-- Lazy-loaded after main content
+**Frontend**:
+- Settings > Preferences: "Subscription & Opportunities" section
+  - Premium Mode toggle (amber Crown icon, ACTIVE badge)
+  - Partner Suggestions toggle (green Handshake icon)
+- OpportunityCard: PREMIUM badge with Crown icon for premium_only opportunities
+- Admin form: Premium Only checkbox
 
-**Admin - Monetization Engine** (`frontend/src/pages/admin/MonetizationEngine.js`):
-- Route: `/admin/monetization`
-- Stats overview: Impressions, Clicks, Dismissed, CTR
-- Opportunity list with inline stats, toggle active, edit, delete
-- Create/Edit form with rule builder (metric + operator + value)
-- View Rules expandable section
-- Sidebar link with Rocket icon
-
-### Navigation
+### Navigation & Bug Fixes
 - ALL entity clicks navigate to detail pages
-- Income type pages (Job, Business, Self-Employed, Commission, Rental) all navigate to `/wealth/income/:id`
+- Income type navigation fixed (Job, Business, Self-Employed, Commission, Rental)
+- Insurance date crash, Credit Card UI overlap, Account ledger, Income sections fixed
+- Opportunities page UI overlap fixed
 
 ### Admin Command Center (All 6 Phases + Monetization)
 
-### Bug Fixes (March 2026)
-- Insurance Date Crash, Credit Card UI Overlap, Account Ledger Missing, Income Detail Missing Sections, Income Type Navigation
-
 ## Key API Endpoints
 - `GET /api/{entity}/:id/detail` - All 8 entities
-- `GET /api/opportunities/eligible` - Max 2 eligible opportunities
+- `GET /api/opportunities/eligible` - Max 2 eligible (respects premium mode)
 - `POST /api/opportunities/dismiss` - 30-day dismiss
 - `POST /api/opportunities/track` - Event tracking
-- `GET/POST/PUT/DELETE /api/opportunities/admin/*` - Admin CRUD + stats + campaign
+- `GET/POST/PUT/DELETE /api/opportunities/admin/*` - Admin CRUD + stats
+- `GET/POST /api/settings/preferences` - Premium & partner consent
 
 ## Backlog (P2)
-- Premium Mode: Hide partner opportunities for premium users
 - Cash Flow Engine: Rolling Balance, Timeline
 - Decision Impact Engine: Financial simulation
 - Deeper Analytics: Behavioral Pattern Detection, Financial Improvement Tracker, Churn Prediction
