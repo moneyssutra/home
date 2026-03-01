@@ -31,6 +31,8 @@ class PreferencesSettings(BaseModel):
     theme: str = "light"
     show_decimals: bool = True
     default_view: str = "dashboard"
+    is_premium: bool = False
+    partner_consent: bool = True
 
 
 class DataPrivacySettings(BaseModel):
