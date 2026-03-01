@@ -138,20 +138,39 @@ export function useIntelligenceData() {
           modules: []
         };
 
-        // Money Personality for family
+        // Money Personality for family - match ALL_PERSONALITIES structure
         const spendRatio = monthlyIncome > 0 ? (monthlyExpenses / monthlyIncome) * 100 : 100;
-        let personality, description;
-        if (sr >= 40) { personality = "Wealth Builder"; description = "Your family saves aggressively and builds wealth consistently."; }
-        else if (sr >= 25) { personality = "Balanced Planner"; description = "Your family maintains a healthy balance between spending and saving."; }
-        else if (sr >= 10) { personality = "Cautious Spender"; description = "Your family spends conservatively but has room to save more."; }
-        else { personality = "Active Spender"; description = "Your family prioritizes spending. Consider building more savings buffer."; }
+        const needsRatio = Math.min(50, spendRatio * 0.5);
+        const wantsRatio = Math.max(0, spendRatio - needsRatio);
+        const emiPct = emiRatio;
+
+        // Map to personality ID based on financial position
+        let personalityId, personality, zone;
+        if (sr >= 40 && emergencyMonths >= 6) { personalityId = 13; personality = "Wealth Builder"; zone = "Growth"; }
+        else if (sr >= 30 && emergencyMonths >= 4) { personalityId = 9; personality = "Structured Controller"; zone = "Control"; }
+        else if (sr >= 20 && emergencyMonths >= 2) { personalityId = 6; personality = "Buffer Builder"; zone = "Stabilizing"; }
+        else if (sr >= 10) { personalityId = 5; personality = "Recovering Planner"; zone = "Stabilizing"; }
+        else if (emiRatio > 40) { personalityId = 3; personality = "EMI Trapped"; zone = "Survival"; }
+        else { personalityId = 2; personality = "Drifter"; zone = "Survival"; }
+
+        const confidence = Math.min(95, Math.max(40, Math.round(sr * 1.2 + emergencyMonths * 5)));
 
         setSurvivalClock(clock);
         setControlScore(controlScoreData);
         setGamification({ level: Math.min(Math.floor(survivalDays / 30), 20), xp: survivalDays * 10, achievements: [], activeChallenges: [], allAchievements: [] });
         setChallenges({ active: [], available: [], completed: [] });
         setBehaviorAlerts(null);
-        setMoneyPattern({ personality, description, dominantTrait: personality, traits: { saving: sr, spending: spendRatio, planning: Math.min(100, emergencyMonths * 16.7), risk: Math.min(100, 100 - (emiRatio * 2)) } });
+        setMoneyPattern({
+          personality,
+          personalityId,
+          zone,
+          confidence,
+          tagline: `Family financial profile based on ${Math.round(sr)}% savings rate and ${Math.round(emergencyMonths * 10) / 10} months emergency buffer.`,
+          secondary: null,
+          dominantTrait: personality,
+          spendingDNA: { needs: Math.round(needsRatio), wants: Math.round(wantsRatio), savings: Math.round(sr), emi: Math.round(emiPct) },
+          metrics: { survival: survivalDays, score: finalScore, savings: Math.round(sr), debt: Math.round(emiRatio) },
+        });
         setFutureYou(null);
         setPersonalityHistory(null);
       } catch (e) { console.error(e); }
