@@ -271,53 +271,47 @@ const Dashboard = () => {
       </header>
 
       {/* Main Content */}
-      {!isPersonalView && memberSummary ? (
-        /* Family Member Summary View */
-        <div className="px-6 pb-8 space-y-4 mt-4" data-testid="member-dashboard">
-          <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold" style={{ backgroundColor: "#F3E8FF", color: "#7C3AED" }}>
-                {memberSummary.member?.name?.charAt(0) || "?"}
-              </div>
-              <div>
-                <h3 className="font-bold text-lg" style={{ color: "var(--text-primary)" }}>{memberSummary.member?.name}</h3>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{memberSummary.member?.relationship}</p>
-              </div>
+      {/* Family Combined View - member breakdown */}
+      {isFamilyView && familyData && (
+        <div className="px-6 mt-4 mb-4" data-testid="family-breakdown">
+          <div className="rounded-2xl p-4 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>Family Members</h3>
+              <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: "#DBEAFE", color: "#2563EB" }}>
+                {familyData.memberCount} members
+              </span>
             </div>
-
-            <div className="rounded-xl p-4 mb-4" style={{ background: "linear-gradient(135deg, #7C3AED, #A78BFA)" }}>
-              <p className="text-white/70 text-xs mb-1">Net Worth</p>
-              <p className="text-3xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
-                ₹ {formatFullAmount(memberSummary.summary?.netWorth || 0)}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { label: "Monthly Income", value: memberSummary.summary?.monthlyIncome, color: "#059669", count: memberSummary.summary?.counts?.income },
-                { label: "Monthly Expenses", value: memberSummary.summary?.monthlyExpenses, color: "#DC2626", count: memberSummary.summary?.counts?.expenses },
-                { label: "Investments", value: memberSummary.summary?.totalInvestments, color: "#2563EB", count: memberSummary.summary?.counts?.investments },
-                { label: "Assets", value: memberSummary.summary?.totalAssets, color: "#7C3AED", count: memberSummary.summary?.counts?.assets },
-                { label: "Loans", value: memberSummary.summary?.totalLoans, color: "#EA580C", count: memberSummary.summary?.counts?.loans },
-                { label: "Liquid Balance", value: memberSummary.summary?.liquidBalance, color: "#0891B2", count: memberSummary.summary?.counts?.accounts },
-              ].map(({ label, value, color, count }) => (
-                <div key={label} className="rounded-xl p-3" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
-                  <p className="text-[10px] font-medium mb-0.5" style={{ color: "var(--text-muted)" }}>{label}</p>
-                  <p className="text-base font-bold" style={{ color }}> ₹{formatAmount(value || 0)}</p>
-                  <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>{count || 0} entries</p>
+            <div className="space-y-2">
+              {familyData.members.map((m, i) => (
+                <div key={m.id || i} className="flex items-center gap-3 rounded-xl p-2.5" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                    style={{ backgroundColor: m.role === "owner" ? "#DBEAFE" : "#F3E8FF", color: m.role === "owner" ? "#2563EB" : "#7C3AED" }}>
+                    {m.name?.charAt(0) || "?"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold truncate" style={{ color: "var(--text-primary)" }}>{m.name}</p>
+                    <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{m.relationship || m.role}</p>
+                  </div>
                 </div>
               ))}
             </div>
-
-            {memberSummary.summary?.counts && Object.values(memberSummary.summary.counts).every(v => v === 0) && (
-              <div className="mt-4 p-4 rounded-xl text-center" style={{ backgroundColor: "var(--bg-subtle)" }}>
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>No financial data yet for {memberSummary.member?.name}.</p>
-                <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Add data via Excel Import or manually for this member.</p>
-              </div>
-            )}
           </div>
         </div>
-      ) : (
+      )}
+
+      {/* Member Context Label */}
+      {!isPersonalView && !isFamilyView && data?.memberName && (
+        <div className="px-6 mt-4 mb-2" data-testid="member-context-label">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ backgroundColor: "#F3E8FF", border: "1px solid #E9D5FF" }}>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: "#7C3AED", color: "white" }}>
+              {data.memberName.charAt(0)}
+            </div>
+            <span className="text-xs font-semibold" style={{ color: "#7C3AED" }}>Viewing as {data.memberName}</span>
+            {data.memberRelationship && <span className="text-[10px]" style={{ color: "#A78BFA" }}>({data.memberRelationship})</span>}
+          </div>
+        </div>
+      )}
+
       <div className="px-6 pb-8 space-y-6 mt-4">
         {/* Monthly Cash Flow Card - Enhanced */}
         <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="income-expense-card">
