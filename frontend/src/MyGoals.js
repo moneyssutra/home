@@ -21,6 +21,7 @@ import AddActionSheet from "@/components/AddActionSheet";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
 import { useAuth } from "@/context/AuthContext";
+import { useFamilyContext } from "@/context/FamilyContext";
 import {
   DndContext,
   closestCenter,
@@ -162,11 +163,18 @@ const MyGoals = () => {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  const { isPersonalView } = useFamilyContext();
+
   useEffect(() => {
     fetchGoals();
-  }, []);
+  }, [isPersonalView]);
 
   const fetchGoals = async () => {
+    if (!isPersonalView) {
+      setGoals([]);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const response = await axios.get(`${backendUrl}/api/goals`);
