@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, UserPlus, Copy, Trash2, Crown, ChevronRight, Wallet, TrendingUp, Building, CreditCard, Loader2 } from "lucide-react";
+import { Users, UserPlus, Copy, Trash2, Crown, ChevronRight, Wallet, TrendingUp, Building, CreditCard, Loader2, Edit3 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
