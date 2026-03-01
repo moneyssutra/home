@@ -306,52 +306,91 @@ const FinancialHealth = () => {
         const totalDebt = totalLoans + totalCCOutstanding;
         const totalWorth = totalAssets + totalInvestments + liquidBalance;
         const debtToAssetRatio = totalWorth > 0 ? (totalDebt / totalWorth) * 100 : 0;
+        const totalEMI = cs.totalEMI || 0;
+        const emiRatio = monthlyIncome > 0 ? (totalEMI / monthlyIncome) * 100 : 0;
 
-        // Calculate basic score (out of 100)
+        // Insurance targets (thumb rules)
+        const annualIncome = monthlyIncome * 12;
+        const lifeInsTarget = annualIncome * 10; // 10x annual income
+        const healthInsTarget = Math.max(500000, annualIncome * 0.5); // At least 5L or 50% annual income
+
+        // Investment allocation — estimate equity % (assume all investments could be equity for combined)
+        const equityPercent = totalWorth > 0 ? (totalInvestments / totalWorth) * 100 : 0;
+        const recommendedEquity = 60; // Standard recommendation
+
+        // Calculate overall score (out of 100) — weighted across 8 modules
         let score = 0;
-        // Savings rate: up to 25
-        score += Math.min(25, savingsRate > 0 ? (savingsRate / 35) * 25 : 0);
-        // Emergency fund: up to 25
-        score += Math.min(25, (emergencyMonths / 6) * 25);
-        // Credit utilization (lower is better): up to 25
-        score += creditUtil <= 30 ? 25 : Math.max(0, 25 - ((creditUtil - 30) / 70) * 25);
-        // Debt to asset (lower is better): up to 25
-        score += debtToAssetRatio <= 40 ? 25 : Math.max(0, 25 - ((debtToAssetRatio - 40) / 60) * 25);
+        score += Math.min(12.5, savingsRate > 0 ? (Math.min(savingsRate, 35) / 35) * 12.5 : 0);
+        score += Math.min(12.5, (Math.min(emergencyMonths, 6) / 6) * 12.5);
+        score += Math.min(12.5, creditUtil <= 30 ? 12.5 : Math.max(0, 12.5 - ((creditUtil - 30) / 70) * 12.5));
+        score += Math.min(12.5, debtToAssetRatio <= 40 ? 12.5 : Math.max(0, 12.5 - ((debtToAssetRatio - 40) / 60) * 12.5));
+        score += Math.min(12.5, totalInsuranceCoverage >= lifeInsTarget ? 12.5 : (totalInsuranceCoverage / Math.max(lifeInsTarget, 1)) * 12.5);
+        score += Math.min(12.5, emiRatio <= 20 ? 12.5 : Math.max(0, 12.5 - ((emiRatio - 20) / 30) * 12.5));
+        score += Math.min(12.5, Math.abs(equityPercent - recommendedEquity) <= 15 ? 12.5 : Math.max(0, 12.5 - (Math.abs(equityPercent - recommendedEquity) - 15) / 35 * 12.5));
+        score += netWorth > 0 ? 12.5 : 0; // Net worth positive = full marks
         score = Math.round(Math.min(100, Math.max(0, score)));
 
-        // Build minimal healthData-like structure for display
+        // Build full healthData structure for all modules
         const familyHealthData = {
           overallScore: score,
+          isFamilyView: true,
           emergencyFund: {
             current: liquidBalance,
             target: monthlyExpenses * 6,
             gap: Math.max(0, monthlyExpenses * 6 - liquidBalance),
             status: emergencyMonths >= 6 ? "Excellent" : emergencyMonths >= 3 ? "Adequate" : emergencyMonths >= 1 ? "Needs Improvement" : "Critical",
-            action: emergencyMonths < 6 ? `Build family emergency fund to ₹${Math.round(monthlyExpenses * 6).toLocaleString('en-IN')} (6 months of expenses)` : "Your family emergency fund is well-funded!"
+            action: emergencyMonths < 6 ? `Build family emergency fund to ₹${Math.round(monthlyExpenses * 6).toLocaleString('en-IN')} (6 months)` : "Family emergency fund is well-funded!"
           },
-          savingsRate: {
-            rate: savingsRate,
-            surplus: monthlyIncome - monthlyExpenses,
-            status: savingsRate >= 35 ? "Excellent" : savingsRate >= 20 ? "Good" : savingsRate >= 10 ? "Moderate" : savingsRate > 0 ? "Needs Improvement" : "Critical",
-            action: savingsRate < 35 ? "Aim for 35%+ combined savings rate for wealth building." : "Excellent combined savings rate!"
+          lifeInsurance: {
+            current: totalInsuranceCoverage,
+            target: lifeInsTarget,
+            gap: Math.max(0, lifeInsTarget - totalInsuranceCoverage),
+            status: totalInsuranceCoverage >= lifeInsTarget ? "Excellent" : totalInsuranceCoverage >= lifeInsTarget * 0.5 ? "Adequate" : "Needs Improvement",
+            action: totalInsuranceCoverage < lifeInsTarget ? `Family needs ₹${Math.round(lifeInsTarget).toLocaleString('en-IN')} coverage (10x income). Gap: ₹${Math.round(Math.max(0, lifeInsTarget - totalInsuranceCoverage)).toLocaleString('en-IN')}` : "Family life insurance coverage is adequate!"
+          },
+          healthInsurance: {
+            current: totalInsuranceCoverage,
+            target: healthInsTarget,
+            gap: Math.max(0, healthInsTarget - totalInsuranceCoverage),
+            status: totalInsuranceCoverage >= healthInsTarget ? "Excellent" : totalInsuranceCoverage >= healthInsTarget * 0.5 ? "Adequate" : "Needs Improvement",
+            action: "Combined health coverage across all family members."
+          },
+          investmentAllocation: {
+            actualEquity: Math.round(equityPercent),
+            recommendedEquity: recommendedEquity,
+            gap: Math.round(Math.abs(equityPercent - recommendedEquity)),
+            status: Math.abs(equityPercent - recommendedEquity) <= 10 ? "Balanced" : Math.abs(equityPercent - recommendedEquity) <= 20 ? "Moderate" : "Needs Rebalancing",
+            action: `Family portfolio: ${Math.round(equityPercent)}% in investments vs ${recommendedEquity}% recommended.`
           },
           creditUtilization: {
-            utilization: creditUtil,
+            utilization: Math.round(creditUtil * 10) / 10,
             status: creditUtil <= 10 ? "Excellent" : creditUtil <= 30 ? "Good" : creditUtil <= 50 ? "Moderate" : "High Risk",
             action: creditUtil > 30 ? "Keep combined credit utilization below 30%." : "Good combined credit utilization."
           },
+          loanBurden: {
+            emiRatio: Math.round(emiRatio * 10) / 10,
+            totalEmi: totalEMI,
+            status: emiRatio <= 20 ? "Safe" : emiRatio <= 35 ? "Moderate" : emiRatio <= 50 ? "High" : "Critical",
+            action: emiRatio > 35 ? "Family EMI burden is high. Consider prepaying high-interest loans." : "Family loan burden is manageable."
+          },
           debtToAsset: {
-            ratio: debtToAssetRatio,
+            ratio: Math.round(debtToAssetRatio * 10) / 10,
             totalDebt: totalDebt,
             totalWorth: totalWorth,
             status: debtToAssetRatio <= 20 ? "Excellent" : debtToAssetRatio <= 40 ? "Balanced" : debtToAssetRatio <= 60 ? "High" : "Critical",
             action: debtToAssetRatio > 40 ? "Reduce family debt to improve financial stability." : "Healthy debt-to-asset ratio."
           },
+          savingsRate: {
+            rate: Math.round(savingsRate * 10) / 10,
+            surplus: monthlyIncome - monthlyExpenses,
+            status: savingsRate >= 35 ? "Excellent" : savingsRate >= 20 ? "Good" : savingsRate >= 10 ? "Moderate" : savingsRate > 0 ? "Needs Improvement" : "Critical",
+            action: savingsRate < 35 ? "Aim for 35%+ combined savings rate." : "Excellent combined savings rate!"
+          },
           netWorthTrend: {
             currentNetWorth: netWorth,
             previousNetWorth: 0,
             growthPercent: 0,
-            status: "N/A",
+            status: netWorth > 0 ? "Positive" : "Negative",
             action: "Combined family net worth tracking."
           }
         };
