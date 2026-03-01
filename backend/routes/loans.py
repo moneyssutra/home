@@ -59,6 +59,38 @@ async def get_loans(request: Request):
     return loans
 
 
+@router.get("/emi-ledger-all")
+async def get_all_emi_ledger(request: Request):
+    """Get all EMI transactions for the current user."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_id = user.get('user_id')
+    transactions = await db.emi_transactions.find(
+        {"userId": user_id},
+        {"_id": 0}
+    ).sort("transactionDate", -1).to_list(1000)
+
+    return {"totalTransactions": len(transactions), "transactions": transactions}
+
+
+@router.get("/emi-ledger/{loan_id}")
+async def get_emi_ledger(loan_id: str, request: Request):
+    """Get EMI transaction ledger for a specific loan."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_id = user.get('user_id')
+    transactions = await db.emi_transactions.find(
+        {"userId": user_id, "loanId": loan_id},
+        {"_id": 0}
+    ).sort("transactionDate", -1).to_list(500)
+
+    return {"loanId": loan_id, "totalTransactions": len(transactions), "transactions": transactions}
+
+
 @router.get("/{loan_id}", response_model=Loan)
 async def get_loan(loan_id: str, request: Request):
     user = await get_current_user(request)
