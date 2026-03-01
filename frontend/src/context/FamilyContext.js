@@ -42,18 +42,21 @@ export const FamilyProvider = ({ children }) => {
 
   const switchToPersonal = () => setActiveViewId(null);
   const switchToMember = (memberId) => setActiveViewId(memberId);
+  const switchToFamily = () => setActiveViewId("__family__");
 
   // Get the current effective userId for data queries
-  const effectiveUserId = activeViewId || (user?.user_id ?? null);
+  const effectiveUserId = (activeViewId && activeViewId !== "__family__") ? activeViewId : (user?.user_id ?? null);
 
   // Get current view label
   const activeViewLabel = (() => {
-    if (!activeViewId || !family) return "Personal";
-    const member = family.members?.find(m => m.id === activeViewId);
+    if (!activeViewId) return "Personal";
+    if (activeViewId === "__family__") return family?.familyName || "Family";
+    const member = family?.members?.find(m => m.id === activeViewId);
     return member?.name || "Personal";
   })();
 
   const isPersonalView = !activeViewId;
+  const isFamilyView = activeViewId === "__family__";
 
   return (
     <FamilyContext.Provider value={{
@@ -63,8 +66,10 @@ export const FamilyProvider = ({ children }) => {
       effectiveUserId,
       activeViewLabel,
       isPersonalView,
+      isFamilyView,
       switchToPersonal,
       switchToMember,
+      switchToFamily,
       refreshFamily: fetchFamily,
     }}>
       {children}
