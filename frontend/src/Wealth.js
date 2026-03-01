@@ -23,7 +23,6 @@ const formatAmount = (amount) => {
 const Wealth = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const { activeViewId, activeViewLabel, isPersonalView, isFamilyView } = useFamilyContext();
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [data, setData] = useState({});
@@ -34,15 +33,7 @@ const Wealth = () => {
     return null;
   };
 
-  useEffect(() => {
-    if (isFamilyView) {
-      fetchFamilyWealth();
-    } else if (!isPersonalView && activeViewId) {
-      fetchMemberWealth();
-    } else {
-      fetchAll();
-    }
-  }, [activeViewId]);
+  useEffect(() => { fetchAll(); }, []);
 
   const fetchAll = async () => {
     try {
@@ -79,37 +70,6 @@ const Wealth = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fetchMemberWealth = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${API}/api/family/member/${activeViewId}/summary`, { withCredentials: true });
-      const s = res.data.summary || {};
-      setData({
-        nw: { netWorth: s.netWorth || 0, totalAssets: s.totalAssets || 0, totalInvestments: s.totalInvestments || 0, totalLoans: s.totalLoans || 0, liquidBalance: s.liquidBalance || 0 },
-        assets: [], investments: [], loans: [], insurances: [], accounts: [], creditCards: [], incomes: [], expenses: [],
-        totalIncome: s.monthlyIncome || 0,
-        totalExpenses: s.monthlyExpenses || 0,
-        memberCounts: s.counts || {},
-      });
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
-  };
-
-  const fetchFamilyWealth = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${API}/api/family/combined-summary`, { withCredentials: true });
-      const cs = res.data.combinedSummary || {};
-      setData({
-        nw: { netWorth: cs.netWorth || 0, totalAssets: cs.totalAssets || 0, totalInvestments: cs.totalInvestments || 0, totalLoans: cs.totalLoans || 0, liquidBalance: cs.liquidBalance || 0 },
-        assets: [], investments: [], loans: [], insurances: [], accounts: [], creditCards: [], incomes: [], expenses: [],
-        totalIncome: cs.monthlyIncome || 0,
-        totalExpenses: cs.monthlyExpenses || 0,
-      });
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
   };
 
   if (loading) {
