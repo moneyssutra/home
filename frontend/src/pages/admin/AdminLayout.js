@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, ShieldAlert, TrendingUp, LogOut, Activity } from "lucide-react";
+import { LayoutDashboard, Users, ShieldAlert, TrendingUp, LogOut, Activity, Timer, Layers } from "lucide-react";
 import axios from "axios";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
@@ -8,6 +8,8 @@ const backendUrl = process.env.REACT_APP_BACKEND_URL;
 const navItems = [
   { to: "/admin", icon: LayoutDashboard, label: "Overview", end: true },
   { to: "/admin/growth", icon: TrendingUp, label: "User Growth" },
+  { to: "/admin/engagement", icon: Timer, label: "Engagement" },
+  { to: "/admin/features", icon: Layers, label: "Feature Usage" },
   { to: "/admin/users", icon: Users, label: "User Intelligence" },
   { to: "/admin/risk", icon: ShieldAlert, label: "Risk Radar" },
 ];
