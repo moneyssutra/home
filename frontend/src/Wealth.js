@@ -157,7 +157,9 @@ const Wealth = () => {
             </div>
             <NotificationBell />
           </div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>Wealth</h1>
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+            {isFamilyView ? `${activeViewLabel} Wealth` : !isPersonalView ? `${activeViewLabel}'s Wealth` : "Wealth"}
+          </h1>
           <p className="text-white/70 text-sm">Your complete financial picture</p>
         </div>
       </header>
