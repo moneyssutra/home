@@ -49,7 +49,7 @@ export const FamilyProvider = ({ children }) => {
     if (!activeViewId) return "Personal";
     if (activeViewId === "__family__") return family?.familyName || "Family";
     const member = family?.members?.find(m => m.id === activeViewId);
-    return member?.name || "Personal";
+    return member?.name || member?.relationship || "Member";
   })();
 
   const isPersonalView = !activeViewId;
