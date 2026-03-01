@@ -82,13 +82,15 @@ const FamilyPage = () => {
 
   const handleAddMember = async () => {
     if (!memberName.trim() || !memberRelation) { toast.error("Fill name and relationship"); return; }
+    if (!memberPhone.trim()) { toast.error("Phone number is mandatory"); return; }
     try {
-      await axios.post(`${API}/api/family/add-member`, {
-        name: memberName.trim(), relationship: memberRelation, email: memberEmail || null
+      const res = await axios.post(`${API}/api/family/add-member`, {
+        name: memberName.trim(), relationship: memberRelation, email: memberEmail || null, phone: memberPhone.trim()
       }, { withCredentials: true });
-      toast.success(`${memberName} added!`);
+      const linked = res.data.linked;
+      toast.success(linked ? `${memberName} linked to existing account!` : `${memberName} added!`);
       setShowAddMember(false);
-      setMemberName(""); setMemberRelation(""); setMemberEmail("");
+      setMemberName(""); setMemberRelation(""); setMemberEmail(""); setMemberPhone("");
       fetchFamily();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Failed to add");
