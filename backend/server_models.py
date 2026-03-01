@@ -326,6 +326,8 @@ class Loan(BaseModel):
     linkedAssetId: Optional[str] = None
     linkedAccountId: Optional[str] = None
     autoCreateExpense: bool = True
+    lastEmiUpdateDate: Optional[str] = None
+    emiSelectedDate: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class LoanCreate(BaseModel):
@@ -343,6 +345,7 @@ class LoanCreate(BaseModel):
     linkedAssetId: Optional[str] = None
     linkedAccountId: Optional[str] = None
     autoCreateExpense: bool = True
+    emiSelectedDate: Optional[str] = None
 
 
 # ============ ASSET MODEL ============
