@@ -319,7 +319,7 @@ const MyLoans = () => {
                             className="mb-2 cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/asset/${linkedAsset.id}`);
+                              navigate(`/wealth/assets/${linkedAsset.id}`);
                             }}
                             data-testid={`linked-asset-${linkedAsset.id}`}
                           >

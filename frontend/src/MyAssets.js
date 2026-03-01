@@ -229,7 +229,7 @@ const MyAssets = () => {
                     key={asset.id}
                     className="rounded-2xl p-5 shadow-card transition-all hover:shadow-md cursor-pointer"
                     style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-                    onClick={() => navigate(`/asset/${asset.id}`)}
+                    onClick={() => navigate(`/wealth/assets/${asset.id}`)}
                     data-testid={`asset-card-${asset.id}`}
                   >
                     <div className="flex items-start gap-4">

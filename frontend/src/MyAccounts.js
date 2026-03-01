@@ -188,7 +188,7 @@ const MyAccounts = () => {
                     key={account.id}
                     className="rounded-2xl p-5 shadow-card transition-all hover:shadow-md cursor-pointer"
                     style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-                    onClick={() => navigate(`/account/${account.id}`)}
+                    onClick={() => navigate(`/wealth/accounts/${account.id}`)}
                     data-testid={`account-card-${account.id}`}
                   >
                     <div className="flex items-center justify-between">

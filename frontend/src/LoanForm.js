@@ -852,7 +852,7 @@ const LoanIncome = () => {
                   {reverseLinkedAssets.map((asset) => (
                     <button
                       key={asset.id}
-                      onClick={() => navigate(`/asset/${asset.id}`)}
+                      onClick={() => navigate(`/wealth/assets/${asset.id}`)}
                       className="w-full flex items-center justify-between p-3 rounded-xl bg-[#1E293B] border border-[#E0F2FE] hover:border-[#0EA5E9] transition-colors text-left"
                       data-testid={`reverse-linked-asset-${asset.id}`}
                     >
