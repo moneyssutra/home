@@ -163,11 +163,11 @@ const MyGoals = () => {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const { isPersonalView, isFamilyView, activeViewLabel } = useFamilyContext();
+  const { isPersonalView, isFamilyView, activeViewLabel, activeViewId } = useFamilyContext();
 
   useEffect(() => {
     fetchGoals();
-  }, [isPersonalView]);
+  }, [activeViewId]);
 
   const fetchGoals = async () => {
     if (!isPersonalView) {

@@ -5,7 +5,7 @@ import { useFamilyContext } from "@/context/FamilyContext";
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 export function useIntelligenceData() {
-  const { isPersonalView, isFamilyView } = useFamilyContext();
+  const { isPersonalView, isFamilyView, activeViewId } = useFamilyContext();
   const [survivalClock, setSurvivalClock] = useState(null);
   const [controlScore, setControlScore] = useState(null);
   const [behaviorAlerts, setBehaviorAlerts] = useState(null);
@@ -127,7 +127,7 @@ export function useIntelligenceData() {
 
   useEffect(() => {
     fetchAll();
-  }, [isPersonalView]);
+  }, [activeViewId]);
 
   return { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, error, refresh: fetchAll, processWeekly, joinChallenge, leaveChallenge };
 }
