@@ -282,6 +282,7 @@ export default function MonetizationEngine() {
                         </span>
                         <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-gray-50 text-gray-500">P{opp.priority}</span>
                         <span className="px-1.5 py-0.5 rounded text-[9px] font-medium" style={{ backgroundColor: `${catColor}15`, color: catColor }}>{opp.category}</span>
+                        {opp.premium_only && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-600">Premium</span>}
                       </div>
                       <p className="text-xs text-gray-500 truncate">{opp.description}</p>
                     </div>
