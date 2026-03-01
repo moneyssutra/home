@@ -297,6 +297,8 @@ const FinancialHealth = () => {
         const totalAssets = cs.totalAssets || 0;
         const netWorth = cs.netWorth || 0;
         const totalInsuranceCoverage = cs.totalInsuranceCoverage || 0;
+        const lifeInsuranceCoverage = cs.lifeInsuranceCoverage || 0;
+        const healthInsuranceCoverage = cs.healthInsuranceCoverage || 0;
         const totalInsurancePremium = cs.totalInsurancePremium || 0;
 
         // Derive basic metrics
