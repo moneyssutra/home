@@ -103,13 +103,13 @@ const CommandCenter = () => {
 
   return (
     <div data-testid="command-center-page">
-      <div className="mb-6">
-        <h1 className="text-lg font-black tracking-wide text-gray-900">Executive Overview</h1>
-        <p className="text-xs text-gray-400 mt-1">Platform performance at a glance</p>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-base sm:text-lg font-black tracking-wide text-gray-900">Executive Overview</h1>
+        <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">Platform performance at a glance</p>
       </div>
 
       {/* KPI Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-8">
         <KPICard icon={Users} color="teal" label="Total Users" value={data.totalUsers} subtitle={`${data.active7d} active (7d)`} delay={0} to="/admin/users" onClick={() => navigate("/admin/users")} />
         <KPICard icon={Activity} color="blue" label="Active (DAU)" value={g.dauCount || 0} subtitle="Today" delay={60} to="/admin/engagement" onClick={() => navigate("/admin/engagement")} />
         <KPICard icon={BarChart3} color="sky" label="WAU" value={g.wauCount || data.active7d} subtitle="This week" delay={120} to="/admin/engagement" onClick={() => navigate("/admin/engagement")} />
@@ -121,7 +121,7 @@ const CommandCenter = () => {
       </div>
 
       {/* Second row: Financial KPIs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-8">
         <KPICard icon={TrendingUp} color="violet" label="Avg Wealth %" value={`${data.avgWealthPct}%`} delay={480} to="/admin/segmentation" onClick={() => navigate("/admin/segmentation")} />
         <KPICard icon={Heart} color="rose" label="Avg Health Score" value={data.avgHealthScore} delay={540} to="/admin/segmentation" onClick={() => navigate("/admin/segmentation")} />
         <KPICard icon={AlertTriangle} color="orange" label="Critical Risk" value={risk.critical || 0} subtitle="Users < 15 safety days" delay={600} to="/admin/risk" onClick={() => navigate("/admin/risk")} />
