@@ -1,0 +1,103 @@
+{
+  "summary": "Completed full testing of Phase 2 Investment Detail + Ledger Page. All 14 backend API tests passed. All 13 frontend features verified working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_investment_detail_ledger.py",
+    "/app/test_reports/pytest/investment_detail_ledger_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_investment_detail_ledger.py"
+  ],
+  "success_rate": {
+    "backend": "100% (14/14 tests passed)",
+    "frontend": "100% (13/13 features verified)"
+  },
+  "test_credentials": {
+    "username": "test@moneyssutra.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Used existing test data - SBI FD ID: c269922d-630f-429f-b025-2b8462ab8190, HDFC RD Monthly (SIP) ID: 7ee7ae10-dd7b-4b7f-8e99-d984aa32f147, Reliance Industries (Stock) ID: 949c9438-ff3d-4684-817c-8cf8ac996818",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Investment Detail page (Phase 2) fully tested at /wealth/investments/:id. SBI FD (lumpsum) has single ledger entry. HDFC RD Monthly (SIP) has 8 auto-generated monthly ledger entries. Add Contribution creates transaction records in investment_transactions collection. Performance tags correctly calculated based on CAGR vs expected return (Outperforming if CAGR > expected+2%, On Track if within +-2%, Underperforming if below).",
+  "features_tested": {
+    "navigate_myinvestments_to_investment_detail": {
+      "result": "PASS",
+      "details": "Clicking investment card on MyInvestments page navigates to /wealth/investments/:id (correct route). SBI FD card navigated to /wealth/investments/c269922d-630f-429f-b025-2b8462ab8190."
+    },
+    "investment_detail_page_renders_fd": {
+      "result": "PASS",
+      "details": "Page renders at /wealth/investments/c269922d-630f-429f-b025-2b8462ab8190 with name 'SBI FD 3yr', category 'Fixed Deposit (FD)', current value ₹5,46,500, invested ₹5.1L, CAGR 3.64%."
+    },
+    "investment_detail_page_sip_investment": {
+      "result": "PASS",
+      "details": "HDFC RD Monthly at /wealth/investments/7ee7ae10-dd7b-4b7f-8e99-d984aa32f147 shows Monthly SIP ₹5,000, frequency 'Monthly'."
+    },
+    "projected_growth_section": {
+      "result": "PASS",
+      "details": "Projected Growth shows 1yr, 3yr, 5yr, 10yr, 15yr, 20yr projections. SBI FD: 1yr=₹5.9L, 3yr=₹6.7L, 5yr=₹7.8L, 10yr=₹11.0L, 15yr=₹15.6L, 20yr=₹22.2L."
+    },
+    "performance_status_section": {
+      "result": "PASS",
+      "details": "Performance Status correctly shows: SBI FD as 'Underperforming' (CAGR 3.64% below expected 7.25%), Reliance Stock as 'On Track' (CAGR 8.52% close to expected 10%)."
+    },
+    "transaction_ledger_lumpsum": {
+      "result": "PASS",
+      "details": "SBI FD (lumpsum) shows single ledger entry with date, contribution, value, gain/loss columns."
+    },
+    "transaction_ledger_sip": {
+      "result": "PASS",
+      "details": "HDFC RD (SIP) shows 8 monthly auto-generated ledger entries. Each entry shows date, ₹5K contribution, estimated value, gain/loss."
+    },
+    "add_contribution_modal": {
+      "result": "PASS",
+      "details": "Add Contribution button opens modal with Amount input, shows current invested and value. Submit increases principal and currentValue."
+    },
+    "add_contribution_updates_values": {
+      "result": "PASS",
+      "details": "Added ₹500 contribution to Reliance Industries. Current Value updated from ₹1,85,000 to ₹1,85,500. Transaction recorded in ledger."
+    },
+    "view_all_toggle_button": {
+      "result": "PASS",
+      "details": "Toggle button shows 'View All (8)' for HDFC RD SIP. Clicking expands to show all 8 rows, button changes to 'Show Less'."
+    },
+    "edit_button_navigation": {
+      "result": "PASS",
+      "details": "Edit button navigates to /investment/:id (InvestmentForm). Reliance Stock edit URL: /investment/949c9438-ff3d-4684-817c-8cf8ac996818."
+    },
+    "back_button_navigation": {
+      "result": "PASS",
+      "details": "Back button navigates to /my-investments page correctly."
+    },
+    "api_investments_list": {
+      "result": "PASS",
+      "details": "GET /api/investments returns list of 16 investments with all required fields."
+    }
+  },
+  "backend_tests_summary": {
+    "test_get_investments_list": "PASS - Returns 16 investments",
+    "test_investments_list_has_test_investments": "PASS - All 3 test IDs found",
+    "test_get_fd_lumpsum_detail": "PASS - Returns correct structure with metrics, projections, ledger",
+    "test_get_sip_investment_detail": "PASS - Returns sipAmount=5000, frequency=Monthly",
+    "test_projections_exist": "PASS - All 6 projection periods present (1yr to 20yr)",
+    "test_ledger_lumpsum_single_entry": "PASS - Ledger entries present with correct structure",
+    "test_ledger_sip_multiple_entries": "PASS - SIP has multiple entries with type=sip",
+    "test_performance_tag_values": "PASS - On Track tag correct for Reliance (CAGR=8.52%, expected=10%)",
+    "test_404_for_nonexistent_investment": "PASS - Returns 404 for invalid ID",
+    "test_add_contribution_success": "PASS - Principal and currentValue increased",
+    "test_add_contribution_creates_transaction": "PASS - Transaction created with type=contribution",
+    "test_add_contribution_invalid_amount": "PASS - Returns 400 for 0 or negative amount",
+    "test_add_contribution_nonexistent_investment": "PASS - Returns 404",
+    "test_get_single_investment": "PASS - CRUD still works"
+  }
+}
