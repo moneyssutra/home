@@ -206,6 +206,7 @@ function AppRouter() {
       
       {/* Accounts */}
       <Route path="/my-accounts" element={<ProtectedRoute><MyAccounts /></ProtectedRoute>} />
+      <Route path="/wealth/accounts/:id" element={<ProtectedRoute><AccountDetail /></ProtectedRoute>} />
       <Route path="/account" element={<ProtectedRoute><AccountForm /></ProtectedRoute>} />
       <Route path="/account/:id" element={<ProtectedRoute><AccountForm /></ProtectedRoute>} />
       
