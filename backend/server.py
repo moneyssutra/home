@@ -41,6 +41,7 @@ from routes.transactions import router as transactions_router
 from routes.cron import router as cron_router
 from routes.intelligence import router as intelligence_router
 from routes.gamification import router as gamification_router
+from routes.events import router as events_router
 from routes.utils import get_user_filter
 
 # Configure logging
