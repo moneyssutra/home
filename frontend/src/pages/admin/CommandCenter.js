@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Users, Activity, Shield, TrendingUp, Zap, AlertTriangle, Heart, Clock, UserPlus, CalendarDays, BarChart3 } from "lucide-react";
+import { Users, Activity, Shield, TrendingUp, Zap, AlertTriangle, Heart, Clock, UserPlus, CalendarDays, BarChart3, ArrowUpRight } from "lucide-react";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 const fmt = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n));
@@ -16,20 +17,22 @@ const colorMap = {
   orange: { bg: "bg-orange-50", border: "border-orange-100", icon: "text-orange-600", accent: "#EA580C" },
 };
 
-const KPICard = ({ icon: Icon, color, label, value, subtitle, delay = 0 }) => {
+const KPICard = ({ icon: Icon, color, label, value, subtitle, delay = 0, to, onClick }) => {
   const [vis, setVis] = useState(false);
   const c = colorMap[color] || colorMap.teal;
   useEffect(() => { const t = setTimeout(() => setVis(true), delay); return () => clearTimeout(t); }, [delay]);
   return (
-    <div className={`bg-white rounded-2xl p-5 border border-gray-100 shadow-sm transition-all duration-500 cursor-pointer hover:shadow-md hover:-translate-y-0.5`}
+    <div className={`bg-white rounded-2xl p-5 border border-gray-100 shadow-sm transition-all duration-500 cursor-pointer hover:shadow-md hover:-translate-y-0.5 group`}
       style={{ opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(16px)", transition: "all 0.5s ease" }}
+      onClick={onClick}
       data-testid={`kpi-${label.toLowerCase().replace(/\s/g, "-")}`}
     >
       <div className="flex items-center gap-2 mb-3">
         <div className={`w-8 h-8 rounded-xl ${c.bg} ${c.border} border flex items-center justify-center`}>
           <Icon className={`h-4 w-4 ${c.icon}`} />
         </div>
-        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">{label}</span>
+        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider flex-1">{label}</span>
+        {to && <ArrowUpRight className="h-3.5 w-3.5 text-gray-300 group-hover:text-teal-500 transition-colors" />}
       </div>
       <div className="text-2xl font-black text-gray-900">{value}</div>
       {subtitle && <div className="text-xs text-gray-400 mt-1">{subtitle}</div>}
