@@ -224,6 +224,7 @@ function AppRouter() {
       <Route path="/my-investments" element={<ProtectedRoute><MyInvestments /></ProtectedRoute>} />
       <Route path="/investment-breakdown" element={<ProtectedRoute><InvestmentBreakdown /></ProtectedRoute>} />
       <Route path="/investments/:category" element={<ProtectedRoute><CategoryInvestment /></ProtectedRoute>} />
+      <Route path="/wealth/investments/:id" element={<ProtectedRoute><InvestmentDetail /></ProtectedRoute>} />
       <Route path="/investment" element={<ProtectedRoute><InvestmentForm /></ProtectedRoute>} />
       <Route path="/investment/:id" element={<ProtectedRoute><InvestmentForm /></ProtectedRoute>} />
       
