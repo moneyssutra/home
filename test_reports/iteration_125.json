@@ -1,0 +1,65 @@
+{
+  "summary": "Premium Mode feature tested. All 11 backend tests passed (100%). Frontend UI verified: Preferences page shows Premium Mode and Partner Suggestions toggles, Admin Monetization Engine shows Premium Only checkbox in create form. All features working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_premium_mode_opportunities.py",
+    "/app/test_reports/pytest/premium_mode_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_premium_mode_opportunities.py"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 tests passed)",
+    "frontend": "100% - all UI elements verified"
+  },
+  "test_credentials": {
+    "user": {"username": "test", "password": "test"},
+    "admin": {"email": "admin@moneyssutra.com", "password": "admin123"}
+  },
+  "seed_data_creation": "No new seed data created. Existing premium_only opportunity 'Premium: Advanced Portfolio Analysis' used for testing",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Premium Mode feature complete. Backend: GET/POST /api/settings/preferences returns/saves is_premium and partner_consent fields. GET /api/opportunities/eligible filters based on is_premium (premium users don't see campaign type, non-premium don't see premium_only). Admin: POST /api/opportunities/admin/create and PUT /api/opportunities/admin/{id} support premium_only field. Frontend: Settings > Preferences shows 'Subscription & Opportunities' section with Premium Mode toggle (data-testid='premium-toggle') and Partner Suggestions toggle (data-testid='partner-consent-toggle'). Admin Monetization Engine create form has Premium Only checkbox (data-testid='premium-only-checkbox'). User was reset to non-premium after testing.",
+  "features_tested": {
+    "backend_preferences_api": {
+      "GET /api/settings/preferences": "PASSED - Returns is_premium and partner_consent fields",
+      "POST /api/settings/preferences with is_premium=true": "PASSED - Saves premium status",
+      "POST /api/settings/preferences with is_premium=false": "PASSED - Saves non-premium status",
+      "POST /api/settings/preferences with partner_consent toggle": "PASSED - Saves partner consent"
+    },
+    "backend_premium_filtering": {
+      "Non-premium user eligible opportunities": "PASSED - Does NOT return premium_only opportunities",
+      "Premium user eligible opportunities": "PASSED - Does NOT return campaign-type opportunities"
+    },
+    "backend_admin_premium_only": {
+      "POST /api/opportunities/admin/create with premium_only=true": "PASSED - Creates premium-only opportunity",
+      "POST /api/opportunities/admin/create with premium_only=false": "PASSED - Creates regular opportunity",
+      "PUT /api/opportunities/admin/{id} update premium_only": "PASSED - Updates premium_only field",
+      "GET /api/opportunities/admin/list": "PASSED - Shows premium_only field and 'Premium' badge for premium opportunities"
+    },
+    "frontend_preferences_page": {
+      "Subscription & Opportunities section": "PASSED - Section visible with Crown icon",
+      "Premium Mode toggle": "PASSED - data-testid='premium-toggle' exists, toggles state, shows toast notification",
+      "Premium Mode ACTIVE badge": "PASSED - Shows when premium enabled",
+      "Partner Suggestions toggle": "PASSED - data-testid='partner-consent-toggle' exists"
+    },
+    "frontend_admin_monetization": {
+      "Premium Only checkbox in form": "PASSED - data-testid='premium-only-checkbox' exists and toggles",
+      "Premium badge on opportunity list": "PASSED - Shows 'Premium' badge for premium_only opportunities"
+    }
+  },
+  "ui_observations": {
+    "preferences_page": "Clean design with Crown icon for Subscription section, amber color scheme for premium elements",
+    "admin_monetization": "Premium Only checkbox positioned next to Active checkbox with amber text color"
+  }
+}
