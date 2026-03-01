@@ -146,8 +146,8 @@ const Wealth = () => {
     { title: "Assets", icon: Building2, gradient: "from-blue-500 to-indigo-600", bgColor: "var(--status-info-soft)", textColor: "var(--status-info)", value: totalAssets, count: (data.assets || []).length, path: "/my-assets", label: "items" },
     { title: "Investments", icon: LineChart, gradient: "from-violet-500 to-purple-600", bgColor: "#F3E8FF", textColor: "#7C3AED", value: totalInvestments, count: (data.investments || []).length, path: "/my-investments", label: "items" },
     { title: "Loans", icon: Landmark, gradient: "from-amber-500 to-orange-600", bgColor: "var(--status-warning-soft)", textColor: "var(--status-warning)", value: totalLoans, count: (data.loans || []).length, path: "/my-loans", label: "loans", isLiability: true },
-    { title: "Credit Cards", icon: CreditCard, gradient: "from-fuchsia-500 to-pink-600", bgColor: "#FCE7F3", textColor: "#DB2777", value: totalCC, count: (data.creditCards || []).length, path: "/my-credit-cards", label: "cards", isLiability: true },
-    { title: "Insurance", icon: Shield, gradient: "from-cyan-500 to-blue-600", bgColor: "#CFFAFE", textColor: "#0891B2", value: totalCoverage, count: (data.insurances || []).length, path: "/my-insurance", label: "coverage" },
+    { title: "Credit Cards", icon: CreditCard, gradient: "from-fuchsia-500 to-pink-600", bgColor: "#FCE7F3", textColor: "#DB2777", value: totalCC, count: data.overrideCCCount ?? (data.creditCards || []).length, path: "/my-credit-cards", label: "cards", isLiability: true },
+    { title: "Insurance", icon: Shield, gradient: "from-cyan-500 to-blue-600", bgColor: "#CFFAFE", textColor: "#0891B2", value: totalCoverage, count: data.overrideInsCount ?? (data.insurances || []).length, path: "/my-insurance", label: "coverage" },
     { title: "Accounts", icon: Wallet, gradient: "from-emerald-500 to-teal-600", bgColor: "var(--brand-primary-soft)", textColor: "var(--brand-primary)", value: totalBalance, count: (data.accounts || []).length, path: "/my-accounts", label: "accounts" },
   ];
 
