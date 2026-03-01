@@ -345,10 +345,10 @@ def _compute_user_metrics(incomes, expenses, loans, investments, accounts, insur
         multipliers = {"Daily": 30, "Weekly": 4, "Monthly": 1, "Quarterly": 1/3, "Half-Yearly": 1/6, "Yearly": 1/12}
         monthly_expense += amount * multipliers.get(freq, 1)
 
-    total_emi = sum(l.get("emiAmount", 0) for l in loans)
+    total_emi = sum(loan.get("emiAmount", 0) for loan in loans)
     total_investments = sum(inv.get("currentValue", 0) for inv in investments)
     liquid_funds = sum(acc.get("currentBalance", 0) for acc in accounts)
-    total_loans = sum(l.get("outstandingAmount", 0) for l in loans)
+    total_loans = sum(loan.get("outstandingAmount", 0) for loan in loans)
     idle_cash = liquid_funds
     total_wealth = total_investments + liquid_funds
 
