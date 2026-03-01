@@ -237,7 +237,7 @@ const MyInvestments = () => {
                     key={investment.id}
                     className="rounded-2xl p-5 shadow-card transition-all hover:shadow-md cursor-pointer"
                     style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-                    onClick={() => navigate(`/investment/${investment.id}`)}
+                    onClick={() => navigate(`/wealth/investments/${investment.id}`)}
                     data-testid={`investment-card-${investment.id}`}
                   >
                     <div className="flex items-center justify-between">
