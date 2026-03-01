@@ -70,14 +70,14 @@ export default function IncomeDetail() {
         </div>
 
         {/* Receipt Schedule */}
-        {schedule.length > 0 && (
-          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="receipt-schedule">
-            <div className="p-4 pb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Receipt Schedule</h3>
-              {(data.schedule || []).length > 6 && <button onClick={() => setExpandedSchedule(!expandedSchedule)} className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--brand-primary)" }}>
-                {expandedSchedule ? "Less" : "View All"} {expandedSchedule ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-              </button>}
-            </div>
+        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="receipt-schedule">
+          <div className="p-4 pb-2 flex items-center justify-between">
+            <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Receipt Schedule</h3>
+            {(data.schedule || []).length > 6 && <button onClick={() => setExpandedSchedule(!expandedSchedule)} className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--brand-primary)" }}>
+              {expandedSchedule ? "Less" : "View All"} {expandedSchedule ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </button>}
+          </div>
+          {schedule.length > 0 ? (
             <div className="max-h-[300px] overflow-y-auto">
               {schedule.map((s, i) => (
                 <div key={i} className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)" }}>
@@ -91,32 +91,42 @@ export default function IncomeDetail() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="px-4 py-6 text-center">
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>No scheduled receipts yet. Add a start date and frequency to generate schedule.</p>
+            </div>
+          )}
+        </div>
 
         {/* Transactions */}
-        {data.transactions && data.transactions.length > 0 && (
-          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="income-transactions">
-            <div className="p-4 pb-2"><h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Recorded Transactions</h3></div>
-            {data.transactions.slice(0, 10).map((t, i) => (
+        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="income-transactions">
+          <div className="p-4 pb-2"><h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Transaction History</h3></div>
+          {data.transactions && data.transactions.length > 0 ? (
+            data.transactions.slice(0, 10).map((t, i) => (
               <div key={i} className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)" }}>
                 <span style={{ color: "var(--text-secondary)" }}>{formatDate(t.date)}</span>
                 <span className="font-bold" style={{ color: "#059669" }}>₹{fmt(t.amount)}</span>
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          ) : (
+            <div className="px-4 py-6 text-center">
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>No transactions recorded yet</p>
+            </div>
+          )}
+        </div>
 
         {/* Linked Asset */}
-        {data.linkedAsset && (
-          <div className="rounded-2xl p-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-            <h3 className="text-sm font-semibold flex items-center gap-2 mb-2" style={{ color: "var(--text-primary)" }}><Link2 className="h-4 w-4" style={{ color: "var(--brand-primary)" }} /> Linked Asset</h3>
+        <div className="rounded-2xl p-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="linked-asset-section">
+          <h3 className="text-sm font-semibold flex items-center gap-2 mb-2" style={{ color: "var(--text-primary)" }}><Link2 className="h-4 w-4" style={{ color: "var(--brand-primary)" }} /> Linked Asset</h3>
+          {data.linkedAsset ? (
             <button onClick={() => navigate(`/wealth/assets/${data.linkedAsset.id}`)} className="w-full flex justify-between items-center p-3 rounded-xl" style={{ backgroundColor: "#14B8A610" }}>
               <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>{data.linkedAsset.assetName}</span>
               <span className="text-sm font-bold" style={{ color: "#14B8A6" }}>₹{fmtCompact(data.linkedAsset.currentValue)}</span>
             </button>
-          </div>
-        )}
+          ) : (
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>No linked asset</p>
+          )}
+        </div>
       </div>
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
