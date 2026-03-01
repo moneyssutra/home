@@ -390,7 +390,9 @@ async def get_loan_amortization(loan_id: str, request: Request):
             item["interestComponent"] = matched.get("interestPortion", item["interestComponent"])
             item["outstandingAfter"] = matched.get("outstandingAfter", item["outstandingAfter"])
         elif due < today:
-            item["status"] = "missed"
+            # Past EMIs without ledger data are assumed paid
+            item["status"] = "paid"
+            item["paidDate"] = due
         else:
             item["status"] = "pending"
 
