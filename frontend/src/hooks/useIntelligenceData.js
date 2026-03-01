@@ -5,7 +5,7 @@ import { useFamilyContext } from "@/context/FamilyContext";
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 export function useIntelligenceData() {
-  const { isPersonalView } = useFamilyContext();
+  const { isPersonalView, isFamilyView } = useFamilyContext();
   const [survivalClock, setSurvivalClock] = useState(null);
   const [controlScore, setControlScore] = useState(null);
   const [behaviorAlerts, setBehaviorAlerts] = useState(null);
@@ -18,8 +18,33 @@ export function useIntelligenceData() {
   const [error, setError] = useState(null);
 
   const fetchAll = async () => {
+    if (isFamilyView) {
+      // For family combined view, fetch combined financial data and derive health metrics
+      setLoading(true);
+      try {
+        const res = await axios.get(`${backendUrl}/api/family/combined-summary`, { withCredentials: true });
+        const cs = res.data.combinedSummary || {};
+        const monthlyIncome = cs.monthlyIncome || 0;
+        const monthlyExpenses = cs.monthlyExpenses || 0;
+        const liquidBalance = cs.liquidBalance || 0;
+        const survivalDays = monthlyExpenses > 0 ? Math.round(liquidBalance / (monthlyExpenses / 30)) : 0;
+        const savingsRate = monthlyIncome > 0 ? Math.round(((monthlyIncome - monthlyExpenses) / monthlyIncome) * 100) : 0;
+        const riskLevel = survivalDays > 180 ? "Stable" : survivalDays > 90 ? "Moderate" : survivalDays > 30 ? "Caution" : "Critical";
+        const score = Math.min(100, Math.max(0, Math.round(survivalDays / 3.6 * 0.4 + Math.max(0, savingsRate) * 0.6)));
+        setSurvivalClock({ days: survivalDays, riskLevel, monthlyIncome, monthlyExpenses, liquidBalance, netWorth: cs.netWorth || 0 });
+        setControlScore({ overallScore: score, phase: score >= 60 ? 3 : score >= 30 ? 2 : 1, modules: [] });
+        setGamification({ level: 0, xp: 0, achievements: [], activeChallenges: [], allAchievements: [] });
+        setChallenges({ active: [], available: [], completed: [] });
+        setBehaviorAlerts(null);
+        setMoneyPattern(null);
+        setFutureYou(null);
+        setPersonalityHistory(null);
+      } catch (e) { console.error(e); }
+      finally { setLoading(false); }
+      return;
+    }
     if (!isPersonalView) {
-      // For member/family views, show zeroed-out data
+      // For member views, show zeroed-out data
       setSurvivalClock({ days: 0, riskLevel: "N/A", monthlyIncome: 0, monthlyExpenses: 0, liquidBalance: 0 });
       setControlScore({ overallScore: 0, phase: 0, modules: [] });
       setGamification({ level: 0, xp: 0, achievements: [], activeChallenges: [], allAchievements: [] });
