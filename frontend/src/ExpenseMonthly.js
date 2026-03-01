@@ -188,15 +188,17 @@ const ExpenseMonthly = () => {
           <h3 className="text-sm font-bold mb-3" style={{ color: DK.textWhite }}>6-Month Trend</h3>
           <div className="h-[140px] sm:h-[160px]" style={{ outline: "none" }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} barSize={22} style={{ outline: "none" }} accessibilityLayer={false} onClick={(e) => { if (e?.activeTooltipIndex !== undefined) setSelectedIdx(e.activeTooltipIndex); }}>
+              <BarChart data={chartData} barSize={22} style={{ outline: "none" }} accessibilityLayer={false} onClick={(e) => { if (e?.activeTooltipIndex !== undefined) setSelectedIdx(e.activeTooltipIndex === selectedIdx ? null : e.activeTooltipIndex); }}>
                 <XAxis dataKey="name" tick={{ fill: DK.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: DK.textMuted, fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={formatK} width={38} />
                 <Tooltip
+                  active={selectedIdx !== null && selectedIdx !== undefined}
                   formatter={(val) => [formatINR(val), "Spend"]}
                   contentStyle={{ backgroundColor: DK.cardHighlight, border: `1px solid ${DK.cardBorder}`, borderRadius: "10px", color: DK.textWhite, fontSize: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
                   labelStyle={{ color: DK.essentialBlue, fontWeight: "bold" }}
                   itemStyle={{ color: DK.textWhite }}
                   cursor={false}
+                  trigger="click"
                 />
                 <Bar dataKey="total" radius={[5, 5, 0, 0]}>
                   {chartData.map((entry, idx) => {
