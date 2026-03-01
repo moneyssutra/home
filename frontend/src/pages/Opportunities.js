@@ -23,7 +23,7 @@ export default function Opportunities() {
 
   const fetchOpportunities = useCallback(async () => {
     try {
-      const r = await axios.get(`${backendUrl}/api/opportunities/eligible`, { withCredentials: true });
+      const r = await axios.get(`${backendUrl}/api/opportunities/eligible?limit=20&skip_shown_filter=true`, { withCredentials: true });
       setOpportunities(r.data.opportunities || []);
     } catch { /* silent */ }
     setLoading(false);
