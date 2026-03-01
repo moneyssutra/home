@@ -699,12 +699,15 @@ const FinancialHealth = () => {
         return ai - bi;
       });
     }
-    // Smart sort: by rawScore descending (highest achievement first)
-    return [...healthModules].sort((a, b) => {
+    // Smart sort: by rawScore descending (highest achievement first), Net Worth Trend always last
+    const sorted = [...healthModules].sort((a, b) => {
+      if (a.key === "netWorthTrend") return 1;
+      if (b.key === "netWorthTrend") return -1;
       const aScore = healthData?.contributions?.[a.key]?.rawScore ?? getStatusSortScore(a.status);
       const bScore = healthData?.contributions?.[b.key]?.rawScore ?? getStatusSortScore(b.status);
       return bScore - aScore;
     });
+    return sorted;
   })();
 
   const handleDragEnd = (event) => {
