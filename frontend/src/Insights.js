@@ -657,6 +657,8 @@ const ShockTestWidget = ({ clockData }) => {
   const [customAmount, setCustomAmount] = useState("");
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
+  const isFamilyData = clockData?.fundBreakdown?.extendedBuffer !== undefined;
+
   const scenarios = [
     { id: "job_loss", title: "Job Loss", icon: AlertTriangle, color: "#EF4444", desc: "No income for 3 months" },
     { id: "medical", title: "Medical", icon: HeartPulse, color: "#F97316", desc: "₹5L expense" },
@@ -664,8 +666,41 @@ const ShockTestWidget = ({ clockData }) => {
     { id: "emi_hike", title: "EMI Hike", icon: TrendingUp, color: "#8B5CF6", desc: "All EMIs +20%" },
   ];
 
+  const runLocalShock = (id, custom = null) => {
+    const funds = clockData?.effectiveFunds || 0;
+    const monthlyExp = clockData?.monthlyMandatoryExpense || clockData?.monthlyExpenses || 0;
+    const monthlyInc = clockData?.monthlyIncome || 0;
+    const curDays = clockData?.survivalDays || 0;
+    const daily = monthlyExp / 30;
+
+    let shockAmount = 0, title = "", desc = "";
+    if (custom) { shockAmount = custom; title = "Custom Shock"; desc = `₹${fmt(custom)} expense`; }
+    else if (id === "job_loss") { shockAmount = monthlyInc * 3; title = "Job Loss"; desc = "No income for 3 months"; }
+    else if (id === "medical") { shockAmount = 500000; title = "Medical Emergency"; desc = "₹5L medical expense"; }
+    else if (id === "car_repair") { shockAmount = 200000; title = "Major Repair"; desc = "₹2L repair cost"; }
+    else if (id === "emi_hike") { shockAmount = monthlyExp * 0.2 * 12; title = "EMI Hike"; desc = "All EMIs +20% for 12 months"; }
+
+    const postFunds = Math.max(0, funds - shockAmount);
+    const postDays = daily > 0 ? Math.round(postFunds / daily) : 0;
+    const daysLost = curDays - postDays;
+    const severity = postDays < 30 ? "critical" : postDays < 90 ? "warning" : "safe";
+    const label = severity === "critical" ? "Severe impact" : severity === "warning" ? "Moderate impact" : "Manageable";
+
+    setResult({
+      scenario: { id, title, description: desc },
+      current: { survivalDays: curDays, effectiveFunds: funds, monthlyExpenses: monthlyExp },
+      postShock: { survivalDays: postDays, effectiveFunds: postFunds, monthlyExpenses: monthlyExp },
+      impact: { daysLost, severity, label, amountImpact: shockAmount },
+    });
+  };
+
   const runTest = async (id, custom = null) => {
     setTesting(true); setActiveId(id); setResult(null);
+    if (isFamilyData) {
+      runLocalShock(id, custom);
+      setTesting(false);
+      return;
+    }
     try {
       const body = custom ? { customAmount: custom } : { scenarioId: id };
       const res = await fetch(`${backendUrl}/api/intelligence/shock-test`, {
@@ -677,6 +712,8 @@ const ShockTestWidget = ({ clockData }) => {
     } catch (e) { console.error(e); }
     setTesting(false);
   };
+
+  const fmt = (n) => { if (!n && n !== 0) return "0"; const a = Math.abs(n); if (a >= 10000000) return `${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `${(n/100000).toFixed(1)}L`; if (a >= 1000) return `${(n/1000).toFixed(1)}K`; return n.toFixed(0); };
 
   const sevColor = { critical: "#EF4444", warning: "#F59E0B", safe: "#10B981" };
 
