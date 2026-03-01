@@ -218,6 +218,9 @@ async def get_member_summary(member_id: str, request: Request):
 @router.get("/combined-summary")
 async def get_combined_family_summary(request: Request):
     """Get aggregated financial summary for entire family."""
+    from routes.dashboard import _split_by_schedule_date, _split_other_income
+    from routes.utils import get_user_now
+
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -242,27 +245,54 @@ async def get_combined_family_summary(request: Request):
     accounts_t = db.accounts.find(filter_key, {"_id": 0}).to_list(5000)
     insurances_t = db.insurances.find(filter_key, {"_id": 0}).to_list(5000)
     credit_cards_t = db.credit_cards.find(filter_key, {"_id": 0}).to_list(5000)
+    other_income_t = db.other_income.find(filter_key, {"_id": 0}).to_list(5000)
 
-    income, expenses, investments, assets, loans, accounts, insurances, credit_cards = await asyncio.gather(
-        income_t, expenses_t, investments_t, assets_t, loans_t, accounts_t, insurances_t, credit_cards_t
+    income, expenses, investments, assets, loans, accounts, insurances, credit_cards, other_incomes = await asyncio.gather(
+        income_t, expenses_t, investments_t, assets_t, loans_t, accounts_t, insurances_t, credit_cards_t, other_income_t
     )
 
-    def to_monthly(amount, frequency):
-        """Convert any frequency amount to monthly equivalent."""
-        freq_map = {"daily": 30, "weekly": 4.33, "biweekly": 2.17, "monthly": 1,
-                     "quarterly": 1/3, "half-yearly": 1/6, "yearly": 1/12, "annually": 1/12}
-        return (amount or 0) * freq_map.get(frequency, 1)
+    # Received/Expected split using same logic as personal dashboard
+    today = get_user_now(request)
+    current_day = today.day
+    current_month = today.month
+    current_year = today.year
 
-    monthly_income = sum(to_monthly(i.get("expectedAmount", 0), i.get("frequency", "monthly")) for i in income)
-    monthly_expenses = sum(to_monthly(e.get("expectedAmount", 0), e.get("frequency", "monthly")) for e in expenses)
+    income_received_list, income_expected_list = _split_by_schedule_date(income, current_day, current_month, current_year, is_income=True)
+    expense_done_list, expense_upcoming_list = _split_by_schedule_date(expenses, current_day, current_month, current_year, is_income=False)
+    oi_received, oi_expected = _split_other_income(other_incomes, current_day, current_month, current_year)
+
+    income_received = sum(i['amount'] for i in income_received_list) + sum(i['amount'] for i in oi_received)
+    income_expected = sum(i['amount'] for i in income_expected_list) + sum(i['amount'] for i in oi_expected)
+    expenses_done = sum(e['amount'] for e in expense_done_list)
+    upcoming_expenses = sum(e['amount'] for e in expense_upcoming_list)
+
+    monthly_income = income_received + income_expected
+    monthly_expenses = expenses_done + upcoming_expenses
+
     total_investments = sum(i.get("currentValue", 0) for i in investments)
     total_assets = sum(a.get("currentValue", 0) for a in assets)
     total_loans = sum(l.get("outstandingAmount", 0) for l in loans)
     liquid_balance = sum(a.get("currentBalance", 0) for a in accounts)
     total_insurance_coverage = sum(i.get("coverageAmount", 0) for i in insurances)
+
+    def to_monthly(amount, frequency):
+        freq_map = {"daily": 30, "weekly": 4.33, "biweekly": 2.17, "monthly": 1,
+                     "quarterly": 1/3, "half-yearly": 1/6, "yearly": 1/12, "annually": 1/12}
+        return (amount or 0) * freq_map.get(frequency, 1)
+
     total_insurance_premium = sum(to_monthly(i.get("premiumAmount", 0), i.get("premiumFrequency", "monthly")) for i in insurances)
     total_cc_outstanding = sum(c.get("outstandingAmount", 0) for c in credit_cards)
     total_cc_limit = sum(c.get("creditLimit", 0) for c in credit_cards)
+    total_emi = sum(l.get("emiAmount", 0) for l in loans)
+    net_worth = total_assets + total_investments + liquid_balance - total_loans - total_cc_outstanding
+
+    # Survival clock calculation for family
+    # Effective funds = liquid accounts + 60% of semi-liquid (investments in MF, FD)
+    semi_liquid_value = sum(i.get("currentValue", 0) for i in investments
+                           if i.get("investmentCategory", "").lower() in ("mutual fund", "fixed deposit", "fd", "recurring deposit", "rd"))
+    effective_funds = liquid_balance + (semi_liquid_value * 0.6)
+    daily_burn = monthly_expenses / 30 if monthly_expenses > 0 else 0
+    survival_days = int(effective_funds / daily_burn) if daily_burn > 0 else 0
 
     return {
         "familyName": family["familyName"],
@@ -270,6 +300,10 @@ async def get_combined_family_summary(request: Request):
         "combinedSummary": {
             "monthlyIncome": round(monthly_income, 2),
             "monthlyExpenses": round(monthly_expenses, 2),
+            "incomeReceived": round(income_received, 2),
+            "expectedIncome": round(income_expected, 2),
+            "expensesDone": round(expenses_done, 2),
+            "upcomingExpenses": round(upcoming_expenses, 2),
             "totalInvestments": total_investments,
             "totalAssets": total_assets,
             "totalLoans": total_loans,
@@ -278,8 +312,12 @@ async def get_combined_family_summary(request: Request):
             "totalInsurancePremium": round(total_insurance_premium, 2),
             "totalCCOutstanding": total_cc_outstanding,
             "totalCCLimit": total_cc_limit,
+            "totalEMI": total_emi,
             "insuranceCount": len(insurances),
             "creditCardCount": len(credit_cards),
-            "netWorth": (total_assets + total_investments + liquid_balance - total_loans - total_cc_outstanding)
+            "netWorth": net_worth,
+            "effectiveFunds": round(effective_funds, 0),
+            "survivalDays": survival_days,
+            "savingsRate": round(((monthly_income - monthly_expenses) / monthly_income * 100), 1) if monthly_income > 0 else 0,
         }
     }
