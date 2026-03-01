@@ -258,8 +258,9 @@ const FamilyPage = () => {
                           <div className="flex items-center gap-2">
                             <p className="font-semibold text-sm" style={{ color: "var(--text-primary)" }}>{member.name}</p>
                             {member.role === "owner" && <Crown className="h-3.5 w-3.5" style={{ color: "#D97706" }} />}
+                            {member.role === "linked" && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: "#DCFCE7", color: "#16A34A" }}>Linked</span>}
                           </div>
-                          <p className="text-xs" style={{ color: "var(--text-muted)" }}>{member.relationship}</p>
+                          <p className="text-xs" style={{ color: "var(--text-muted)" }}>{member.relationship}{member.phone ? ` | ${member.phone}` : ""}</p>
                         </div>
                         {member.role !== "owner" && (
                           <button onClick={(e) => { e.stopPropagation(); handleRemoveMember(member.id, member.name); }} className="p-1.5 rounded-lg hover:bg-red-50" data-testid={`remove-${member.id}`}>
