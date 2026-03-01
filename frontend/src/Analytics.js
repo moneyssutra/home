@@ -47,7 +47,7 @@ const Analytics = () => {
 
   useEffect(() => {
     fetchAllData();
-  }, [timeFilter]);
+  }, [timeFilter, activeViewId]);
 
   const fetchAllData = async () => {
     setLoading(true);
