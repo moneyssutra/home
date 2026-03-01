@@ -267,14 +267,15 @@ const FamilyPage = () => {
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {family.members?.map((member) => {
                   const rc = RELATIONSHIP_COLORS[member.relationship] || RELATIONSHIP_COLORS.Family;
                   const isSelected = selectedMember === member.id;
+                  const isEditing = editingMember === member.id;
                   return (
                     <div key={member.id}>
                       <div
-                        onClick={() => isSelected ? setSelectedMember(null) : fetchMemberSummary(member.id)}
+                        onClick={() => isEditing ? null : isSelected ? setSelectedMember(null) : fetchMemberSummary(member.id)}
                         className="w-full flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer"
                         style={{ backgroundColor: isSelected ? "var(--brand-primary-soft)" : "var(--bg-subtle)", border: isSelected ? "1px solid var(--brand-primary)" : "1px solid transparent" }}
                         data-testid={`member-${member.id}`}
@@ -291,14 +292,36 @@ const FamilyPage = () => {
                           <p className="text-xs" style={{ color: "var(--text-muted)" }}>{member.relationship}{member.phone ? ` | ${member.phone}` : ""}</p>
                         </div>
                         {member.role !== "owner" && (
-                          <button onClick={(e) => { e.stopPropagation(); handleRemoveMember(member.id, member.name); }} className="p-1.5 rounded-lg hover:bg-red-50" data-testid={`remove-${member.id}`}>
-                            <Trash2 className="h-3.5 w-3.5 text-red-400" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button onClick={(e) => { e.stopPropagation(); startEditing(member); }} className="p-1.5 rounded-lg hover:bg-blue-50" data-testid={`edit-${member.id}`}>
+                              <Edit3 className="h-3.5 w-3.5" style={{ color: "#3B82F6" }} />
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); handleRemoveMember(member.id, member.name); }} className="p-1.5 rounded-lg hover:bg-red-50" data-testid={`remove-${member.id}`}>
+                              <Trash2 className="h-3.5 w-3.5 text-red-400" />
+                            </button>
+                          </div>
                         )}
                         <ChevronRight className="h-4 w-4" style={{ color: "var(--text-muted)", transform: isSelected ? "rotate(90deg)" : "rotate(0)", transition: "transform 200ms" }} />
                       </div>
 
-                      {isSelected && memberSummary?.member?.id === member.id && (
+                      {/* Edit Form */}
+                      {isEditing && (
+                        <div className="mt-2 ml-12 p-3 rounded-xl space-y-2" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid #3B82F6" }}>
+                          <input value={editName} onChange={(e) => setEditName(e.target.value)} placeholder="Name" className="w-full rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="edit-name-input" />
+                          <select value={editRelation} onChange={(e) => setEditRelation(e.target.value)} className="w-full rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="edit-relation-select">
+                            {["Wife", "Husband", "Son", "Daughter", "Father", "Mother", "Brother", "Sister", "Other"].map(r => <option key={r} value={r}>{r}</option>)}
+                          </select>
+                          <input value={editPhone} onChange={(e) => setEditPhone(e.target.value)} placeholder="Phone *" type="tel" className="w-full rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="edit-phone-input" />
+                          <input value={editEmail} onChange={(e) => setEditEmail(e.target.value)} placeholder="Email (optional)" type="email" className="w-full rounded-lg px-3 py-2 text-sm" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="edit-email-input" />
+                          <div className="flex gap-2">
+                            <button onClick={() => setEditingMember(null)} className="flex-1 rounded-lg py-2 text-xs" style={{ border: "1px solid var(--border-light)", color: "var(--text-secondary)" }}>Cancel</button>
+                            <button onClick={() => handleEditMember(member.id)} className="flex-1 rounded-lg py-2 text-xs font-medium text-white" style={{ backgroundColor: "#3B82F6" }} data-testid="save-edit-btn">Save</button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Summary */}
+                      {isSelected && !isEditing && memberSummary?.member?.id === member.id && (
                         <div className="mt-2 ml-12 p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
                           <div className="grid grid-cols-3 gap-2 text-center">
                             {[
