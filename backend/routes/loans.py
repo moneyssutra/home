@@ -440,7 +440,7 @@ async def add_extra_payment(loan_id: str, request: Request):
 
     body = await request.json()
     amount = body.get("amount", 0)
-    mode = body.get("mode", "reduce_tenure")  # "reduce_tenure" or "reduce_emi"
+    mode = body.get("mode", "reduce_tenure")  # "reduce_tenure", "reduce_emi", or "reduce_principal"
     payment_date = body.get("paymentDate", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
 
     if amount <= 0:
@@ -464,16 +464,20 @@ async def add_extra_payment(loan_id: str, request: Request):
     update_fields = {"outstandingAmount": new_outstanding}
 
     if mode == "reduce_emi" and new_outstanding > 0 and tenure > 0:
-        # Recalculate remaining tenure based on paid EMIs
+        # Keep tenure same, recalculate EMI
         paid_emis = await db.emi_transactions.count_documents({"loanId": loan_id})
         remaining_months = max(1, tenure - paid_emis)
         new_emi = _calculate_emi(new_outstanding, rate, remaining_months)
         update_fields["emiAmount"] = new_emi
     elif mode == "reduce_tenure" and new_outstanding > 0 and emi > 0 and rate > 0:
+        # Keep EMI same, reduce tenure
         r = rate / 12 / 100
         if emi > new_outstanding * r:
             new_tenure = math.ceil(-math.log(1 - (new_outstanding * r / emi)) / math.log(1 + r))
             update_fields["tenureMonths"] = new_tenure
+    elif mode == "reduce_principal":
+        # Keep both tenure and EMI same - just reduce principal, loan closes earlier naturally
+        pass  # Only outstandingAmount is updated, no recalculation needed
 
     await db.loans.update_one({"id": loan_id}, {"$set": update_fields})
 
