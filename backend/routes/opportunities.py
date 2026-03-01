@@ -27,9 +27,18 @@ async def get_eligible_opportunities(request: Request):
     now = datetime.now(timezone.utc)
     now_str = now.isoformat()
 
-    # Step 1: Check partner consent from user profile
+    # Step 1: Check user preferences (premium status and partner consent)
+    prefs = await db.user_settings.find_one(
+        {"userId": user_id, "type": "preferences"}, {"_id": 0}
+    )
+    prefs_settings = (prefs or {}).get("settings", {})
+    is_premium = prefs_settings.get("is_premium", False)
+    partner_consent = prefs_settings.get("partner_consent", True)
+
+    # Also check profile for backward compatibility
     profile = await db.profiles.find_one({"userId": user_id}, {"_id": 0})
-    partner_consent = (profile or {}).get("partner_consent", True)
+    if profile and profile.get("partner_consent") is not None:
+        partner_consent = profile.get("partner_consent", True)
 
     # Step 2: Fetch active opportunities within date range
     active_opps = await db.opportunities.find({
