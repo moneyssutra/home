@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 export function useIntelligenceData() {
+  const { isPersonalView } = useFamilyContext();
   const [survivalClock, setSurvivalClock] = useState(null);
   const [controlScore, setControlScore] = useState(null);
   const [behaviorAlerts, setBehaviorAlerts] = useState(null);
@@ -16,6 +18,19 @@ export function useIntelligenceData() {
   const [error, setError] = useState(null);
 
   const fetchAll = async () => {
+    if (!isPersonalView) {
+      // For member/family views, show zeroed-out data
+      setSurvivalClock({ days: 0, riskLevel: "N/A", monthlyIncome: 0, monthlyExpenses: 0, liquidBalance: 0 });
+      setControlScore({ overallScore: 0, phase: 0, modules: [] });
+      setGamification({ level: 0, xp: 0, achievements: [], activeChallenges: [], allAchievements: [] });
+      setBehaviorAlerts(null);
+      setChallenges({ active: [], available: [], completed: [] });
+      setMoneyPattern(null);
+      setFutureYou(null);
+      setPersonalityHistory(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
