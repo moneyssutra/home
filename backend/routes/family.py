@@ -14,6 +14,7 @@ class FamilyMemberCreate(BaseModel):
     name: str
     relationship: str
     email: Optional[str] = None
+    phone: Optional[str] = None
 
 
 class FamilyCreate(BaseModel):
