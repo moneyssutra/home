@@ -13,7 +13,7 @@ const CATEGORY_CONFIG = {
   Protection: { icon: Heart, color: "#8B5CF6", bg: "#8B5CF612", border: "#8B5CF630", label: "Protection Suggestion" },
 };
 
-export function OpportunityCard({ opportunity, onDismiss }) {
+export function OpportunityCard({ opportunity, onDismiss, isPremium }) {
   const navigate = useNavigate();
   const [dismissing, setDismissing] = useState(false);
   const config = CATEGORY_CONFIG[opportunity.category] || CATEGORY_CONFIG.Growth;
@@ -46,16 +46,18 @@ export function OpportunityCard({ opportunity, onDismiss }) {
       style={{ backgroundColor: config.bg, border: `1px solid ${config.border}` }}
       data-testid={`opportunity-card-${opportunity.id}`}
     >
-      <button
-        onClick={handleDismiss}
-        disabled={dismissing}
-        className="absolute top-3 right-3 p-1.5 rounded-full transition-colors"
-        style={{ backgroundColor: "rgba(0,0,0,0.05)" }}
-        data-testid={`dismiss-opp-${opportunity.id}`}
-        aria-label="Dismiss"
-      >
-        <X className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
-      </button>
+      {isPremium && (
+        <button
+          onClick={handleDismiss}
+          disabled={dismissing}
+          className="absolute top-3 right-3 p-1.5 rounded-full transition-colors"
+          style={{ backgroundColor: "rgba(0,0,0,0.05)" }}
+          data-testid={`dismiss-opp-${opportunity.id}`}
+          aria-label="Dismiss"
+        >
+          <X className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
+        </button>
+      )}
 
       <div className="flex items-start gap-3">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${config.color}18` }}>
