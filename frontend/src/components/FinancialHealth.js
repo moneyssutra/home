@@ -281,8 +281,94 @@ const FinancialHealth = () => {
   }, [activeViewId]);
 
   const fetchHealthData = async () => {
+    if (isFamilyView) {
+      // For family combined view, derive basic health from combined-summary
+      setLoading(true);
+      try {
+        const res = await axios.get(`${backendUrl}/api/family/combined-summary`, { withCredentials: true });
+        const cs = res.data.combinedSummary || {};
+        const monthlyIncome = cs.monthlyIncome || 0;
+        const monthlyExpenses = cs.monthlyExpenses || 0;
+        const liquidBalance = cs.liquidBalance || 0;
+        const totalLoans = cs.totalLoans || 0;
+        const totalCCOutstanding = cs.totalCCOutstanding || 0;
+        const totalCCLimit = cs.totalCCLimit || 0;
+        const totalInvestments = cs.totalInvestments || 0;
+        const totalAssets = cs.totalAssets || 0;
+        const netWorth = cs.netWorth || 0;
+        const totalInsuranceCoverage = cs.totalInsuranceCoverage || 0;
+        const totalInsurancePremium = cs.totalInsurancePremium || 0;
+
+        // Derive basic metrics
+        const savingsRate = monthlyIncome > 0 ? ((monthlyIncome - monthlyExpenses) / monthlyIncome) * 100 : 0;
+        const emergencyMonths = monthlyExpenses > 0 ? liquidBalance / monthlyExpenses : 0;
+        const creditUtil = totalCCLimit > 0 ? (totalCCOutstanding / totalCCLimit) * 100 : 0;
+        const totalDebt = totalLoans + totalCCOutstanding;
+        const totalWorth = totalAssets + totalInvestments + liquidBalance;
+        const debtToAssetRatio = totalWorth > 0 ? (totalDebt / totalWorth) * 100 : 0;
+
+        // Calculate basic score (out of 100)
+        let score = 0;
+        // Savings rate: up to 25
+        score += Math.min(25, savingsRate > 0 ? (savingsRate / 35) * 25 : 0);
+        // Emergency fund: up to 25
+        score += Math.min(25, (emergencyMonths / 6) * 25);
+        // Credit utilization (lower is better): up to 25
+        score += creditUtil <= 30 ? 25 : Math.max(0, 25 - ((creditUtil - 30) / 70) * 25);
+        // Debt to asset (lower is better): up to 25
+        score += debtToAssetRatio <= 40 ? 25 : Math.max(0, 25 - ((debtToAssetRatio - 40) / 60) * 25);
+        score = Math.round(Math.min(100, Math.max(0, score)));
+
+        // Build minimal healthData-like structure for display
+        const familyHealthData = {
+          overallScore: score,
+          emergencyFund: {
+            current: liquidBalance,
+            target: monthlyExpenses * 6,
+            gap: Math.max(0, monthlyExpenses * 6 - liquidBalance),
+            status: emergencyMonths >= 6 ? "Excellent" : emergencyMonths >= 3 ? "Adequate" : emergencyMonths >= 1 ? "Needs Improvement" : "Critical",
+            action: emergencyMonths < 6 ? `Build family emergency fund to ₹${Math.round(monthlyExpenses * 6).toLocaleString('en-IN')} (6 months of expenses)` : "Your family emergency fund is well-funded!"
+          },
+          savingsRate: {
+            rate: savingsRate,
+            surplus: monthlyIncome - monthlyExpenses,
+            status: savingsRate >= 35 ? "Excellent" : savingsRate >= 20 ? "Good" : savingsRate >= 10 ? "Moderate" : savingsRate > 0 ? "Needs Improvement" : "Critical",
+            action: savingsRate < 35 ? "Aim for 35%+ combined savings rate for wealth building." : "Excellent combined savings rate!"
+          },
+          creditUtilization: {
+            utilization: creditUtil,
+            status: creditUtil <= 10 ? "Excellent" : creditUtil <= 30 ? "Good" : creditUtil <= 50 ? "Moderate" : "High Risk",
+            action: creditUtil > 30 ? "Keep combined credit utilization below 30%." : "Good combined credit utilization."
+          },
+          debtToAsset: {
+            ratio: debtToAssetRatio,
+            totalDebt: totalDebt,
+            totalWorth: totalWorth,
+            status: debtToAssetRatio <= 20 ? "Excellent" : debtToAssetRatio <= 40 ? "Balanced" : debtToAssetRatio <= 60 ? "High" : "Critical",
+            action: debtToAssetRatio > 40 ? "Reduce family debt to improve financial stability." : "Healthy debt-to-asset ratio."
+          },
+          netWorthTrend: {
+            currentNetWorth: netWorth,
+            previousNetWorth: 0,
+            growthPercent: 0,
+            status: "N/A",
+            action: "Combined family net worth tracking."
+          }
+        };
+
+        setHealthData(familyHealthData);
+        setOverallScore(score);
+      } catch (e) {
+        console.error("Error fetching family health:", e);
+        setHealthData(null);
+        setOverallScore(0);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     if (!isPersonalView) {
-      // For member/family views, show 0 score with empty data
+      // For member views, show 0 score with empty data
       setHealthData(null);
       setOverallScore(0);
       setLoading(false);
