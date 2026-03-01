@@ -438,7 +438,7 @@ const MyBusiness = () => {
               return (
                 <button
                   key={business.id}
-                  onClick={() => navigate(`/business-income/${business.id}`)}
+                  onClick={() => navigate(`/wealth/income/${business.id}`)}
                   className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card"
                   style={{ 
                     backgroundColor: "var(--bg-card)", 

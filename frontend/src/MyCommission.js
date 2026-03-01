@@ -243,7 +243,7 @@ const MyCommission = () => {
               const nextDate = getNextPaymentDateObj(commission);
               const formattedNextDate = formatDate(nextDate);
               return (
-                <button key={commission.id} onClick={() => navigate(`/commission-income/${commission.id}`)} className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", opacity: status === 'received' ? 0.7 : 1 }} data-testid={`commission-card-${commission.id}`}>
+                <button key={commission.id} onClick={() => navigate(`/wealth/income/${commission.id}`)} className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", opacity: status === 'received' ? 0.7 : 1 }} data-testid={`commission-card-${commission.id}`}>
                   <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: freqColor.bg }}><Icon className="h-6 w-6" style={{ color: freqColor.text }} /></div>
                   <div className="flex-1 text-left min-w-0">
                     <div className="flex items-center gap-2 mb-0.5 flex-wrap">
