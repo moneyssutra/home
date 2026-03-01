@@ -245,6 +245,150 @@ async def auto_record_fixed_income():
         logger.error(f"Error auto-recording fixed income: {str(e)}")
 
 
+
+async def auto_process_loan_emi():
+    """Auto-process loan EMI payments - reduce outstanding amount and maintain ledger."""
+    try:
+        today = datetime.now()
+        today_str = today.strftime("%Y-%m-%d")
+        logger.info(f"Checking for loan EMI payments due on: {today_str}")
+
+        loans = await db.loans.find({
+            "emiAmount": {"$exists": True, "$gt": 0},
+            "outstandingAmount": {"$gt": 0}
+        }, {"_id": 0}).to_list(5000)
+
+        processed_count = 0
+        for loan in loans:
+            loan_id = loan.get("id")
+            user_id = loan.get("userId")
+            emi_amount = loan.get("emiAmount", 0)
+            interest_rate = loan.get("interestRate", 0)
+            outstanding = loan.get("outstandingAmount", 0)
+            frequency = loan.get("emiFrequency", "Monthly")
+            start_date_str = loan.get("startDate", "")
+            end_date_str = loan.get("endDate")
+            last_update = loan.get("lastEmiUpdateDate")
+            emi_selected_date = loan.get("emiSelectedDate")
+
+            if not emi_amount or outstanding <= 0:
+                continue
+
+            # Skip if already processed today
+            if last_update == today_str:
+                continue
+
+            # Check if loan has ended
+            if end_date_str:
+                try:
+                    end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
+                    if today > end_date:
+                        continue
+                except (ValueError, TypeError):
+                    pass
+
+            # Determine EMI due date
+            is_due_today = False
+            # Use emiSelectedDate if set, otherwise derive from startDate
+            target_day = None
+            if emi_selected_date:
+                try:
+                    target_day = int(emi_selected_date)
+                except (ValueError, TypeError):
+                    pass
+            elif start_date_str:
+                try:
+                    start = datetime.strptime(start_date_str, "%Y-%m-%d")
+                    target_day = start.day
+                except (ValueError, TypeError):
+                    pass
+
+            if frequency == "Monthly":
+                if target_day:
+                    is_due_today = target_day == today.day
+            elif frequency == "Quarterly":
+                if target_day and start_date_str:
+                    try:
+                        start = datetime.strptime(start_date_str, "%Y-%m-%d")
+                        months_diff = (today.year - start.year) * 12 + (today.month - start.month)
+                        is_due_today = (months_diff % 3 == 0) and (target_day == today.day)
+                    except (ValueError, TypeError):
+                        pass
+            elif frequency == "Half-Yearly":
+                if target_day and start_date_str:
+                    try:
+                        start = datetime.strptime(start_date_str, "%Y-%m-%d")
+                        months_diff = (today.year - start.year) * 12 + (today.month - start.month)
+                        is_due_today = (months_diff % 6 == 0) and (target_day == today.day)
+                    except (ValueError, TypeError):
+                        pass
+
+            if not is_due_today:
+                continue
+
+            # Calculate principal and interest breakdown
+            # Monthly interest = (annual rate / 12 / 100) * outstanding
+            periods_per_year = {"Monthly": 12, "Quarterly": 4, "Half-Yearly": 2}.get(frequency, 12)
+            interest_portion = (interest_rate / periods_per_year / 100) * outstanding
+            principal_portion = emi_amount - interest_portion
+
+            # Ensure principal doesn't go negative
+            if principal_portion < 0:
+                principal_portion = 0
+                interest_portion = emi_amount
+
+            # Don't reduce below 0
+            new_outstanding = max(0, outstanding - principal_portion)
+
+            # Update loan
+            await db.loans.update_one(
+                {"id": loan_id},
+                {"$set": {
+                    "outstandingAmount": round(new_outstanding, 2),
+                    "lastEmiUpdateDate": today_str
+                }}
+            )
+
+            # Record in EMI ledger
+            emi_transaction = {
+                "id": str(uuid.uuid4()),
+                "userId": user_id,
+                "loanId": loan_id,
+                "loanName": loan.get("loanName", ""),
+                "emiAmount": emi_amount,
+                "principalPortion": round(principal_portion, 2),
+                "interestPortion": round(interest_portion, 2),
+                "outstandingBefore": outstanding,
+                "outstandingAfter": round(new_outstanding, 2),
+                "transactionDate": today_str,
+                "frequency": frequency,
+                "source": "auto_scheduler",
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            await db.emi_transactions.insert_one(emi_transaction)
+
+            processed_count += 1
+            logger.info(f"EMI processed for '{loan.get('loanName')}': EMI=₹{emi_amount}, Principal=₹{principal_portion:.2f}, Interest=₹{interest_portion:.2f}, Outstanding: ₹{outstanding} → ₹{new_outstanding:.2f}")
+
+            # Notification
+            if user_id:
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "title": f"EMI Processed: {loan.get('loanName', 'Loan')}",
+                    "message": f"EMI of ₹{emi_amount:,.0f} processed. Principal: ₹{principal_portion:,.0f}, Interest: ₹{interest_portion:,.0f}. Outstanding: ₹{new_outstanding:,.0f}",
+                    "type": "emi_processed",
+                    "isRead": False,
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                await create_notification_and_cleanup(notification)
+
+        logger.info(f"Loan EMI processing complete. Processed: {processed_count} loans.")
+    except Exception as e:
+        logger.error(f"Error processing loan EMIs: {str(e)}")
+
+
+
 async def auto_update_sip_investments():
     """Auto-update investment values for recurring SIP investments when due."""
     try:
