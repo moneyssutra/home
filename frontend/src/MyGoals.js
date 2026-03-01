@@ -163,7 +163,7 @@ const MyGoals = () => {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const { isPersonalView } = useFamilyContext();
+  const { isPersonalView, isFamilyView, activeViewLabel } = useFamilyContext();
 
   useEffect(() => {
     fetchGoals();
