@@ -6,7 +6,9 @@ import {
   Moon, 
   Sun,
   Loader2,
-  Check
+  Check,
+  Crown,
+  Handshake
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -19,6 +21,8 @@ const PreferencesSettings = () => {
   const { theme, setTheme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [accentColor, setAccentColor] = useState("#10B981");
+  const [isPremium, setIsPremium] = useState(false);
+  const [partnerConsent, setPartnerConsent] = useState(true);
 
   const accentColors = [
     { value: "#10B981", name: "Teal" },
@@ -38,6 +42,8 @@ const PreferencesSettings = () => {
       const response = await axios.get(`${backendUrl}/api/settings/preferences`, { withCredentials: true });
       if (response.data) {
         setAccentColor(response.data.accentColor || "#10B981");
+        setIsPremium(response.data.is_premium || false);
+        setPartnerConsent(response.data.partner_consent !== false);
       }
     } catch (error) {
       console.error("Failed to fetch preferences:", error);
