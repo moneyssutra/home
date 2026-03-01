@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, ShieldAlert, TrendingUp, LogOut, Activity, Timer, Layers, FlaskConical } from "lucide-react";
+import { LayoutDashboard, Users, ShieldAlert, TrendingUp, LogOut, Activity, Timer, Layers, FlaskConical, HelpCircle, Megaphone, Brain } from "lucide-react";
 import axios from "axios";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
@@ -11,6 +11,9 @@ const navItems = [
   { to: "/admin/engagement", icon: Timer, label: "Engagement" },
   { to: "/admin/features", icon: Layers, label: "Feature Usage" },
   { to: "/admin/segmentation", icon: FlaskConical, label: "Segmentation Lab" },
+  { to: "/admin/support", icon: HelpCircle, label: "Support Intel" },
+  { to: "/admin/campaigns", icon: Megaphone, label: "Campaigns" },
+  { to: "/admin/behavioral", icon: Brain, label: "Behavioral" },
   { to: "/admin/users", icon: Users, label: "User Intelligence" },
   { to: "/admin/risk", icon: ShieldAlert, label: "Risk Radar" },
 ];
