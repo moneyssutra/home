@@ -39,6 +39,7 @@ const FamilyPage = () => {
   const [memberName, setMemberName] = useState("");
   const [memberRelation, setMemberRelation] = useState("");
   const [memberEmail, setMemberEmail] = useState("");
+  const [memberPhone, setMemberPhone] = useState("");
   const [showJoin, setShowJoin] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [combinedSummary, setCombinedSummary] = useState(null);
