@@ -102,6 +102,29 @@ const FamilyPage = () => {
     }
   };
 
+  const startEditing = (member) => {
+    setEditingMember(member.id);
+    setEditName(member.name);
+    setEditRelation(member.relationship);
+    setEditEmail(member.email || "");
+    setEditPhone(member.phone || "");
+  };
+
+  const handleEditMember = async (memberId) => {
+    if (!editName.trim() || !editRelation) { toast.error("Fill name and relationship"); return; }
+    if (!editPhone.trim()) { toast.error("Phone number is mandatory"); return; }
+    try {
+      await axios.put(`${API}/api/family/edit-member/${memberId}`, {
+        name: editName.trim(), relationship: editRelation, email: editEmail || null, phone: editPhone.trim()
+      }, { withCredentials: true });
+      toast.success("Member updated!");
+      setEditingMember(null);
+      fetchFamily();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to update");
+    }
+  };
+
   const handleRemoveMember = async (memberId, name) => {
     try {
       await axios.delete(`${API}/api/family/member/${memberId}`, { withCredentials: true });
