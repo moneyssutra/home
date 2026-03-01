@@ -661,7 +661,7 @@ const FinancialHealth = () => {
             <Activity className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-black">Financial Health</h3>
+            <h3 className="font-semibold text-black">{isFamilyView ? `${activeViewLabel} Health` : !isPersonalView ? `${activeViewLabel}'s Health` : "Financial Health"}</h3>
             <p className="text-xs text-black/60">Analyzing your finances...</p>
           </div>
         </div>
@@ -687,7 +687,7 @@ const FinancialHealth = () => {
             <Activity className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-black">Financial Health</h3>
+            <h3 className="font-semibold text-black">{isFamilyView ? `${activeViewLabel} Health` : !isPersonalView ? `${activeViewLabel}'s Health` : "Financial Health"}</h3>
             <p className="text-xs text-black/60">Rule-based financial assessment</p>
           </div>
         </div>
