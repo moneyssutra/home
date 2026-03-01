@@ -79,6 +79,7 @@ import InvestmentForm from "@/InvestmentForm";
 import MyInvestments from "@/MyInvestments";
 import InvestmentBreakdown from "@/InvestmentBreakdown";
 import CategoryInvestment from "@/CategoryInvestment";
+import InvestmentDetail from "@/pages/InvestmentDetail";
 import CreditCardForm from "@/CreditCardForm";
 import MyCreditCards from "@/MyCreditCards";
 import MyLiabilities from "@/MyLiabilities";
