@@ -40,6 +40,11 @@ const FamilyPage = () => {
   const [memberRelation, setMemberRelation] = useState("");
   const [memberEmail, setMemberEmail] = useState("");
   const [memberPhone, setMemberPhone] = useState("");
+  const [editingMember, setEditingMember] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editRelation, setEditRelation] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const [showJoin, setShowJoin] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [combinedSummary, setCombinedSummary] = useState(null);
