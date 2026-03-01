@@ -17,12 +17,13 @@ router = APIRouter(prefix="/opportunities", tags=["Opportunities"])
 # ============ USER-FACING ENDPOINTS ============
 
 @router.get("/eligible")
-async def get_eligible_opportunities(request: Request, limit: int = 2, skip_shown_filter: bool = False):
+async def get_eligible_opportunities(request: Request, limit: int = 2, skip_shown_filter: bool = False, skip_dismiss_filter: bool = False):
     """Return eligible opportunities for the current user.
     
     Args:
-        limit: Max opportunities to return (default 2 for dashboard, higher for /opportunities page)
-        skip_shown_filter: If True, skip the 7-day shown cooldown (for dedicated opportunities page)
+        limit: Max opportunities to return (default 2 for inline, higher for full section)
+        skip_shown_filter: Skip the 7-day shown cooldown
+        skip_dismiss_filter: Skip the 30-day dismiss filter
     """
     user = await get_current_user(request)
     if not user:
@@ -87,8 +88,8 @@ async def get_eligible_opportunities(request: Request, limit: int = 2, skip_show
         if log and log.get("converted_at"):
             continue
 
-        # Skip if dismissed within 30 days
-        if log and log.get("dismissed_until"):
+        # Skip if dismissed within 30 days (unless skip_dismiss_filter)
+        if not skip_dismiss_filter and log and log.get("dismissed_until"):
             try:
                 dismiss_dt = datetime.fromisoformat(log["dismissed_until"])
                 if dismiss_dt.tzinfo is None:
