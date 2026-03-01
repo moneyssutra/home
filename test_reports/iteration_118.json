@@ -1,0 +1,85 @@
+{
+  "summary": "Successfully tested Share Card UI fixes (5 bugs) and Loan EMI auto-deduction scheduler with ledger. All 20 backend tests passed. All 5 Share Card UI bugs are fixed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "scheduler.py",
+        "issue": "Error processing due premiums: time data '1' does not match format '%Y-%m-%d' - some insurance premium dates stored incorrectly (existing issue)",
+        "priority": "LOW"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_loan_emi_scheduler.py",
+    "/app/test_reports/pytest/loan_emi_scheduler_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_loan_emi_scheduler.py"
+  ],
+  "success_rate": {
+    "backend": "100% (20/20 tests passed)",
+    "frontend": "100% (All 5 Share Card bugs verified fixed)"
+  },
+  "test_credentials": {
+    "username": "test@moneyssutra.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Used existing test data - 9 loans processed by scheduler on startup",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Loan EMI scheduler fully tested. HDFC Home Loan outstanding reduced from 4200000 to 4184750 after EMI processing. All 9 EMI transactions recorded in ledger with principal/interest breakdown.",
+  "features_tested": {
+    "share_card_name_capitalization": {
+      "result": "PASS",
+      "details": "API returns name='Rahul Sharma'. Frontend capitalizeWords() function correctly capitalizes first letter of each word. UI shows 'Rahul Sharma' properly capitalized."
+    },
+    "share_card_circle_days_safe": {
+      "result": "PASS",
+      "details": "Circle is 120px (was 96px). Shows '186 DAYS SAFE' without overlapping. Number and label are clearly separated."
+    },
+    "share_card_svg_icons": {
+      "result": "PASS",
+      "details": "All 4 stat boxes (SAFETY, BADGES, STREAK, HEALTH) have inline SVG icons using ICON_PATHS. Shield, Trophy, Flame, Target icons all render correctly."
+    },
+    "share_card_logo": {
+      "result": "PASS",
+      "details": "Footer shows MoneySutra logo image (/assets/branding/logo-icon-round-sm.png) instead of Award icon. MoneySSutra branding text also shown."
+    },
+    "share_card_stage_alignment": {
+      "result": "PASS",
+      "details": "Stage badge 'Stage 13' is properly aligned at top-right with flexShrink:0 preventing text wrap."
+    },
+    "trigger_emi_update_endpoint": {
+      "result": "PASS",
+      "details": "POST /api/loans/trigger-emi-update returns all 9 loans with isDueToday, emiDueDay, principalPortion, interestPortion breakdown. Already processed flag correctly set."
+    },
+    "emi_ledger_all_endpoint": {
+      "result": "PASS",
+      "details": "GET /api/loans/emi-ledger-all returns 9 EMI transactions with principal/interest breakdown. All transactions have source='auto_scheduler'."
+    },
+    "emi_ledger_specific_loan_endpoint": {
+      "result": "PASS",
+      "details": "GET /api/loans/emi-ledger/886f8ea0-1f10-4a3e-8280-eefc1567bc5e returns HDFC Home Loan transaction with outstandingBefore=4200000, outstandingAfter=4184750, principal=15250, interest=29750."
+    },
+    "loan_outstanding_reduced": {
+      "result": "PASS",
+      "details": "HDFC Home Loan outstandingAmount reduced from 4200000 to 4184750 after EMI processing. lastEmiUpdateDate set to 2026-03-01."
+    },
+    "loan_crud_still_works": {
+      "result": "PASS",
+      "details": "GET /api/loans returns all 9 loans. GET /api/loans/{loan_id} returns specific loan with all EMI fields."
+    },
+    "scheduler_auto_process_loan_emi": {
+      "result": "PASS",
+      "details": "Backend logs confirm auto_process_loan_emi ran on startup: 'Checking for loan EMI payments due on: 2026-03-01', 'Loan EMI processing complete. Processed: 9 loans.'"
+    }
+  }
+}
