@@ -21,6 +21,8 @@ import CommandCenter from "@/pages/admin/CommandCenter";
 import UserGrowth from "@/pages/admin/UserGrowth";
 import UserIntelligence from "@/pages/admin/UserIntelligence";
 import RiskRadar from "@/pages/admin/RiskRadar";
+import EngagementAnalytics from "@/pages/admin/EngagementAnalytics";
+import FeatureUsage from "@/pages/admin/FeatureUsage";
 
 // Pages
 import Dashboard from "@/Dashboard";
