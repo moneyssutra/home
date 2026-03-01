@@ -129,6 +129,59 @@ async def get_account_detail(account_id: str, request: Request):
     total_outflow = sum(e.get("expectedAmount", 0) for e in linked_expenses) + sum(l.get("emiAmount", 0) for l in linked_loans)
     net_monthly_flow = total_inflow - total_outflow
 
+    # Build transaction ledger
+    ledger = []
+    # Opening balance entry
+    created_at = acct.get("createdAt", "")
+    if isinstance(created_at, datetime):
+        created_at = created_at.isoformat()
+    ledger.append({
+        "date": created_at[:10] if created_at else datetime.now().strftime("%Y-%m-%d"),
+        "description": "Opening Balance",
+        "type": "opening",
+        "amount": opening,
+        "balance": opening,
+    })
+
+    # Add linked income as inflow entries
+    for inc in linked_income:
+        ledger.append({
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "description": f"Income: {inc.get('name', 'Unknown')}",
+            "type": "credit",
+            "amount": inc.get("expectedAmount", 0),
+            "balance": None,
+        })
+
+    # Add linked expense as outflow entries
+    for exp in linked_expenses:
+        ledger.append({
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "description": f"Expense: {exp.get('expenseName', 'Unknown')}",
+            "type": "debit",
+            "amount": exp.get("expectedAmount", 0),
+            "balance": None,
+        })
+
+    # Add linked loan EMIs as outflow entries
+    for loan in linked_loans:
+        ledger.append({
+            "date": datetime.now().strftime("%Y-%m-%d"),
+            "description": f"Loan EMI: {loan.get('loanName', 'Unknown')}",
+            "type": "debit",
+            "amount": loan.get("emiAmount", 0),
+            "balance": None,
+        })
+
+    # Calculate running balance
+    running = opening
+    for entry in ledger[1:]:
+        if entry["type"] == "credit":
+            running += entry["amount"]
+        elif entry["type"] == "debit":
+            running -= entry["amount"]
+        entry["balance"] = round(running, 2)
+
     return {
         **{k: v for k, v in acct.items() if k != "createdAt"},
         "createdAt": acct.get("createdAt") if isinstance(acct.get("createdAt"), str) else acct.get("createdAt", datetime.now()).isoformat() if acct.get("createdAt") else None,
@@ -139,6 +192,7 @@ async def get_account_detail(account_id: str, request: Request):
             "totalMonthlyOutflow": total_outflow,
             "netMonthlyFlow": round(net_monthly_flow, 2),
         },
+        "ledger": ledger,
         "linkedLoans": linked_loans,
         "linkedInvestments": linked_investments,
         "linkedExpenses": linked_expenses,
