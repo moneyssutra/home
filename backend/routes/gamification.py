@@ -519,8 +519,11 @@ async def get_challenges(request: Request):
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     user_id = user.get("user_id")
-    active = await db.user_challenges.find({"user_id": user_id, "is_completed": False}, {"_id": 0}).to_list(50)
-    completed = await db.user_challenges.find({"user_id": user_id, "is_completed": True}, {"_id": 0}).to_list(50)
+    import asyncio
+    active, completed = await asyncio.gather(
+        db.user_challenges.find({"user_id": user_id, "is_completed": False}, {"_id": 0}).to_list(50),
+        db.user_challenges.find({"user_id": user_id, "is_completed": True}, {"_id": 0}).to_list(50),
+    )
     active_codes = {c["challenge_code"] for c in active}
     available = [{**c, "explainer": _get_explainer(c["code"])} for c in CHALLENGES if c["code"] not in active_codes]
     return {"active": active, "available": available, "completed": completed}
