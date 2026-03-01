@@ -237,6 +237,7 @@ async def admin_create_opportunity(request: Request):
         "eligibility_json": body.get("eligibility_json", {}),
         "target_filter_json": body.get("target_filter_json", {}),
         "destination_url": body.get("destination_url", ""),
+        "premium_only": body.get("premium_only", False),
         "start_date": body.get("start_date", datetime.now(timezone.utc).isoformat()),
         "end_date": body.get("end_date", (datetime.now(timezone.utc) + timedelta(days=90)).isoformat()),
         "active": body.get("active", True),
