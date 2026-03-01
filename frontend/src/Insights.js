@@ -1170,6 +1170,7 @@ const Insights = () => {
   const [showShareCard, setShowShareCard] = useState(false);
   const [openModule, setOpenModule] = useState(null);
   const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, refresh, joinChallenge, leaveChallenge } = useIntelligenceData();
+  const { activeViewLabel, isPersonalView, isFamilyView } = useFamilyContext();
 
   const isEmpty = !hasRealData(survivalClock, controlScore);
   const isRedZone = !isEmpty && survivalClock && survivalClock.survivalDays < 30;
