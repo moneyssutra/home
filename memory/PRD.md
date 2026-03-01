@@ -43,9 +43,14 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 - Mobile responsive admin with hamburger menu
 
 ## Backlog
+### P1
+- Clarify requirements for independent family member accounts (Priya having own login vs linked accounts)
+
 ### P2
 - Cash Flow Engine: Rolling Balance, Timeline, Negative Balance Handling
 - Decision Impact Engine: Financial simulation for large purchases
+- Admin Phase 6 Deep: Behavioral Pattern Detection, Financial Improvement Tracker, Churn Prediction
+- Refactor repeated context-aware pattern into reusable hook/HOC
 
 ## Credentials
 - Test user: test@moneyssutra.com / test
