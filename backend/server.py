@@ -42,6 +42,7 @@ from routes.cron import router as cron_router
 from routes.intelligence import router as intelligence_router
 from routes.gamification import router as gamification_router
 from routes.events import router as events_router
+from routes.opportunities import router as opportunities_router
 from routes.utils import get_user_filter
 
 # Configure logging
@@ -238,6 +239,7 @@ app.include_router(data_import_router, prefix="/api")
 app.include_router(family_router, prefix="/api")
 app.include_router(admin_router, prefix="/api/admin")
 app.include_router(events_router, prefix="/api")
+app.include_router(opportunities_router, prefix="/api")
 
 
 # ============ LIFECYCLE EVENTS ============
@@ -287,6 +289,11 @@ async def startup_db_client():
         await db.user_events.create_index([("eventType", 1)])
         await db.user_financial_snapshots.create_index([("user_id", 1), ("created_at", -1)])
         await db.admin_campaigns.create_index("id", unique=True)
+        await db.opportunities.create_index("id", unique=True)
+        await db.opportunities.create_index([("active", 1), ("start_date", 1), ("end_date", 1)])
+        await db.user_opportunity_logs.create_index([("user_id", 1), ("opportunity_id", 1)], unique=True)
+        await db.opportunity_events.create_index([("opportunity_id", 1), ("event", 1)])
+        await db.campaigns.create_index("id", unique=True)
         logger.info("Database indexes created successfully")
 
         asyncio.create_task(check_and_send_reminders())
