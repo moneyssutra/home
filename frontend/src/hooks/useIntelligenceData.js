@@ -98,13 +98,56 @@ export function useIntelligenceData() {
         const clock = buildSurvivalClock(survivalDays, effectiveFunds, monthlyExpenses, liquidBalance, cs.netWorth || 0);
         clock.monthlyIncome = monthlyIncome;
 
-        const score = Math.min(100, Math.max(0, Math.round(survivalDays / 3.6 * 0.4 + Math.max(0, savingsRate) * 0.6)));
+        // Calculate proper Financial Score with breakdown for FinancialScoreWidget
+        const totalEMI = cs.totalEMI || 0;
+        const emiRatio = monthlyIncome > 0 ? (totalEMI / monthlyIncome) * 100 : 0;
+        const emergencyMonths = monthlyExpenses > 0 ? effectiveFunds / monthlyExpenses : 0;
+
+        // Score breakdown matching personal view structure
+        const sr = savingsRate;
+        const srScore = sr >= 35 ? 25 : sr >= 30 ? 22 : sr >= 25 ? 20 : sr >= 20 ? 17 : sr >= 15 ? 14 : sr >= 10 ? 10 : sr >= 5 ? 6 : 0;
+        const emiScore = emiRatio <= 20 ? 25 : emiRatio <= 25 ? 22 : emiRatio <= 30 ? 20 : emiRatio <= 40 ? 15 : emiRatio <= 50 ? 10 : emiRatio <= 60 ? 5 : 0;
+        const bufferScore = emergencyMonths >= 8 ? 25 : emergencyMonths >= 6 ? 22 : emergencyMonths >= 4 ? 18 : emergencyMonths >= 3 ? 14 : emergencyMonths >= 2 ? 10 : emergencyMonths >= 1 ? 5 : 0;
+        const consistencyScore = 18; // Default for family (no 3-month history)
+        const finalScore = srScore + emiScore + bufferScore + consistencyScore;
+        const grade = finalScore >= 85 ? "A+" : finalScore >= 75 ? "A" : finalScore >= 65 ? "B+" : finalScore >= 55 ? "B" : finalScore >= 45 ? "C" : finalScore >= 35 ? "D" : "F";
+
+        const controlScoreData = {
+          finalScore,
+          score: finalScore,
+          grade,
+          phase: finalScore >= 60 ? 3 : finalScore >= 30 ? 2 : 1,
+          metrics: {
+            monthlyIncome,
+            totalEMI,
+            savingsRate: sr,
+            effectiveFunds,
+            monthlyExpenses,
+            emergencyMonths: Math.round(emergencyMonths * 10) / 10,
+          },
+          breakdown: {
+            savingsRate: { label: "Savings Rate", score: srScore, max: 25 },
+            emiLoad: { label: "EMI Load", score: emiScore, max: 25 },
+            safetyBuffer: { label: "Safety Buffer", score: bufferScore, max: 25 },
+            incomeConsistency: { label: "Income Consistency", score: consistencyScore, max: 25 },
+          },
+          modules: []
+        };
+
+        // Money Personality for family
+        const spendRatio = monthlyIncome > 0 ? (monthlyExpenses / monthlyIncome) * 100 : 100;
+        let personality, description;
+        if (sr >= 40) { personality = "Wealth Builder"; description = "Your family saves aggressively and builds wealth consistently."; }
+        else if (sr >= 25) { personality = "Balanced Planner"; description = "Your family maintains a healthy balance between spending and saving."; }
+        else if (sr >= 10) { personality = "Cautious Spender"; description = "Your family spends conservatively but has room to save more."; }
+        else { personality = "Active Spender"; description = "Your family prioritizes spending. Consider building more savings buffer."; }
+
         setSurvivalClock(clock);
-        setControlScore({ overallScore: score, phase: score >= 60 ? 3 : score >= 30 ? 2 : 1, modules: [] });
-        setGamification({ level: 0, xp: 0, achievements: [], activeChallenges: [], allAchievements: [] });
+        setControlScore(controlScoreData);
+        setGamification({ level: Math.min(Math.floor(survivalDays / 30), 20), xp: survivalDays * 10, achievements: [], activeChallenges: [], allAchievements: [] });
         setChallenges({ active: [], available: [], completed: [] });
         setBehaviorAlerts(null);
-        setMoneyPattern(null);
+        setMoneyPattern({ personality, description, dominantTrait: personality, traits: { saving: sr, spending: spendRatio, planning: Math.min(100, emergencyMonths * 16.7), risk: Math.min(100, 100 - (emiRatio * 2)) } });
         setFutureYou(null);
         setPersonalityHistory(null);
       } catch (e) { console.error(e); }
