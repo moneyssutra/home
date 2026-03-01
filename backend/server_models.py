@@ -424,6 +424,7 @@ class Investment(BaseModel):
     autoCreateExpense: bool = False
     isLiquidAsset: bool = False
     linkedExpenseId: Optional[str] = None
+    lastSipUpdateDate: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class InvestmentCreate(BaseModel):
