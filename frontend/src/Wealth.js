@@ -108,13 +108,18 @@ const Wealth = () => {
       const cs = res.data.combinedSummary || {};
       setData({
         nw: { netWorth: cs.netWorth || 0 },
-        assets: [], investments: [], loans: [], insurances: [], accounts: [], creditCards: [], incomes: [], expenses: [],
+        assets: [], investments: [], loans: [], incomes: [], expenses: [],
+        insurances: [], accounts: [], creditCards: [],
         totalIncome: cs.monthlyIncome || 0,
         totalExpenses: cs.monthlyExpenses || 0,
         overrideAssets: cs.totalAssets || 0,
         overrideInvestments: cs.totalInvestments || 0,
         overrideLoans: cs.totalLoans || 0,
         overrideBalance: cs.liquidBalance || 0,
+        overrideCoverage: cs.totalInsuranceCoverage || 0,
+        overrideCC: cs.totalCCOutstanding || 0,
+        overrideInsCount: cs.insuranceCount || 0,
+        overrideCCCount: cs.creditCardCount || 0,
       });
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
