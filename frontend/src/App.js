@@ -277,6 +277,8 @@ function AdminRouter() {
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<CommandCenter />} />
         <Route path="growth" element={<UserGrowth />} />
+        <Route path="engagement" element={<EngagementAnalytics />} />
+        <Route path="features" element={<FeatureUsage />} />
         <Route path="users" element={<UserIntelligence />} />
         <Route path="risk" element={<RiskRadar />} />
       </Route>
