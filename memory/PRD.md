@@ -30,14 +30,19 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 | Asset | `/wealth/assets/:id` | Appreciation %, CAGR, net equity, linked loan/insurance/income |
 | Income | `/wealth/income/:id` | Receipt schedule, transaction history, linked asset |
 | Expense | `/wealth/expenses/:id` | Monthly/yearly cost, expense-to-income %, linked entities |
-| Account | `/wealth/accounts/:id` | Inflow/outflow/net monthly flow, linked loans/investments/income/expenses |
+| Account | `/wealth/accounts/:id` | Transaction ledger, inflow/outflow/net monthly flow, linked loans/investments/income/expenses |
 
 ### Navigation
 - ALL entity clicks across the app navigate to detail pages (not edit forms)
 - Edit buttons on detail pages navigate to respective edit form routes
-- Updated: MyLoans, MyInvestments, MyLiabilities, MyCreditCards, MyInsurance, MyAssets, MyAccounts, MyExpenses, FixedExpenses, VariableExpenses, ExpenseGroup, ExpenseCalendar, CategoryLoan, CategoryInvestment, CategoryInsurance, CategoryAsset, CategoryExpenses, LoanForm, MyLoans (linked assets)
 
 ### Admin Command Center (All 6 Phases)
+
+### Bug Fixes (March 2026)
+- **Insurance Date Crash (P0)**: Fixed `RangeError: Invalid time value` in CategoryInsurance.js by adding date validation and try-catch in `formatDate` and `getNextPremiumDate`
+- **Credit Card UI Overlap (P0)**: Fixed payment history date handling and ensured proper CSS spacing
+- **Account Ledger Missing (P1)**: Added transaction ledger to AccountDetail backend+frontend with Opening Balance entry and linked entity entries
+- **Income Detail Missing Sections (P1)**: Made Receipt Schedule, Transaction History, and Linked Asset sections always visible with empty-state placeholders. Fixed backend to generate schedule from createdAt/selectedDate when startDate is missing
 
 ## Key API Endpoints
 - `GET /api/{entity}/:id/detail` - All 8 entities
@@ -51,8 +56,9 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 ## Backlog (P2)
 - Cash Flow Engine: Rolling Balance, Timeline
 - Decision Impact Engine: Financial simulation
-- Refactor useIntelligenceData.js
+- Deeper Analytics: Behavioral Pattern Detection, Financial Improvement Tracker, Churn Prediction
+- Refactor detail pages into generic DetailView wrapper to reduce code duplication
 
 ## Credentials
-- Test: test@moneyssutra.com / test
+- Test: test@moneyssutra.com / test (username: test)
 - Admin: admin@moneyssutra.com / admin123
