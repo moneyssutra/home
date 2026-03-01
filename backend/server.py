@@ -278,6 +278,15 @@ async def startup_db_client():
         await db.expense_transactions.create_index([("userId", 1), ("transactionDate", -1)])
         await db.expense_transactions.create_index([("entityId", 1)])
         await db.expense_transactions.create_index([("entityId", 1), ("transactionDate", -1)])
+        # Gamification & events indexes for faster queries
+        await db.user_gamification_profile.create_index("user_id", unique=True)
+        await db.user_achievements.create_index("user_id")
+        await db.user_challenges.create_index([("user_id", 1), ("is_completed", 1)])
+        await db.user_events.create_index([("timestamp", -1)])
+        await db.user_events.create_index([("userId", 1), ("eventType", 1)])
+        await db.user_events.create_index([("eventType", 1)])
+        await db.user_financial_snapshots.create_index([("user_id", 1), ("created_at", -1)])
+        await db.admin_campaigns.create_index("id", unique=True)
         logger.info("Database indexes created successfully")
 
         asyncio.create_task(check_and_send_reminders())
