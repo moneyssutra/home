@@ -14,6 +14,14 @@ export const FamilyProvider = ({ children }) => {
   const [family, setFamily] = useState(null);
   const [activeViewId, setActiveViewId] = useState(null); // null = personal (self)
   const [loading, setLoading] = useState(false);
+  const location = useLocation();
+
+  // Auto-reset to personal view when navigating away from Home page
+  useEffect(() => {
+    if (activeViewId && location.pathname !== "/home") {
+      setActiveViewId(null);
+    }
+  }, [location.pathname]);
 
   const fetchFamily = useCallback(async () => {
     if (!user) return;
