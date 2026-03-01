@@ -1203,7 +1203,7 @@ const Insights = () => {
             {isRedZone ? "RED ZONE" : isFamilyView ? `${activeViewLabel} Health` : !isPersonalView ? `${activeViewLabel}'s Health` : "Health"}
           </h1>
           {isRedZone && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse mt-1 inline-block" style={{ backgroundColor: "#EF444420", color: "#EF4444", border: "1px solid #EF444440" }}>CRITICAL</span>}
-          {!isRedZone && <p className="text-white/70 text-sm">Your financial intelligence lab</p>}
+          {!isRedZone && <p className="text-white/70 text-sm">{isFamilyView ? `${activeViewLabel} intelligence lab` : !isPersonalView ? `${activeViewLabel}'s intelligence lab` : "Your financial intelligence lab"}</p>}
         </div>
       </header>
 
