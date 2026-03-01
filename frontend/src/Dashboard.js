@@ -20,6 +20,7 @@ import {
   Clock,
   CircleDollarSign,
   CalendarClock,
+  Sparkles,
 } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
