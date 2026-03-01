@@ -34,18 +34,20 @@ import { useFamilyContext } from "@/context/FamilyContext";
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { activeViewId, activeViewLabel, isPersonalView } = useFamilyContext();
+  const { activeViewId, activeViewLabel, isPersonalView, isFamilyView } = useFamilyContext();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [profile, setProfile] = useState(null);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [goalsSummary, setGoalsSummary] = useState(null);
-  const [memberSummary, setMemberSummary] = useState(null);
+  const [familyData, setFamilyData] = useState(null);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
-    if (isPersonalView) {
+    if (isFamilyView) {
+      fetchFamilyDashboard();
+    } else if (isPersonalView) {
       fetchDashboardData();
     } else {
       fetchMemberDashboard();
@@ -55,7 +57,7 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      setMemberSummary(null);
+      setFamilyData(null);
       const [networthRes, profileRes, goalsRes] = await Promise.all([
         axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/profile/basic`, { withCredentials: true }),
@@ -74,12 +76,68 @@ const Dashboard = () => {
   const fetchMemberDashboard = async () => {
     try {
       setLoading(true);
+      setFamilyData(null);
       const res = await axios.get(`${backendUrl}/api/family/member/${activeViewId}/summary`, { withCredentials: true });
-      setMemberSummary(res.data);
-      setData(null);
+      const s = res.data.summary || {};
+      // Transform member data to match personal dashboard format
+      setData({
+        netWorth: s.netWorth || 0,
+        totalAssets: s.totalAssets || 0,
+        totalInvestments: s.totalInvestments || 0,
+        totalLoans: s.totalLoans || 0,
+        liquidBalance: s.liquidBalance || 0,
+        monthlyIncome: s.monthlyIncome || 0,
+        monthlyExpenses: s.monthlyExpenses || 0,
+        monthlySavings: (s.monthlyIncome || 0) - (s.monthlyExpenses || 0),
+        incomeReceived: 0,
+        expectedIncome: s.monthlyIncome || 0,
+        expensesDone: 0,
+        upcomingExpenses: s.monthlyExpenses || 0,
+        memberName: res.data.member?.name,
+        memberRelationship: res.data.member?.relationship,
+        counts: s.counts || {},
+      });
+      setProfile(null);
+      setGoalsSummary(null);
     } catch (error) {
       console.error("Error fetching member summary:", error);
-      setMemberSummary({ member: { name: "Unknown" }, summary: { netWorth: 0, monthlyIncome: 0, monthlyExpenses: 0, totalInvestments: 0, totalAssets: 0, totalLoans: 0, liquidBalance: 0, counts: { income: 0, expenses: 0, investments: 0, assets: 0, loans: 0, accounts: 0 } } });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFamilyDashboard = async () => {
+    try {
+      setLoading(true);
+      const [combinedRes, membersRes] = await Promise.all([
+        axios.get(`${backendUrl}/api/family/combined-summary`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/family`, { withCredentials: true }),
+      ]);
+      const cs = combinedRes.data.combinedSummary || {};
+      setData({
+        netWorth: cs.netWorth || 0,
+        totalAssets: cs.totalAssets || 0,
+        totalInvestments: cs.totalInvestments || 0,
+        totalLoans: cs.totalLoans || 0,
+        liquidBalance: cs.liquidBalance || 0,
+        monthlyIncome: cs.monthlyIncome || 0,
+        monthlyExpenses: cs.monthlyExpenses || 0,
+        monthlySavings: (cs.monthlyIncome || 0) - (cs.monthlyExpenses || 0),
+        incomeReceived: 0,
+        expectedIncome: cs.monthlyIncome || 0,
+        expensesDone: 0,
+        upcomingExpenses: cs.monthlyExpenses || 0,
+      });
+      const family = membersRes.data.family || membersRes.data;
+      setFamilyData({
+        familyName: combinedRes.data.familyName,
+        memberCount: combinedRes.data.memberCount,
+        members: family?.members || [],
+      });
+      setProfile(null);
+      setGoalsSummary(null);
+    } catch (error) {
+      console.error("Error fetching family summary:", error);
     } finally {
       setLoading(false);
     }
