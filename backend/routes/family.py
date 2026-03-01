@@ -170,6 +170,42 @@ async def remove_family_member(member_id: str, request: Request):
     return {"message": "Member removed"}
 
 
+@router.put("/edit-member/{member_id}")
+async def edit_family_member(member_id: str, input: FamilyMemberCreate, request: Request):
+    """Edit a family member's details."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_id = user.get("user_id")
+    family = await db.families.find_one({"createdBy": user_id}, {"_id": 0})
+    if not family:
+        raise HTTPException(status_code=404, detail="Family not found")
+
+    if not input.phone or not input.phone.strip():
+        raise HTTPException(status_code=400, detail="Phone number is mandatory")
+
+    member_found = False
+    for m in family.get("members", []):
+        if m.get("id") == member_id:
+            member_found = True
+            break
+
+    if not member_found:
+        raise HTTPException(status_code=404, detail="Member not found")
+
+    await db.families.update_one(
+        {"id": family["id"], "members.id": member_id},
+        {"$set": {
+            "members.$.name": input.name,
+            "members.$.relationship": input.relationship,
+            "members.$.email": input.email,
+            "members.$.phone": input.phone.strip(),
+        }}
+    )
+    return {"message": f"{input.name} updated successfully"}
+
+
 @router.post("/join/{invite_code}")
 async def join_family(invite_code: str, request: Request):
     """Join a family using invite code."""
