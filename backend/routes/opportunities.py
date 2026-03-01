@@ -109,6 +109,16 @@ async def get_eligible_opportunities(request: Request):
         if opp.get("type") == "campaign" and not partner_consent:
             continue
 
+        # Premium mode filtering
+        if is_premium:
+            # Premium users don't see campaign/partner opportunities
+            if opp.get("type") == "campaign":
+                continue
+        else:
+            # Non-premium users don't see premium-only opportunities
+            if opp.get("premium_only"):
+                continue
+
         # Evaluate eligibility
         if opp.get("type") == "system":
             if not _evaluate_rules(opp.get("eligibility_json", {}), metrics):
