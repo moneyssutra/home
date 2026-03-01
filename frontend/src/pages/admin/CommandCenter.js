@@ -22,20 +22,20 @@ const KPICard = ({ icon: Icon, color, label, value, subtitle, delay = 0, to, onC
   const c = colorMap[color] || colorMap.teal;
   useEffect(() => { const t = setTimeout(() => setVis(true), delay); return () => clearTimeout(t); }, [delay]);
   return (
-    <div className={`bg-white rounded-2xl p-5 border border-gray-100 shadow-sm transition-all duration-500 cursor-pointer hover:shadow-md hover:-translate-y-0.5 group`}
+    <div className={`bg-white rounded-2xl p-3 sm:p-5 border border-gray-100 shadow-sm transition-all duration-500 cursor-pointer hover:shadow-md hover:-translate-y-0.5 group`}
       style={{ opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(16px)", transition: "all 0.5s ease" }}
       onClick={onClick}
       data-testid={`kpi-${label.toLowerCase().replace(/\s/g, "-")}`}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <div className={`w-8 h-8 rounded-xl ${c.bg} ${c.border} border flex items-center justify-center`}>
-          <Icon className={`h-4 w-4 ${c.icon}`} />
+      <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-3">
+        <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl ${c.bg} ${c.border} border flex items-center justify-center`}>
+          <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${c.icon}`} />
         </div>
-        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider flex-1">{label}</span>
-        {to && <ArrowUpRight className="h-3.5 w-3.5 text-gray-300 group-hover:text-teal-500 transition-colors" />}
+        <span className="text-[9px] sm:text-[11px] font-semibold text-gray-400 uppercase tracking-wider flex-1 leading-tight">{label}</span>
+        {to && <ArrowUpRight className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-gray-300 group-hover:text-teal-500 transition-colors" />}
       </div>
-      <div className="text-2xl font-black text-gray-900">{value}</div>
-      {subtitle && <div className="text-xs text-gray-400 mt-1">{subtitle}</div>}
+      <div className="text-lg sm:text-2xl font-black text-gray-900">{value}</div>
+      {subtitle && <div className="text-[10px] sm:text-xs text-gray-400 mt-0.5 sm:mt-1">{subtitle}</div>}
     </div>
   );
 };
