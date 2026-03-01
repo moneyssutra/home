@@ -185,6 +185,7 @@ function AppRouter() {
       <Route path="/my-loans" element={<ProtectedRoute><MyLoans /></ProtectedRoute>} />
       <Route path="/loan-breakdown" element={<ProtectedRoute><LoanBreakdown /></ProtectedRoute>} />
       <Route path="/loans/:category" element={<ProtectedRoute><CategoryLoan /></ProtectedRoute>} />
+      <Route path="/wealth/loans/:id" element={<ProtectedRoute><LoanDetail /></ProtectedRoute>} />
       <Route path="/loan" element={<ProtectedRoute><LoanForm /></ProtectedRoute>} />
       <Route path="/loan/:id" element={<ProtectedRoute><LoanForm /></ProtectedRoute>} />
       
