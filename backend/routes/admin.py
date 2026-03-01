@@ -467,3 +467,190 @@ async def risk_radar(request: Request):
         "riskBuckets": risk_buckets,
         "riskDrivers": drivers,
     }
+
+
+
+# ────────────────────────────────────────────
+# ENGAGEMENT ANALYTICS
+# ────────────────────────────────────────────
+
+@router.get("/engagement")
+async def engagement_analytics(request: Request):
+    """User engagement metrics: session times, hourly heatmap, day-of-week."""
+    await _require_admin(request)
+    now = get_user_now(request)
+    today_str = now.strftime("%Y-%m-%d")
+    week_ago_str = (now - timedelta(days=7)).strftime("%Y-%m-%d")
+    month_ago_str = (now - timedelta(days=30)).strftime("%Y-%m-%d")
+
+    # --- Session Duration Averages ---
+    all_sessions = await db.user_sessions.find(
+        {"durationSec": {"$gt": 0}},
+        {"_id": 0, "startedAt": 1, "durationSec": 1}
+    ).to_list(10000)
+
+    today_sessions = [s for s in all_sessions if s.get("startedAt", "")[:10] == today_str]
+    week_sessions = [s for s in all_sessions if s.get("startedAt", "")[:10] >= week_ago_str]
+    month_sessions = [s for s in all_sessions if s.get("startedAt", "")[:10] >= month_ago_str]
+
+    def avg_dur(sessions):
+        if not sessions:
+            return 0
+        total = sum(s.get("durationSec", 0) for s in sessions)
+        return round(total / len(sessions))
+
+    avg_today = avg_dur(today_sessions)
+    avg_7d = avg_dur(week_sessions)
+    avg_30d = avg_dur(month_sessions)
+
+    # --- Hourly Heatmap (24 hours × 7 days) ---
+    events_30d = await db.user_events.find(
+        {"timestamp": {"$gte": month_ago_str}},
+        {"_id": 0, "hour": 1, "dayOfWeek": 1}
+    ).to_list(50000)
+
+    heatmap = [[0] * 24 for _ in range(7)]
+    for ev in events_30d:
+        dow = ev.get("dayOfWeek", 0)
+        hour = ev.get("hour", 0)
+        if 0 <= dow < 7 and 0 <= hour < 24:
+            heatmap[dow][hour] += 1
+
+    # --- Day-of-Week Engagement (avg time per day) ---
+    dow_totals = [0] * 7
+    dow_counts = [0] * 7
+    for s in month_sessions:
+        try:
+            dt = datetime.fromisoformat(s["startedAt"].replace("Z", "+00:00"))
+            dow = dt.weekday()
+            dow_totals[dow] += s.get("durationSec", 0)
+            dow_counts[dow] += 1
+        except (ValueError, TypeError):
+            pass
+
+    day_names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    dow_chart = []
+    for i in range(7):
+        avg = round(dow_totals[i] / max(dow_counts[i], 1))
+        dow_chart.append({"day": day_names[i], "avgDuration": avg, "sessions": dow_counts[i]})
+
+    # --- Peak Hours ---
+    hour_totals = [0] * 24
+    for ev in events_30d:
+        h = ev.get("hour", 0)
+        if 0 <= h < 24:
+            hour_totals[h] += 1
+    peak_hours = sorted(range(24), key=lambda h: -hour_totals[h])[:3]
+    peak_labels = [f"{h}:00-{h+1}:00" for h in peak_hours]
+
+    return {
+        "avgSessionToday": avg_today,
+        "avgSession7d": avg_7d,
+        "avgSession30d": avg_30d,
+        "totalSessions30d": len(month_sessions),
+        "totalEvents30d": len(events_30d),
+        "heatmap": heatmap,
+        "dayOfWeekChart": dow_chart,
+        "peakHours": peak_labels,
+    }
+
+
+# ────────────────────────────────────────────
+# FEATURE / PAGE USAGE ANALYTICS
+# ────────────────────────────────────────────
+
+@router.get("/feature-usage")
+async def feature_usage_analytics(request: Request):
+    """Page-wise activity: time spent, user coverage, repeat visits, funnel."""
+    await _require_admin(request)
+    now = get_user_now(request)
+    month_ago_str = (now - timedelta(days=30)).strftime("%Y-%m-%d")
+
+    # Get all sessions with page data
+    sessions_with_pages = await db.user_sessions.find(
+        {"startedAt": {"$gte": month_ago_str}, "pages": {"$exists": True, "$ne": []}},
+        {"_id": 0, "userId": 1, "pages": 1}
+    ).to_list(10000)
+
+    total_users_count = await db.users.count_documents({})
+    total_users = max(total_users_count, 1)
+
+    # Page metrics
+    page_stats = {}
+    user_pages = {}  # userId -> set of pages
+    for s in sessions_with_pages:
+        uid = s.get("userId", "")
+        if uid not in user_pages:
+            user_pages[uid] = set()
+        for p in s.get("pages", []):
+            name = p.get("page", "")
+            dur = p.get("durationSec", 0)
+            if not name:
+                continue
+            user_pages[uid].add(name)
+            if name not in page_stats:
+                page_stats[name] = {"totalTime": 0, "visits": 0, "uniqueUsers": set()}
+            page_stats[name]["totalTime"] += dur
+            page_stats[name]["visits"] += 1
+            page_stats[name]["uniqueUsers"].add(uid)
+
+    page_table = []
+    for name, stats in page_stats.items():
+        unique = len(stats["uniqueUsers"])
+        visits = stats["visits"]
+        avg_time = round(stats["totalTime"] / max(visits, 1))
+        repeat = "High" if visits / max(unique, 1) > 3 else "Medium" if visits / max(unique, 1) > 1.5 else "Low"
+        page_table.append({
+            "page": name,
+            "avgTimeSec": avg_time,
+            "pctUsersVisited": round(unique / total_users * 100, 1),
+            "totalVisits": visits,
+            "uniqueUsers": unique,
+            "repeatVisits": repeat,
+        })
+    page_table.sort(key=lambda x: -x["totalVisits"])
+
+    # Activity Funnel
+    funnel_stages = ["Home", "Wealth", "Health", "Goals", "Expenses"]
+    funnel_data = []
+    for stage in funnel_stages:
+        users_at_stage = sum(1 for uid, pages in user_pages.items() if stage.lower() in {p.lower() for p in pages})
+        funnel_data.append({"stage": stage, "users": users_at_stage, "pct": round(users_at_stage / total_users * 100, 1)})
+
+    # Page events from user_events collection (fallback if sessions don't have page data)
+    page_events = await db.user_events.find(
+        {"timestamp": {"$gte": month_ago_str}, "eventType": "page_view"},
+        {"_id": 0, "pageName": 1, "userId": 1}
+    ).to_list(50000)
+
+    if not page_table and page_events:
+        ev_stats = {}
+        for ev in page_events:
+            name = ev.get("pageName", "")
+            uid = ev.get("userId", "")
+            if not name:
+                continue
+            if name not in ev_stats:
+                ev_stats[name] = {"visits": 0, "uniqueUsers": set()}
+            ev_stats[name]["visits"] += 1
+            ev_stats[name]["uniqueUsers"].add(uid)
+        for name, stats in ev_stats.items():
+            unique = len(stats["uniqueUsers"])
+            visits = stats["visits"]
+            repeat = "High" if visits / max(unique, 1) > 3 else "Medium" if visits / max(unique, 1) > 1.5 else "Low"
+            page_table.append({
+                "page": name,
+                "avgTimeSec": 0,
+                "pctUsersVisited": round(unique / total_users * 100, 1),
+                "totalVisits": visits,
+                "uniqueUsers": unique,
+                "repeatVisits": repeat,
+            })
+        page_table.sort(key=lambda x: -x["totalVisits"])
+
+    return {
+        "pageTable": page_table,
+        "funnel": funnel_data,
+        "totalTrackedUsers": len(user_pages),
+        "totalSessions": len(sessions_with_pages),
+    }
