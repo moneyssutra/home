@@ -281,3 +281,70 @@ async def delete_income_source(income_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Income source not found")
     await db.income_sources.delete_one({"id": income_id})
     return {"message": "Income source deleted successfully", "id": income_id}
+
+
+
+@router.get("/{income_id}/detail")
+async def get_income_detail(income_id: str, request: Request):
+    """Get comprehensive income source detail with transaction history."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = income_id
+    inc = await db.income_sources.find_one(user_filter, {"_id": 0})
+    if not inc:
+        raise HTTPException(status_code=404, detail="Income source not found")
+
+    from dateutil.relativedelta import relativedelta
+    user_id = user.get("user_id")
+    expected = inc.get("expectedAmount", 0)
+    freq = inc.get("frequency", "Monthly")
+    start_str = inc.get("startDate")
+    inc_type = inc.get("type", "")
+
+    # Fetch income transactions
+    transactions = await db.income_transactions.find(
+        {"userId": user_id, "incomeSourceId": income_id}, {"_id": 0}
+    ).sort("date", -1).to_list(500)
+
+    # Generate receipt schedule
+    today = datetime.now()
+    today_str = today.strftime("%Y-%m-%d")
+    period_months = {"Monthly": 1, "Quarterly": 3, "Half-Yearly": 6, "Yearly": 12, "Weekly": 0}.get(freq, 1)
+
+    schedule = []
+    if start_str and period_months > 0:
+        try:
+            start = datetime.strptime(start_str, "%Y-%m-%d")
+            for i in range(60):
+                due = start + relativedelta(months=period_months * i)
+                if due > today + relativedelta(months=3):
+                    break
+                status = "received" if due.strftime("%Y-%m-%d") <= today_str else "upcoming"
+                schedule.append({"dueDate": due.strftime("%Y-%m-%d"), "amount": expected, "status": status})
+        except (ValueError, TypeError):
+            pass
+
+    received_count = sum(1 for s in schedule if s["status"] == "received")
+    total_received = received_count * expected
+    actual_total = sum(t.get("amount", 0) for t in transactions) if transactions else total_received
+
+    # Linked asset
+    linked_asset = None
+    if inc.get("assetId"):
+        linked_asset = await db.assets.find_one({"id": inc["assetId"]}, {"_id": 0, "assetName": 1, "currentValue": 1, "id": 1})
+
+    return {
+        **{k: v for k, v in inc.items() if k != "createdAt"},
+        "createdAt": inc.get("createdAt") if isinstance(inc.get("createdAt"), str) else inc.get("createdAt", datetime.now()).isoformat() if inc.get("createdAt") else None,
+        "transactions": transactions[:30],
+        "schedule": schedule[-12:],
+        "summary": {
+            "totalReceived": round(actual_total, 2),
+            "expectedReceived": round(total_received, 2),
+            "receivedCount": received_count,
+            "transactionCount": len(transactions),
+        },
+        "linkedAsset": linked_asset,
+    }
