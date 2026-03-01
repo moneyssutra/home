@@ -55,7 +55,7 @@ const SupportIntelligence = () => {
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-6 text-center" data-testid="no-search-data">
           <HelpCircle className="h-8 w-8 text-amber-400 mx-auto mb-2" />
           <p className="text-sm font-semibold text-amber-700">No search data yet</p>
-          <p className="text-xs text-amber-500 mt-1">Search analytics will populate as users use the in-app search and FAQ features. To start tracking, integrate the <code className="bg-amber-100 px-1 rounded">trackEvent("search", "page", {"query": "term"})</code> call in search inputs.</p>
+          <p className="text-xs text-amber-500 mt-1">Search analytics will populate as users use the in-app search and FAQ features. Integrate the trackEvent call with search event type in search inputs to start tracking.</p>
         </div>
       )}
 
