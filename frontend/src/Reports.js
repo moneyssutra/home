@@ -227,7 +227,6 @@ const Reports = () => {
                   data-testid="report-from-date"
                 />
               </div>
-              <span className="text-xs font-bold mt-5" style={{ color: "var(--text-muted)" }}>to</span>
               <div className="flex-1">
                 <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>To</label>
                 <input
