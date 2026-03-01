@@ -326,7 +326,7 @@ const FinancialHealth = () => {
         score += Math.min(12.5, (Math.min(emergencyMonths, 6) / 6) * 12.5);
         score += Math.min(12.5, creditUtil <= 30 ? 12.5 : Math.max(0, 12.5 - ((creditUtil - 30) / 70) * 12.5));
         score += Math.min(12.5, debtToAssetRatio <= 40 ? 12.5 : Math.max(0, 12.5 - ((debtToAssetRatio - 40) / 60) * 12.5));
-        score += Math.min(12.5, totalInsuranceCoverage >= lifeInsTarget ? 12.5 : (totalInsuranceCoverage / Math.max(lifeInsTarget, 1)) * 12.5);
+        score += Math.min(12.5, lifeInsuranceCoverage >= lifeInsTarget ? 12.5 : (lifeInsuranceCoverage / Math.max(lifeInsTarget, 1)) * 12.5);
         score += Math.min(12.5, emiRatio <= 20 ? 12.5 : Math.max(0, 12.5 - ((emiRatio - 20) / 30) * 12.5));
         score += Math.min(12.5, Math.abs(equityPercent - recommendedEquity) <= 15 ? 12.5 : Math.max(0, 12.5 - (Math.abs(equityPercent - recommendedEquity) - 15) / 35 * 12.5));
         score += netWorth > 0 ? 12.5 : 0; // Net worth positive = full marks
