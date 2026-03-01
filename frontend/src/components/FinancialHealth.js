@@ -264,6 +264,8 @@ const FinancialHealth = () => {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  const { isPersonalView } = useFamilyContext();
+
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -276,9 +278,16 @@ const FinancialHealth = () => {
       } catch {}
     }
     fetchHealthData();
-  }, []);
+  }, [isPersonalView]);
 
   const fetchHealthData = async () => {
+    if (!isPersonalView) {
+      // For member/family views, show 0 score with empty data
+      setHealthData(null);
+      setOverallScore(0);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const response = await axios.get(`${backendUrl}/api/financial-health`, { withCredentials: true });
