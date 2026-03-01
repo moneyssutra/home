@@ -643,7 +643,7 @@ const FinancialHealth = () => {
       action: healthData.netWorthTrend?.action || "",
       format: "amount"
     }
-  ] : [];
+  ].filter(m => !(healthData?.isFamilyView && m.key === "retirementReadiness")) : [];
 
   // Apply sorting
   const sortedModules = (() => {
