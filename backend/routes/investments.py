@@ -107,6 +107,117 @@ async def repair_missing_sip_expenses(request: Request):
     return {"repaired": len(repaired), "details": repaired}
 
 
+@router.post("/trigger-sip-update")
+async def trigger_sip_update(request: Request):
+    """Manually trigger SIP investment value updates for the current user."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_id = user.get('user_id')
+    today = datetime.now(timezone.utc)
+    today_str = today.strftime("%Y-%m-%d")
+
+    sip_investments = await db.investments.find({
+        "userId": user_id,
+        "sipAmount": {"$exists": True, "$ne": None, "$gt": 0},
+        "investmentFrequency": {"$exists": True, "$ne": None}
+    }, {"_id": 0}).to_list(1000)
+
+    updated = []
+    for inv in sip_investments:
+        sip_amount = inv.get("sipAmount", 0)
+        frequency = inv.get("investmentFrequency", "")
+        selected_date = inv.get("sipSelectedDate")
+        selected_day = inv.get("sipSelectedDay")
+        selected_month = inv.get("sipSelectedMonth")
+        last_update = inv.get("lastSipUpdateDate")
+
+        if last_update == today_str:
+            continue
+
+        is_due = False
+        if frequency == "Daily":
+            is_due = True
+        elif frequency == "Weekly":
+            if selected_day:
+                day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                is_due = day_names[today.weekday()] == selected_day
+        elif frequency == "Monthly":
+            if selected_date:
+                try:
+                    target_day = int(selected_date) if "-" not in selected_date else datetime.strptime(selected_date, "%Y-%m-%d").day
+                    is_due = target_day == today.day
+                except (ValueError, TypeError):
+                    pass
+        elif frequency == "Quarterly":
+            if selected_date:
+                try:
+                    target_day = int(selected_date) if "-" not in selected_date else datetime.strptime(selected_date, "%Y-%m-%d").day
+                    start_date_str = inv.get("startDate", "")
+                    if start_date_str:
+                        start = datetime.strptime(start_date_str, "%Y-%m-%d")
+                        months_diff = (today.year - start.year) * 12 + (today.month - start.month)
+                        is_due = (months_diff % 3 == 0) and (target_day == today.day)
+                except (ValueError, TypeError):
+                    pass
+        elif frequency == "Half-Yearly":
+            if selected_date:
+                try:
+                    target_day = int(selected_date) if "-" not in selected_date else datetime.strptime(selected_date, "%Y-%m-%d").day
+                    start_date_str = inv.get("startDate", "")
+                    if start_date_str:
+                        start = datetime.strptime(start_date_str, "%Y-%m-%d")
+                        months_diff = (today.year - start.year) * 12 + (today.month - start.month)
+                        is_due = (months_diff % 6 == 0) and (target_day == today.day)
+                except (ValueError, TypeError):
+                    pass
+        elif frequency == "Yearly":
+            if selected_month:
+                months = ["January", "February", "March", "April", "May", "June",
+                          "July", "August", "September", "October", "November", "December"]
+                try:
+                    target_month_idx = months.index(selected_month) + 1
+                    target_day = 1
+                    if selected_date:
+                        target_day = int(selected_date) if "-" not in selected_date else datetime.strptime(selected_date, "%Y-%m-%d").day
+                    is_due = (today.month == target_month_idx) and (today.day == target_day)
+                except (ValueError, IndexError):
+                    pass
+
+        current_value = inv.get("currentValue", 0)
+        principal = inv.get("principal", 0)
+
+        updated.append({
+            "name": inv.get("name"),
+            "frequency": frequency,
+            "sipAmount": sip_amount,
+            "isDueToday": is_due,
+            "lastSipUpdateDate": last_update,
+            "currentValue": current_value,
+            "wouldUpdateTo": current_value + sip_amount if is_due else current_value
+        })
+
+        if is_due:
+            new_current_value = current_value + sip_amount
+            new_principal = principal + sip_amount
+            await db.investments.update_one(
+                {"id": inv["id"]},
+                {"$set": {
+                    "currentValue": new_current_value,
+                    "principal": new_principal,
+                    "lastSipUpdateDate": today_str
+                }}
+            )
+
+    return {
+        "date": today_str,
+        "totalSipInvestments": len(sip_investments),
+        "updatedToday": len([u for u in updated if u["isDueToday"]]),
+        "details": updated
+    }
+
+
 @router.get("/{investment_id}", response_model=Investment)
 async def get_investment(investment_id: str, request: Request):
     user = await get_current_user(request)
