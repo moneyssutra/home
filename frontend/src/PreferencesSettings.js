@@ -215,6 +215,56 @@ const PreferencesSettings = () => {
           </div>
         </div>
 
+        {/* Subscription & Opportunities */}
+        <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+          <h3 className="font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+            <Crown className="h-5 w-5" style={{ color: "#F59E0B" }} />
+            Subscription & Opportunities
+          </h3>
+
+          {/* Premium Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-xl mb-3" style={{ backgroundColor: isPremium ? "#F59E0B10" : "var(--bg-subtle)", border: isPremium ? "1px solid #F59E0B30" : "1px solid transparent" }} data-testid="premium-toggle-section">
+            <div className="flex-1 mr-4">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Premium Mode</p>
+                {isPremium && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700">ACTIVE</span>}
+              </div>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                {isPremium ? "Partner suggestions are hidden. Only premium insights shown." : "Upgrade to hide partner suggestions and get premium-only insights."}
+              </p>
+            </div>
+            <button
+              onClick={() => handleTogglePremium(!isPremium)}
+              className="relative w-12 h-7 rounded-full transition-colors shrink-0"
+              style={{ backgroundColor: isPremium ? "#F59E0B" : "var(--border-light)" }}
+              data-testid="premium-toggle"
+            >
+              <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: isPremium ? "translateX(20px)" : "translateX(0)" }} />
+            </button>
+          </div>
+
+          {/* Partner Consent Toggle */}
+          <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }} data-testid="partner-consent-section">
+            <div className="flex-1 mr-4">
+              <div className="flex items-center gap-2">
+                <Handshake className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
+                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Partner Suggestions</p>
+              </div>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                Allow personalized suggestions from financial partners
+              </p>
+            </div>
+            <button
+              onClick={() => handleTogglePartnerConsent(!partnerConsent)}
+              className="relative w-12 h-7 rounded-full transition-colors shrink-0"
+              style={{ backgroundColor: partnerConsent ? "var(--brand-primary)" : "var(--border-light)" }}
+              data-testid="partner-consent-toggle"
+            >
+              <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow transition-transform" style={{ transform: partnerConsent ? "translateX(20px)" : "translateX(0)" }} />
+            </button>
+          </div>
+        </div>
+
         {/* Preview */}
         <div className="rounded-2xl p-5" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
           <h3 className="font-semibold mb-4" style={{ color: "var(--text-primary)" }}>Preview</h3>
