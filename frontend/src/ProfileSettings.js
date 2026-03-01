@@ -447,18 +447,18 @@ const ProfileSettings = () => {
             </div>
 
             {/* Risk Appetite */}
-            <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: "var(--border-light)" }}>
-              <div className="flex items-center gap-3">
+            <div className="py-3 border-b" style={{ borderColor: "var(--border-light)" }}>
+              <div className="flex items-center gap-3 mb-2">
                 <TrendingUp className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
                 <span style={{ color: "var(--text-secondary)" }}>Risk Appetite</span>
               </div>
               {isEditing ? (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 ml-8">
                   {riskOptions.map(risk => (
                     <button
                       key={risk}
                       onClick={() => setProfile({ ...profile, riskAppetite: risk })}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${profile.riskAppetite === risk ? 'text-white' : ''}`}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${profile.riskAppetite === risk ? 'text-white' : ''}`}
                       style={{ 
                         backgroundColor: profile.riskAppetite === risk 
                           ? (risk === "Conservative" ? "#059669" : risk === "Moderate" ? "#F59E0B" : "#EF4444")
@@ -471,13 +471,14 @@ const ProfileSettings = () => {
                   ))}
                 </div>
               ) : (
-                <span 
-                  className="px-3 py-1 rounded-full text-xs font-medium text-white"
-                  style={{ 
-                    backgroundColor: profile.riskAppetite === "Conservative" ? "#059669" 
-                      : profile.riskAppetite === "Moderate" ? "#F59E0B" : "#EF4444"
-                  }}
-                >
+                <div className="ml-8">
+                  <span 
+                    className="px-3 py-1 rounded-full text-xs font-medium text-white"
+                    style={{ 
+                      backgroundColor: profile.riskAppetite === "Conservative" ? "#059669" 
+                        : profile.riskAppetite === "Moderate" ? "#F59E0B" : "#EF4444"
+                    }}
+                  >
                   {profile.riskAppetite}
                 </span>
               )}
