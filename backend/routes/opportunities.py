@@ -382,7 +382,6 @@ def _compute_user_metrics(incomes, expenses, loans, investments, accounts, insur
         "monthly_expense": monthly_expense,
         "total_emi": total_emi,
         "total_investments": total_investments,
-        "total_assets": total_assets,
         "liquid_funds": liquid_funds,
         "total_loans": total_loans,
         "idle_cash": idle_cash,
