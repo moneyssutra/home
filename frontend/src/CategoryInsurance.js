@@ -116,38 +116,50 @@ const CategoryInsurance = () => {
       return null;
     }
     
-    const baseDate = new Date(insurance.premiumPaymentDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    let nextDate = new Date(baseDate);
-    
-    while (isBefore(nextDate, today) || nextDate <= today) {
-      switch (insurance.premiumFrequency) {
-        case "Monthly":
-          nextDate = addMonths(nextDate, 1);
-          break;
-        case "Quarterly":
-          nextDate = addQuarters(nextDate, 1);
-          break;
-        case "Half-Yearly":
-          nextDate = addMonths(nextDate, 6);
-          break;
-        case "Yearly":
-          nextDate = addYears(nextDate, 1);
-          break;
-        default:
-          return null;
+    try {
+      const baseDate = new Date(insurance.premiumPaymentDate);
+      if (isNaN(baseDate.getTime())) return null;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      let nextDate = new Date(baseDate);
+      let iterations = 0;
+      
+      while ((isBefore(nextDate, today) || nextDate <= today) && iterations < 500) {
+        iterations++;
+        switch (insurance.premiumFrequency) {
+          case "Monthly":
+            nextDate = addMonths(nextDate, 1);
+            break;
+          case "Quarterly":
+            nextDate = addQuarters(nextDate, 1);
+            break;
+          case "Half-Yearly":
+            nextDate = addMonths(nextDate, 6);
+            break;
+          case "Yearly":
+            nextDate = addYears(nextDate, 1);
+            break;
+          default:
+            return null;
+        }
       }
+      
+      return format(nextDate, "dd MMM yyyy");
+    } catch {
+      return null;
     }
-    
-    return format(nextDate, "dd MMM yyyy");
   };
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "N/A";
-    const date = new Date(dateStr);
-    return format(date, "dd MMM yyyy");
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return "N/A";
+      return format(date, "dd MMM yyyy");
+    } catch {
+      return "N/A";
+    }
   };
 
   const sortedInsurances = [...categoryInsurances].sort((a, b) => 

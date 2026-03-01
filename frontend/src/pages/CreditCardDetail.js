@@ -86,7 +86,7 @@ export default function CreditCardDetail() {
         </div>
 
         {/* Utilization Warning */}
-        <div className="rounded-2xl p-4" style={{ backgroundColor: `${utilColor}10`, border: `1px solid ${utilColor}30` }}>
+        <div className="rounded-2xl p-4" style={{ backgroundColor: `${utilColor}15`, border: `1px solid ${utilColor}40` }}>
           <div className="flex items-center gap-2">
             {data.utilization > 50 ? <AlertTriangle className="h-4 w-4" style={{ color: utilColor }} /> : <Shield className="h-4 w-4" style={{ color: utilColor }} />}
             <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
@@ -104,12 +104,16 @@ export default function CreditCardDetail() {
         {data.payments && data.payments.length > 0 && (
           <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="payment-history">
             <div className="p-4 pb-2"><h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Payment History</h3></div>
-            {data.payments.slice(0, 5).map((p, i) => (
-              <div key={i} className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)" }}>
-                <span style={{ color: "var(--text-secondary)" }}>{new Date(p.paymentDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
-                <span className="font-bold" style={{ color: "#059669" }}>₹{fmt(p.amount)}</span>
-              </div>
-            ))}
+            {data.payments.slice(0, 5).map((p, i) => {
+              let dateStr = "N/A";
+              try { const d = new Date(p.paymentDate); if (!isNaN(d.getTime())) dateStr = d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); } catch { /* skip */ }
+              return (
+                <div key={i} className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                  <span style={{ color: "var(--text-secondary)" }}>{dateStr}</span>
+                  <span className="font-bold" style={{ color: "#059669" }}>₹{fmt(p.amount)}</span>
+                </div>
+              );
+            })}
           </div>
         )}
 
