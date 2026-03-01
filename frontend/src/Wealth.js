@@ -106,13 +106,10 @@ const Wealth = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <ProfileMenu userName={getUserName()} userPicture={user?.picture} />
-              <FamilyToggle />
             </div>
             <NotificationBell />
           </div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
-            {isFamilyView ? `${activeViewLabel} Wealth` : !isPersonalView ? `${activeViewLabel}'s Wealth` : "Wealth"}
-          </h1>
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>Wealth</h1>
           <p className="text-white/70 text-sm">Your complete financial picture</p>
         </div>
       </header>
