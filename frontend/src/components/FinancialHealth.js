@@ -368,8 +368,16 @@ const FinancialHealth = () => {
       return;
     }
     if (!isPersonalView) {
-      // For member views, show 0 score with empty data
-      setHealthData(null);
+      // For member views, show 0 score with zeroed metric structure so cards are visible
+      const emptyHealth = {
+        overallScore: 0,
+        emergencyFund: { current: 0, target: 0, gap: 0, status: "No Data", action: "No financial data available for this member." },
+        savingsRate: { rate: 0, surplus: 0, status: "No Data", action: "No income/expense data for this member." },
+        creditUtilization: { utilization: 0, status: "No Data", action: "No credit card data for this member." },
+        debtToAsset: { ratio: 0, totalDebt: 0, totalWorth: 0, status: "No Data", action: "No debt data for this member." },
+        netWorthTrend: { currentNetWorth: 0, previousNetWorth: 0, growthPercent: 0, status: "No Data", action: "No data available." }
+      };
+      setHealthData(emptyHealth);
       setOverallScore(0);
       setLoading(false);
       return;
