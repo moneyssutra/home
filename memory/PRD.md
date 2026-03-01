@@ -35,12 +35,19 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 
 ## Backlog
 ### P1
-- [ ] Admin Command Center: Dark → Light theme
+- [ ] Backend Event Tracking System (foundation for engagement analytics)
+- [ ] Admin: User Engagement Analytics (session time, activity heatmap, day-of-week)
+- [ ] Admin: Page-wise Activity Analytics (feature usage table, activity funnel)
 - [ ] Slow Challenge Loading optimization (gamification.py)
-- [ ] Admin Phase 2: Spending Intelligence Heatmap, Monetization Engine, Campaign Manager
 
 ### P2
-- [ ] Admin Phase 3: Financial Impact Analytics, Compliance Panel
+- [ ] Admin: User Segmentation Lab (advanced filters)
+- [ ] Admin: FAQ & User Query Analytics
+- [ ] Admin: Campaign Manager (banner/notification/popup with targeting)
+- [ ] Admin: Behavioral Pattern Detection
+- [ ] Admin: Financial Improvement Tracker
+- [ ] Admin: Churn Prediction
+- [ ] Admin: Feature Experiment Tracker
 - [ ] Cash Flow Engine: Rolling Balance, Timeline, Negative Balance Handling
 - [ ] Decision Impact Engine: Financial simulation for large purchases
 
