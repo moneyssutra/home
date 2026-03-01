@@ -55,51 +55,67 @@ const Analytics = () => {
       const timeout = 10000;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
-      
-      const [networthRes, investmentRes, snapshotsRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true, signal: controller.signal }),
-        axios.get(`${backendUrl}/api/analytics/investment-performance`, { withCredentials: true, signal: controller.signal }),
-        axios.get(`${backendUrl}/api/analytics/snapshots?period=${timeFilter}`, { withCredentials: true, signal: controller.signal })
-      ]);
-      
-      clearTimeout(timeoutId);
-      
-      const monthlyIncome = networthRes.data.monthlyIncome || 0;
-      const monthlyExpense = networthRes.data.monthlyExpenses || networthRes.data.monthlyExpense || 0;
-      const surplus = monthlyIncome - monthlyExpense;
-      const savingsRate = monthlyIncome > 0 ? ((surplus / monthlyIncome) * 100).toFixed(1) : 0;
-      
-      setData({
-        netWorth: networthRes.data.netWorth || 0,
-        totalAssets: networthRes.data.totalAssets || 0,
-        totalInvestments: networthRes.data.totalInvestments || 0,
-        totalLoans: networthRes.data.totalLiabilities || 0,
-        totalCreditCards: networthRes.data.creditCardOutstanding || 0,
-        liquidBalance: networthRes.data.liquidBalance || 0,
-        monthlyIncome,
-        monthlyExpense,
-        savingsRate
-      });
-      
-      // Process snapshots - sort by date
-      const snapshotData = Array.isArray(snapshotsRes.data) ? snapshotsRes.data : [];
-      const sortedSnapshots = snapshotData.sort((a, b) => {
-        if (a.year !== b.year) return a.year - b.year;
-        return a.month - b.month;
-      });
-      setSnapshots(sortedSnapshots);
-      
-      setInvestmentPerf(investmentRes.data || {
-        totalInvested: 0,
-        currentValue: 0,
-        totalGains: 0,
-        gainPercent: 0,
-        byCategory: {}
-      });
-      
-      // Create snapshot for current month if needed
-      axios.post(`${backendUrl}/api/analytics/snapshot`, {}, { withCredentials: true }).catch(() => {});
-      
+
+      if (isFamilyView) {
+        // Family combined view: use combined-summary
+        const [combinedRes, snapshotsRes] = await Promise.all([
+          axios.get(`${backendUrl}/api/family/combined-summary`, { withCredentials: true, signal: controller.signal }),
+          axios.get(`${backendUrl}/api/analytics/snapshots?period=${timeFilter}`, { withCredentials: true, signal: controller.signal }).catch(() => ({ data: [] }))
+        ]);
+        clearTimeout(timeoutId);
+        const cs = combinedRes.data.combinedSummary || {};
+        const monthlyIncome = cs.monthlyIncome || 0;
+        const monthlyExpense = cs.monthlyExpenses || 0;
+        const surplus = monthlyIncome - monthlyExpense;
+        const savingsRate = monthlyIncome > 0 ? ((surplus / monthlyIncome) * 100).toFixed(1) : 0;
+        setData({
+          netWorth: cs.netWorth || 0,
+          totalAssets: cs.totalAssets || 0,
+          totalInvestments: cs.totalInvestments || 0,
+          totalLoans: cs.totalLoans || 0,
+          totalCreditCards: cs.totalCCOutstanding || 0,
+          liquidBalance: cs.liquidBalance || 0,
+          monthlyIncome,
+          monthlyExpense,
+          savingsRate
+        });
+        const snapshotData = Array.isArray(snapshotsRes.data) ? snapshotsRes.data : [];
+        setSnapshots(snapshotData.sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month));
+        setInvestmentPerf({ totalInvested: 0, currentValue: cs.totalInvestments || 0, totalGains: 0, gainPercent: 0, byCategory: {} });
+      } else if (!isPersonalView) {
+        // Individual member view: show zeroed data
+        clearTimeout(timeoutId);
+        setData({ netWorth: 0, totalAssets: 0, totalInvestments: 0, totalLoans: 0, totalCreditCards: 0, liquidBalance: 0, monthlyIncome: 0, monthlyExpense: 0, savingsRate: 0 });
+        setSnapshots([]);
+        setInvestmentPerf({ totalInvested: 0, currentValue: 0, totalGains: 0, gainPercent: 0, byCategory: {} });
+      } else {
+        // Personal view: original logic
+        const [networthRes, investmentRes, snapshotsRes] = await Promise.all([
+          axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true, signal: controller.signal }),
+          axios.get(`${backendUrl}/api/analytics/investment-performance`, { withCredentials: true, signal: controller.signal }),
+          axios.get(`${backendUrl}/api/analytics/snapshots?period=${timeFilter}`, { withCredentials: true, signal: controller.signal })
+        ]);
+        clearTimeout(timeoutId);
+        const monthlyIncome = networthRes.data.monthlyIncome || 0;
+        const monthlyExpense = networthRes.data.monthlyExpenses || networthRes.data.monthlyExpense || 0;
+        const surplus = monthlyIncome - monthlyExpense;
+        const savingsRate = monthlyIncome > 0 ? ((surplus / monthlyIncome) * 100).toFixed(1) : 0;
+        setData({
+          netWorth: networthRes.data.netWorth || 0,
+          totalAssets: networthRes.data.totalAssets || 0,
+          totalInvestments: networthRes.data.totalInvestments || 0,
+          totalLoans: networthRes.data.totalLiabilities || 0,
+          totalCreditCards: networthRes.data.creditCardOutstanding || 0,
+          liquidBalance: networthRes.data.liquidBalance || 0,
+          monthlyIncome,
+          monthlyExpense,
+          savingsRate
+        });
+        const snapshotData = Array.isArray(snapshotsRes.data) ? snapshotsRes.data : [];
+        setSnapshots(snapshotData.sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month));
+        setInvestmentPerf(investmentRes.data || { totalInvested: 0, currentValue: 0, totalGains: 0, gainPercent: 0, byCategory: {} });
+        axios.post(`${backendUrl}/api/analytics/snapshot`, {}, { withCredentials: true }).catch(() => {});
+      }
     } catch (error) {
       console.error("Failed to fetch analytics:", error);
     } finally {
