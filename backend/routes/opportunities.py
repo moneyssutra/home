@@ -258,7 +258,7 @@ async def admin_update_opportunity(opp_id: str, request: Request):
     update_fields = {}
     for field in ["title", "description", "cta_text", "category", "priority", "type",
                    "eligibility_json", "target_filter_json", "destination_url",
-                   "start_date", "end_date", "active"]:
+                   "start_date", "end_date", "active", "premium_only"]:
         if field in body:
             update_fields[field] = body[field]
 
