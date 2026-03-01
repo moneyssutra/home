@@ -654,3 +654,163 @@ async def feature_usage_analytics(request: Request):
         "totalTrackedUsers": len(user_pages),
         "totalSessions": len(sessions_with_pages),
     }
+
+
+# ────────────────────────────────────────────
+# SEGMENTATION LAB — Advanced User Filtering
+# ────────────────────────────────────────────
+
+@router.get("/segmentation")
+async def segmentation_lab(request: Request):
+    """Advanced user segmentation with profile + financial filters."""
+    await _require_admin(request)
+    now = get_user_now(request)
+    params = request.query_params
+
+    # Parse filter params
+    age_min = int(params.get("age_min", 0))
+    age_max = int(params.get("age_max", 200))
+    gender = params.get("gender", "")
+    city = params.get("city", "")
+    occupation = params.get("occupation", "")
+    income_min = float(params.get("income_min", 0))
+    income_max = float(params.get("income_max", 999999999))
+    safety_min = int(params.get("safety_min", 0))
+    safety_max = int(params.get("safety_max", 999999))
+    risk_level = params.get("risk_level", "")
+    health_min = float(params.get("health_min", 0))
+    health_max = float(params.get("health_max", 100))
+    wealth_min = float(params.get("wealth_min", 0))
+    wealth_max = float(params.get("wealth_max", 100))
+    emi_max = float(params.get("emi_max", 100))
+    bucket = params.get("bucket", "")
+    page = int(params.get("page", 1))
+    page_size = int(params.get("page_size", 20))
+
+    # Fetch all users + profiles
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "createdAt": 1}).to_list(10000)
+    all_profiles = await db.profiles.find({}, {"_id": 0}).to_list(10000)
+    profile_map = {p["userId"]: p for p in all_profiles}
+
+    # Compute financial metrics for all users
+    user_data = []
+    for u in all_users:
+        uid = u.get("user_id", "")
+        if not uid:
+            continue
+        try:
+            metrics = await _compute_user_metrics(uid, now)
+        except Exception:
+            continue
+
+        profile = profile_map.get(uid, {})
+
+        # Calculate age
+        age = None
+        dob_str = profile.get("dateOfBirth", "")
+        if dob_str:
+            try:
+                dob = datetime.fromisoformat(dob_str)
+                age = (now.date() - dob.date()).days // 365
+            except (ValueError, TypeError):
+                pass
+
+        user_data.append({
+            **metrics,
+            "email": u.get("email", ""),
+            "name": profile.get("name", ""),
+            "age": age,
+            "gender": profile.get("gender", ""),
+            "city": profile.get("city", ""),
+            "occupation": profile.get("occupation", ""),
+            "annualIncome": float(profile.get("annualIncome", 0) or 0),
+            "dependents": int(profile.get("dependents", 0) or 0),
+            "createdAt": u.get("createdAt", ""),
+        })
+
+    # Apply filters
+    filtered = []
+    for u in user_data:
+        if u["age"] is not None and (u["age"] < age_min or u["age"] > age_max):
+            continue
+        if gender and u["gender"].lower() != gender.lower():
+            continue
+        if city and city.lower() not in u["city"].lower():
+            continue
+        if occupation and occupation.lower() not in u["occupation"].lower():
+            continue
+        if u["annualIncome"] < income_min or u["annualIncome"] > income_max:
+            continue
+        if u["safetyDays"] < safety_min or u["safetyDays"] > safety_max:
+            continue
+        if risk_level and u["riskLevel"] != risk_level:
+            continue
+        if u["healthScore"] < health_min or u["healthScore"] > health_max:
+            continue
+        if u["wealthPct"] < wealth_min or u["wealthPct"] > wealth_max:
+            continue
+        if u["emiPct"] > emi_max:
+            continue
+        if bucket and u["monetizationBucket"] != bucket:
+            continue
+        filtered.append(u)
+
+    total_filtered = len(filtered)
+
+    # Aggregate summary metrics
+    if filtered:
+        avg_safety = round(sum(u["safetyDays"] for u in filtered) / total_filtered, 1)
+        avg_health = round(sum(u["healthScore"] for u in filtered) / total_filtered, 1)
+        avg_wealth = round(sum(u["wealthPct"] for u in filtered) / total_filtered, 1)
+        avg_income = round(sum(u["annualIncome"] for u in filtered) / total_filtered)
+        avg_age = round(sum(u["age"] for u in filtered if u["age"] is not None) / max(sum(1 for u in filtered if u["age"] is not None), 1), 1)
+        risk_dist = {}
+        for u in filtered:
+            risk_dist[u["riskLevel"]] = risk_dist.get(u["riskLevel"], 0) + 1
+        gender_dist = {}
+        for u in filtered:
+            g = u["gender"] or "Unknown"
+            gender_dist[g] = gender_dist.get(g, 0) + 1
+        city_dist = {}
+        for u in filtered:
+            c = u["city"] or "Unknown"
+            city_dist[c] = city_dist.get(c, 0) + 1
+    else:
+        avg_safety = avg_health = avg_wealth = avg_income = avg_age = 0
+        risk_dist = {}
+        gender_dist = {}
+        city_dist = {}
+
+    # Pagination
+    start = (page - 1) * page_size
+    end = start + page_size
+    paginated = filtered[start:end]
+
+    # Collect unique values for filter dropdowns
+    all_cities = sorted(set(u["city"] for u in user_data if u["city"]))
+    all_occupations = sorted(set(u["occupation"] for u in user_data if u["occupation"]))
+    all_genders = sorted(set(u["gender"] for u in user_data if u["gender"]))
+
+    return {
+        "totalUsers": len(user_data),
+        "filteredCount": total_filtered,
+        "page": page,
+        "pageSize": page_size,
+        "totalPages": max(1, -(-total_filtered // page_size)),
+        "summary": {
+            "avgSafetyDays": avg_safety,
+            "avgHealthScore": avg_health,
+            "avgWealthPct": avg_wealth,
+            "avgAnnualIncome": avg_income,
+            "avgAge": avg_age,
+            "riskDistribution": risk_dist,
+            "genderDistribution": gender_dist,
+            "cityDistribution": city_dist,
+        },
+        "users": paginated,
+        "filterOptions": {
+            "cities": all_cities,
+            "occupations": all_occupations,
+            "genders": all_genders,
+        },
+    }
