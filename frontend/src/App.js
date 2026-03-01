@@ -83,6 +83,12 @@ import InvestmentDetail from "@/pages/InvestmentDetail";
 import CreditCardForm from "@/CreditCardForm";
 import MyCreditCards from "@/MyCreditCards";
 import MyLiabilities from "@/MyLiabilities";
+import CreditCardDetail from "@/pages/CreditCardDetail";
+import InsuranceDetail from "@/pages/InsuranceDetail";
+import AssetDetail from "@/pages/AssetDetail";
+import IncomeDetail from "@/pages/IncomeDetail";
+import ExpenseDetail from "@/pages/ExpenseDetail";
+import AccountDetail from "@/pages/AccountDetail";
 
 // Goal Pages
 import MyGoals from "@/MyGoals";
