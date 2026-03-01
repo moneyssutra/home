@@ -40,14 +40,6 @@ export const FamilyProvider = ({ children }) => {
     setActiveViewId(null);
   }, [user]);
 
-  // Auto-reset to personal view when navigating away from dashboard
-  useEffect(() => {
-    if (activeViewId && prevPathRef.current === '/home' && location.pathname !== '/home') {
-      setActiveViewId(null);
-    }
-    prevPathRef.current = location.pathname;
-  }, [location.pathname, activeViewId]);
-
   const switchToPersonal = () => setActiveViewId(null);
   const switchToMember = (memberId) => setActiveViewId(memberId);
 
