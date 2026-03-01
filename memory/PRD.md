@@ -35,14 +35,16 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 ### Navigation
 - ALL entity clicks across the app navigate to detail pages (not edit forms)
 - Edit buttons on detail pages navigate to respective edit form routes
+- Fixed: MyJob, MyBusiness, MySelfEmployed, MyCommission, MyRental now navigate to /wealth/income/:id
 
 ### Admin Command Center (All 6 Phases)
 
 ### Bug Fixes (March 2026)
-- **Insurance Date Crash (P0)**: Fixed `RangeError: Invalid time value` in CategoryInsurance.js by adding date validation and try-catch in `formatDate` and `getNextPremiumDate`
-- **Credit Card UI Overlap (P0)**: Fixed payment history date handling and ensured proper CSS spacing
-- **Account Ledger Missing (P1)**: Added transaction ledger to AccountDetail backend+frontend with Opening Balance entry and linked entity entries
-- **Income Detail Missing Sections (P1)**: Made Receipt Schedule, Transaction History, and Linked Asset sections always visible with empty-state placeholders. Fixed backend to generate schedule from createdAt/selectedDate when startDate is missing
+- **Insurance Date Crash (P0)**: Fixed `RangeError: Invalid time value` in CategoryInsurance.js
+- **Credit Card UI Overlap (P0)**: Fixed payment history date handling and CSS spacing
+- **Account Ledger Missing (P1)**: Added transaction ledger with Opening Balance to AccountDetail
+- **Income Detail Missing Sections (P1)**: Always-visible sections with empty-state placeholders; schedule generated from createdAt
+- **Income Type Pages Navigation (P1)**: Fixed MyJob, MyBusiness, MySelfEmployed, MyCommission, MyRental to navigate to /wealth/income/:id instead of edit forms
 
 ## Key API Endpoints
 - `GET /api/{entity}/:id/detail` - All 8 entities
