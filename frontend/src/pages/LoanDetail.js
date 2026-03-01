@@ -381,10 +381,10 @@ export default function LoanDetail() {
 
               <div>
                 <label className="text-xs font-semibold uppercase tracking-wider mb-2 block" style={{ color: "var(--text-muted)" }}>Impact Mode</label>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => setExtraMode("reduce_tenure")}
-                    className="flex-1 py-3 rounded-xl text-sm font-medium transition-all"
+                    className="py-3 rounded-xl text-xs font-medium transition-all"
                     style={{
                       backgroundColor: extraMode === "reduce_tenure" ? "#059669" : "var(--bg-subtle)",
                       color: extraMode === "reduce_tenure" ? "#fff" : "var(--text-secondary)",
@@ -396,7 +396,7 @@ export default function LoanDetail() {
                   </button>
                   <button
                     onClick={() => setExtraMode("reduce_emi")}
-                    className="flex-1 py-3 rounded-xl text-sm font-medium transition-all"
+                    className="py-3 rounded-xl text-xs font-medium transition-all"
                     style={{
                       backgroundColor: extraMode === "reduce_emi" ? "#3B82F6" : "var(--bg-subtle)",
                       color: extraMode === "reduce_emi" ? "#fff" : "var(--text-secondary)",
@@ -406,7 +406,24 @@ export default function LoanDetail() {
                   >
                     Reduce EMI
                   </button>
+                  <button
+                    onClick={() => setExtraMode("reduce_principal")}
+                    className="py-3 rounded-xl text-xs font-medium transition-all"
+                    style={{
+                      backgroundColor: extraMode === "reduce_principal" ? "#8B5CF6" : "var(--bg-subtle)",
+                      color: extraMode === "reduce_principal" ? "#fff" : "var(--text-secondary)",
+                      border: `1px solid ${extraMode === "reduce_principal" ? "#8B5CF6" : "var(--border-light)"}`
+                    }}
+                    data-testid="mode-reduce-principal"
+                  >
+                    Prepay Principal
+                  </button>
                 </div>
+                <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
+                  {extraMode === "reduce_tenure" && "Same EMI, shorter loan duration"}
+                  {extraMode === "reduce_emi" && "Same tenure, lower monthly EMI"}
+                  {extraMode === "reduce_principal" && "Same EMI & tenure, loan closes earlier"}
+                </p>
               </div>
 
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
