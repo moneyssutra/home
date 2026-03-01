@@ -122,12 +122,12 @@ const Wealth = () => {
     );
   }
 
-  const totalAssets = (data.assets || []).reduce((s, a) => s + (a.currentValue || 0), 0);
-  const totalInvestments = (data.investments || []).reduce((s, i) => s + (i.currentValue || 0), 0);
-  const totalLoans = (data.loans || []).reduce((s, l) => s + (l.outstandingAmount || 0), 0);
+  const totalAssets = (data.assets || []).length > 0 ? (data.assets || []).reduce((s, a) => s + (a.currentValue || 0), 0) : (data.nw?.totalAssets || 0);
+  const totalInvestments = (data.investments || []).length > 0 ? (data.investments || []).reduce((s, i) => s + (i.currentValue || 0), 0) : (data.nw?.totalInvestments || 0);
+  const totalLoans = (data.loans || []).length > 0 ? (data.loans || []).reduce((s, l) => s + (l.outstandingAmount || 0), 0) : (data.nw?.totalLoans || 0);
   const totalCC = (data.creditCards || []).reduce((s, c) => s + (c.outstandingAmount || 0), 0);
   const totalCoverage = (data.insurances || []).reduce((s, i) => s + (i.coverageAmount || 0), 0);
-  const totalBalance = (data.accounts || []).filter(a => a.accountType !== "Credit Card").reduce((s, a) => s + (a.currentBalance || 0), 0);
+  const totalBalance = (data.accounts || []).length > 0 ? (data.accounts || []).filter(a => a.accountType !== "Credit Card").reduce((s, a) => s + (a.currentBalance || 0), 0) : (data.nw?.liquidBalance || 0);
 
   const sections = [
     { title: "Income", icon: ArrowUpRight, gradient: "from-emerald-500 to-green-600", bgColor: "#ECFDF5", textColor: "#059669", value: data.totalIncome || 0, count: data.memberCounts?.income ?? (data.incomes || []).length, path: "/my-income", label: "sources" },
