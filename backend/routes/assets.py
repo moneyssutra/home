@@ -134,3 +134,61 @@ async def delete_asset(asset_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Asset not found")
     await db.assets.delete_one({"id": asset_id})
     return {"message": "Asset deleted successfully", "id": asset_id}
+
+
+
+@router.get("/{asset_id}/detail")
+async def get_asset_detail(asset_id: str, request: Request):
+    """Get comprehensive asset detail with linked entities and appreciation."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = asset_id
+    asset = await db.assets.find_one(user_filter, {"_id": 0})
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset not found")
+
+    import math
+    purchase_val = asset.get("purchaseValue") or asset.get("currentValue", 0)
+    current_val = asset.get("currentValue", 0)
+    appreciation = round(current_val - purchase_val, 2) if purchase_val else 0
+    appreciation_pct = round((appreciation / purchase_val * 100), 2) if purchase_val > 0 else 0
+    purchase_date_str = asset.get("purchaseDate")
+
+    years_held = 0
+    if purchase_date_str:
+        try:
+            pd = datetime.strptime(purchase_date_str, "%Y-%m-%d")
+            years_held = round((datetime.now() - pd).days / 365.25, 1)
+        except (ValueError, TypeError):
+            pass
+    cagr = round((math.pow(current_val / purchase_val, 1 / max(years_held, 0.1)) - 1) * 100, 2) if purchase_val > 0 and years_held > 0 else 0
+
+    # Linked entities
+    linked_loan = None
+    if asset.get("linkedLoanId"):
+        linked_loan = await db.loans.find_one({"id": asset["linkedLoanId"]}, {"_id": 0, "loanName": 1, "outstandingAmount": 1, "id": 1})
+    linked_insurance = None
+    if asset.get("linkedInsuranceId"):
+        linked_insurance = await db.insurances.find_one({"id": asset["linkedInsuranceId"]}, {"_id": 0, "policyName": 1, "coverageAmount": 1, "id": 1})
+    linked_income = None
+    if asset.get("linkedIncomeId"):
+        linked_income = await db.income_sources.find_one({"id": asset["linkedIncomeId"]}, {"_id": 0, "name": 1, "expectedAmount": 1, "id": 1})
+
+    net_equity = current_val - (linked_loan.get("outstandingAmount", 0) if linked_loan else 0)
+
+    return {
+        **{k: v for k, v in asset.items() if k != "createdAt"},
+        "createdAt": asset.get("createdAt") if isinstance(asset.get("createdAt"), str) else asset.get("createdAt", datetime.now()).isoformat() if asset.get("createdAt") else None,
+        "metrics": {
+            "appreciation": appreciation,
+            "appreciationPct": appreciation_pct,
+            "cagr": cagr,
+            "yearsHeld": years_held,
+            "netEquity": round(net_equity, 2),
+        },
+        "linkedLoan": linked_loan,
+        "linkedInsurance": linked_insurance,
+        "linkedIncome": linked_income,
+    }
