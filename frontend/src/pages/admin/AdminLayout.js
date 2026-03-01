@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, ShieldAlert, TrendingUp, LogOut, Activity, Timer, Layers, FlaskConical, HelpCircle, Megaphone, Brain } from "lucide-react";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { LayoutDashboard, Users, ShieldAlert, TrendingUp, LogOut, Activity, Timer, Layers, FlaskConical, HelpCircle, Megaphone, Brain, Menu, X } from "lucide-react";
 import axios from "axios";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
@@ -20,7 +20,9 @@ const navItems = [
 
 const AdminLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [verified, setVerified] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -33,6 +35,9 @@ const AdminLayout = () => {
     })();
   }, [navigate]);
 
+  // Close mobile menu on route change
+  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
+
   if (!verified) return (
     <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
       <Activity className="h-8 w-8 text-teal-600 animate-spin" />
@@ -41,14 +46,17 @@ const AdminLayout = () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]" data-testid="admin-layout" style={{ isolation: "isolate", position: "relative", zIndex: 10 }}>
+      {/* Top Bar */}
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-200/80 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center h-14 gap-6">
-          <span className="text-sm font-black tracking-widest text-teal-600 mr-4">MoneySutra</span>
-          <div className="flex items-center gap-1 flex-1 overflow-x-auto">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center h-12 sm:h-14 gap-2 sm:gap-6">
+          <span className="text-sm font-black tracking-widest text-teal-600 shrink-0">MoneySutra</span>
+
+          {/* Desktop Nav — hidden on mobile */}
+          <div className="hidden lg:flex items-center gap-1 flex-1 overflow-x-auto scrollbar-hide">
             {navItems.map(({ to, icon: Icon, label, end }) => (
               <NavLink key={to} to={to} end={end}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all whitespace-nowrap ${isActive ? "bg-teal-50 text-teal-700 shadow-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`
+                  `flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all whitespace-nowrap ${isActive ? "bg-teal-50 text-teal-700 shadow-sm" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"}`
                 }
                 data-testid={`admin-nav-${label.toLowerCase().replace(/\s/g, "-")}`}
               >
@@ -57,12 +65,55 @@ const AdminLayout = () => {
               </NavLink>
             ))}
           </div>
-          <button onClick={() => navigate("/admin/login")} className="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-50 transition-all" data-testid="admin-exit">
+
+          {/* Mobile: current page label + hamburger */}
+          <div className="flex lg:hidden items-center flex-1 justify-end gap-2">
+            <span className="text-xs font-semibold text-gray-600 truncate">
+              {navItems.find(n => n.end ? location.pathname === n.to : location.pathname.startsWith(n.to) && n.to !== "/admin")?.label || "Overview"}
+            </span>
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg hover:bg-gray-50 text-gray-600 transition-all"
+              data-testid="mobile-menu-toggle">
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+
+          <button onClick={() => navigate("/admin/login")}
+            className="hidden sm:block text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-50 transition-all shrink-0"
+            data-testid="admin-exit">
             <LogOut className="h-4 w-4" />
           </button>
         </div>
       </nav>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+
+      {/* Mobile Slide-Down Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 top-12 z-40" data-testid="mobile-menu">
+          <div className="absolute inset-0 bg-black/20" onClick={() => setMobileMenuOpen(false)} />
+          <div className="relative bg-white border-b border-gray-200 shadow-lg max-h-[70vh] overflow-y-auto">
+            <div className="p-3 grid grid-cols-2 gap-1.5">
+              {navItems.map(({ to, icon: Icon, label, end }) => (
+                <NavLink key={to} to={to} end={end}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-semibold transition-all ${isActive ? "bg-teal-50 text-teal-700 border border-teal-100" : "text-gray-600 hover:bg-gray-50 border border-transparent"}`
+                  }
+                  data-testid={`mobile-nav-${label.toLowerCase().replace(/\s/g, "-")}`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" />
+                  {label}
+                </NavLink>
+              ))}
+              <button onClick={() => { setMobileMenuOpen(false); navigate("/admin/login"); }}
+                className="flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-50 border border-transparent col-span-2"
+                data-testid="mobile-logout">
+                <LogOut className="h-4 w-4" /> Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
         <Outlet />
       </main>
     </div>
