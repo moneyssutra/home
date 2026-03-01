@@ -93,6 +93,28 @@ const PreferencesSettings = () => {
     }
   };
 
+  const handleTogglePremium = async (val) => {
+    setIsPremium(val);
+    toast.success(val ? "Premium mode enabled" : "Premium mode disabled");
+    try {
+      await axios.post(`${backendUrl}/api/settings/preferences`, {
+        theme, accentColor, currency: "INR", dateFormat: "DD/MM/YYYY", language: "en",
+        is_premium: val, partner_consent: partnerConsent,
+      }, { withCredentials: true });
+    } catch { /* silent */ }
+  };
+
+  const handleTogglePartnerConsent = async (val) => {
+    setPartnerConsent(val);
+    toast.success(val ? "Partner suggestions enabled" : "Partner suggestions hidden");
+    try {
+      await axios.post(`${backendUrl}/api/settings/preferences`, {
+        theme, accentColor, currency: "INR", dateFormat: "DD/MM/YYYY", language: "en",
+        is_premium: isPremium, partner_consent: val,
+      }, { withCredentials: true });
+    } catch { /* silent */ }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}>
