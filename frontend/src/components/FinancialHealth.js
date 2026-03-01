@@ -278,7 +278,7 @@ const FinancialHealth = () => {
       } catch {}
     }
     fetchHealthData();
-  }, [isPersonalView]);
+  }, [activeViewId]);
 
   const fetchHealthData = async () => {
     if (!isPersonalView) {
