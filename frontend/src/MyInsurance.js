@@ -289,7 +289,7 @@ const MyInsurance = () => {
                     key={insurance.id}
                     className="rounded-2xl p-5 shadow-card transition-all hover:shadow-md cursor-pointer"
                     style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-                    onClick={() => navigate(`/insurance/${insurance.id}`)}
+                    onClick={() => navigate(`/wealth/insurance/${insurance.id}`)}
                     data-testid={`insurance-card-${insurance.id}`}
                   >
                     <div className="flex items-center justify-between">

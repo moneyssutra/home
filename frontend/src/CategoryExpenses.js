@@ -395,7 +395,7 @@ const CategoryExpenses = () => {
                   if (expense.linkedLoanId) {
                     navigate(`/wealth/loans/${expense.linkedLoanId}`, { state: { fromExpenses: currentPath } });
                   } else if (expense.linkedInsuranceId) {
-                    navigate(`/insurance/${expense.linkedInsuranceId}`, { state: { fromExpenses: currentPath } });
+                    navigate(`/wealth/insurance/${expense.linkedInsuranceId}`, { state: { fromExpenses: currentPath } });
                   } else if (expense.linkedInvestmentId) {
                     navigate(`/wealth/investments/${expense.linkedInvestmentId}`, { state: { fromExpenses: currentPath } });
                   } else {

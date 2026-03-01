@@ -265,7 +265,7 @@ const CategoryInsurance = () => {
               return (
                 <button
                   key={insurance.id}
-                  onClick={() => navigate(`/insurance/${insurance.id}`)}
+                  onClick={() => navigate(`/wealth/insurance/${insurance.id}`)}
                   className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md"
                   style={{ 
                     backgroundColor: "var(--bg-card)", 

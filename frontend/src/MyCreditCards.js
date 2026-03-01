@@ -148,7 +148,7 @@ const MyCreditCards = () => {
               return (
                 <button
                   key={card.id}
-                  onClick={() => navigate(`/credit-card/${card.id}`)}
+                  onClick={() => navigate(`/wealth/credit-cards/${card.id}`)}
                   className="w-full rounded-2xl p-4 text-left transition-all hover:shadow-md shadow-card"
                   style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
                   data-testid={`credit-card-${card.id}`}
