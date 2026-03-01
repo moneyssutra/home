@@ -1,0 +1,67 @@
+{
+  "summary": "All 4 reported bugs verified as FIXED. UI and API tests passed for: (1) Insurance date crash - no 'Invalid time value' errors, (2) Credit Card UI overlap - proper section spacing, (3) Account ledger - Transaction Ledger with Opening Balance visible, (4) Income detail sections - Receipt Schedule, Transaction History, Linked Asset all visible.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_bug_fixes_iter123.py",
+    "/app/test_reports/pytest/bug_fixes_iter123_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_bug_fixes_iter123.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100% (all 4 bugs verified fixed via UI testing)"
+  },
+  "test_credentials": {
+    "username": "test",
+    "password": "test"
+  },
+  "seed_data_creation": "Used existing test data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bug fixes for detail pages verified. Insurance categories at /insurances/:category route, detail at /wealth/insurance/:id. Credit card detail at /wealth/credit-cards/:id. Account detail at /wealth/accounts/:id. Income detail at /wealth/income/:id. All detail APIs return proper data structures.",
+  "bugs_tested": {
+    "issue_1_insurance_date_crash": {
+      "status": "FIXED",
+      "test_details": "Navigated to My Insurance -> Property Insurance -> clicked on 'Home Shield Policy'. No 'Invalid time value' crash. Dates displayed correctly (15 Mar 2024, 15 Mar 2025). CategoryInsurance.js formatDate and getNextPremiumDate now validate dates before formatting.",
+      "ui_verified": true,
+      "api_verified": true
+    },
+    "issue_2_credit_card_ui_overlap": {
+      "status": "FIXED",
+      "test_details": "Credit Card detail page at /wealth/credit-cards/:id shows properly spaced sections. Utilization Warning section ('Healthy utilization. Keep it up!') is clearly separated from Payment History section. No overlapping elements. CreditCardDetail.js date handling in payment history works correctly.",
+      "ui_verified": true,
+      "api_verified": true
+    },
+    "issue_3_missing_account_ledger": {
+      "status": "FIXED",
+      "test_details": "Account detail page at /wealth/accounts/:id now shows 'Transaction Ledger' section with BookOpen icon. Opening Balance entry visible with date and amount. Backend accounts.py detail endpoint returns ledger array with opening balance and linked entity transactions.",
+      "ui_verified": true,
+      "api_verified": true,
+      "data_testid": "account-ledger"
+    },
+    "issue_4_missing_income_sections": {
+      "status": "FIXED",
+      "test_details": "Income detail page at /wealth/income/:id shows all three required sections: Receipt Schedule (with received/upcoming status), Transaction History (with placeholder when empty), Linked Asset (with placeholder when no linked asset). Backend income.py generates schedule from createdAt when startDate missing.",
+      "ui_verified": true,
+      "api_verified": true,
+      "data_testids": ["receipt-schedule", "income-transactions", "linked-asset-section"]
+    }
+  },
+  "backend_tests_summary": {
+    "TestInsuranceDateFix": "2/2 passed - insurance list and detail APIs return valid dates",
+    "TestCreditCardDetailFix": "1/1 passed - credit card detail structure verified",
+    "TestAccountLedgerFix": "2/2 passed - ledger array with opening balance and running balances",
+    "TestIncomeDetailSectionsFix": "5/5 passed - schedule, transactions, linkedAsset, summary all present"
+  }
+}
