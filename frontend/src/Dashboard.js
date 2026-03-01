@@ -119,6 +119,7 @@ const Dashboard = () => {
         totalAssets: cs.totalAssets || 0,
         totalInvestments: cs.totalInvestments || 0,
         totalLoans: cs.totalLoans || 0,
+        totalLiabilities: (cs.totalLoans || 0) + (cs.totalCCOutstanding || 0),
         liquidBalance: cs.liquidBalance || 0,
         monthlyIncome: cs.monthlyIncome || 0,
         monthlyExpenses: cs.monthlyExpenses || 0,
