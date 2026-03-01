@@ -242,16 +242,21 @@ async def get_gamification_profile(request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
 
     user_id = user.get("user_id")
-    profile = await _get_or_create_profile(user_id)
-    level_info = _get_level(profile.get("xp", 0))
+    import asyncio
+    profile_task = _get_or_create_profile(user_id)
+    achievements_task = db.user_achievements.find({"user_id": user_id}, {"_id": 0}).sort("achieved_at", -1).to_list(100)
+    challenges_task = db.user_challenges.find({"user_id": user_id, "is_completed": False}, {"_id": 0}).to_list(20)
 
-    achievements = await db.user_achievements.find({"user_id": user_id}, {"_id": 0}).sort("achieved_at", -1).to_list(100)
-    active_challenges = await db.user_challenges.find({"user_id": user_id, "is_completed": False}, {"_id": 0}).to_list(20)
+    profile, achievements, active_challenges = await asyncio.gather(profile_task, achievements_task, challenges_task)
+    level_info = _get_level(profile.get("xp", 0))
 
     current_badge_count = len(achievements)
     max_badges = max(profile.get("max_badges", 0), current_badge_count)
     if max_badges > profile.get("max_badges", 0):
         await db.user_gamification_profile.update_one({"user_id": user_id}, {"$set": {"max_badges": max_badges}})
+
+    # Build achievement lookup set for O(1) checks
+    achieved_codes = {a["achievement_code"] for a in achievements}
 
     return {
         **level_info,
@@ -269,7 +274,7 @@ async def get_gamification_profile(request: Request):
         "allAchievements": [
             {
                 "code": code, **info,
-                "unlocked": any(a["achievement_code"] == code for a in achievements),
+                "unlocked": code in achieved_codes,
                 "achieved_at": next((a["achieved_at"] for a in achievements if a["achievement_code"] == code), None)
             }
             for code, info in ACHIEVEMENTS.items()
