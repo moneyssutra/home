@@ -17,8 +17,13 @@ router = APIRouter(prefix="/opportunities", tags=["Opportunities"])
 # ============ USER-FACING ENDPOINTS ============
 
 @router.get("/eligible")
-async def get_eligible_opportunities(request: Request):
-    """Return max 2 eligible opportunities for the current user."""
+async def get_eligible_opportunities(request: Request, limit: int = 2, skip_shown_filter: bool = False):
+    """Return eligible opportunities for the current user.
+    
+    Args:
+        limit: Max opportunities to return (default 2 for dashboard, higher for /opportunities page)
+        skip_shown_filter: If True, skip the 7-day shown cooldown (for dedicated opportunities page)
+    """
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -93,8 +98,8 @@ async def get_eligible_opportunities(request: Request):
             except (ValueError, TypeError):
                 pass
 
-        # Skip if shown in last 7 days (but not within last hour, to allow page refreshes)
-        if log and log.get("shown_at"):
+        # Skip if shown in last 7 days (only for dashboard, not for /opportunities page)
+        if not skip_shown_filter and log and log.get("shown_at"):
             try:
                 shown_dt = datetime.fromisoformat(log["shown_at"])
                 if shown_dt.tzinfo is None:
@@ -129,9 +134,9 @@ async def get_eligible_opportunities(request: Request):
 
         eligible.append(opp)
 
-    # Step 6: Sort by priority and return max 2
+    # Step 6: Sort by priority and return up to limit
     eligible.sort(key=lambda x: x.get("priority", 5))
-    result = eligible[:2]
+    result = eligible[:limit]
 
     # Log shown events
     for opp in result:
