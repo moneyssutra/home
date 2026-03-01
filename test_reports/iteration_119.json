@@ -1,0 +1,102 @@
+{
+  "summary": "Completed full testing of Phase 1 Loan Detail + EMI Ledger Page. All 9 backend API tests passed. All 14 frontend features verified working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_loan_detail_amortization.py",
+    "/app/test_reports/pytest/loan_detail_amortization_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_loan_detail_amortization.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)",
+    "frontend": "100% (14/14 features verified)"
+  },
+  "test_credentials": {
+    "username": "test@moneyssutra.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Used existing test data - HDFC Home Loan ID: 886f8ea0-1f10-4a3e-8280-eefc1567bc5e",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Loan Detail page (Phase 1) fully tested at /wealth/loans/:id. HDFC Home Loan has 147 EMIs after testing (4 paid, 68 missed, 75 pending). Extra payments recorded in loan_extra_payments collection. Mark EMI functionality creates emi_transactions entries.",
+  "features_tested": {
+    "navigate_myloans_to_loan_detail": {
+      "result": "PASS",
+      "details": "Clicking loan card navigates to /wealth/loans/:id (not /loan/:id). HDFC Home Loan card navigates correctly."
+    },
+    "loan_detail_page_renders": {
+      "result": "PASS",
+      "details": "Page renders at /wealth/loans/886f8ea0-1f10-4a3e-8280-eefc1567bc5e with loan name 'HDFC Home Loan', type 'Home Loan', outstanding ₹41,21,978, interest rate 8.5%, EMI ₹45,329, tenure 147 mo."
+    },
+    "emi_ledger_color_coded_statuses": {
+      "result": "PASS",
+      "details": "EMI Ledger displays entries with Green=Paid (checkmark icon), Red=Missed (X icon), Amber/Orange=Pending (clock icon). Status buttons are clickable for missed/pending EMIs."
+    },
+    "emi_progress_section": {
+      "result": "PASS",
+      "details": "EMI Progress section shows counts: 4 Paid (green), 68 Missed (red), 75 Pending (amber). Counts update after mark-emi operations."
+    },
+    "mark_emi_as_paid": {
+      "result": "PASS",
+      "details": "Clicking missed/pending EMI status button marks it as paid. Toast shows 'EMI #4 marked as paid'. Outstanding reduces and page refreshes with updated data."
+    },
+    "extra_payment_modal": {
+      "result": "PASS",
+      "details": "Extra Payment button opens modal with Amount input field and Impact Mode selector (Reduce Tenure / Reduce EMI buttons). Current outstanding shown in modal."
+    },
+    "submit_extra_payment": {
+      "result": "PASS",
+      "details": "Submitting extra payment (₹10,000) reduces outstanding from ₹41,31,978 to ₹41,21,978. Toast shows 'Extra payment of ₹10,000 applied!'"
+    },
+    "loan_insights_section": {
+      "result": "PASS",
+      "details": "Loan Insights shows: Total Interest Payable (₹16,63,306), Interest Paid So Far (₹1,18,306), Interest Saved from Extra Payments (₹1,360), EMI-to-Income 6.8%, Safety Impact Days (3 days)."
+    },
+    "edit_button_navigation": {
+      "result": "PASS",
+      "details": "Edit button navigates to /loan/:id (LoanForm component). Form shows 'Edit Loan' title with pre-filled data."
+    },
+    "back_button_navigation": {
+      "result": "PASS",
+      "details": "Back button navigates to /my-loans page correctly."
+    },
+    "view_all_toggle": {
+      "result": "PASS",
+      "details": "Toggle button shows 'View All (147)' in condensed view, changes to 'Show Less' when expanded. Scrollable table shows all EMIs when expanded."
+    },
+    "get_amortization_api": {
+      "result": "PASS",
+      "details": "GET /api/loans/:id/amortization returns full schedule with 147 entries, summary with paidEMIs/missedEMIs/pendingEMIs counts, and extraPayments array."
+    },
+    "post_extra_payment_api": {
+      "result": "PASS",
+      "details": "POST /api/loans/:id/extra-payment correctly reduces outstanding and records payment in loan_extra_payments collection. Supports both reduce_tenure and reduce_emi modes."
+    },
+    "post_mark_emi_api": {
+      "result": "PASS",
+      "details": "POST /api/loans/:id/mark-emi creates emi_transaction entry with emiNo, principal/interest breakdown, and updates loan outstanding."
+    }
+  },
+  "backend_tests_summary": {
+    "test_get_loan_by_id": "PASS - Returns loan with all required fields",
+    "test_get_amortization_schedule": "PASS - Returns 147+ EMIs with schedule and summary",
+    "test_amortization_summary_counts": "PASS - Summary has paid/missed/pending counts that add up correctly",
+    "test_amortization_status_values": "PASS - All entries have valid status (paid/missed/pending)",
+    "test_mark_emi_paid_reduces_outstanding": "PASS - Outstanding reduced after marking EMI",
+    "test_extra_payment_reduce_tenure": "PASS - Outstanding reduced by payment amount",
+    "test_extra_payment_reduce_emi": "PASS - Payment recorded with reduce_emi mode",
+    "test_get_loan_insights": "PASS - Returns all insight fields including emiToIncomePercent and safetyImpactDays",
+    "test_loans_list_has_hdfc_loan": "PASS - HDFC loan found in loans list"
+  }
+}
