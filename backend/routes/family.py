@@ -105,7 +105,7 @@ async def add_family_member(input: FamilyMemberCreate, request: Request):
         if phone and m.get("phone") == phone:
             raise HTTPException(status_code=400, detail=f"A member with phone {phone} is already in the family")
         if input.email and m.get("email") == input.email:
-            raise HTTPException(status_code=400, detail=f"A member with this email is already in the family")
+            raise HTTPException(status_code=400, detail="A member with this email is already in the family")
 
     if linked_user:
         # Smart link: use the existing user's ID so their financial data is included
