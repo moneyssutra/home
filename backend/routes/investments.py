@@ -269,3 +269,228 @@ async def delete_investment(investment_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Investment not found")
     await db.investments.delete_one({"id": investment_id})
     return {"message": "Investment deleted successfully", "id": investment_id}
+
+
+# ============ INVESTMENT DETAIL & LEDGER ============
+
+def _calculate_cagr(invested, current, years):
+    """CAGR = (Current / Invested)^(1/Years) - 1"""
+    if invested <= 0 or years <= 0 or current <= 0:
+        return 0
+    return round((math.pow(current / invested, 1 / years) - 1) * 100, 2)
+
+
+def _calculate_future_value_sip(sip, monthly_rate, months):
+    """FV = SIP * ((1+r)^n - 1)/r * (1+r)"""
+    if sip <= 0 or months <= 0:
+        return 0
+    if monthly_rate <= 0:
+        return sip * months
+    r = monthly_rate
+    return round(sip * ((math.pow(1 + r, months) - 1) / r) * (1 + r), 2)
+
+
+def _calculate_future_value_lumpsum(pv, annual_rate, years):
+    """FV = PV * (1 + r)^n"""
+    if pv <= 0 or years <= 0:
+        return pv
+    return round(pv * math.pow(1 + annual_rate / 100, years), 2)
+
+
+def _get_performance_tag(expected_return, actual_return):
+    if actual_return is None or expected_return is None:
+        return "N/A"
+    diff = actual_return - expected_return
+    if diff >= 2:
+        return "Outperforming"
+    elif diff >= -2:
+        return "On Track"
+    else:
+        return "Underperforming"
+
+
+@router.get("/{investment_id}/detail")
+async def get_investment_detail(investment_id: str, request: Request):
+    """Get comprehensive investment detail with ledger, growth, and projections."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_filter = get_user_filter(user)
+    user_filter["id"] = investment_id
+    inv = await db.investments.find_one(user_filter, {"_id": 0})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investment not found")
+
+    principal = inv.get("principal", 0)
+    current_value = inv.get("currentValue", 0)
+    start_date_str = inv.get("startDate", "")
+    sip_amount = inv.get("sipAmount", 0)
+    frequency = inv.get("investmentFrequency")
+    expected_return = inv.get("returnRate") or 10  # Default 10% if not set
+    category = inv.get("investmentCategory", "")
+
+    # Calculate time elapsed
+    try:
+        start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+    except (ValueError, TypeError):
+        start_date = datetime.now()
+
+    now = datetime.now()
+    days_held = (now - start_date).days
+    years_held = max(days_held / 365.25, 0.01)
+    months_held = max(1, int(days_held / 30.44))
+
+    # Calculate returns
+    total_invested = principal
+    gain_loss = current_value - total_invested
+    gain_loss_pct = round((gain_loss / total_invested * 100), 2) if total_invested > 0 else 0
+
+    # CAGR
+    cagr = _calculate_cagr(total_invested, current_value, years_held) if total_invested > 0 else 0
+
+    # Performance tag
+    perf_tag = _get_performance_tag(expected_return, cagr)
+
+    # Generate investment ledger (transaction history)
+    ledger = []
+
+    # Fetch SIP transaction records
+    sip_records = await db.investment_transactions.find(
+        {"investmentId": investment_id}, {"_id": 0}
+    ).sort("transactionDate", -1).to_list(1000)
+
+    if sip_records:
+        ledger = sip_records
+    else:
+        # Auto-generate ledger entries from SIP schedule
+        if sip_amount and frequency:
+            period_months = {"Daily": 0, "Weekly": 0, "Monthly": 1, "Quarterly": 3, "Half-Yearly": 6, "Yearly": 12}.get(frequency, 1)
+            if period_months > 0:
+                running_invested = 0
+                for i in range(1, months_held // period_months + 1):
+                    entry_date = start_date + relativedelta(months=period_months * i)
+                    if entry_date > now:
+                        break
+                    running_invested += sip_amount
+                    # Estimate value with simple growth
+                    remaining_months = max(0, (now - entry_date).days / 30.44)
+                    monthly_return = expected_return / 12 / 100
+                    entry_value = sip_amount * math.pow(1 + monthly_return, remaining_months) if monthly_return > 0 else sip_amount
+                    estimated_gain = round(entry_value - sip_amount, 2)
+                    ledger.append({
+                        "date": entry_date.strftime("%Y-%m-%d"),
+                        "contribution": sip_amount,
+                        "totalInvested": round(running_invested, 2),
+                        "estimatedValue": round(entry_value, 2),
+                        "gainLoss": estimated_gain,
+                        "type": "sip"
+                    })
+                ledger.reverse()
+        else:
+            # Lump sum - single entry
+            ledger.append({
+                "date": start_date_str,
+                "contribution": principal,
+                "totalInvested": principal,
+                "estimatedValue": current_value,
+                "gainLoss": round(gain_loss, 2),
+                "type": "lumpsum"
+            })
+
+    # Projected growth
+    monthly_rate = expected_return / 12 / 100
+    projections = {}
+    for years in [1, 3, 5, 10, 15, 20]:
+        if sip_amount and frequency == "Monthly":
+            fv_sip = _calculate_future_value_sip(sip_amount, monthly_rate, years * 12)
+            fv_existing = _calculate_future_value_lumpsum(current_value, expected_return, years)
+            projections[f"{years}yr"] = round(fv_sip + fv_existing, 2)
+        else:
+            projections[f"{years}yr"] = _calculate_future_value_lumpsum(current_value, expected_return, years)
+
+    return {
+        "id": investment_id,
+        "name": inv.get("name"),
+        "category": category,
+        "mode": inv.get("investmentMode"),
+        "principal": principal,
+        "currentValue": current_value,
+        "sipAmount": sip_amount,
+        "frequency": frequency,
+        "startDate": start_date_str,
+        "maturityDate": inv.get("maturityDate"),
+        "expectedReturn": expected_return,
+        "linkedAccountId": inv.get("linkedAccountId"),
+        "notes": inv.get("notes"),
+        "returnRate": inv.get("returnRate"),
+        "compoundingType": inv.get("compoundingType"),
+        "metrics": {
+            "totalInvested": total_invested,
+            "gainLoss": round(gain_loss, 2),
+            "gainLossPct": gain_loss_pct,
+            "cagr": cagr,
+            "daysHeld": days_held,
+            "yearsHeld": round(years_held, 1),
+            "monthsHeld": months_held,
+            "performanceTag": perf_tag,
+        },
+        "projections": projections,
+        "ledger": ledger[:50],
+        "totalLedgerEntries": len(ledger),
+    }
+
+
+@router.post("/{investment_id}/add-contribution")
+async def add_contribution(investment_id: str, request: Request):
+    """Add a manual contribution to an investment."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    body = await request.json()
+    amount = body.get("amount", 0)
+    contribution_date = body.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+    notes = body.get("notes", "")
+
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be positive")
+
+    user_filter = get_user_filter(user)
+    user_filter["id"] = investment_id
+    inv = await db.investments.find_one(user_filter, {"_id": 0})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investment not found")
+
+    new_principal = inv.get("principal", 0) + amount
+    new_current = inv.get("currentValue", 0) + amount
+
+    await db.investments.update_one(
+        {"id": investment_id},
+        {"$set": {"principal": new_principal, "currentValue": new_current}}
+    )
+
+    txn = {
+        "id": str(uuid.uuid4()),
+        "userId": user.get("user_id"),
+        "investmentId": investment_id,
+        "investmentName": inv.get("name", ""),
+        "amount": amount,
+        "type": "contribution",
+        "transactionDate": contribution_date,
+        "notes": notes,
+        "principalBefore": inv.get("principal", 0),
+        "principalAfter": new_principal,
+        "createdAt": datetime.now(timezone.utc).isoformat()
+    }
+    await db.investment_transactions.insert_one(txn)
+
+    return {
+        "success": True,
+        "transaction": {k: v for k, v in txn.items() if k != "_id"},
+        "updatedInvestment": {
+            "principal": new_principal,
+            "currentValue": new_current,
+        }
+    }
+
