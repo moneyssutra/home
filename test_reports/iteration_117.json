@@ -1,0 +1,74 @@
+{
+  "summary": "Tested P0 fixes for MoneySutra: Reports page date range UI (duplicate 'To' label fix) and SIP auto-update scheduler. Both features working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "scheduler.py",
+        "issue": "Error processing due premiums: time data '1' does not match format '%Y-%m-%d' - some insurance premium dates may be stored incorrectly",
+        "priority": "LOW"
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/pytest/sip_auto_update_results.xml",
+    "/app/backend/tests/test_sip_auto_update.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/server_models.py - Added lastSipUpdateDate field to Investment model"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (Reports page UI verified)"
+  },
+  "seed_data_creation": "Used existing test user: test@moneyssutra.com / test",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "SIP auto-update feature fully tested. Bitcoin Daily SIP was auto-updated by scheduler on startup (45000 -> 45100). Investment model updated to include lastSipUpdateDate field.",
+  "features_tested": {
+    "reports_date_range_ui": {
+      "result": "PASS",
+      "details": "Verified Reports page (/insights/reports) has exactly 1 FROM label and 1 TO label above the date inputs. No duplicate 'To' span found. Date inputs have correct data-testid attributes."
+    },
+    "trigger_sip_update_endpoint": {
+      "result": "PASS",
+      "details": "POST /api/investments/trigger-sip-update returns correct response with date, totalSipInvestments (8), updatedToday count, and details array. Each SIP has isDueToday correctly computed based on frequency."
+    },
+    "bitcoin_daily_sip_auto_update": {
+      "result": "PASS",
+      "details": "Bitcoin (BTC) Daily SIP was auto-updated by scheduler on startup. currentValue=45100 (was 45000 + 100 sipAmount). lastSipUpdateDate=2026-03-01 correctly set."
+    },
+    "monthly_sip_not_due_march_1": {
+      "result": "PASS",
+      "details": "Monthly SIPs with selectedDate=5 (HDFC RD, PPF) and selectedDate=10 (Axis Bluechip, NPS Tier 1) correctly show isDueToday=false on March 1st."
+    },
+    "weekly_sip_not_due_sunday": {
+      "result": "PASS",
+      "details": "Nifty 50 ETF (Weekly/Monday) correctly shows isDueToday=false on Sunday."
+    },
+    "scheduler_runs_on_startup": {
+      "result": "PASS",
+      "details": "Backend logs confirm scheduler runs auto_update_sip_investments on startup as part of daily checks."
+    },
+    "investment_crud_still_works": {
+      "result": "PASS",
+      "details": "GET, POST, DELETE for investments all working correctly after adding trigger-sip-update endpoint."
+    }
+  },
+  "test_credentials": {
+    "username": "test@moneyssutra.com",
+    "password": "test"
+  },
+  "code_fix_applied": {
+    "file": "/app/backend/server_models.py",
+    "change": "Added lastSipUpdateDate: Optional[str] = None to Investment model (line 427)",
+    "reason": "Investment model had extra='ignore' which was stripping lastSipUpdateDate from API responses. Now the field is properly included."
+  }
+}
