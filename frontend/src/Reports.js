@@ -201,7 +201,7 @@ const Reports = () => {
         >
           <ArrowLeft className="h-5 w-5" style={{ color: "var(--text-primary)" }} />
         </button>
-        <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Reports</h1>
+        <h1 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>{isFamilyView ? `${activeViewLabel} Reports` : !isPersonalView ? `${activeViewLabel}'s Reports` : "Reports"}</h1>
       </header>
 
       {/* Content */}
