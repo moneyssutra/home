@@ -1,8 +1,10 @@
 """Loan routes - Full CRUD with auto-expense from server.py."""
 from fastapi import APIRouter, HTTPException, Request
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timezone
+from dateutil.relativedelta import relativedelta
 import uuid
+import math
 
 from database import db
 from server_models import Loan, LoanCreate
