@@ -28,6 +28,7 @@ import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
 import FamilyToggle from "@/components/FamilyToggle";
 import FinancialHealth from "@/components/FinancialHealth";
+import { OpportunityCard } from "@/components/OpportunityCard";
 import { useAuth } from "@/context/AuthContext";
 import { useFamilyContext } from "@/context/FamilyContext";
 
