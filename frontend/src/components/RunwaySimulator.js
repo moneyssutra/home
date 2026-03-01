@@ -15,7 +15,41 @@ export default function RunwaySimulator({ currentData }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const isFamilyData = currentData?.monthlyExpenses > 0 && currentData?.fundBreakdown?.extendedBuffer !== undefined;
+
+  const simulateLocal = useCallback(() => {
+    if (!currentData) return;
+    const baseIncome = currentData.monthlyIncome || 0;
+    const baseExpense = currentData.monthlyMandatoryExpense || currentData.monthlyExpenses || 0;
+    const baseFunds = currentData.effectiveFunds || 0;
+
+    const newIncome = baseIncome * (1 + incPct / 100);
+    const newExpense = baseExpense * (1 + expPct / 100);
+    const newFunds = baseFunds + extraSavings;
+    const newDaily = newExpense / 30;
+    const newDays = newDaily > 0 ? Math.round(newFunds / newDaily) : 0;
+    const curDays = currentData.survivalDays || 0;
+    const diff = newDays - curDays;
+    const level = newDays > 365 ? "CHAMPION" : newDays > 180 ? "SECURE" : newDays > 90 ? "COMFORTABLE" : newDays > 30 ? "BUILDING" : "NEEDS ATTENTION";
+
+    setResult({
+      current: { survivalDays: curDays, monthlyIncome: baseIncome, monthlyExpenses: baseExpense, effectiveFunds: baseFunds, level: currentData.level || "BUILDING" },
+      simulated: { survivalDays: newDays, monthlyIncome: newIncome, monthlyExpenses: newExpense, effectiveFunds: newFunds, level },
+      impact: { daysDiff: diff, direction: diff > 0 ? "up" : diff < 0 ? "down" : "same", summary: `${diff > 0 ? '+' : ''}${diff} days` },
+      projections: [
+        { month: "Current", survivalDays: curDays },
+        { month: "+3M", survivalDays: Math.round(curDays + diff * 0.5) },
+        { month: "+6M", survivalDays: Math.round(curDays + diff * 0.8) },
+        { month: "+12M", survivalDays: Math.round(curDays + diff) },
+      ]
+    });
+  }, [currentData, incPct, expPct, extraSavings]);
+
   const simulate = useCallback(async () => {
+    if (isFamilyData) {
+      simulateLocal();
+      return;
+    }
     setLoading(true);
     try {
       const res = await axios.get(`${backendUrl}/api/intelligence/runway-simulator`, {
@@ -25,7 +59,7 @@ export default function RunwaySimulator({ currentData }) {
       setResult(res.data);
     } catch { /* silently fail */ }
     setLoading(false);
-  }, [incPct, expPct, extraSavings]);
+  }, [incPct, expPct, extraSavings, isFamilyData, simulateLocal]);
 
   useEffect(() => {
     if (!open) return;
