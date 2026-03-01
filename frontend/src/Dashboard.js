@@ -74,10 +74,14 @@ const Dashboard = () => {
       console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
-      // Lazy-load opportunities after main content
-      axios.get(`${backendUrl}/api/opportunities/eligible?limit=20&skip_shown_filter=true&skip_dismiss_filter=true`, { withCredentials: true })
-        .then(r => setOpportunities(r.data.opportunities || []))
-        .catch(() => {});
+      // Lazy-load opportunities and premium status after main content
+      Promise.all([
+        axios.get(`${backendUrl}/api/opportunities/eligible?limit=20&skip_shown_filter=true&skip_dismiss_filter=true`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/settings/preferences`, { withCredentials: true }),
+      ]).then(([oppRes, prefRes]) => {
+        setOpportunities(oppRes.data.opportunities || []);
+        setIsPremium(prefRes.data?.is_premium || false);
+      }).catch(() => {});
     }
   };
 
