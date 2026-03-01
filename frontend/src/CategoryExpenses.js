@@ -393,11 +393,11 @@ const CategoryExpenses = () => {
                   // Pass fromExpenses state so back button returns here
                   const currentPath = `/expenses/${category}`;
                   if (expense.linkedLoanId) {
-                    navigate(`/loan/${expense.linkedLoanId}`, { state: { fromExpenses: currentPath } });
+                    navigate(`/wealth/loans/${expense.linkedLoanId}`, { state: { fromExpenses: currentPath } });
                   } else if (expense.linkedInsuranceId) {
                     navigate(`/insurance/${expense.linkedInsuranceId}`, { state: { fromExpenses: currentPath } });
                   } else if (expense.linkedInvestmentId) {
-                    navigate(`/investment/${expense.linkedInvestmentId}`, { state: { fromExpenses: currentPath } });
+                    navigate(`/wealth/investments/${expense.linkedInvestmentId}`, { state: { fromExpenses: currentPath } });
                   } else {
                     navigate(`/expense/${expense.id}`);
                   }

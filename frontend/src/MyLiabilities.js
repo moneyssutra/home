@@ -263,7 +263,7 @@ const MyLiabilities = () => {
                 key={loan.id}
                 className="p-4 rounded-xl cursor-pointer transition-all hover:shadow-md active:scale-[0.99]"
                 style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-                onClick={() => navigate(`/loan/${loan.id}`)}
+                onClick={() => navigate(`/wealth/loans/${loan.id}`)}
                 data-testid={`loan-item-${loan.id}`}
               >
                 <div className="flex items-start gap-3">

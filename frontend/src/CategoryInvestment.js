@@ -140,7 +140,7 @@ const CategoryInvestment = () => {
               return (
                 <button
                   key={investment.id}
-                  onClick={() => navigate(`/investment/${investment.id}`)}
+                  onClick={() => navigate(`/wealth/investments/${investment.id}`)}
                   className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md"
                   style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
                   data-testid={`investment-card-${investment.id}`}

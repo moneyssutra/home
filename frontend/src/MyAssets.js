@@ -258,7 +258,7 @@ const MyAssets = () => {
                             style={{ borderTop: "1px solid var(--border-light)" }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate(`/loan/${linkedLoan.id}`);
+                              navigate(`/wealth/loans/${linkedLoan.id}`);
                             }}
                             data-testid={`linked-loan-${linkedLoan.id}`}
                           >
