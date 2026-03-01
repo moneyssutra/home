@@ -102,7 +102,7 @@ export function useIntelligenceData() {
 
   useEffect(() => {
     fetchAll();
-  }, []);
+  }, [isPersonalView]);
 
   return { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, error, refresh: fetchAll, processWeekly, joinChallenge, leaveChallenge };
 }
