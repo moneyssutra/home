@@ -263,14 +263,7 @@ function AppRouter() {
       {/* Workspace Settings */}
       <Route path="/workspace-settings" element={<ProtectedRoute><WorkspaceSettings /></ProtectedRoute>} />
 
-      {/* Admin Command Center — independent auth */}
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<CommandCenter />} />
-        <Route path="growth" element={<UserGrowth />} />
-        <Route path="users" element={<UserIntelligence />} />
-        <Route path="risk" element={<RiskRadar />} />
-      </Route>
+      {/* All admin routes handled by AdminRouter */}
     </Routes>
   );
 }
