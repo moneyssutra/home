@@ -23,6 +23,7 @@ import UserIntelligence from "@/pages/admin/UserIntelligence";
 import RiskRadar from "@/pages/admin/RiskRadar";
 import EngagementAnalytics from "@/pages/admin/EngagementAnalytics";
 import FeatureUsage from "@/pages/admin/FeatureUsage";
+import SegmentationLab from "@/pages/admin/SegmentationLab";
 
 // Pages
 import Dashboard from "@/Dashboard";
@@ -279,6 +280,7 @@ function AdminRouter() {
         <Route path="growth" element={<UserGrowth />} />
         <Route path="engagement" element={<EngagementAnalytics />} />
         <Route path="features" element={<FeatureUsage />} />
+        <Route path="segmentation" element={<SegmentationLab />} />
         <Route path="users" element={<UserIntelligence />} />
         <Route path="risk" element={<RiskRadar />} />
       </Route>
