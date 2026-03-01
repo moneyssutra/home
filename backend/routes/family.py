@@ -374,13 +374,24 @@ async def get_combined_family_summary(request: Request):
     total_emi = sum(ln.get("emiAmount", 0) for ln in loans)
     net_worth = total_assets + total_investments + liquid_balance - total_loans - total_cc_outstanding
 
-    # Survival clock calculation for family
-    # Effective funds = liquid accounts + 60% of semi-liquid (investments in MF, FD)
+    # Frequency-normalized monthly values (same algo as /api/financial-health)
+    freq_map_upper = {"Daily": 30, "Weekly": 4, "Monthly": 1, "Quarterly": 1/3, "Half-Yearly": 1/6, "Yearly": 1/12}
+    normalized_monthly_income = sum(
+        (inc.get("expectedAmount", 0) or 0) * freq_map_upper.get(inc.get("frequency", "Monthly"), 1)
+        for inc in income
+    )
+    normalized_monthly_expense = sum(
+        (exp.get("expectedAmount", 0) or 0) * freq_map_upper.get(exp.get("frequency", "Monthly"), 1)
+        for exp in expenses
+    )
+
+    # Survival clock calculation for family using normalized expenses
     semi_liquid_value = sum(i.get("currentValue", 0) for i in investments
                            if i.get("investmentCategory", "").lower() in ("mutual fund", "fixed deposit", "fd", "recurring deposit", "rd"))
     effective_funds = liquid_balance + (semi_liquid_value * 0.6)
-    daily_burn = monthly_expenses / 30 if monthly_expenses > 0 else 0
+    daily_burn = normalized_monthly_expense / 30 if normalized_monthly_expense > 0 else 0
     survival_days = int(effective_funds / daily_burn) if daily_burn > 0 else 0
+    savings_rate = round(((normalized_monthly_income - normalized_monthly_expense) / normalized_monthly_income * 100), 1) if normalized_monthly_income > 0 else 0
 
     return {
         "familyName": family["familyName"],
