@@ -82,6 +82,36 @@ export default function AccountDetail() {
           </div>
         </div>
 
+        {/* Transaction Ledger */}
+        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="account-ledger">
+          <div className="p-4 pb-2 flex items-center gap-2">
+            <BookOpen className="h-4 w-4" style={{ color: "var(--brand-primary)" }} />
+            <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Transaction Ledger</h3>
+          </div>
+          {(data.ledger && data.ledger.length > 0) ? (
+            <div className="max-h-[350px] overflow-y-auto">
+              {data.ledger.map((entry, i) => (
+                <div key={i} className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                  <div className="flex-1 min-w-0 mr-3">
+                    <p className="font-medium truncate" style={{ color: "var(--text-primary)" }}>{entry.description}</p>
+                    <p style={{ color: "var(--text-muted)" }}>{formatDate(entry.date)}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="font-bold" style={{ color: entry.type === "credit" || entry.type === "opening" ? "#059669" : "#EF4444" }}>
+                      {entry.type === "debit" ? "-" : entry.type === "credit" ? "+" : ""}₹{fmt(entry.amount)}
+                    </p>
+                    {entry.balance !== null && <p style={{ color: "var(--text-muted)" }}>Bal: ₹{fmt(entry.balance)}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="px-4 py-6 text-center">
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>No transactions recorded yet</p>
+            </div>
+          )}
+        </div>
+
         {/* Linked Entities */}
         {(data.linkedIncome?.length > 0 || data.linkedExpenses?.length > 0 || data.linkedLoans?.length > 0 || data.linkedInvestments?.length > 0) && (
           <div className="rounded-2xl p-4 space-y-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="linked-entities">
