@@ -303,7 +303,9 @@ const MyGoals = () => {
             <NotificationBell />
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Manrope', sans-serif" }}>My Goals</h1>
+        <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "'Manrope', sans-serif" }}>
+          {isFamilyView ? `${activeViewLabel} Goals` : !isPersonalView ? `${activeViewLabel}'s Goals` : "My Goals"}
+        </h1>
 
         {/* Summary Card */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="goals-summary">

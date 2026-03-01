@@ -6,6 +6,7 @@ import RunwaySimulator from "@/components/RunwaySimulator";
 import MoneyPatternWidget from "@/components/MoneyPatternWidget";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
+import { useFamilyContext } from "@/context/FamilyContext";
 import { useState, useEffect } from "react";
 import { useIntelligenceData } from "@/hooks/useIntelligenceData";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -1198,7 +1199,7 @@ const Insights = () => {
             </div>
           </div>
           <h1 className="text-2xl font-bold" style={{ color: isRedZone ? "#EF4444" : "#fff", fontFamily: "'Manrope', sans-serif" }}>
-            {isRedZone ? "RED ZONE" : "Health"}
+            {isRedZone ? "RED ZONE" : isFamilyView ? `${activeViewLabel} Health` : !isPersonalView ? `${activeViewLabel}'s Health` : "Health"}
           </h1>
           {isRedZone && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse mt-1 inline-block" style={{ backgroundColor: "#EF444420", color: "#EF4444", border: "1px solid #EF444440" }}>CRITICAL</span>}
           {!isRedZone && <p className="text-white/70 text-sm">Your financial intelligence lab</p>}
