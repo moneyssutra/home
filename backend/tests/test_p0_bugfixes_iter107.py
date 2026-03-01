@@ -13,7 +13,7 @@ BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 # Test credentials
 TEST_EMAIL = "test@moneyssutra.com"
 TEST_PASSWORD = "test"
-SESSION_COOKIE = "session_token=63ccd2bc-7749-48fd-89ac-50a341fe7dd1"
+SESSION_COOKIE = "session_token=admin-command-center-17"
 
 
 @pytest.fixture(scope="module")

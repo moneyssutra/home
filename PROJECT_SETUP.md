@@ -62,7 +62,7 @@ CORS_ORIGINS="*"
 
 ### Frontend (.env)
 ```
-REACT_APP_BACKEND_URL=https://income-reconcile-3.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://admin-command-center-17.preview.emergentagent.com
 WDS_SOCKET_PORT=443
 ENABLE_HEALTH_CHECK=false
 ```
@@ -148,7 +148,7 @@ curl http://localhost:8001/api/status
 ```
 
 ### Access Frontend
-Visit: https://income-reconcile-3.preview.emergentagent.com
+Visit: https://admin-command-center-17.preview.emergentagent.com
 
 ---
 
