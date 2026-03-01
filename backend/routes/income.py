@@ -314,17 +314,40 @@ async def get_income_detail(income_id: str, request: Request):
     period_months = {"Monthly": 1, "Quarterly": 3, "Half-Yearly": 6, "Yearly": 12, "Weekly": 0}.get(freq, 1)
 
     schedule = []
-    if start_str and period_months > 0:
-        try:
-            start = datetime.strptime(start_str, "%Y-%m-%d")
-            for i in range(60):
-                due = start + relativedelta(months=period_months * i)
-                if due > today + relativedelta(months=3):
-                    break
-                status = "received" if due.strftime("%Y-%m-%d") <= today_str else "upcoming"
-                schedule.append({"dueDate": due.strftime("%Y-%m-%d"), "amount": expected, "status": status})
-        except (ValueError, TypeError):
-            pass
+    if period_months > 0:
+        # Determine start date: use startDate, or fall back to createdAt
+        start = None
+        if start_str:
+            try:
+                start = datetime.strptime(start_str, "%Y-%m-%d")
+            except (ValueError, TypeError):
+                pass
+        if not start:
+            # Use createdAt as fallback
+            created = inc.get("createdAt", "")
+            if isinstance(created, str) and created:
+                try:
+                    start = datetime.fromisoformat(created.replace("Z", "+00:00")).replace(tzinfo=None)
+                except (ValueError, TypeError):
+                    pass
+            if not start:
+                start = today - relativedelta(months=6)
+
+            # Adjust to selectedDate day of month if available
+            sel_date = inc.get("selectedDate")
+            if sel_date:
+                try:
+                    day = min(int(sel_date), 28)
+                    start = start.replace(day=day)
+                except (ValueError, TypeError):
+                    pass
+
+        for i in range(60):
+            due = start + relativedelta(months=period_months * i)
+            if due > today + relativedelta(months=3):
+                break
+            status = "received" if due.strftime("%Y-%m-%d") <= today_str else "upcoming"
+            schedule.append({"dueDate": due.strftime("%Y-%m-%d"), "amount": expected, "status": status})
 
     received_count = sum(1 for s in schedule if s["status"] == "received")
     total_received = received_count * expected
