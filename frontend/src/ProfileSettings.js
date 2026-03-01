@@ -481,6 +481,7 @@ const ProfileSettings = () => {
                   >
                   {profile.riskAppetite}
                 </span>
+                </div>
               )}
             </div>
 
