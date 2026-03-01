@@ -122,11 +122,11 @@ const Dashboard = () => {
         liquidBalance: cs.liquidBalance || 0,
         monthlyIncome: cs.monthlyIncome || 0,
         monthlyExpenses: cs.monthlyExpenses || 0,
-        monthlySavings: (cs.monthlyIncome || 0) - (cs.monthlyExpenses || 0),
-        incomeReceived: 0,
-        expectedIncome: cs.monthlyIncome || 0,
-        expensesDone: 0,
-        upcomingExpenses: cs.monthlyExpenses || 0,
+        monthlySavings: (cs.incomeReceived || 0) - (cs.expensesDone || 0),
+        incomeReceived: cs.incomeReceived || 0,
+        expectedIncome: cs.expectedIncome || 0,
+        expensesDone: cs.expensesDone || 0,
+        upcomingExpenses: cs.upcomingExpenses || 0,
       });
       const family = membersRes.data.family || membersRes.data;
       setFamilyData({
