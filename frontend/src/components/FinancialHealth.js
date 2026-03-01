@@ -94,7 +94,7 @@ const getStatusSortScore = (status) => {
     "Stable": 75, "Moderate": 50, "Average": 50, "Needs Improvement": 40,
     "Low Coverage": 35, "Underinsured": 30, "Underexposed": 30, "Overexposed": 30,
     "High": 25, "High Risk": 15, "High Leverage": 15, "Critical": 10,
-    "Dangerous": 5, "Weak": 5, "At Risk": 5, "Not Covered": 0, "N/A": -1,
+    "Dangerous": 5, "Weak": 5, "At Risk": 5, "Not Covered": 0, "N/A": -1, "No Data": -1,
   };
   return scores[status] ?? 50;
 };
