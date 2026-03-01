@@ -74,7 +74,7 @@ async def get_family(request: Request):
 
 @router.post("/add-member")
 async def add_family_member(input: FamilyMemberCreate, request: Request):
-    """Manually add a family member."""
+    """Manually add a family member with optional smart-link to existing account."""
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -84,21 +84,68 @@ async def add_family_member(input: FamilyMemberCreate, request: Request):
     if not family:
         raise HTTPException(status_code=404, detail="Create a family group first")
 
-    member_id = f"member_{str(uuid.uuid4())[:12]}"
-    new_member = {
-        "id": member_id,
-        "name": input.name,
-        "relationship": input.relationship,
-        "email": input.email,
-        "role": "member",
-        "joinedAt": datetime.now(timezone.utc).isoformat()
-    }
+    # Phone is mandatory for new members
+    if not input.phone or not input.phone.strip():
+        raise HTTPException(status_code=400, detail="Phone number is mandatory for family members")
+
+    phone = input.phone.strip()
+
+    # Smart linking: check if an existing user account has this phone or email
+    linked_user = None
+    link_query = []
+    if phone:
+        link_query.append({"phone": phone})
+    if input.email:
+        link_query.append({"email": input.email})
+    if link_query:
+        linked_user = await db.users.find_one({"$or": link_query}, {"_id": 0})
+
+    # Check if this phone/email is already a family member
+    for m in family.get("members", []):
+        if phone and m.get("phone") == phone:
+            raise HTTPException(status_code=400, detail=f"A member with phone {phone} is already in the family")
+        if input.email and m.get("email") == input.email:
+            raise HTTPException(status_code=400, detail=f"A member with this email is already in the family")
+
+    if linked_user:
+        # Smart link: use the existing user's ID so their financial data is included
+        member_id = linked_user.get("user_id")
+        # Check if already in the family
+        for m in family.get("members", []):
+            if m.get("id") == member_id:
+                raise HTTPException(status_code=400, detail=f"{input.name} is already linked to this family")
+        new_member = {
+            "id": member_id,
+            "name": input.name,
+            "relationship": input.relationship,
+            "email": linked_user.get("email") or input.email,
+            "phone": phone,
+            "role": "linked",
+            "linkedUserId": member_id,
+            "joinedAt": datetime.now(timezone.utc).isoformat()
+        }
+    else:
+        member_id = f"member_{str(uuid.uuid4())[:12]}"
+        new_member = {
+            "id": member_id,
+            "name": input.name,
+            "relationship": input.relationship,
+            "email": input.email,
+            "phone": phone,
+            "role": "member",
+            "joinedAt": datetime.now(timezone.utc).isoformat()
+        }
 
     await db.families.update_one(
         {"id": family["id"]},
         {"$push": {"members": new_member}}
     )
-    return {"message": f"{input.name} added to family", "member": new_member}
+
+    msg = f"{input.name} added to family"
+    if linked_user:
+        msg += " (linked to existing account)"
+
+    return {"message": msg, "member": new_member, "linked": linked_user is not None}
 
 
 @router.delete("/member/{member_id}")
