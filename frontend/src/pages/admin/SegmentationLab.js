@@ -187,19 +187,21 @@ const SegmentationLab = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {activeFilters > 0 && (
-              <button onClick={(e) => { e.stopPropagation(); resetFilters(); }}
-                className="text-[10px] text-gray-400 hover:text-gray-600 font-semibold flex items-center gap-1"
-                data-testid="reset-filters-btn">
-                <X className="h-3 w-3" /> Reset
-              </button>
-            )}
             {filtersOpen ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
           </div>
         </button>
 
         {filtersOpen && (
           <div className="px-5 pb-5 border-t border-gray-100 pt-4">
+            {activeFilters > 0 && (
+              <div className="flex justify-end mb-3">
+                <button onClick={resetFilters}
+                  className="text-[10px] text-gray-400 hover:text-gray-600 font-semibold flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-50 transition-all"
+                  data-testid="reset-filters-btn">
+                  <X className="h-3 w-3" /> Reset All Filters
+                </button>
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
               {/* Demographics */}
               <RangeSlider label="Age" min={0} max={100} value={ageRange} onChange={setAgeRange} />
