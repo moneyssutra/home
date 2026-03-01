@@ -21,7 +21,7 @@ export default function MonetizationEngine() {
     priority: 3, type: "system", destination_url: "",
     start_date: new Date().toISOString().slice(0, 10),
     end_date: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10),
-    active: true, eligibility_json: {}, target_filter_json: {},
+    active: true, eligibility_json: {}, target_filter_json: {}, premium_only: false,
   });
 
   // Rule builder state
@@ -49,7 +49,7 @@ export default function MonetizationEngine() {
       priority: 3, type: "system", destination_url: "",
       start_date: new Date().toISOString().slice(0, 10),
       end_date: new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10),
-      active: true, eligibility_json: {}, target_filter_json: {},
+      active: true, eligibility_json: {}, target_filter_json: {}, premium_only: false,
     });
     setEditingOpp(null);
     setShowForm(false);
@@ -83,6 +83,7 @@ export default function MonetizationEngine() {
       active: opp.active,
       eligibility_json: opp.eligibility_json || {},
       target_filter_json: opp.target_filter_json || {},
+      premium_only: opp.premium_only || false,
     });
     setEditingOpp(opp.id);
     setShowForm(true);
