@@ -190,7 +190,7 @@ async def get_member_summary(member_id: str, request: Request):
     total_expenses = sum(e.get("expectedAmount", 0) for e in expenses)
     total_investments = sum(i.get("currentValue", 0) for i in investments)
     total_assets = sum(a.get("currentValue", 0) for a in assets)
-    total_loans = sum(l.get("outstandingAmount", 0) for l in loans)
+    total_loans = sum(ln.get("outstandingAmount", 0) for ln in loans)
     total_liquid = sum(a.get("currentBalance", 0) for a in accounts)
 
     return {
@@ -271,7 +271,7 @@ async def get_combined_family_summary(request: Request):
 
     total_investments = sum(i.get("currentValue", 0) for i in investments)
     total_assets = sum(a.get("currentValue", 0) for a in assets)
-    total_loans = sum(l.get("outstandingAmount", 0) for l in loans)
+    total_loans = sum(ln.get("outstandingAmount", 0) for ln in loans)
     liquid_balance = sum(a.get("currentBalance", 0) for a in accounts)
     total_insurance_coverage = sum(i.get("coverageAmount", 0) for i in insurances)
 
@@ -283,7 +283,7 @@ async def get_combined_family_summary(request: Request):
     total_insurance_premium = sum(to_monthly(i.get("premiumAmount", 0), i.get("premiumFrequency", "monthly")) for i in insurances)
     total_cc_outstanding = sum(c.get("outstandingAmount", 0) for c in credit_cards)
     total_cc_limit = sum(c.get("creditLimit", 0) for c in credit_cards)
-    total_emi = sum(l.get("emiAmount", 0) for l in loans)
+    total_emi = sum(ln.get("emiAmount", 0) for ln in loans)
     net_worth = total_assets + total_investments + liquid_balance - total_loans - total_cc_outstanding
 
     # Survival clock calculation for family
