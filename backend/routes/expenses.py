@@ -2027,3 +2027,59 @@ async def delete_expense(expense_id: str, request: Request):
 
 
 
+
+
+@router.get("/{expense_id}/detail")
+async def get_expense_detail(expense_id: str, request: Request):
+    """Get comprehensive expense detail with linked entities and payment history."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    exp = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not exp:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    user_id = user.get("user_id")
+    amount = exp.get("expectedAmount", 0)
+    freq = exp.get("frequency", "Monthly")
+
+    # Linked entities
+    linked_loan = None
+    if exp.get("linkedLoanId"):
+        linked_loan = await db.loans.find_one({"id": exp["linkedLoanId"]}, {"_id": 0, "loanName": 1, "outstandingAmount": 1, "id": 1})
+    linked_insurance = None
+    if exp.get("linkedInsuranceId"):
+        linked_insurance = await db.insurances.find_one({"id": exp["linkedInsuranceId"]}, {"_id": 0, "policyName": 1, "coverageAmount": 1, "id": 1})
+    linked_investment = None
+    if exp.get("linkedInvestmentId"):
+        linked_investment = await db.investments.find_one({"id": exp["linkedInvestmentId"]}, {"_id": 0, "name": 1, "currentValue": 1, "id": 1})
+    linked_account = None
+    if exp.get("linkedAccountId"):
+        linked_account = await db.accounts.find_one({"id": exp["linkedAccountId"]}, {"_id": 0, "accountName": 1, "currentBalance": 1, "id": 1})
+
+    # Monthly income for context
+    incomes = await db.income_sources.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1}).to_list(100)
+    monthly_income = sum(i.get("expectedAmount", 0) for i in incomes)
+
+    # Annualize expense
+    freq_mult = {"Daily": 30, "Weekly": 4.33, "Monthly": 1, "Quarterly": 1/3, "Half-Yearly": 1/6, "Yearly": 1/12, "One-Time": 0}.get(freq, 1)
+    monthly_equiv = round(amount * freq_mult, 2)
+    yearly_equiv = round(monthly_equiv * 12, 2)
+    expense_to_income = round((monthly_equiv / monthly_income * 100), 1) if monthly_income > 0 else 0
+
+    return {
+        **{k: v for k, v in exp.items() if k != "createdAt"},
+        "createdAt": exp.get("createdAt") if isinstance(exp.get("createdAt"), str) else str(exp.get("createdAt", "")) if exp.get("createdAt") else None,
+        "metrics": {
+            "monthlyEquivalent": monthly_equiv,
+            "yearlyEquivalent": yearly_equiv,
+            "expenseToIncomePercent": expense_to_income,
+        },
+        "linkedLoan": linked_loan,
+        "linkedInsurance": linked_insurance,
+        "linkedInvestment": linked_investment,
+        "linkedAccount": linked_account,
+    }
+
