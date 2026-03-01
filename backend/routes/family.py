@@ -397,6 +397,8 @@ async def get_combined_family_summary(request: Request):
             "totalLoans": total_loans,
             "liquidBalance": liquid_balance,
             "totalInsuranceCoverage": total_insurance_coverage,
+            "lifeInsuranceCoverage": life_insurance_coverage,
+            "healthInsuranceCoverage": health_insurance_coverage,
             "totalInsurancePremium": round(total_insurance_premium, 2),
             "totalCCOutstanding": total_cc_outstanding,
             "totalCCLimit": total_cc_limit,
