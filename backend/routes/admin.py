@@ -13,8 +13,9 @@ router = APIRouter()
 
 ADMIN_CREDENTIALS = {
     "admin@moneyssutra.com": "admin123",
+    "admin@moneysutra.com": "admin123",
 }
-ADMIN_EMAILS = {"test@moneyssutra.com", "admin@moneyssutra.com"}
+ADMIN_EMAILS = {"test@moneyssutra.com", "admin@moneyssutra.com", "admin@moneysutra.com"}
 
 # In-memory admin sessions (simple approach)
 admin_sessions = {}
