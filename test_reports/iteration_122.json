@@ -1,0 +1,135 @@
+{
+  "summary": "Completed testing of 6 new entity detail pages (Credit Card, Insurance, Asset, Income, Expense, Account). All backend detail endpoints return correct data with required metrics. All frontend detail pages render correctly. Navigation from list pages (My Liabilities, My Assets, My Accounts) correctly goes to /wealth/:entity/:id detail routes.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Account Detail",
+        "issues": ["Opening Balance shows ₹0 even though account has ₹2,50,000 balance - may be expected if not set"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_entity_detail_pages.py",
+    "/app/test_reports/pytest/entity_detail_pages_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_entity_detail_pages.py"
+  ],
+  "success_rate": {
+    "backend": "100% (30/30 tests passed)",
+    "frontend": "100% (all detail pages load, navigation works)"
+  },
+  "test_credentials": {
+    "username": "test@moneyssutra.com",
+    "password": "test"
+  },
+  "seed_data_creation": "Used existing test data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 6 entity detail pages tested and working. Routes: /wealth/credit-cards/:id, /wealth/insurance/:id, /wealth/assets/:id, /wealth/income/:id, /wealth/expenses/:id, /wealth/accounts/:id. Edit buttons navigate to /:entity/:id (edit form routes). Backend endpoints are /:id/detail for all entities. Record Payment for credit cards works.",
+  "features_tested": {
+    "credit_card_detail_api": {
+      "endpoint": "GET /api/credit-cards/:id/detail",
+      "result": "PASS",
+      "fields_verified": ["utilization", "monthlyInterest", "monthsToPayoff", "availableCredit", "payments"]
+    },
+    "credit_card_record_payment_api": {
+      "endpoint": "POST /api/credit-cards/:id/record-payment",
+      "result": "PASS",
+      "verified": "Reduces outstandingAmount, creates payment record, returns success"
+    },
+    "insurance_detail_api": {
+      "endpoint": "GET /api/insurances/:id/detail",
+      "result": "PASS",
+      "fields_verified": ["schedule", "summary.totalPremiumsPaid", "summary.totalPremiumsUpcoming"]
+    },
+    "asset_detail_api": {
+      "endpoint": "GET /api/assets/:id/detail",
+      "result": "PASS",
+      "fields_verified": ["metrics.appreciation", "metrics.cagr", "metrics.netEquity", "linkedLoan", "linkedInsurance"]
+    },
+    "income_detail_api": {
+      "endpoint": "GET /api/income/:id/detail",
+      "result": "PASS",
+      "fields_verified": ["schedule", "transactions", "summary.totalReceived", "linkedAsset"]
+    },
+    "expense_detail_api": {
+      "endpoint": "GET /api/expenses/:id/detail",
+      "result": "PASS",
+      "fields_verified": ["metrics.monthlyEquivalent", "metrics.expenseToIncomePercent", "linkedLoan", "linkedInsurance"]
+    },
+    "account_detail_api": {
+      "endpoint": "GET /api/accounts/:id/detail",
+      "result": "PASS",
+      "fields_verified": ["metrics.balanceChange", "metrics.netMonthlyFlow", "linkedLoans", "linkedIncome", "linkedExpenses"]
+    },
+    "credit_card_detail_page": {
+      "route": "/wealth/credit-cards/:id",
+      "result": "PASS",
+      "ui_elements": ["card name", "outstanding", "utilization bar", "APR", "monthly interest", "payment history", "Record Payment button"]
+    },
+    "insurance_detail_page": {
+      "route": "/wealth/insurance/:id",
+      "result": "PASS",
+      "ui_elements": ["policy name", "coverage", "premium", "premium schedule", "status counts"]
+    },
+    "asset_detail_page": {
+      "route": "/wealth/assets/:id",
+      "result": "PASS",
+      "ui_elements": ["asset name", "current value", "appreciation", "CAGR", "linked entities"]
+    },
+    "income_detail_page": {
+      "route": "/wealth/income/:id",
+      "result": "PASS",
+      "ui_elements": ["income name", "expected amount", "total received", "payments"]
+    },
+    "expense_detail_page": {
+      "route": "/wealth/expenses/:id",
+      "result": "PASS",
+      "ui_elements": ["expense name", "amount", "monthly cost", "yearly cost", "income impact %"]
+    },
+    "account_detail_page": {
+      "route": "/wealth/accounts/:id",
+      "result": "PASS",
+      "ui_elements": ["account name", "balance", "monthly flow cards (inflow/outflow/net)", "linked entities"]
+    },
+    "navigation_my_liabilities_loan": {
+      "result": "PASS",
+      "details": "Clicking loan card navigates to /wealth/loans/:id"
+    },
+    "navigation_my_liabilities_credit_card": {
+      "result": "PASS",
+      "details": "Clicking credit card navigates to /wealth/credit-cards/:id"
+    },
+    "navigation_my_assets": {
+      "result": "PASS",
+      "details": "Clicking asset card navigates to /wealth/assets/:id"
+    },
+    "navigation_my_accounts": {
+      "result": "PASS",
+      "details": "Clicking account card navigates to /wealth/accounts/:id"
+    },
+    "edit_button_navigation": {
+      "result": "PASS",
+      "details": "Edit buttons on detail pages navigate to correct /:entity/:id edit form routes"
+    }
+  },
+  "backend_tests_summary": {
+    "TestCreditCardDetail": "5/5 passed",
+    "TestCreditCardRecordPayment": "2/2 passed",
+    "TestInsuranceDetail": "3/3 passed",
+    "TestAssetDetail": "3/3 passed",
+    "TestIncomeDetail": "4/4 passed",
+    "TestExpenseDetail": "3/3 passed",
+    "TestAccountDetail": "4/4 passed",
+    "TestListEndpoints": "6/6 passed"
+  }
+}
