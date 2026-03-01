@@ -69,6 +69,7 @@ const STATUS_COLORS = {
   "At Risk": { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5" },
   "Not Covered": { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5" },
   "N/A": { bg: "#F3F4F6", text: "#6B7280", border: "#D1D5DB" },
+  "No Data": { bg: "#F3F4F6", text: "#9CA3AF", border: "#E5E7EB" },
   Stable: { bg: "#D1FAE5", text: "#047857", border: "#6EE7B7" }
 };
 
