@@ -340,7 +340,7 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
                   return (
                     <button
                       key={exp.id}
-                      onClick={() => navigate(`/expense/${exp.id}`)}
+                      onClick={() => navigate(`/wealth/expenses/${exp.id}`)}
                       className="w-full flex items-center gap-3 px-4 py-3 transition-all hover:bg-gray-50"
                       style={{ borderTop: i > 0 ? `1px solid ${DK.divider}` : "none" }}
                       data-testid={`cal-expense-${exp.id}`}

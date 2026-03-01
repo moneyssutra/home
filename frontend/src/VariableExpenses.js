@@ -195,7 +195,7 @@ const VariableExpenses = () => {
               return (
                 <button
                   key={expense.id}
-                  onClick={() => navigate(`/expense/${expense.id}`)}
+                  onClick={() => navigate(`/wealth/expenses/${expense.id}`)}
                   className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all hover:shadow-md ${
                     status === 'paid' ? 'bg-[#1E293B] border-gray-200 opacity-70' : 'bg-[#1E293B] border-gray-100'
                   }`}

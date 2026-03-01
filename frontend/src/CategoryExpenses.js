@@ -399,7 +399,7 @@ const CategoryExpenses = () => {
                   } else if (expense.linkedInvestmentId) {
                     navigate(`/wealth/investments/${expense.linkedInvestmentId}`, { state: { fromExpenses: currentPath } });
                   } else {
-                    navigate(`/expense/${expense.id}`);
+                    navigate(`/wealth/expenses/${expense.id}`);
                   }
                 }}
                 className="w-full flex items-center gap-3 p-4 rounded-xl transition-all hover:shadow-md"

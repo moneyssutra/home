@@ -480,7 +480,7 @@ const MyExpenses = () => {
                       if (expense.linkedLoanId) navigate(`/wealth/loans/${expense.linkedLoanId}`, { state: { fromExpenses: currentPath } });
                       else if (expense.linkedInsuranceId) navigate(`/wealth/insurance/${expense.linkedInsuranceId}`, { state: { fromExpenses: currentPath } });
                       else if (expense.linkedInvestmentId) navigate(`/wealth/investments/${expense.linkedInvestmentId}`, { state: { fromExpenses: currentPath } });
-                      else navigate(`/expense/${expense.id}`);
+                      else navigate(`/wealth/expenses/${expense.id}`);
                     }}
                     className="w-full flex items-center gap-3 p-4 transition-all"
                     style={{ opacity: status === "paid" || status === "prepaid" ? 0.7 : 1 }}

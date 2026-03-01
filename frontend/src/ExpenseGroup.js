@@ -172,7 +172,7 @@ const ExpenseGroup = () => {
                 {data.expenses.slice(0, expandedCats[category] ? undefined : 3).map((exp, i) => (
                   <button
                     key={exp.id}
-                    onClick={() => navigate(`/expense/${exp.id}`)}
+                    onClick={() => navigate(`/wealth/expenses/${exp.id}`)}
                     className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors"
                     style={{ borderTop: "1px solid var(--border-light)" }}
                     data-testid={`group-exp-${exp.id}`}
