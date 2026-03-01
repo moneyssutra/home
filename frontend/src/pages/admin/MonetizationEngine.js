@@ -235,10 +235,16 @@ export default function MonetizationEngine() {
             )}
 
             <div className="sm:col-span-2 flex items-center justify-between pt-2">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} className="rounded" />
-                <span className="text-xs font-medium text-gray-700">Active</span>
-              </label>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} className="rounded" />
+                  <span className="text-xs font-medium text-gray-700">Active</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={form.premium_only} onChange={(e) => setForm({ ...form, premium_only: e.target.checked })} className="rounded" data-testid="premium-only-checkbox" />
+                  <span className="text-xs font-medium text-amber-700">Premium Only</span>
+                </label>
+              </div>
               <div className="flex gap-2">
                 <button onClick={resetForm} className="px-4 py-2 rounded-lg text-xs font-medium text-gray-600 bg-gray-100 hover:bg-gray-200">Cancel</button>
                 <button onClick={handleSave} className="px-4 py-2 rounded-lg text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700" data-testid="save-opp-btn">{editingOpp ? "Update" : "Create"}</button>
