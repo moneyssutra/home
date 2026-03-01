@@ -36,8 +36,8 @@ const FamilyToggle = () => {
 
       {open && (
         <div
-          className="absolute left-0 top-10 w-52 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
-          style={{ backgroundColor: "#FFFFFF", border: "1px solid #E5E7EB", zIndex: 9999, boxShadow: "0 10px 40px rgba(0,0,0,0.15)" }}
+          className="absolute left-0 top-10 w-52 rounded-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+          style={{ backgroundColor: "#FFFFFF", border: "1px solid #E5E7EB", zIndex: 99999, boxShadow: "0 10px 40px rgba(0,0,0,0.25)" }}
           data-testid="family-toggle-dropdown"
         >
           <div className="px-3 py-2 border-b border-gray-100 bg-gray-50">
