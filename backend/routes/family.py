@@ -419,6 +419,8 @@ async def get_combined_family_summary(request: Request):
             "netWorth": net_worth,
             "effectiveFunds": round(effective_funds, 0),
             "survivalDays": survival_days,
-            "savingsRate": round(((monthly_income - monthly_expenses) / monthly_income * 100), 1) if monthly_income > 0 else 0,
+            "savingsRate": savings_rate,
+            "normalizedMonthlyIncome": round(normalized_monthly_income, 2),
+            "normalizedMonthlyExpense": round(normalized_monthly_expense, 2),
         }
     }
