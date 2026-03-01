@@ -358,6 +358,10 @@ async def get_combined_family_summary(request: Request):
     total_loans = sum(ln.get("outstandingAmount", 0) for ln in loans)
     liquid_balance = sum(a.get("currentBalance", 0) for a in accounts)
     total_insurance_coverage = sum(i.get("coverageAmount", 0) for i in insurances)
+    life_ins_types = {"term insurance", "life insurance", "endowment", "ulip"}
+    health_ins_types = {"health insurance", "medical insurance", "mediclaim"}
+    life_insurance_coverage = sum(i.get("coverageAmount", 0) for i in insurances if i.get("insuranceType", "").lower() in life_ins_types)
+    health_insurance_coverage = sum(i.get("coverageAmount", 0) for i in insurances if i.get("insuranceType", "").lower() in health_ins_types)
 
     def to_monthly(amount, frequency):
         freq_map = {"daily": 30, "weekly": 4.33, "biweekly": 2.17, "monthly": 1,
