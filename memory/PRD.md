@@ -27,6 +27,20 @@ MoneySutra is a premium personal finance application (PWA) built with React + Fa
 - **P0 - Income Data Consistency**: Created /api/income/monthly-summary endpoint. MyIncome.js now uses backend for received/pending instead of client-side approximations. Dashboard and MyIncome show identical numbers.
 - **P0 - User Switching**: Fixed FamilyContext to auto-reset to personal view when navigating away from /home. Dashboard shows member summary even with zero data. No more UI crashes.
 
+
+## Recent Fixes (Feb 28, 2026)
+- **P0 - Expense Data Consistency**: Harmonized expense calculations across dashboard, monthly-summary, and weekly-summary.
+- **P0 - Income Data Consistency**: Created /api/income/monthly-summary endpoint. MyIncome.js now uses backend for received/pending.
+- **P0 - User Switching**: Fixed FamilyContext to auto-reset when navigating away from dashboard.
+
+## Admin Command Center (Mar 1, 2026)
+- **Separate Admin Login**: Independent login page at `/admin/login` with admin@moneyssutra.com / admin123
+- **Light Theme**: Switched from dark to light across all admin pages (bg: #F8FAFC, white cards, teal accents)
+- **Executive Overview**: 12 KPI cards (Total Users, DAU/WAU/MAU, New Today/Week/Month, Safety Days, Wealth%, Health Score, Critical Risk, Avg Session) + PFSI ring + Risk Distribution
+- **User Growth Analytics**: Registration trend charts (daily/weekly/monthly toggle), growth rate bar chart, cohort retention table
+- **User Intelligence**: User table with search and risk-level filters, clickable detail drawer
+- **Risk Radar**: 4 risk bucket cards with progress bars, risk drivers analysis
+
 ## Key Technical Decisions
 - Shared utility functions in utils.py: count_weekday_occurrences, normalize_expense_for_month, split_expense_for_month
 - Dashboard derives monthlyExpenses/monthlyIncome from split totals (done+upcoming, received+expected) for guaranteed consistency
