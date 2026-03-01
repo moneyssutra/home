@@ -78,6 +78,7 @@ const RiskBar = ({ label, count, total, color, threshold }) => {
 const CommandCenter = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     (async () => {
@@ -109,22 +110,22 @@ const CommandCenter = () => {
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
-        <KPICard icon={Users} color="teal" label="Total Users" value={data.totalUsers} subtitle={`${data.active7d} active (7d)`} delay={0} />
-        <KPICard icon={Activity} color="blue" label="Active (DAU)" value={g.dauCount || 0} subtitle="Today" delay={60} />
-        <KPICard icon={BarChart3} color="sky" label="WAU" value={g.wauCount || data.active7d} subtitle="This week" delay={120} />
-        <KPICard icon={Activity} color="emerald" label="MAU" value={g.mauCount || data.active30d} subtitle="This month" delay={180} />
-        <KPICard icon={UserPlus} color="violet" label="New Today" value={g.newToday || 0} delay={240} />
-        <KPICard icon={CalendarDays} color="orange" label="New This Week" value={g.newThisWeek || 0} delay={300} />
-        <KPICard icon={CalendarDays} color="rose" label="New This Month" value={g.newThisMonth || 0} delay={360} />
-        <KPICard icon={Shield} color="amber" label="Avg Safety Days" value={`${data.avgSafetyDays}d`} subtitle={`${data.pctLowSafety}% below 30d`} delay={420} />
+        <KPICard icon={Users} color="teal" label="Total Users" value={data.totalUsers} subtitle={`${data.active7d} active (7d)`} delay={0} to="/admin/users" onClick={() => navigate("/admin/users")} />
+        <KPICard icon={Activity} color="blue" label="Active (DAU)" value={g.dauCount || 0} subtitle="Today" delay={60} to="/admin/engagement" onClick={() => navigate("/admin/engagement")} />
+        <KPICard icon={BarChart3} color="sky" label="WAU" value={g.wauCount || data.active7d} subtitle="This week" delay={120} to="/admin/engagement" onClick={() => navigate("/admin/engagement")} />
+        <KPICard icon={Activity} color="emerald" label="MAU" value={g.mauCount || data.active30d} subtitle="This month" delay={180} to="/admin/engagement" onClick={() => navigate("/admin/engagement")} />
+        <KPICard icon={UserPlus} color="violet" label="New Today" value={g.newToday || 0} delay={240} to="/admin/growth" onClick={() => navigate("/admin/growth")} />
+        <KPICard icon={CalendarDays} color="orange" label="New This Week" value={g.newThisWeek || 0} delay={300} to="/admin/growth" onClick={() => navigate("/admin/growth")} />
+        <KPICard icon={CalendarDays} color="rose" label="New This Month" value={g.newThisMonth || 0} delay={360} to="/admin/growth" onClick={() => navigate("/admin/growth")} />
+        <KPICard icon={Shield} color="amber" label="Avg Safety Days" value={`${data.avgSafetyDays}d`} subtitle={`${data.pctLowSafety}% below 30d`} delay={420} to="/admin/segmentation" onClick={() => navigate("/admin/segmentation")} />
       </div>
 
       {/* Second row: Financial KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-        <KPICard icon={TrendingUp} color="violet" label="Avg Wealth %" value={`${data.avgWealthPct}%`} delay={480} />
-        <KPICard icon={Heart} color="rose" label="Avg Health Score" value={data.avgHealthScore} delay={540} />
-        <KPICard icon={AlertTriangle} color="orange" label="Critical Risk" value={risk.critical || 0} subtitle="Users < 15 safety days" delay={600} />
-        <KPICard icon={Clock} color="sky" label="Avg Session" value={g.avgSessionDuration || "—"} subtitle="minutes" delay={660} />
+        <KPICard icon={TrendingUp} color="violet" label="Avg Wealth %" value={`${data.avgWealthPct}%`} delay={480} to="/admin/segmentation" onClick={() => navigate("/admin/segmentation")} />
+        <KPICard icon={Heart} color="rose" label="Avg Health Score" value={data.avgHealthScore} delay={540} to="/admin/segmentation" onClick={() => navigate("/admin/segmentation")} />
+        <KPICard icon={AlertTriangle} color="orange" label="Critical Risk" value={risk.critical || 0} subtitle="Users < 15 safety days" delay={600} to="/admin/risk" onClick={() => navigate("/admin/risk")} />
+        <KPICard icon={Clock} color="sky" label="Avg Session" value={g.avgSessionDuration || "—"} subtitle="minutes" delay={660} to="/admin/engagement" onClick={() => navigate("/admin/engagement")} />
       </div>
 
       {/* PFSI + Risk Distribution */}
