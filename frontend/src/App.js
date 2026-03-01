@@ -322,6 +322,7 @@ function App() {
           <AuthProvider>
             <WorkspaceProvider>
               <FamilyProvider>
+                <EventTracker />
                 <MainAppRouter />
                 <Toaster />
               </FamilyProvider>
