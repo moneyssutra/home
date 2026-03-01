@@ -69,6 +69,10 @@ export function useIntelligenceData() {
         liquid: { label: "Liquid Funds", total: Math.round(liquidBalance), description: "Bank accounts & cash" },
         semiLiquid: { label: "Semi-Liquid", total: Math.round(effectiveFunds - liquidBalance), description: "60% of MF/FD accessible" },
         illiquid: { label: "Illiquid", total: 0, description: "Not immediately accessible" },
+        liquidBuffer: Math.round(liquidBalance),
+        extendedBuffer: Math.round(effectiveFunds),
+        netWorth: Math.round(netWorth),
+        effectiveTotal: Math.round(effectiveFunds),
       },
       explanation: `Combined family savings of ₹${Math.round(effectiveFunds).toLocaleString('en-IN')} can cover ${survivalDays} days of essential expenses.`,
       tip: survivalDays < 30 ? "Build an emergency fund covering at least 3 months of family expenses." :
