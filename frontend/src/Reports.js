@@ -19,12 +19,14 @@ import {
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { useFamilyContext } from "@/context/FamilyContext";
 import { toast } from "sonner";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const Reports = () => {
   const navigate = useNavigate();
+  const { isPersonalView, isFamilyView, activeViewLabel } = useFamilyContext();
   const [showAddSheet, setShowAddSheet] = useState(false);
   
   // Scroll to top on mount
