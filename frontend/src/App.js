@@ -287,6 +287,13 @@ function AdminRouter() {
   );
 }
 
+import { useEventTracker } from "@/hooks/useEventTracker";
+
+function EventTracker() {
+  useEventTracker();
+  return null;
+}
+
 function MainAppRouter() {
   const location = useLocation();
   
