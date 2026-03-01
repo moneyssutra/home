@@ -288,8 +288,8 @@ const FinancialHealth = () => {
       try {
         const res = await axios.get(`${backendUrl}/api/family/combined-summary`, { withCredentials: true });
         const cs = res.data.combinedSummary || {};
-        const monthlyIncome = cs.monthlyIncome || 0;
-        const monthlyExpenses = cs.monthlyExpenses || 0;
+        const monthlyIncome = cs.normalizedMonthlyIncome || cs.monthlyIncome || 0;
+        const monthlyExpenses = cs.normalizedMonthlyExpense || cs.monthlyExpenses || 0;
         const liquidBalance = cs.liquidBalance || 0;
         const totalLoans = cs.totalLoans || 0;
         const totalCCOutstanding = cs.totalCCOutstanding || 0;
