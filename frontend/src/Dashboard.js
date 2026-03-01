@@ -650,19 +650,6 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* Smart Opportunities */}
-      {opportunities.length > 0 && (
-        <div className="px-5 space-y-3 mt-4 mb-4" data-testid="dashboard-opportunities">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Smart Opportunities</h3>
-            <button onClick={() => navigate("/opportunities")} className="text-xs font-medium" style={{ color: "var(--brand-primary)" }}>View All</button>
-          </div>
-          {opportunities.slice(0, 1).map((opp) => (
-            <OpportunityCard key={opp.id} opportunity={opp} onDismiss={(id) => setOpportunities(prev => prev.filter(o => o.id !== id))} />
-          ))}
-        </div>
-      )}
-
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
