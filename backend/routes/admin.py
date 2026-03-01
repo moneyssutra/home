@@ -157,6 +157,189 @@ async def _compute_user_metrics(user_id: str, now: datetime):
     }
 
 
+
+# ────────────────────────────────────────────
+# USER GROWTH — Registration trends + Cohort
+# ────────────────────────────────────────────
+
+@router.get("/user-growth")
+async def user_growth(request: Request):
+    await _require_admin(request)
+    now = get_user_now(request)
+
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
+    total_users = len(all_users)
+
+    today_str = now.strftime("%Y-%m-%d")
+    week_ago = (now - timedelta(days=7))
+    month_ago = (now - timedelta(days=30))
+
+    new_today = 0
+    new_this_week = 0
+    new_this_month = 0
+
+    # Parse createdAt and bucket registrations
+    daily_buckets = {}  # last 30 days
+    weekly_buckets = {}  # last 12 weeks
+    monthly_buckets = {}  # last 12 months
+
+    for u in all_users:
+        ca = u.get("createdAt", "")
+        if not ca:
+            continue
+        try:
+            if isinstance(ca, str):
+                created = datetime.fromisoformat(ca.replace("Z", "+00:00"))
+            else:
+                created = ca
+            created_date = created.date() if hasattr(created, 'date') else created
+        except (ValueError, TypeError):
+            continue
+
+        now_date = now.date() if hasattr(now, 'date') else now
+
+        # Daily count
+        day_key = str(created_date)
+        daily_buckets[day_key] = daily_buckets.get(day_key, 0) + 1
+
+        # Check new today/week/month
+        days_diff = (now_date - created_date).days if hasattr(created_date, 'year') else 999
+        if days_diff == 0:
+            new_today += 1
+        if days_diff <= 7:
+            new_this_week += 1
+        if days_diff <= 30:
+            new_this_month += 1
+
+        # Weekly bucket (ISO week)
+        if hasattr(created_date, 'isocalendar'):
+            iso = created_date.isocalendar()
+            wk_key = f"{iso[0]}-W{iso[1]:02d}"
+            weekly_buckets[wk_key] = weekly_buckets.get(wk_key, 0) + 1
+
+        # Monthly bucket
+        if hasattr(created_date, 'strftime'):
+            mo_key = created_date.strftime("%Y-%m")
+            monthly_buckets[mo_key] = monthly_buckets.get(mo_key, 0) + 1
+
+    # Build daily registrations (last 30 days)
+    daily_regs = []
+    cumulative = 0
+    for i in range(29, -1, -1):
+        d = (now - timedelta(days=i))
+        d_str = d.strftime("%Y-%m-%d")
+        count = daily_buckets.get(d_str, 0)
+        cumulative += count
+        prev = daily_regs[-1]["count"] if daily_regs else 0
+        growth = round((count - prev) / max(prev, 1) * 100, 1) if daily_regs else 0
+        daily_regs.append({"label": d.strftime("%d %b"), "count": count, "cumulative": cumulative, "growthPct": growth})
+
+    # Build weekly registrations (last 12 weeks)
+    weekly_regs = []
+    for i in range(11, -1, -1):
+        d = (now - timedelta(weeks=i))
+        iso = d.isocalendar()
+        wk_key = f"{iso[0]}-W{iso[1]:02d}"
+        count = weekly_buckets.get(wk_key, 0)
+        prev = weekly_regs[-1]["count"] if weekly_regs else 0
+        growth = round((count - prev) / max(prev, 1) * 100, 1) if weekly_regs else 0
+        weekly_regs.append({"label": f"W{iso[1]}", "count": count, "growthPct": growth})
+
+    # Build monthly registrations (last 12 months)
+    monthly_regs = []
+    for i in range(11, -1, -1):
+        d = now - timedelta(days=i * 30)
+        mo_key = d.strftime("%Y-%m")
+        count = monthly_buckets.get(mo_key, 0)
+        prev = monthly_regs[-1]["count"] if monthly_regs else 0
+        growth = round((count - prev) / max(prev, 1) * 100, 1) if monthly_regs else 0
+        monthly_regs.append({"label": d.strftime("%b %y"), "count": count, "growthPct": growth})
+
+    # DAU/WAU/MAU from sessions
+    dau = await db.sessions.count_documents({"created_at": {"$gte": today_str}})
+    wau_str = week_ago.strftime("%Y-%m-%d")
+    mau_str = month_ago.strftime("%Y-%m-%d")
+    wau = await db.sessions.count_documents({"created_at": {"$gte": wau_str}})
+    mau = await db.sessions.count_documents({"created_at": {"$gte": mau_str}})
+
+    # Growth percentages
+    prev_week_start = (now - timedelta(days=14)).strftime("%Y-%m-%d")
+    prev_week_new = sum(1 for u in all_users if _user_created_between(u, prev_week_start, wau_str))
+    weekly_growth = round(((new_this_week - prev_week_new) / max(prev_week_new, 1)) * 100, 1)
+
+    prev_month_start = (now - timedelta(days=60)).strftime("%Y-%m-%d")
+    prev_month_new = sum(1 for u in all_users if _user_created_between(u, prev_month_start, mau_str))
+    monthly_growth = round(((new_this_month - prev_month_new) / max(prev_month_new, 1)) * 100, 1)
+
+    # Cohort retention (simplified - based on registration weeks)
+    cohort_retention = []
+    for i in range(3, -1, -1):
+        cohort_start = now - timedelta(weeks=i + 1)
+        cohort_end = now - timedelta(weeks=i)
+        cohort_label = cohort_start.strftime("%d %b")
+        cohort_users = [u for u in all_users if _user_created_between(u, cohort_start.strftime("%Y-%m-%d"), cohort_end.strftime("%Y-%m-%d"))]
+        cu_count = len(cohort_users)
+        if cu_count == 0:
+            continue
+        # Check last login for retention
+        day1 = sum(1 for u in cohort_users if _last_login_after(u, cohort_start + timedelta(days=1)))
+        day7 = sum(1 for u in cohort_users if _last_login_after(u, cohort_start + timedelta(days=7)))
+        day30 = sum(1 for u in cohort_users if _last_login_after(u, cohort_start + timedelta(days=30)))
+        cohort_retention.append({
+            "cohort": f"Week of {cohort_label}",
+            "users": cu_count,
+            "day1": round(day1 / cu_count * 100),
+            "day7": round(day7 / cu_count * 100),
+            "day30": round(day30 / cu_count * 100),
+        })
+
+    return {
+        "totalUsers": total_users,
+        "newToday": new_today,
+        "newThisWeek": new_this_week,
+        "newThisMonth": new_this_month,
+        "dailyGrowthPct": 0,
+        "weeklyGrowthPct": weekly_growth,
+        "monthlyGrowthPct": monthly_growth,
+        "dauCount": min(dau, total_users),
+        "wauCount": min(wau, total_users),
+        "mauCount": min(mau, total_users),
+        "avgSessionDuration": "—",
+        "dailyRegistrations": daily_regs,
+        "weeklyRegistrations": weekly_regs,
+        "monthlyRegistrations": monthly_regs,
+        "cohortRetention": cohort_retention,
+    }
+
+
+def _user_created_between(user, start_str, end_str):
+    ca = user.get("createdAt", "")
+    if not ca:
+        return False
+    try:
+        if isinstance(ca, str):
+            ca_str = ca[:10]
+        else:
+            ca_str = ca.strftime("%Y-%m-%d")
+        return start_str <= ca_str < end_str
+    except (ValueError, TypeError):
+        return False
+
+
+def _last_login_after(user, after_dt):
+    ll = user.get("lastLogin", "")
+    if not ll:
+        return False
+    try:
+        if isinstance(ll, str):
+            login_dt = datetime.fromisoformat(ll.replace("Z", "+00:00"))
+        else:
+            login_dt = ll
+        return login_dt >= after_dt
+    except (ValueError, TypeError):
+        return False
+
+
 # ────────────────────────────────────────────
 # COMMAND CENTER — Platform KPIs + PFSI
 # ────────────────────────────────────────────
