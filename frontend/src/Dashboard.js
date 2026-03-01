@@ -462,7 +462,22 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Financial Summary Cards */}
+        {/* Smart Opportunities - All eligible, under cashflow */}
+      {opportunities.length > 0 && (
+        <div className="rounded-2xl p-5 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="dashboard-opportunities">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="h-4 w-4" style={{ color: "#F59E0B" }} />
+            <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Smart Opportunities</h3>
+          </div>
+          <div className="space-y-3">
+            {opportunities.map((opp) => (
+              <OpportunityCard key={opp.id} opportunity={opp} onDismiss={(id) => setOpportunities(prev => prev.filter(o => o.id !== id))} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Financial Summary Cards */}
         <div className="grid grid-cols-2 gap-3">
           {/* Assets */}
           <div 
