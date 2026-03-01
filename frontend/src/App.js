@@ -275,6 +275,30 @@ function AppRouter() {
   );
 }
 
+function AdminRouter() {
+  return (
+    <Routes>
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<CommandCenter />} />
+        <Route path="growth" element={<UserGrowth />} />
+        <Route path="users" element={<UserIntelligence />} />
+        <Route path="risk" element={<RiskRadar />} />
+      </Route>
+      <Route path="*" element={null} />
+    </Routes>
+  );
+}
+
+function MainAppRouter() {
+  const location = useLocation();
+  
+  // Admin routes are handled separately
+  if (location.pathname.startsWith('/admin')) return null;
+
+  return <AppRouter />;
+}
+
 function App() {
   useEffect(() => {
     const badge = document.getElementById("emergent-badge");
@@ -284,20 +308,24 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      <ThemeProvider>
-        <AuthProvider>
-          <BrowserRouter>
+    <BrowserRouter>
+      {/* Admin — fully isolated, no theme/auth/workspace providers */}
+      <AdminRouter />
+      
+      {/* Main App — with all providers */}
+      <div className="App">
+        <ThemeProvider>
+          <AuthProvider>
             <WorkspaceProvider>
               <FamilyProvider>
-                <AppRouter />
+                <MainAppRouter />
                 <Toaster />
               </FamilyProvider>
             </WorkspaceProvider>
-          </BrowserRouter>
-        </AuthProvider>
-      </ThemeProvider>
-    </div>
+          </AuthProvider>
+        </ThemeProvider>
+      </div>
+    </BrowserRouter>
   );
 }
 
