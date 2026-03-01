@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
-import { useLocation } from "react-router-dom";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -13,9 +12,6 @@ export const FamilyProvider = ({ children }) => {
   const { user } = useAuth();
   const [family, setFamily] = useState(null);
   const [activeViewId, setActiveViewId] = useState(null); // null = personal (self)
-  const [loading, setLoading] = useState(false);
-  const location = useLocation();
-  const prevPathRef = useRef(location.pathname);
 
   const fetchFamily = useCallback(async () => {
     if (!user) return;
