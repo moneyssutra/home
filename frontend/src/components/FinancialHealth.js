@@ -414,10 +414,15 @@ const FinancialHealth = () => {
       const emptyHealth = {
         overallScore: 0,
         emergencyFund: { current: 0, target: 0, gap: 0, status: "No Data", action: "No financial data available for this member." },
-        savingsRate: { rate: 0, surplus: 0, status: "No Data", action: "No income/expense data for this member." },
+        lifeInsurance: { current: 0, target: 0, gap: 0, status: "No Data", action: "No life insurance data for this member." },
+        healthInsurance: { current: 0, target: 0, gap: 0, status: "No Data", action: "No health insurance data for this member." },
+        investmentAllocation: { actualEquity: 0, recommendedEquity: 0, gap: 0, status: "No Data", action: "No investment data for this member." },
         creditUtilization: { utilization: 0, status: "No Data", action: "No credit card data for this member." },
+        loanBurden: { emiRatio: 0, totalEmi: 0, status: "No Data", action: "No loan data for this member." },
+        savingsRate: { rate: 0, surplus: 0, status: "No Data", action: "No income/expense data for this member." },
         debtToAsset: { ratio: 0, totalDebt: 0, totalWorth: 0, status: "No Data", action: "No debt data for this member." },
-        netWorthTrend: { currentNetWorth: 0, previousNetWorth: 0, growthPercent: 0, status: "No Data", action: "No data available." }
+        netWorthTrend: { currentNetWorth: 0, previousNetWorth: 0, growthPercent: 0, status: "No Data", action: "No net worth data for this member." },
+        retirementReadiness: { status: "No Data", action: "No retirement data for this member." },
       };
       setHealthData(emptyHealth);
       setOverallScore(0);
