@@ -264,7 +264,7 @@ const FinancialHealth = () => {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const { isPersonalView } = useFamilyContext();
+  const { isPersonalView, isFamilyView, activeViewId, activeViewLabel } = useFamilyContext();
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
