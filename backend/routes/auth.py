@@ -223,40 +223,6 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
     is_mobile = identifier.isdigit() and len(identifier) == 10
     is_email = "@" in identifier
 
-    if identifier == "test" and request.password == "test":
-        user = await db.users.find_one({"email": "test@moneyssutra.com"}, {"_id": 0})
-        if not user:
-            user_id = f"user_{uuid.uuid4().hex[:12]}"
-            user = {
-                "user_id": user_id, "email": "test@moneyssutra.com", "name": "Test User",
-                "firstName": "Test", "lastName": "User", "picture": None, "auth_type": "jwt",
-                "password_hash": hash_password("test"),
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
-            await db.users.insert_one(user)
-        else:
-            user_id = user["user_id"]
-
-        # Ensure test account has sample data
-        await _seed_test_account(user_id)
-
-        session_token = str(uuid.uuid4())
-        session_days = 30 if request.remember_me else 7
-        expires_at = datetime.now(timezone.utc) + timedelta(days=session_days)
-        session = {
-            "session_id": str(uuid.uuid4()), "user_id": user_id,
-            "session_token": session_token, "expires_at": expires_at.isoformat(),
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-        await db.user_sessions.insert_one(session)
-        response.set_cookie(key="session_token", value=session_token, httponly=True,
-                            secure=True, samesite="none", path="/", max_age=session_days*24*60*60)
-        return {
-            "user_id": user_id, "email": user.get("email"), "name": user.get("name"),
-            "firstName": user.get("firstName", user.get("name", "").split()[0] if user.get("name") else ""),
-            "picture": user.get("picture"), "session_token": session_token
-        }
-
     query_conditions = []
     if is_email:
         query_conditions.append({"email": {"$regex": f"^{identifier}$", "$options": "i"}})
@@ -282,10 +248,6 @@ async def jwt_login(request: JWTLoginRequest, response: Response):
         raise HTTPException(status_code=401, detail="Invalid email/mobile or password")
     if not verify_password(request.password, user.get("password_hash", "")):
         raise HTTPException(status_code=401, detail="Invalid email/mobile or password")
-
-    # Seed test data if this is the test account
-    if user.get("email", "").lower() == "test@moneyssutra.com":
-        await _seed_test_account(user["user_id"])
 
     session_token = str(uuid.uuid4())
     session_days = 30 if request.remember_me else 7
@@ -546,3 +508,26 @@ async def verify_reset_token(token: str):
     if expires_at < datetime.now(timezone.utc):
         return {"valid": False, "message": "Reset link has expired. Please request a new one."}
     return {"valid": True}
+
+
+@router.delete("/cleanup-test-data")
+async def cleanup_test_data():
+    """Remove test accounts and their data from the database."""
+    test_user = await db.users.find_one({"email": "test@moneyssutra.com"}, {"_id": 0, "user_id": 1})
+    if not test_user:
+        return {"message": "No test user found", "deleted": False}
+
+    user_id = test_user["user_id"]
+    deleted = {}
+    for coll_name in ["assets", "investments", "loans", "expenses", "income_sources",
+                       "accounts", "credit_cards", "insurances", "goals", "emi_transactions",
+                       "analytics_snapshots", "user_settings", "user_personality",
+                       "user_gamification_profile", "user_achievements", "user_sessions",
+                       "basic_profiles", "liquid_assets", "workspaces", "workspace_members"]:
+        result = await db[coll_name].delete_many({"$or": [{"userId": user_id}, {"user_id": user_id}]})
+        if result.deleted_count > 0:
+            deleted[coll_name] = result.deleted_count
+
+    await db.users.delete_many({"email": "test@moneyssutra.com"})
+    deleted["users"] = 1
+    return {"message": "Test data cleaned up", "deleted": deleted}
