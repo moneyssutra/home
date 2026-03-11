@@ -15,13 +15,15 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 
 # Environment-based database selection
-node_env = os.environ.get('NODE_ENV', 'development')
-if node_env == 'production':
-    db_name = 'moneyssutra_prod'
-    env_label = 'Production'
-else:
+node_env = os.environ.get('NODE_ENV', 'production')
+is_preview = 'preview.emergentagent.com' in os.environ.get('REACT_APP_BACKEND_URL', os.environ.get('APP_URL', ''))
+
+if is_preview:
     db_name = 'moneyssutra_dev'
     env_label = 'Development/Preview'
+else:
+    db_name = 'moneyssutra_prod'
+    env_label = 'Production'
 
 db = client[db_name]
 logger.info(f"Connected to [{env_label}] Database: {db_name}")
