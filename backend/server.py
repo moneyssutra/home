@@ -63,7 +63,8 @@ api_router = APIRouter(prefix="/api")
 
 @api_router.get("/")
 async def root():
-    return {"message": "MoneySsutra API is running"}
+    from database import db_name, env_label
+    return {"message": "MoneySsutra API is running", "version": "2.0.1", "db": db_name, "env": env_label}
 
 
 @api_router.post("/status", response_model=StatusCheck)
