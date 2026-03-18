@@ -1,10 +1,13 @@
 """Investment routes - Full CRUD with auto-expense from server.py."""
 from fastapi import APIRouter, HTTPException, Request
 from typing import List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from dateutil.relativedelta import relativedelta
 import uuid
 import math
+import logging
+
+logger = logging.getLogger(__name__)
 
 from database import db
 from server_models import Investment, InvestmentCreate, Expense
@@ -107,6 +110,63 @@ async def create_investment(input: InvestmentCreate, request: Request):
         investment_obj.createdAt = datetime.fromisoformat(doc['createdAt'])
 
     await db.investments.insert_one(doc)
+
+    # For backdated Loan Given with fixed repayment: auto-process past installments
+    if input.investmentCategory == "Loan Given" and input.repaymentType == "fixed" and input.startDate and input.installmentAmount:
+        try:
+            start = datetime.fromisoformat(input.startDate).date() if isinstance(input.startDate, str) else input.startDate
+            today = datetime.now(timezone.utc).date()
+            if start < today:
+                from dateutil.relativedelta import relativedelta
+                installment_amt = input.installmentAmount
+                freq = input.repaymentFrequency or "Monthly"
+                payment_day = input.paymentDay or ""
+
+                # Calculate all past payment dates (first payment = one period after start)
+                past_payments = []
+                if freq == "Monthly" and payment_day:
+                    try:
+                        pd = int(payment_day)
+                    except (ValueError, TypeError):
+                        pd = 1
+                    # First payment month: next month after start
+                    first_payment = (start + relativedelta(months=1)).replace(day=min(pd, 28))
+                    current = first_payment
+                    while current <= today:
+                        past_payments.append(current)
+                        current = current + relativedelta(months=1)
+                elif freq == "Weekly" and payment_day:
+                    day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+                    target_idx = day_names.index(payment_day) if payment_day in day_names else -1
+                    if target_idx >= 0:
+                        # First payment: next occurrence of payment_day after start
+                        current = start + timedelta(days=1)
+                        while current.weekday() != target_idx:
+                            current += timedelta(days=1)
+                        while current <= today:
+                            past_payments.append(current)
+                            current += timedelta(days=7)
+
+                if past_payments:
+                    total_past = min(len(past_payments) * installment_amt, input.principal)
+                    outstanding = input.principal - total_past
+                    status = "completed" if outstanding <= 0 else ("partial" if total_past > 0 else "active")
+                    await db.investments.update_one(
+                        {"id": investment_obj.id},
+                        {"$set": {
+                            "amountReceived": total_past,
+                            "outstandingAmount": max(outstanding, 0),
+                            "currentValue": max(outstanding, 0),
+                            "loanStatus": status,
+                        }}
+                    )
+                    investment_obj.amountReceived = total_past
+                    investment_obj.outstandingAmount = max(outstanding, 0)
+                    investment_obj.currentValue = max(outstanding, 0)
+                    investment_obj.loanStatus = status
+        except Exception as e:
+            logger.error(f"Error processing backdated loan installments: {str(e)}")
+
     return investment_obj
 
 

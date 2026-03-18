@@ -334,33 +334,74 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
         amount = item.get('expectedAmount', 0)
         freq = item.get('frequency', 'Monthly')
 
-        # Loan repayment income: never mark as received (needs confirmation), only count future occurrences
+        # Loan repayment income: use startDate to only count valid occurrences
         if is_income and item.get('sourceCategory') == 'loan_repayment':
+            loan_start = None
+            start_str = item.get('startDate', '')
+            if start_str:
+                try:
+                    from datetime import date as date_type
+                    loan_start = datetime.fromisoformat(start_str).date() if isinstance(start_str, str) else start_str
+                except (ValueError, TypeError):
+                    loan_start = None
+            first_of_month = date_type(current_year, current_month, 1) if loan_start else None
+
             if freq == 'Weekly':
                 day_name = item.get('selectedDay', '')
                 if day_name:
-                    total_count = count_weekday_occurrences(current_year, current_month, day_name)
-                    past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
-                    future_count = total_count - past_count
-                else:
-                    future_count = max(0, 4 - (current_day // 7))
-                if future_count > 0:
-                    expected.append({"id": item.get('id', ''), "name": item.get(name_field, item.get('name', 'Unknown')),
-                                     "amount": round(amount * future_count, 2), "frequency": freq,
-                                     "scheduleDay": 1, "type": item.get('type', item.get('category', ''))})
+                    # Count only Fridays after loan start (first payment = next occurrence after start)
+                    past_count = 0
+                    future_count = 0
+                    for d in range(1, days_in_month + 1):
+                        dt = date_type(current_year, current_month, d)
+                        if dt.strftime('%A') == day_name:
+                            if loan_start and dt <= loan_start:
+                                continue  # Skip occurrences on or before loan start
+                            if d <= current_day:
+                                past_count += 1
+                            else:
+                                future_count += 1
+                    entry_r = {**{"id": item.get('id', ''), "name": item.get(name_field, item.get('name', 'Unknown')),
+                               "amount": round(amount * past_count, 2), "frequency": freq,
+                               "scheduleDay": 1, "type": item.get('type', item.get('category', ''))}}
+                    entry_e = {**{"id": item.get('id', ''), "name": item.get(name_field, item.get('name', 'Unknown')),
+                               "amount": round(amount * future_count, 2), "frequency": freq,
+                               "scheduleDay": 1, "type": item.get('type', item.get('category', ''))}}
+                    if entry_r["amount"] > 0:
+                        received.append(entry_r)
+                    if entry_e["amount"] > 0:
+                        expected.append(entry_e)
+                continue
             elif freq == 'Daily':
-                remaining_days = days_in_month - current_day
-                if remaining_days > 0:
-                    expected.append({"id": item.get('id', ''), "name": item.get(name_field, item.get('name', 'Unknown')),
-                                     "amount": round(amount * remaining_days, 2), "frequency": freq,
+                # For daily loan repayment, count from max(loan_start+1, first_of_month) to today and today+1 to end
+                effective_start = max(loan_start.day if loan_start and loan_start.month == current_month and loan_start.year == current_year else 0, 0)
+                past_days = max(current_day - effective_start, 0)
+                future_days = days_in_month - current_day
+                if past_days > 0:
+                    received.append({"id": item.get('id', ''), "name": item.get(name_field, item.get('name', 'Unknown')),
+                                     "amount": round(amount * past_days, 2), "frequency": freq,
                                      "scheduleDay": 1, "type": item.get('type', item.get('category', ''))})
-            else:
-                schedule_day = _get_schedule_day(item, is_income)
-                if schedule_day > current_day:
+                if future_days > 0:
                     expected.append({"id": item.get('id', ''), "name": item.get(name_field, item.get('name', 'Unknown')),
-                                     "amount": amount, "frequency": freq,
-                                     "scheduleDay": schedule_day, "type": item.get('type', item.get('category', ''))})
-            continue
+                                     "amount": round(amount * future_days, 2), "frequency": freq,
+                                     "scheduleDay": 1, "type": item.get('type', item.get('category', ''))})
+                continue
+            else:
+                # Monthly/other: use standard schedule_day logic
+                # First payment is one period after start, so if loan started this month, skip
+                schedule_day = _get_schedule_day(item, is_income)
+                if loan_start and loan_start.month == current_month and loan_start.year == current_year:
+                    # Loan started this month — first payment is next month, skip
+                    continue
+                entry = {"id": item.get('id', ''), "name": item.get(name_field, item.get('name', 'Unknown')),
+                         "amount": amount, "frequency": freq,
+                         "scheduleDay": schedule_day if schedule_day > 0 else 1,
+                         "type": item.get('type', item.get('category', ''))}
+                if schedule_day > 0 and min(schedule_day, days_in_month) <= current_day:
+                    received.append(entry)
+                else:
+                    expected.append(entry)
+                continue
         freq = item.get('frequency', 'Monthly')
 
         if not _is_due_this_month(freq, item, current_month, current_year, is_income):

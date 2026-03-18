@@ -60,7 +60,7 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
     projection = {
         "_id": 0, "id": 1, "name": 1, "type": 1, "expectedAmount": 1,
         "frequency": 1, "selectedDay": 1, "selectedDate": 1, "selectedMonth": 1,
-        "selectedQuarter": 1, "incomeType": 1, "sourceCategory": 1
+        "selectedQuarter": 1, "incomeType": 1, "sourceCategory": 1, "startDate": 1
     }
     income_sources = await db.income_sources.find(user_filter, projection).to_list(1000)
     entity_ids = [s["id"] for s in income_sources]
@@ -164,33 +164,69 @@ async def get_income_monthly_summary(request: Request):
         amount = inc.get('expectedAmount', 0) or 0
         freq = inc.get('frequency', 'Monthly')
 
-        # Loan repayment income: only count future occurrences, all go to pending (never auto-received)
+        # Loan repayment income: use startDate to only count valid occurrences
         if inc.get('sourceCategory') == 'loan_repayment':
+            loan_start = None
+            start_str = inc.get('startDate', '')
+            if start_str:
+                try:
+                    loan_start = datetime.fromisoformat(start_str).date() if isinstance(start_str, str) else start_str
+                except (ValueError, TypeError):
+                    loan_start = None
+
             if freq == 'Weekly':
                 day_name = inc.get('selectedDay', '')
                 if day_name:
-                    total_count = count_weekday_occurrences(current_year, current_month, day_name)
-                    past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
-                    future_count = total_count - past_count
+                    past_count = 0
+                    future_count = 0
+                    import calendar as cal_mod
+                    for d in range(1, days_in_month + 1):
+                        from datetime import date as date_cls
+                        dt = date_cls(current_year, current_month, d)
+                        if cal_mod.day_name[dt.weekday()] == day_name:
+                            if loan_start and dt <= loan_start:
+                                continue
+                            if d <= current_day:
+                                past_count += 1
+                            else:
+                                future_count += 1
+                    rec = amount * past_count
+                    pend = amount * future_count
+                    month_amt = rec + pend
                 else:
-                    future_count = max(0, 4 - (current_day // 7))
-                future_amt = amount * future_count
-                total_income += future_amt
-                pending_income += future_amt
+                    month_amt = amount * 4
+                    rec = 0
+                    pend = month_amt
             elif freq == 'Daily':
-                remaining_days = days_in_month - current_day
-                future_amt = amount * remaining_days
-                total_income += future_amt
-                pending_income += future_amt
+                effective_start = loan_start.day if loan_start and loan_start.month == current_month and loan_start.year == current_year else 0
+                past_days = max(current_day - effective_start, 0)
+                future_days = days_in_month - current_day
+                rec = amount * past_days
+                pend = amount * future_days
+                month_amt = rec + pend
             else:
-                sd_str = inc.get('selectedDate')
-                try:
-                    sd = min(int(sd_str), days_in_month) if sd_str else 0
-                except (ValueError, TypeError):
-                    sd = 0
-                if sd > current_day:
-                    total_income += amount
-                    pending_income += amount
+                # Monthly/other: first payment is one period after loan start
+                if loan_start and loan_start.month == current_month and loan_start.year == current_year:
+                    month_amt = 0
+                    rec = 0
+                    pend = 0
+                else:
+                    month_amt = amount
+                    sd_str = inc.get('selectedDate')
+                    try:
+                        sd = min(int(sd_str), days_in_month) if sd_str else 1
+                    except (ValueError, TypeError):
+                        sd = 1
+                    if sd <= current_day:
+                        rec = month_amt
+                        pend = 0
+                    else:
+                        rec = 0
+                        pend = month_amt
+
+            total_income += month_amt
+            received_income += rec
+            pending_income += pend
             continue
 
         applies = False

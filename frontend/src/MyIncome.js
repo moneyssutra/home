@@ -48,9 +48,22 @@ const MyIncome = () => {
     const amount = income.expectedAmount || 0;
     const freq = income.frequency || 'Monthly';
     const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+    const isLoan = income.sourceCategory === 'loan_repayment';
     
-    // Loan repayment sources: show per-period amount (consistent with My Interest Income page)
-    if (income.sourceCategory === 'loan_repayment') return amount;
+    // Loan repayment: check startDate to handle first month correctly
+    if (isLoan && income.startDate) {
+      try {
+        const start = new Date(income.startDate);
+        if (start.getMonth() + 1 === currentMonth && start.getFullYear() === currentYear) {
+          // Loan started this month — for non-weekly/daily, first payment is next month
+          if (freq !== 'Weekly' && freq !== 'Daily') return 0;
+        }
+      } catch(e) {}
+    }
+    
+    // For loan repayment: show per-period amount (consistent with Interest page)
+    if (isLoan) return amount;
     
     switch (freq) {
       case 'Daily': return amount * 30;

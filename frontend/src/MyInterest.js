@@ -31,22 +31,35 @@ const MyInterest = () => {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const isLoan = inc.sourceCategory === 'loan_repayment';
 
+    // Parse loan start date to filter out occurrences before it
+    let loanStart = null;
+    if (isLoan && inc.startDate) {
+      try { loanStart = new Date(inc.startDate); } catch(e) {}
+    }
+
     if (freq === 'Weekly') {
       const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       const targetIdx = dayNames.indexOf(inc.selectedDay);
       if (targetIdx === -1) return isLoan ? amount : amount * 4;
-      // Count occurrences in this month
-      let total = 0, future = 0;
+      let count = 0;
       for (let d = 1; d <= daysInMonth; d++) {
-        if (new Date(year, month, d).getDay() === targetIdx) {
-          total++;
-          if (d > currentDay) future++;
+        const dt = new Date(year, month, d);
+        if (dt.getDay() === targetIdx) {
+          if (loanStart && dt <= loanStart) continue; // Skip occurrences on/before loan start
+          count++;
         }
       }
-      return isLoan ? amount * future : amount * total;
+      return amount * count;
     }
     if (freq === 'Daily') {
-      return isLoan ? amount * (daysInMonth - currentDay) : amount * daysInMonth;
+      if (isLoan && loanStart && loanStart.getMonth() === month && loanStart.getFullYear() === year) {
+        return amount * (daysInMonth - loanStart.getDate());
+      }
+      return amount * daysInMonth;
+    }
+    // Monthly/other: first payment is one period after start
+    if (isLoan && loanStart && loanStart.getMonth() === month && loanStart.getFullYear() === year) {
+      return 0; // Loan started this month, first payment next month
     }
     return amount;
   };
