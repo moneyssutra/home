@@ -45,6 +45,10 @@ const MyIncome = () => {
   };
 
   const calculateMonthlyAmount = (income) => {
+    // Loan repayment income sources should not count as expected monthly income
+    // They only count when actual repayments are received
+    if (income.sourceCategory === 'loan_repayment') return 0;
+    
     const amount = income.expectedAmount || 0;
     const freq = income.frequency || 'Monthly';
     const currentMonth = new Date().getMonth() + 1;

@@ -990,7 +990,7 @@ async def get_loan_given_detail(investment_id: str, request: Request):
 
 @router.post("/fix-loan-income-types")
 async def fix_loan_income_types(request: Request):
-    """Migration: update loan income sources to 'Interest' type and clean up orphans."""
+    """Migration: update loan income sources to 'Interest' type, clean up orphans, and remove scheduler-generated fake income transactions."""
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -1020,4 +1020,18 @@ async def fix_loan_income_types(request: Request):
         await db.income_received.delete_many({"entityId": oid})
         orphan_count += 1
 
-    return {"typeUpdated": type_result.modified_count, "orphansCleaned": orphan_count}
+    # Remove fake auto-recorded income transactions created by the fixed-income scheduler
+    # for loan repayment income sources (these should only come from actual repayments)
+    loan_source_ids = [s["id"] for s in loan_income_sources if s["id"] not in orphan_ids]
+    fake_txn_count = 0
+    for sid in loan_source_ids:
+        result = await db.income_transactions.delete_many({
+            "entityId": sid, "source": "auto_fixed"
+        })
+        fake_txn_count += result.deleted_count
+
+    return {
+        "typeUpdated": type_result.modified_count,
+        "orphansCleaned": orphan_count,
+        "fakeTransactionsRemoved": fake_txn_count,
+    }

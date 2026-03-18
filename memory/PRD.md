@@ -85,6 +85,11 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 1. Edit Button Redirect (P0) — Fixed
 2. Incorrect Current Month Income (P0) — Fixed
 3. Confusing Received/Pending Labels (P0) — Verified
+4. Loan Given showing fake income in Current Month (P0) — Fixed
+   - Root cause: `auto_record_fixed_income()` scheduler was treating loan repayment income sources as regular fixed income, auto-recording fake transactions
+   - Also: Frontend `calculateMonthlyAmount()` was counting loan repayment `expectedAmount` in "Current Month Income" total
+   - Fix: Excluded `sourceCategory: "loan_repayment"` from both the scheduler query and frontend calculation
+   - Cleanup: `POST /api/investments/fix-loan-income-types` now also removes any fake `auto_fixed` transactions for loan sources
 
 ## Prioritized Backlog
 ### P1

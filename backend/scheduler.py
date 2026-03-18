@@ -123,7 +123,8 @@ async def auto_record_fixed_income():
         logger.info(f"Checking for fixed income due today: {today}")
 
         fixed_incomes = await db.income_sources.find({
-            "incomeType": "fixed"
+            "incomeType": "fixed",
+            "sourceCategory": {"$ne": "loan_repayment"}
         }, {"_id": 0}).to_list(500)
 
         for income in fixed_incomes:
