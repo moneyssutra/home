@@ -45,7 +45,7 @@ export default function CreditCardDetail() {
   const utilColor = data.utilization > 75 ? "#EF4444" : data.utilization > 50 ? "#F59E0B" : "#059669";
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="credit-card-detail-page">
-      <header className="px-5 pb-6" style={{ paddingTop: "max(2.5rem, env(safe-area-inset-top, 1.5rem))", background: "linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)" }}>
+      <header className="px-5 pt-6 pb-6" style={{ background: "linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)" }}>
         <div className="flex items-center justify-between mb-5">
           <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white" data-testid="back-button"><ArrowLeft className="h-5 w-5" /></button>
           <button onClick={() => navigate(`/credit-card/${id}`)} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium" data-testid="edit-card-btn"><Edit3 className="h-4 w-4" /> Edit</button>

@@ -304,7 +304,9 @@ async def process_gamification(request: Request):
     total_emi = await _get_total_emi(user_filter)
 
     daily_expense = monthly_mandatory / 30 if monthly_mandatory > 0 else 0
-    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 999
+    survival_days = int(effective_funds / daily_expense) if daily_expense > 0 else 0
+    # Only count survival days if user has real financial data (both funds AND expenses)
+    has_real_data = effective_funds > 0 and monthly_mandatory > 0
 
     # Calculate score
     savings_ratio = max((monthly_income - monthly_discretionary - monthly_mandatory) / monthly_income, 0) if monthly_income > 0 else 0
@@ -374,25 +376,25 @@ async def process_gamification(request: Request):
     inv_count = len(investments)
 
     checks = {
-        # Survival & Liquidity
-        "FIRST_STEP": True,
-        "BUFFER_7D": survival_days >= 7,
-        "BUFFER_14D": survival_days >= 14,
-        "BUFFER_30D": survival_days >= 30,
-        "BUFFER_60D": survival_days >= 60,
-        "BUFFER_90D": survival_days >= 90,
-        "BUFFER_120D": survival_days >= 120,
-        "BUFFER_180D": survival_days >= 180,
-        "BUFFER_270D": survival_days >= 270,
-        "BUFFER_365D": survival_days >= 365,
-        "BUFFER_500D": survival_days >= 500,
-        "BUFFER_730D": survival_days >= 730,
-        "LIQUIDITY_BUILDER": survival_days >= 90,
-        "EMERGENCY_STARTER": True,
-        "EMERGENCY_PRO": survival_days >= 90,
-        "EMERGENCY_MASTER": survival_days >= 180,
-        "SURVIVAL_STRATEGIST": survival_days >= 110,
-        "FINANCIAL_FORTRESS": survival_days >= 366,
+        # Survival & Liquidity — require actual financial data
+        "FIRST_STEP": monthly_income > 0 or monthly_mandatory > 0 or effective_funds > 0,
+        "BUFFER_7D": has_real_data and survival_days >= 7,
+        "BUFFER_14D": has_real_data and survival_days >= 14,
+        "BUFFER_30D": has_real_data and survival_days >= 30,
+        "BUFFER_60D": has_real_data and survival_days >= 60,
+        "BUFFER_90D": has_real_data and survival_days >= 90,
+        "BUFFER_120D": has_real_data and survival_days >= 120,
+        "BUFFER_180D": has_real_data and survival_days >= 180,
+        "BUFFER_270D": has_real_data and survival_days >= 270,
+        "BUFFER_365D": has_real_data and survival_days >= 365,
+        "BUFFER_500D": has_real_data and survival_days >= 500,
+        "BUFFER_730D": has_real_data and survival_days >= 730,
+        "LIQUIDITY_BUILDER": has_real_data and survival_days >= 90,
+        "EMERGENCY_STARTER": effective_funds >= 5000,
+        "EMERGENCY_PRO": has_real_data and survival_days >= 90,
+        "EMERGENCY_MASTER": has_real_data and survival_days >= 180,
+        "SURVIVAL_STRATEGIST": has_real_data and survival_days >= 110,
+        "FINANCIAL_FORTRESS": has_real_data and survival_days >= 366,
         # Score
         "SCORE_60": score >= 60,
         "SCORE_70": score >= 70,
@@ -414,10 +416,10 @@ async def process_gamification(request: Request):
         "SAVINGS_RATE_20": savings_rate_pct >= 20,
         "SAVINGS_RATE_30": savings_rate_pct >= 30,
         "SAVINGS_RATE_40": savings_rate_pct >= 40,
-        # Debt
+        # Debt — require actual loan/debt history
         "FREEDOM_BUILDER": total_debt == 0 and await db.loans.count_documents(user_filter) > 0,
-        "DEBT_FREE_STARTER": emi_ratio < 0.20,
-        "ZERO_EMI_MONTH": total_emi == 0,
+        "DEBT_FREE_STARTER": monthly_income > 0 and emi_ratio < 0.20 and total_emi > 0,
+        "ZERO_EMI_MONTH": total_emi == 0 and await db.loans.count_documents(user_filter) > 0,
         # Investment
         "FIRST_SIP": sip_count >= 1,
         "DIVERSIFIED_PORTFOLIO": inv_count >= 5,

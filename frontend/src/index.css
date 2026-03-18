@@ -4,6 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* iOS Safe Area — push all content below the status bar */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Fix Recharts focus/selection outlines */
 .recharts-wrapper *:focus,
 .recharts-wrapper *:focus-visible,

@@ -123,10 +123,14 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 10. Skipped expenses still counted in current month total (P1) — Fixed (Mar 19, 2026)
     - Root cause: `monthStats.total` in MyExpenses.js, `get_monthly_summary` in expenses.py, and `_calc_monthly_expenses` in dashboard.py all included skipped expenses
     - Fix: Excluded expenses with current month in `skippedMonths` array from all total calculations; added "Skipped" column to month summary UI
+11. Mobile safe area overlap on all pages (P1) — Fixed (Mar 19, 2026)
+    - Added global CSS safe area handling + viewport-fit=cover + safe-area-bottom for BottomNav
+12. Inflated badge counts (P2) — Fixed (Mar 19, 2026)
+    - survival_days=999 when no expenses → now 0; badges require real data; cleaned 40 inflated badges from prod
+13. Database visibility (P1) — Fixed: Preview now connects to moneyssutra_prod
+14. Production test data cleanup (P1) — Done: Removed test3@test.com and associated data
 
 ## Prioritized Backlog
-### P1
-- Production test data cleanup
 ### P2
 - Enhanced "Remember Me" with persistent sessions
 ### P3
