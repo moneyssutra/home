@@ -1,63 +1,78 @@
 # MoneySutra — Product Requirements Document
 
 ## Original Problem Statement
-Build and maintain a full-stack financial management app ("MoneySutra") with React + FastAPI + MongoDB. Tracks income, expenses, assets, loans, insurance, investments, credit cards, goals, and provides financial health insights, analytics, admin panel.
+Full-stack financial management app ("MoneySutra") with React + FastAPI + MongoDB. Tracks income, expenses, assets, loans, insurance, investments, credit cards, goals with financial health insights, analytics, admin panel.
 
 ## Core Architecture
-- **Frontend**: React (CRA with Craco) + Tailwind CSS + Shadcn/UI
-- **Backend**: FastAPI (Python) on port 8001
-- **Database**: MongoDB Atlas (dual: `moneyssutra_dev` for preview, `moneyssutra_prod` for production)
-- **Auth**: JWT sessions (cookie-based) + Emergent Google OAuth + MPIN + WebAuthn Biometric
+- **Frontend**: React (CRA/Craco) + Tailwind CSS + Shadcn/UI
+- **Backend**: FastAPI on port 8001
+- **Database**: MongoDB Atlas (dual: `moneyssutra_dev` / `moneyssutra_prod`)
+- **Auth**: JWT sessions + Google OAuth + MPIN + WebAuthn Biometric
 
-## Implemented Features
+## Loan Given Investment Type (Complete - Mar 18, 2026)
 
-### Auth System (Complete)
-- Email/password, Google OAuth, MPIN (4-digit PIN), Biometric (WebAuthn)
-- Login flow: Biometric -> MPIN -> Password
-- Post-login security setup prompt
+### Form Flow (Order)
+Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Investment Mode → Loan Date → Notes → Save
 
-### Loan Given Investment Type (Complete - Mar 18, 2026)
+### Loan Details Box
+- Borrower Name*, Contact (optional)
+- Interest Type: No Interest | With Interest
+- If With Interest: Interest Rate (%) OR Agreed Return Amount
+- **Repayment Plan** (3 types):
+  - **Lump Sum** — Full amount returned at once on due date
+  - **Fixed EMI** — Fixed ₹X per Y frequency for Z installments
+    - Payment Frequency (Daily/Weekly/Monthly/Quarterly/Semi-Annually/Yearly)
+    - Amount per Installment ↔ Number of Installments (bidirectional auto-calc)
+    - Preview: "₹5,000 x 10 monthly installments = ₹50,000"
+  - **Flexible** — Borrower pays when possible, no fixed schedule
+- Due Date (optional)
 
-**Backend:**
-- Extended Investment model with loan fields (borrowerName, borrowerContact, interestType, agreedReturnAmount, repaymentType, repaymentFrequency, dueDate, amountReceived, outstandingAmount, loanStatus, lastRepaymentDate)
+### Investment Mode (auto-set, user-overridable)
+- No Interest → "Fixed" (principal returned as-is)
+- With Interest + Flexible/Lump Sum → "Growth with Maturity"
+- With Interest + Fixed EMI → "Income Generating"
+- 4 options: Fixed, Growth Only, Income Generating, Growth with Maturity
+
+### Backend Logic
 - Auto-initialization: amountReceived=0, outstandingAmount=principal, loanStatus='active'
-- `POST /api/investments/{id}/add-repayment` — Status transitions (active -> partial -> closed)
-- `GET /api/investments/{id}/repayments` — Repayment history
-- `POST /api/investments/check-loan-risks` — 30-day medium, 90-day default_risk
-- `GET /api/investments/{id}/loan-detail` — Full loan detail with risk analysis
-- Dashboard networth returns loanGivenTotal, loanGivenAtRisk, loanGivenCount
+- **Income Auto-Creation**: When loan has interest, auto-creates linked income source (`sourceCategory: loan_interest`)
+- **Smart Repayment Split**: Each repayment splits into principalPortion + interestPortion
+  - Proportional split when agreedReturnAmount exists
+  - Simple interest accrual when returnRate exists
+- **Income Transaction**: Interest portion auto-creates entry in `income_received` for cash flow tracking
+- Risk Detection: 30-day medium risk, 90-day default_risk auto-status
+- Validation: repayment capped at outstanding, negatives/zero blocked
 
-**Frontend Form (Refined):**
-- "Loan Given" in category dropdown
-- Investment Mode auto-set (hidden for Loan Given): no interest = "Growth Only", with interest = "Income Generating"
-- Field order: Category -> Amount Lent/Loaned -> Loan Label/Reference Name -> Loan Details Section -> Loan Date -> Notes -> Save
-- Conditional Loan Details: Borrower Name*, Contact, Interest Type toggle, Interest Rate/Agreed Return, Repayment Type (Flexible/Fixed), Installment Frequency (Daily/Weekly/Monthly/Quarterly/Semi-Annually/Yearly - only for Fixed), Due Date
-- ALL irrelevant fields hidden: SIP/Frequency, Digital Metal, SGB, Income Generating mode fields (Return Rate, Interest Type, Payout Frequency), Growth with Maturity fields (Lock-in, Maturity Date, Expected Maturity Value), Current Value, Linked Account, Emergency Fund toggle
-- Disclaimer: "Loan Given is not a regulated investment. Recovery depends on borrower reliability."
+### API Endpoints
+- `POST /api/investments` — Create with auto-init + income source creation
+- `POST /api/investments/{id}/add-repayment` — Smart split + income auto-creation
+- `GET /api/investments/{id}/repayments` — History with split details
+- `GET /api/investments/{id}/loan-detail` — Full detail with risk + installment plan
+- `POST /api/investments/check-loan-risks` — Batch risk detection
 
-**Frontend Display:**
-- Investment list: Loan cards with borrower, outstanding, status badges (Active/Partial/Closed/At Risk)
-- Loan detail page: Recovery progress bar, borrower info, repayment history, Add Repayment modal
-- Dashboard: Loan Given total + At Risk in investments card
+### Display
+- **Investment List**: Loan cards with borrower, outstanding, status badges
+- **Loan Detail Page**: Recovery progress, borrower info, installment plan tracker, 6-column repayment history (Date, Amount, Principal, Interest, Balance, Notes), Add Repayment modal
+- **Dashboard**: Loan Given total + At Risk in investments card
+- **Insights**: High lending exposure (>25% assets), Recovery risk detection
+- Disclaimer: "Loan Given is not a regulated investment."
 
-**Insights:**
-- Loan Given > 25% of total assets -> "High Personal Lending Exposure"
-- Any default_risk loans -> "Recovery Risk Detected"
+## Other Completed Features
+- Auth: Email/password, Google OAuth, MPIN, Biometric (WebAuthn)
+- Full CRUD: Income, Expenses, Loans, Assets, Accounts, Insurance, Investments, Credit Cards, Goals
+- Dashboard, Financial health, Gamification, Notifications, Reports
+- Admin panel with token-based auth
 
-### Bug Fixes (Mar 18, 2026)
+## Bug Fixes (Mar 18, 2026)
 1. Edit Button Redirect (P0) — Fixed
 2. Incorrect Current Month Income (P0) — Fixed
 3. Confusing Received/Pending Labels (P0) — Verified
 
 ## Prioritized Backlog
-
 ### P1
 - Production test data cleanup
-
 ### P2
 - Enhanced "Remember Me" with persistent sessions
-- Income integration: auto-create Interest Income on interest repayments
-
 ### P3
 - Admin panel data export
 - User notification preferences
