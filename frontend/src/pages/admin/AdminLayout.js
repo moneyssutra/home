@@ -45,10 +45,10 @@ const AdminLayout = () => {
   );
 
   return (
-    <div className="flex bg-[#F8FAFC]" data-testid="admin-layout">
+    <div className="h-screen overflow-hidden flex bg-[#F8FAFC]" data-testid="admin-layout">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen w-56 bg-[#1E293B] border-r border-white/5 z-50">
-        <div className="px-5 h-14 flex items-center border-b border-white/5">
+      <aside className="hidden lg:flex flex-col w-56 shrink-0 bg-[#1E293B] border-r border-white/5">
+        <div className="px-5 h-14 flex items-center border-b border-white/5 shrink-0">
           <span className="text-sm font-black tracking-widest text-teal-400">MoneySutra</span>
           <span className="ml-2 text-[10px] font-medium text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">ADMIN</span>
         </div>
@@ -71,7 +71,7 @@ const AdminLayout = () => {
           ))}
         </nav>
 
-        <div className="px-3 py-3 border-t border-white/5">
+        <div className="px-3 py-3 border-t border-white/5 shrink-0">
           <button onClick={() => navigate("/admin/login")}
             className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all w-full"
             data-testid="admin-exit">
@@ -129,8 +129,8 @@ const AdminLayout = () => {
         </div>
       )}
 
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-56 mt-12 lg:mt-0">
+      {/* Main Content - scrollable */}
+      <main className="flex-1 overflow-y-auto mt-12 lg:mt-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
           <Outlet />
         </div>
