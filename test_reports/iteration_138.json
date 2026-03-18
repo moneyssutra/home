@@ -1,0 +1,48 @@
+{
+  "summary": "Iteration 138: ALL 10 TESTS PASSED - Verified cascade delete of Loan Given, confirm/reject repayment endpoint, and scheduler integration for auto_process_loan_repayments.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_loan_given_cascade_confirm_iter138.py",
+    "/app/test_reports/pytest/loan_given_cascade_confirm_iter138_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✓ investments.py lines 17-110: Create Loan Given sets linkedIncomeSourceId and creates income_source in DB",
+    "✓ investments.py lines 322-342: DELETE cascade deletes: income_sources (linked), income_received (by entityId), investment_transactions (by investmentId)",
+    "✓ investments.py lines 744-826: confirm-repayment endpoint handles action=confirm (marks txn.confirmed=True, notification.isRead=True) and action=reject (rolls back amountReceived/outstandingAmount, deletes transaction, marks notification)",
+    "✓ scheduler.py lines 510-675: auto_process_loan_repayments() function exists with proper logic for checking fixed repayment loans due today",
+    "✓ scheduler.py lines 692-698: Main scheduler loop calls await auto_process_loan_repayments() in daily checks",
+    "✓ NotificationBell.js lines 527-561: Frontend shows 'Received' and 'Not Received' buttons for loan_repayment_due notifications with requiresConfirmation=true"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_loan_given_cascade_confirm_iter138.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "N/A - backend only testing requested"
+  },
+  "seed_data_creation": "Test users and sessions created via Python MongoDB driver for authenticated API testing - automatically cleaned up after tests",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 138 verified three new features for Loan Given: (1) Cascade Delete: When DELETE /api/investments/{id} is called for a Loan Given investment, the backend correctly deletes the linked income_source (by linkedIncomeSourceId), all investment_transactions (by investmentId), and income_received entries (by entityId=linkedIncomeSourceId). (2) Confirm/Reject Repayment: POST /api/investments/confirm-repayment/{notification_id} endpoint works correctly - action=confirm marks the auto-recorded transaction as confirmed and notification as read; action=reject rolls back the investment amounts (restores amountReceived, outstandingAmount, currentValue, loanStatus to pre-repayment state), deletes the transaction, and marks notification. (3) Scheduler: auto_process_loan_repayments() is called daily in the scheduler loop and creates notifications with requiresConfirmation=true for loans with fixed repayment plans due today.",
+  "tests_passed": {
+    "test_01_create_loan_given_fixed_creates_income_source": "PASSED - Loan Given with fixed repayment creates income source with linkedIncomeSourceId set",
+    "test_02_create_loan_with_interest_creates_income_source": "PASSED - Loan with interest creates income source with 'interest' in name",
+    "test_03_delete_loan_given_cascades_income_source": "PASSED - CRITICAL: DELETE cascades to income_sources, investment_transactions, and income_received",
+    "test_04_delete_loan_given_without_repayments": "PASSED - Delete loan without repayments still deletes income source",
+    "test_05_confirm_repayment_marks_transaction_confirmed": "PASSED - action=confirm marks transaction.confirmed=true and notification.isRead=true",
+    "test_06_reject_repayment_rolls_back": "PASSED - action=reject restores loan amounts and deletes transaction",
+    "test_07_confirm_repayment_notification_not_found": "PASSED - Returns 404 for non-existent notification_id",
+    "test_08_confirm_repayment_invalid_action": "PASSED - Returns 400 for invalid action parameter",
+    "test_09_scheduler_contains_auto_process_loan_repayments": "PASSED - Function exists in scheduler.py",
+    "test_10_scheduler_loop_calls_loan_repayments": "PASSED - Function is called in daily scheduler loop"
+  }
+}

@@ -695,6 +695,7 @@ async def check_and_send_reminders():
                 await auto_record_fixed_income()
                 await auto_update_sip_investments()
                 await auto_process_loan_emi()
+                await auto_process_loan_repayments()
                 last_premium_check_date = today
 
             logger.debug(f"Checking reminders for time: {current_time}")

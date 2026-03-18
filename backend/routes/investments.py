@@ -741,6 +741,92 @@ async def get_repayments(investment_id: str, request: Request):
     }
 
 
+@router.post("/confirm-repayment/{notification_id}")
+async def confirm_repayment(notification_id: str, request: Request):
+    """Handle user confirmation/rejection of an auto-recorded loan repayment."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    body = await request.json()
+    action = body.get("action", "confirm")  # "confirm" or "reject"
+
+    # Find the notification
+    notification = await db.notifications.find_one(
+        {"id": notification_id, "userId": user.get("user_id"), "type": "loan_repayment_due"},
+        {"_id": 0}
+    )
+    if not notification:
+        raise HTTPException(status_code=404, detail="Notification not found")
+
+    investment_id = notification.get("relatedInvestmentId")
+    txn_id = notification.get("relatedTransactionId")
+
+    if action == "confirm":
+        # Mark the auto-recorded transaction as confirmed
+        if txn_id:
+            await db.investment_transactions.update_one(
+                {"id": txn_id},
+                {"$set": {"confirmed": True}}
+            )
+            # Also confirm the income_received entry
+            await db.income_received.update_many(
+                {"source": "auto_loan_repayment", "investmentId": investment_id, "confirmed": False},
+                {"$set": {"confirmed": True}}
+            )
+        # Mark notification as read
+        await db.notifications.update_one(
+            {"id": notification_id},
+            {"$set": {"isRead": True, "confirmedAction": "confirmed"}}
+        )
+        return {"success": True, "action": "confirmed", "message": "Repayment confirmed"}
+
+    elif action == "reject":
+        # Roll back the auto-recorded repayment
+        txn = await db.investment_transactions.find_one({"id": txn_id}, {"_id": 0}) if txn_id else None
+
+        if txn and investment_id:
+            rollback_amount = txn.get("amount", 0)
+            inv = await db.investments.find_one({"id": investment_id}, {"_id": 0})
+            if inv:
+                restored_received = max((inv.get("amountReceived", 0) or 0) - rollback_amount, 0)
+                restored_outstanding = (inv.get("outstandingAmount", 0) or 0) + rollback_amount
+                restored_status = "active" if restored_received == 0 else "partial"
+
+                await db.investments.update_one(
+                    {"id": investment_id},
+                    {"$set": {
+                        "amountReceived": restored_received,
+                        "outstandingAmount": restored_outstanding,
+                        "currentValue": restored_outstanding,
+                        "loanStatus": restored_status,
+                    }}
+                )
+
+            # Delete the auto-recorded transaction
+            await db.investment_transactions.delete_one({"id": txn_id})
+
+            # Delete associated income_received entry
+            linked_income_id = inv.get("linkedIncomeSourceId") if inv else None
+            if linked_income_id:
+                await db.income_received.delete_one({
+                    "entityId": linked_income_id,
+                    "source": "auto_loan_repayment",
+                    "autoRecorded": True,
+                    "confirmed": False,
+                })
+
+        # Mark notification
+        await db.notifications.update_one(
+            {"id": notification_id},
+            {"$set": {"isRead": True, "confirmedAction": "rejected"}}
+        )
+        return {"success": True, "action": "rejected", "message": "Repayment rolled back"}
+
+    raise HTTPException(status_code=400, detail="Invalid action. Use 'confirm' or 'reject'.")
+
+
+
 # ============ LOAN GIVEN: RISK DETECTION ============
 
 @router.post("/check-loan-risks")

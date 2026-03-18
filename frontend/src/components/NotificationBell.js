@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Bell, X, CheckCheck, ArrowRight, Coins, RefreshCw, BellRing, Inbox,
   Shield, ShieldCheck, Castle, Crown, Star, Trophy, Target, Flame, Award, Medal,
   TrendingUp, TrendingDown, CheckCircle, Gauge, PiggyBank, LifeBuoy, Lock, Flag,
-  Swords, Rocket } from "lucide-react";
+  Swords, Rocket, HandCoins, XCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import IncomeAmountModal from "@/components/IncomeAmountModal";
@@ -21,6 +21,7 @@ const NotificationBell = () => {
   // Income Amount Modal state
   const [incomeModalOpen, setIncomeModalOpen] = useState(false);
   const [selectedIncome, setSelectedIncome] = useState(null);
+  const [confirmingId, setConfirmingId] = useState(null);
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
   
@@ -161,6 +162,30 @@ const NotificationBell = () => {
     fetchNotifications(false);
   };
   
+  const handleLoanRepaymentAction = async (notificationId, action) => {
+    setConfirmingId(notificationId);
+    try {
+      await axios.post(
+        `${backendUrl}/api/investments/confirm-repayment/${notificationId}`,
+        { action },
+        { withCredentials: true }
+      );
+      // Update notification in-place to show result
+      setNotifications(prev =>
+        prev.map(n =>
+          n.id === notificationId
+            ? { ...n, isRead: true, confirmedAction: action === "confirm" ? "confirmed" : "rejected" }
+            : n
+        )
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Error handling loan repayment action:", error);
+    } finally {
+      setConfirmingId(null);
+    }
+  };
+  
   const handleMarkAllRead = async () => {
     try {
       await axios.patch(
@@ -299,6 +324,8 @@ const NotificationBell = () => {
         return <Coins className="h-5 w-5 text-[#00D09C]" />;
       case "auto_entry":
         return <RefreshCw className="h-5 w-5 text-[#00D09C]" />;
+      case "loan_repayment_due":
+        return <HandCoins className="h-5 w-5 text-[#F59E0B]" />;
       default:
         return <BellRing className="h-5 w-5 text-[#00D09C]" />;
     }
@@ -496,7 +523,43 @@ const NotificationBell = () => {
                               {formatTimeAgo(notification.createdAt)}
                             </span>
                             
-                            {notification.actionUrl && (
+                            {/* Loan repayment confirmation buttons */}
+                            {notification.type === "loan_repayment_due" && notification.requiresConfirmation && !notification.confirmedAction ? (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  disabled={confirmingId === notification.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleLoanRepaymentAction(notification.id, "confirm");
+                                  }}
+                                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#00D09C] hover:bg-[#00B88A] rounded-lg transition-colors disabled:opacity-50"
+                                  data-testid={`confirm-repayment-btn-${notification.id}`}
+                                >
+                                  <CheckCircle className="h-3.5 w-3.5" />
+                                  Received
+                                </button>
+                                <button
+                                  disabled={confirmingId === notification.id}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleLoanRepaymentAction(notification.id, "reject");
+                                  }}
+                                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors disabled:opacity-50"
+                                  data-testid={`reject-repayment-btn-${notification.id}`}
+                                >
+                                  <XCircle className="h-3.5 w-3.5" />
+                                  Not Received
+                                </button>
+                              </div>
+                            ) : notification.type === "loan_repayment_due" && notification.confirmedAction ? (
+                              <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                                notification.confirmedAction === "confirmed"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}>
+                                {notification.confirmedAction === "confirmed" ? "Confirmed" : "Rolled Back"}
+                              </span>
+                            ) : notification.actionUrl ? (
                               <button 
                                 className="flex items-center gap-1 text-sm font-medium text-[#00D09C] hover:text-[#00B88A] transition-colors"
                                 onClick={(e) => {
@@ -508,7 +571,7 @@ const NotificationBell = () => {
                                 View
                                 <ArrowRight className="h-4 w-4" />
                               </button>
-                            )}
+                            ) : null}
                           </div>
                         </div>
                       </div>
