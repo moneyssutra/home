@@ -618,7 +618,7 @@ const InvestmentForm = () => {
 
             {/* Amount Lent - For Loan Given, shown BEFORE name */}
             {isLoanGiven && (
-              <div className="w-full">
+              <div className="w-full mt-2">
                 <label htmlFor="principal" className="block text-sm font-medium text-[#334155] mb-2">
                   Amount Lent / Amount Loaned *
                 </label>
