@@ -1,7 +1,7 @@
 """Income routes - Full CRUD + list summary from server.py."""
 from fastapi import APIRouter, HTTPException, Request
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from database import db
 from server_models import IncomeSource, IncomeSourceCreate
@@ -85,6 +85,51 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
         source["totalRecorded"] = stats.get("totalRecorded", 0)
         source["transactionCount"] = stats.get("transactionCount", 0)
         source["lastTransaction"] = stats.get("lastTransaction")
+
+        # Add schedule-based monthly received/pending (consistent with monthly-summary)
+        import calendar
+        now = get_user_now(request)
+        amount = source.get('expectedAmount', 0) or 0
+        freq = source.get('frequency', 'Monthly')
+        current_day = now.day
+        days_in_month = calendar.monthrange(now.year, now.month)[1]
+
+        if freq == 'Daily':
+            source["monthlyTotal"] = amount * days_in_month
+            source["monthlyReceived"] = amount * current_day
+            source["monthlyPending"] = amount * (days_in_month - current_day)
+        elif freq == 'Weekly':
+            day_name = source.get('selectedDay', '')
+            if day_name:
+                past_count = count_weekday_occurrences(now.year, now.month, day_name, current_day)
+                total_count = count_weekday_occurrences(now.year, now.month, day_name)
+                source["monthlyTotal"] = amount * total_count
+                source["monthlyReceived"] = amount * past_count
+                source["monthlyPending"] = amount * (total_count - past_count)
+            else:
+                mt = amount * 4.33
+                ratio = current_day / days_in_month
+                source["monthlyTotal"] = round(mt, 2)
+                source["monthlyReceived"] = round(mt * ratio, 2)
+                source["monthlyPending"] = round(mt * (1 - ratio), 2)
+        else:
+            source["monthlyTotal"] = amount
+            sd_str = source.get('selectedDate')
+            if sd_str:
+                try:
+                    sd = min(int(sd_str), days_in_month)
+                except (ValueError, TypeError):
+                    sd = 1
+                if sd <= current_day:
+                    source["monthlyReceived"] = amount
+                    source["monthlyPending"] = 0
+                else:
+                    source["monthlyReceived"] = 0
+                    source["monthlyPending"] = amount
+            else:
+                source["monthlyReceived"] = 0
+                source["monthlyPending"] = amount
+
     return income_sources
 
 
@@ -301,7 +346,6 @@ async def get_income_detail(income_id: str, request: Request):
     expected = inc.get("expectedAmount", 0)
     freq = inc.get("frequency", "Monthly")
     start_str = inc.get("startDate")
-    inc_type = inc.get("type", "")
 
     # Fetch income transactions
     transactions = await db.income_transactions.find(
@@ -311,10 +355,61 @@ async def get_income_detail(income_id: str, request: Request):
     # Generate receipt schedule
     today = datetime.now()
     today_str = today.strftime("%Y-%m-%d")
-    period_months = {"Monthly": 1, "Quarterly": 3, "Half-Yearly": 6, "Yearly": 12, "Weekly": 0}.get(freq, 1)
+    period_months = {"Monthly": 1, "Quarterly": 3, "Half-Yearly": 6, "Yearly": 12}.get(freq, 1)
 
     schedule = []
-    if period_months > 0:
+    if freq == "Weekly":
+        # Weekly: generate schedule based on selectedDay
+        import calendar as cal
+        day_name = inc.get("selectedDay", "")
+        day_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
+        target_dow = day_map.get(day_name)
+
+        start = None
+        if start_str:
+            try:
+                start = datetime.strptime(start_str, "%Y-%m-%d")
+            except (ValueError, TypeError):
+                pass
+        if not start:
+            created = inc.get("createdAt", "")
+            if isinstance(created, str) and created:
+                try:
+                    start = datetime.fromisoformat(created.replace("Z", "+00:00")).replace(tzinfo=None)
+                except (ValueError, TypeError):
+                    pass
+            if not start:
+                start = today - relativedelta(months=3)
+
+        if target_dow is not None:
+            # Find the first target weekday on or after start
+            days_ahead = (target_dow - start.weekday()) % 7
+            first_occurrence = start + timedelta(days=days_ahead)
+        else:
+            first_occurrence = start
+
+        cursor = first_occurrence
+        while cursor <= today + timedelta(weeks=12):
+            status = "received" if cursor.strftime("%Y-%m-%d") <= today_str else "upcoming"
+            schedule.append({"dueDate": cursor.strftime("%Y-%m-%d"), "amount": expected, "status": status})
+            cursor += timedelta(weeks=1)
+
+    elif freq == "Daily":
+        start = None
+        if start_str:
+            try:
+                start = datetime.strptime(start_str, "%Y-%m-%d")
+            except (ValueError, TypeError):
+                pass
+        if not start:
+            start = today - timedelta(days=30)
+        cursor = start
+        while cursor <= today + timedelta(days=30):
+            status = "received" if cursor.strftime("%Y-%m-%d") <= today_str else "upcoming"
+            schedule.append({"dueDate": cursor.strftime("%Y-%m-%d"), "amount": expected, "status": status})
+            cursor += timedelta(days=1)
+
+    elif period_months > 0:
         # Determine start date: use startDate, then selectedDate (full date string), then createdAt
         start = None
         if start_str:
@@ -361,7 +456,42 @@ async def get_income_detail(income_id: str, request: Request):
 
     received_count = sum(1 for s in schedule if s["status"] == "received")
     total_received = received_count * expected
-    actual_total = sum(t.get("amount", 0) for t in transactions) if transactions else total_received
+
+    # Calculate current month's received/pending (same logic as monthly-summary for consistency)
+    import calendar as cal
+    current_year, current_month, current_day = today.year, today.month, today.day
+    days_in_month = cal.monthrange(current_year, current_month)[1]
+    if freq == "Weekly":
+        day_name = inc.get("selectedDay", "")
+        if day_name:
+            past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
+            total_count = count_weekday_occurrences(current_year, current_month, day_name)
+            monthly_received = expected * past_count
+            monthly_total = expected * total_count
+            monthly_pending = expected * (total_count - past_count)
+        else:
+            mt = expected * 4.33
+            ratio = current_day / days_in_month
+            monthly_received = round(mt * ratio, 2)
+            monthly_total = round(mt, 2)
+            monthly_pending = round(mt * (1 - ratio), 2)
+    elif freq == "Daily":
+        monthly_received = expected * current_day
+        monthly_total = expected * days_in_month
+        monthly_pending = expected * (days_in_month - current_day)
+    else:
+        monthly_total = expected
+        sd = inc.get("selectedDate")
+        try:
+            sd_int = min(int(sd), days_in_month)
+        except (ValueError, TypeError):
+            sd_int = 1
+        if sd_int <= current_day:
+            monthly_received = expected
+            monthly_pending = 0
+        else:
+            monthly_received = 0
+            monthly_pending = expected
 
     # Linked asset
     linked_asset = None
@@ -374,7 +504,9 @@ async def get_income_detail(income_id: str, request: Request):
         "transactions": transactions[:30],
         "schedule": schedule[-12:],
         "summary": {
-            "totalReceived": round(actual_total, 2),
+            "totalReceived": round(monthly_received, 2),
+            "monthlyTotal": round(monthly_total, 2),
+            "monthlyPending": round(monthly_pending, 2),
             "expectedReceived": round(total_received, 2),
             "receivedCount": received_count,
             "transactionCount": len(transactions),

@@ -23,15 +23,15 @@ const MyBusiness = () => {
 
   // Memoize calculations
   const { totalIncome, fixedBusinesses, variableBusinesses, fixedTotal, variableTotal } = useMemo(() => {
-    const total = businesses.reduce((sum, biz) => sum + (biz.expectedAmount || 0), 0);
+    const total = businesses.reduce((sum, biz) => sum + (biz.monthlyTotal || biz.expectedAmount || 0), 0);
     const fixed = businesses.filter(b => b.incomeType !== "variable");
     const variable = businesses.filter(b => b.incomeType === "variable");
     return {
       totalIncome: total,
       fixedBusinesses: fixed,
       variableBusinesses: variable,
-      fixedTotal: fixed.reduce((sum, b) => sum + (b.expectedAmount || 0), 0),
-      variableTotal: variable.reduce((sum, b) => sum + (b.expectedAmount || 0), 0)
+      fixedTotal: fixed.reduce((sum, b) => sum + (b.monthlyTotal || b.expectedAmount || 0), 0),
+      variableTotal: variable.reduce((sum, b) => sum + (b.monthlyTotal || b.expectedAmount || 0), 0)
     };
   }, [businesses]);
 
@@ -223,16 +223,11 @@ const MyBusiness = () => {
 
   const chartColors = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B", "#EC4899", "#06B6D4"];
 
-  // Calculate received vs pending
-  const fixedReceivedList = fixedBusinesses.filter(b => getPaymentStatus(b) === 'received');
-  const fixedPendingList = fixedBusinesses.filter(b => getPaymentStatus(b) !== 'received');
-  const variableReceivedList = variableBusinesses.filter(b => getPaymentStatus(b) === 'received');
-  const variablePendingList = variableBusinesses.filter(b => getPaymentStatus(b) !== 'received');
-  
-  const fixedReceivedTotal = fixedReceivedList.reduce((sum, b) => sum + (b.expectedAmount || 0), 0);
-  const fixedPendingTotal = fixedPendingList.reduce((sum, b) => sum + (b.expectedAmount || 0), 0);
-  const variableReceivedTotal = variableReceivedList.reduce((sum, b) => sum + (b.expectedAmount || 0), 0);
-  const variablePendingTotal = variablePendingList.reduce((sum, b) => sum + (b.expectedAmount || 0), 0);
+  // Calculate received vs pending using schedule-based monthly amounts from API
+  const fixedReceivedTotal = fixedBusinesses.reduce((sum, b) => sum + (b.monthlyReceived || 0), 0);
+  const fixedPendingTotal = fixedBusinesses.reduce((sum, b) => sum + (b.monthlyPending || 0), 0);
+  const variableReceivedTotal = variableBusinesses.reduce((sum, b) => sum + (b.monthlyReceived || 0), 0);
+  const variablePendingTotal = variableBusinesses.reduce((sum, b) => sum + (b.monthlyPending || 0), 0);
 
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-business-page">

@@ -1,0 +1,65 @@
+{
+  "summary": "Income data consistency bug fix VERIFIED - All 9 tests passed. Weekly business income now shows consistent values across My Income page, Business Detail page, and monthly summary. For ₹50K/week Tuesday income in March 2026: monthlyTotal=₹250K (5 Tuesdays), monthlyReceived=₹150K (3 past), monthlyPending=₹100K (2 future). All three endpoints return matching received/pending values.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_income_data_consistency.py",
+    "/app/test_reports/pytest/income_data_consistency_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Weekly income schedule generation fixed in get_income_detail() - now generates entries using count_weekday_occurrences logic",
+    "List summary endpoint now returns monthlyTotal/monthlyReceived/monthlyPending fields using same calculation as monthly-summary",
+    "Detail summary now calculates monthly_received/monthly_pending using count_weekday_occurrences for weekly income (same as monthly-summary)",
+    "Frontend MyBusiness.js updated to use monthlyTotal/monthlyReceived/monthlyPending from API response instead of raw expectedAmount"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_income_data_consistency.py"
+  ],
+  "success_rate": {
+    "backend": "100% (9/9 tests passed)"
+  },
+  "test_credentials": {},
+  "seed_data_creation": "Created test users and income sources during testing - automatically cleaned up after each test",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Income data consistency bug fixed and verified. All three income endpoints (/api/income/monthly-summary, /api/income/list/summary, /api/income/{id}/detail) now return consistent received/pending values for weekly income. The fix uses count_weekday_occurrences() from routes/utils.py to calculate how many times a specific weekday occurs in the current month. Tests created in test_income_data_consistency.py verify Weekly, Daily, and Monthly frequency incomes.",
+  "features_tested": {
+    "create_weekly_business_income": {
+      "POST /api/income with weekly frequency and selectedDay=Tuesday": "PASSED - Creates income with correct fields"
+    },
+    "monthly_summary_weekly_calculation": {
+      "GET /api/income/monthly-summary": "PASSED - Returns totalIncome=250000, receivedIncome=150000, pendingIncome=100000 for 50K/week Tuesday"
+    },
+    "list_summary_monthly_fields": {
+      "GET /api/income/list/summary includes monthlyTotal/monthlyReceived/monthlyPending": "PASSED - All fields present with correct values"
+    },
+    "detail_weekly_schedule_generation": {
+      "GET /api/income/{id}/detail generates weekly schedule": "PASSED - 12 schedule entries generated (not empty)"
+    },
+    "consistency_check_all_endpoints": {
+      "monthly-summary.receivedIncome == list/summary.monthlyReceived == detail.summary.totalReceived": "PASSED - All values match (150000)"
+    },
+    "daily_frequency_income": {
+      "Daily frequency calculates monthly amount correctly": "PASSED - 5000/day = ~150000/month"
+    },
+    "monthly_frequency_income": {
+      "Monthly frequency returns correct monthlyTotal": "PASSED - 100000 = 100000"
+    },
+    "weekday_occurrences_verification": {
+      "Wednesday weekly income calculates correctly": "PASSED - 4 Wednesdays past = 75000 received (25K*3), 25000 pending"
+    }
+  },
+  "bugs_verified_fixed": [
+    "Income data discrepancy between My Income page and Business Detail page - NOW CONSISTENT",
+    "Weekly income detail page showed ₹0 received - NOW SHOWS CORRECT VALUE",
+    "List summary didn't include schedule-based monthly amounts - NOW INCLUDES monthlyTotal/monthlyReceived/monthlyPending"
+  ]
+}

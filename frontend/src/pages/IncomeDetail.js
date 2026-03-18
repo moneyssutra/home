@@ -68,9 +68,9 @@ const getEditRoute = (incomeType, id) => {
       <div className="px-5 -mt-3 space-y-4">
         <div className="grid grid-cols-2 gap-3" data-testid="income-metrics">
           {[
-            { label: "Total Received", value: `₹${fmtCompact(summary.totalReceived)}`, icon: DollarSign, color: "#059669" },
-            { label: "Payments", value: `${summary.receivedCount || 0}`, icon: CheckCircle2, color: "#3B82F6" },
-            { label: "Start Date", value: formatDate(data.startDate), icon: Calendar, color: "#F59E0B" },
+            { label: "Received (This Month)", value: `₹${fmtCompact(summary.totalReceived)}`, icon: DollarSign, color: "#059669" },
+            { label: "Pending (This Month)", value: `₹${fmtCompact(summary.monthlyPending || 0)}`, icon: CheckCircle2, color: "#F59E0B" },
+            { label: "Start Date", value: formatDate(data.startDate), icon: Calendar, color: "#3B82F6" },
             { label: "Type", value: data.type || "N/A", icon: Repeat, color: "#8B5CF6" },
           ].map((m, i) => { const I = m.icon; return (
             <div key={i} className="rounded-2xl p-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
