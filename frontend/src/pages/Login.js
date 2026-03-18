@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, Eye, EyeOff, AlertCircle, Mail, Loader2, ArrowLeft, Check, KeyRound } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertCircle, Mail, Loader2, ArrowLeft, Check, KeyRound, Fingerprint } from "lucide-react";
 import RegisterForm from "@/components/RegisterForm";
 import { LogoFull } from "@/components/Logo";
 import axios from "axios";
@@ -11,11 +11,12 @@ const backendUrl = process.env.REACT_APP_BACKEND_URL;
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loginWithMpin, loginWithGoogle, isAuthenticated, loading } = useAuth();
+  const { login, loginWithMpin, loginWithBiometric, loginWithGoogle, isAuthenticated, loading } = useAuth();
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
   const [isMpinMode, setIsMpinMode] = useState(false);
+  const [isBiometricMode, setIsBiometricMode] = useState(false);
   const [forgotPasswordStep, setForgotPasswordStep] = useState(1);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -188,6 +189,29 @@ const Login = () => {
     }
     setIsSubmitting(false);
   };
+
+  const handleBiometricSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    if (!identifier.trim()) {
+      setError("Please enter your email first");
+      return;
+    }
+    if (!window.PublicKeyCredential) {
+      setError("Biometric login is not supported on this device/browser");
+      return;
+    }
+    setIsSubmitting(true);
+    const result = await loginWithBiometric(identifier.trim());
+    if (result.success) {
+      const from = location.state?.from?.pathname || "/home";
+      navigate(from, { replace: true });
+    } else {
+      setError(result.error);
+    }
+    setIsSubmitting(false);
+  };
+
 
   if (loading) {
     return (
@@ -436,6 +460,80 @@ const Login = () => {
                 </button>
               </form>
             </>
+          ) : isBiometricMode ? (
+            /* Biometric Login Mode */
+            <>
+              <button
+                onClick={() => { setIsBiometricMode(false); setError(""); }}
+                className="flex items-center gap-2 mb-4 text-sm hover:underline"
+                style={{ color: "#059669" }}
+                data-testid="back-from-biometric-btn"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Password Login
+              </button>
+
+              <h2 className="text-xl font-bold mb-2 text-center" style={{ color: "var(--text-primary)" }}>
+                Biometric Login
+              </h2>
+              <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
+                Use your fingerprint or face to sign in
+              </p>
+
+              {error && (
+                <div className="mb-4 p-3 rounded-xl flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)", border: "1px solid var(--status-error)" }}>
+                  <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: "var(--status-error)" }} />
+                  <p className="text-sm" style={{ color: "var(--status-error)" }}>{error}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleBiometricSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
+                    Email ID
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
+                    <input
+                      type="email"
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      placeholder="example@email.com"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
+                      style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+                      data-testid="biometric-email-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center py-4">
+                  <Fingerprint className="h-16 w-16 mb-3" style={{ color: "var(--brand-primary)", opacity: 0.8 }} />
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    Your device will prompt for biometric verification
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !identifier.trim()}
+                  className="w-full py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={{ backgroundColor: "#047857" }}
+                  data-testid="biometric-login-button"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <Fingerprint className="h-5 w-5" />
+                      Authenticate with Biometric
+                    </>
+                  )}
+                </button>
+              </form>
+            </>
           ) : (
             /* Normal Login Form */
             <>
@@ -550,6 +648,22 @@ const Login = () => {
                 >
                   <KeyRound className="h-4 w-4" />
                   Login with MPIN
+                </button>
+
+                {/* Login with Biometric option */}
+                <button
+                  type="button"
+                  onClick={() => { setIsBiometricMode(true); setError(""); }}
+                  className="w-full py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:shadow-sm"
+                  style={{ 
+                    backgroundColor: "var(--bg-subtle)", 
+                    border: "1px solid var(--border-light)",
+                    color: "var(--brand-primary)"
+                  }}
+                  data-testid="switch-to-biometric-btn"
+                >
+                  <Fingerprint className="h-4 w-4" />
+                  Login with Biometric
                 </button>
 
                 {/* Submit Button */}

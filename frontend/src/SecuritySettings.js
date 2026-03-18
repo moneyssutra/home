@@ -46,10 +46,15 @@ const SecuritySettings = () => {
   const [showMpinSetup, setShowMpinSetup] = useState(false);
   const [mpinDigits, setMpinDigits] = useState(["", "", "", ""]);
   const [mpinConfirm, setMpinConfirm] = useState(["", "", "", ""]);
-  const [mpinStep, setMpinStep] = useState(1); // 1=enter, 2=confirm
+  const [mpinStep, setMpinStep] = useState(1);
   const [mpinSaving, setMpinSaving] = useState(false);
   const mpinInputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
   const mpinConfirmRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  // Biometric state
+  const [hasBiometric, setHasBiometric] = useState(false);
+  const [biometricCreds, setBiometricCreds] = useState([]);
+  const [biometricLoading, setBiometricLoading] = useState(true);
+  const [biometricRegistering, setBiometricRegistering] = useState(false);
 
   const hasPassword = user?.has_password === true;
 
@@ -58,6 +63,7 @@ const SecuritySettings = () => {
     fetch2FAStatus();
     fetchSessions();
     fetchMpinStatus();
+    fetchBiometricStatus();
   }, []);
 
   const fetch2FAStatus = async () => {
@@ -144,6 +150,95 @@ const SecuritySettings = () => {
       setHasMpin(false);
     } catch (err) {
       toast.error(err.response?.data?.detail || "Failed to remove MPIN");
+    }
+  };
+
+
+  // WebAuthn helpers
+  const _base64urlToBuffer = (base64url) => {
+    const padding = "=".repeat((4 - (base64url.length % 4)) % 4);
+    const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/") + padding;
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes.buffer;
+  };
+
+  const _bufferToBase64url = (buffer) => {
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  };
+
+  const fetchBiometricStatus = async () => {
+    setBiometricLoading(true);
+    try {
+      const res = await axios.get(`${backendUrl}/api/biometric/status`, { withCredentials: true });
+      setHasBiometric(res.data.has_biometric);
+      setBiometricCreds(res.data.credentials || []);
+    } catch { setHasBiometric(false); }
+    finally { setBiometricLoading(false); }
+  };
+
+  const handleRegisterBiometric = async () => {
+    if (!window.PublicKeyCredential) {
+      toast.error("Biometrics not supported on this device/browser");
+      return;
+    }
+    setBiometricRegistering(true);
+    try {
+      // Step 1: Get registration options
+      const optRes = await axios.post(`${backendUrl}/api/biometric/register/options`, {}, { withCredentials: true });
+      const options = JSON.parse(optRes.data.options);
+
+      // Decode challenge and user.id
+      options.challenge = _base64urlToBuffer(options.challenge);
+      options.user.id = _base64urlToBuffer(options.user.id);
+      if (options.excludeCredentials) {
+        options.excludeCredentials = options.excludeCredentials.map(c => ({
+          ...c, id: _base64urlToBuffer(c.id),
+        }));
+      }
+
+      // Step 2: Prompt for biometric
+      const credential = await navigator.credentials.create({ publicKey: options });
+
+      // Step 3: Encode and verify
+      const attestation = {
+        id: credential.id,
+        rawId: _bufferToBase64url(credential.rawId),
+        type: credential.type,
+        response: {
+          attestationObject: _bufferToBase64url(credential.response.attestationObject),
+          clientDataJSON: _bufferToBase64url(credential.response.clientDataJSON),
+        },
+      };
+
+      await axios.post(`${backendUrl}/api/biometric/register/verify`, {
+        credential: attestation,
+        device_name: navigator.userAgent.includes("Mobile") ? "Mobile Device" : "Desktop",
+      }, { withCredentials: true });
+
+      toast.success("Biometric registered successfully!");
+      fetchBiometricStatus();
+    } catch (err) {
+      if (err.name === "NotAllowedError") {
+        toast.error("Biometric registration was cancelled");
+      } else {
+        toast.error(err.response?.data?.detail || err.message || "Failed to register biometric");
+      }
+    } finally { setBiometricRegistering(false); }
+  };
+
+  const handleRemoveBiometric = async () => {
+    try {
+      await axios.delete(`${backendUrl}/api/biometric/remove`, { withCredentials: true });
+      toast.success("Biometric credentials removed");
+      setHasBiometric(false);
+      setBiometricCreds([]);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to remove biometric");
     }
   };
 
@@ -412,24 +507,53 @@ const SecuritySettings = () => {
             </button>
           </div>
 
-          {/* Biometric Toggle */}
-          <div className="flex items-center justify-between py-4 border-b" style={{ borderColor: "var(--border-light)" }}>
-            <div className="flex items-center gap-3">
-              <Fingerprint className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
-              <div>
-                <p className="font-medium" style={{ color: "var(--text-primary)" }}>Biometric Login</p>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Use fingerprint or face ID</p>
+          {/* Biometric Login */}
+          <div className="py-4 border-b" style={{ borderColor: "var(--border-light)" }}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Fingerprint className="h-5 w-5" style={{ color: hasBiometric ? "var(--brand-primary)" : "var(--text-muted)" }} />
+                <div>
+                  <p className="font-medium" style={{ color: "var(--text-primary)" }}>Biometric Login</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    {hasBiometric ? `${biometricCreds.length} device(s) registered` : "Use fingerprint or face ID"}
+                  </p>
+                </div>
               </div>
+              {biometricLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--text-muted)" }} />
+              ) : hasBiometric ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleRegisterBiometric}
+                    disabled={biometricRegistering}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
+                    style={{ color: "var(--brand-primary)", backgroundColor: "var(--brand-primary-soft)" }}
+                    data-testid="add-biometric-btn"
+                  >
+                    {biometricRegistering && <Loader2 className="h-3 w-3 animate-spin" />}
+                    Add Device
+                  </button>
+                  <button
+                    onClick={handleRemoveBiometric}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all text-red-500 bg-red-50 hover:bg-red-100"
+                    data-testid="remove-biometric-btn"
+                  >
+                    Remove All
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleRegisterBiometric}
+                  disabled={biometricRegistering}
+                  className="text-xs font-semibold px-4 py-2 rounded-xl text-white transition-all flex items-center gap-1 disabled:opacity-50"
+                  style={{ backgroundColor: "var(--brand-primary)" }}
+                  data-testid="setup-biometric-btn"
+                >
+                  {biometricRegistering && <Loader2 className="h-3 w-3 animate-spin" />}
+                  Set Up
+                </button>
+              )}
             </div>
-            <button
-              onClick={() => {
-                setBiometricEnabled(!biometricEnabled);
-                toast.info("Biometric login " + (!biometricEnabled ? "enabled" : "disabled"));
-              }}
-              className={`relative w-12 h-7 rounded-full transition-colors ${biometricEnabled ? "bg-green-500" : "bg-gray-300"}`}
-            >
-              <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${biometricEnabled ? "translate-x-6" : "translate-x-1"}`} />
-            </button>
           </div>
 
           {/* MPIN Setup */}
