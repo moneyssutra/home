@@ -45,9 +45,9 @@ const AdminLayout = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#1E293B]" data-testid="admin-layout">
+    <div className="flex bg-[#F8FAFC]" data-testid="admin-layout">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-56 bg-[#1E293B] border-r border-white/5 z-50">
+      <aside className="hidden lg:flex flex-col fixed left-0 top-0 h-screen w-56 bg-[#1E293B] border-r border-white/5 z-50">
         <div className="px-5 h-14 flex items-center border-b border-white/5">
           <span className="text-sm font-black tracking-widest text-teal-400">MoneySutra</span>
           <span className="ml-2 text-[10px] font-medium text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">ADMIN</span>
@@ -82,7 +82,7 @@ const AdminLayout = () => {
       </aside>
 
       {/* Mobile Top Bar */}
-      <nav className="lg:hidden sticky top-0 z-50 bg-[#1E293B] border-b border-white/5">
+      <nav className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#1E293B] border-b border-white/5">
         <div className="flex items-center h-12 px-4 gap-3">
           <span className="text-sm font-black tracking-widest text-teal-400">MoneySutra</span>
           <span className="text-[10px] font-medium text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">ADMIN</span>
@@ -130,7 +130,7 @@ const AdminLayout = () => {
       )}
 
       {/* Main Content */}
-      <main className="lg:ml-56 bg-[#F8FAFC]">
+      <main className="flex-1 lg:ml-56 mt-12 lg:mt-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
           <Outlet />
         </div>
