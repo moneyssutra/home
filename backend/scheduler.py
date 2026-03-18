@@ -507,6 +507,174 @@ async def auto_update_sip_investments():
         logger.error(f"Error updating SIP investments: {str(e)}")
 
 
+async def auto_process_loan_repayments():
+    """Check for Loan Given investments with scheduled repayments due today.
+    Creates a notification asking user to confirm receipt."""
+    try:
+        today = datetime.now()
+        today_str = today.strftime("%Y-%m-%d")
+        current_day_of_month = today.day
+        current_weekday = today.strftime("%A")  # "Monday", "Tuesday", etc.
+
+        logger.info(f"Checking for loan repayments due on: {today_str}")
+
+        # Find all active Loan Given investments with fixed repayment plans
+        loans = await db.investments.find({
+            "investmentCategory": "Loan Given",
+            "loanStatus": {"$nin": ["closed"]},
+            "repaymentType": "fixed",
+            "repaymentFrequency": {"$exists": True, "$ne": None},
+        }, {"_id": 0}).to_list(1000)
+
+        processed = 0
+        for loan in loans:
+            loan_id = loan.get("id")
+            user_id = loan.get("userId")
+            frequency = loan.get("repaymentFrequency", "")
+            payment_day = loan.get("paymentDay", "")
+            installment_amount = loan.get("installmentAmount", 0)
+            borrower = loan.get("borrowerName", loan.get("name", "Borrower"))
+            outstanding = loan.get("outstandingAmount") or loan.get("principal", 0)
+            linked_income_id = loan.get("linkedIncomeSourceId")
+
+            if not user_id or not installment_amount or outstanding <= 0:
+                continue
+
+            # Check if this loan's payment is due today
+            is_due = False
+            if frequency == "Daily":
+                is_due = True
+            elif frequency == "Weekly" and payment_day:
+                is_due = current_weekday == payment_day
+            elif frequency == "Monthly" and payment_day:
+                try:
+                    is_due = current_day_of_month == int(payment_day)
+                except (ValueError, TypeError):
+                    pass
+            elif frequency == "Quarterly" and payment_day:
+                try:
+                    is_due = current_day_of_month == int(payment_day) and today.month in [1, 4, 7, 10]
+                except (ValueError, TypeError):
+                    pass
+            elif frequency == "Half-Yearly" and payment_day:
+                try:
+                    is_due = current_day_of_month == int(payment_day) and today.month in [1, 7]
+                except (ValueError, TypeError):
+                    pass
+            elif frequency == "Yearly" and payment_day:
+                try:
+                    is_due = current_day_of_month == int(payment_day) and today.month == 1
+                except (ValueError, TypeError):
+                    pass
+
+            if not is_due:
+                continue
+
+            # Check if already processed today
+            existing = await db.notifications.find_one({
+                "userId": user_id,
+                "type": "loan_repayment_due",
+                "relatedInvestmentId": loan_id,
+                "createdAt": {"$regex": f"^{today_str}"}
+            })
+            if existing:
+                continue
+
+            repay_amount = min(installment_amount, outstanding)
+
+            # Auto-record the repayment
+            new_received = (loan.get("amountReceived", 0) or 0) + repay_amount
+            new_outstanding = max(outstanding - repay_amount, 0)
+            new_status = "closed" if new_outstanding <= 0 else ("partial" if new_received > 0 else "active")
+
+            await db.investments.update_one(
+                {"id": loan_id},
+                {"$set": {
+                    "amountReceived": new_received,
+                    "outstandingAmount": new_outstanding,
+                    "currentValue": new_outstanding,
+                    "loanStatus": new_status,
+                    "lastRepaymentDate": today_str,
+                }}
+            )
+
+            # Record transaction
+            txn_id = str(uuid.uuid4())
+            txn = {
+                "id": txn_id,
+                "userId": user_id,
+                "investmentId": loan_id,
+                "investmentName": loan.get("name", ""),
+                "amount": repay_amount,
+                "type": "repayment",
+                "transactionDate": today_str,
+                "notes": "Auto-recorded scheduled repayment",
+                "outstandingBefore": outstanding,
+                "outstandingAfter": new_outstanding,
+                "principalPortion": repay_amount,
+                "interestPortion": 0,
+                "autoRecorded": True,
+                "confirmed": False,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+
+            # Interest split if applicable
+            interest_type = loan.get("interestType", "none")
+            principal_total = loan.get("principal", 0)
+            agreed_return = loan.get("agreedReturnAmount")
+            if interest_type != "none" and principal_total > 0 and agreed_return and agreed_return > principal_total:
+                total_interest = agreed_return - principal_total
+                interest_fraction = total_interest / agreed_return
+                interest_portion = round(repay_amount * interest_fraction, 2)
+                principal_portion = round(repay_amount - interest_portion, 2)
+                txn["interestPortion"] = interest_portion
+                txn["principalPortion"] = principal_portion
+
+            await db.investment_transactions.insert_one(txn)
+
+            # Auto-create income received entry
+            if linked_income_id:
+                income_txn = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "entityId": linked_income_id,
+                    "entityType": "income",
+                    "entityName": f"Loan Repayment - {loan.get('name', '')}",
+                    "amount": repay_amount,
+                    "transactionDate": today_str,
+                    "notes": "Auto-recorded scheduled repayment (pending confirmation)",
+                    "source": "auto_loan_repayment",
+                    "autoRecorded": True,
+                    "confirmed": False,
+                    "isLocked": False,
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                await db.income_received.insert_one(income_txn)
+
+            # Send notification asking user to confirm
+            notification = {
+                "id": str(uuid.uuid4()),
+                "userId": user_id,
+                "title": f"Loan repayment due from {borrower}",
+                "message": f"₹{repay_amount:,.0f} repayment was scheduled today from {borrower}. Did you receive it? Outstanding after: ₹{new_outstanding:,.0f}",
+                "type": "loan_repayment_due",
+                "relatedInvestmentId": loan_id,
+                "relatedTransactionId": txn_id,
+                "actionUrl": f"/investment-detail/{loan_id}",
+                "isRead": False,
+                "requiresConfirmation": True,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            await create_notification_and_cleanup(notification)
+
+            processed += 1
+            logger.info(f"Auto-recorded loan repayment for {loan.get('name')}: ₹{repay_amount} (Outstanding: ₹{new_outstanding})")
+
+        logger.info(f"Loan repayment processing complete. Processed: {processed} loans.")
+    except Exception as e:
+        logger.error(f"Error processing loan repayments: {str(e)}")
+
+
 async def check_and_send_reminders():
     """Background task that runs every minute to check for income reminders."""
     global scheduler_running

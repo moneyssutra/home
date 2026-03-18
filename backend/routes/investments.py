@@ -329,6 +329,15 @@ async def delete_investment(investment_id: str, request: Request):
     existing = await db.investments.find_one(user_filter, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Investment not found")
+
+    # Cascade-delete linked income source and transactions for Loan Given
+    if existing.get("investmentCategory") == "Loan Given":
+        linked_income_id = existing.get("linkedIncomeSourceId")
+        if linked_income_id:
+            await db.income_sources.delete_one({"id": linked_income_id})
+            await db.income_received.delete_many({"entityId": linked_income_id})
+        await db.investment_transactions.delete_many({"investmentId": investment_id})
+
     await db.investments.delete_one({"id": investment_id})
     return {"message": "Investment deleted successfully", "id": investment_id}
 
@@ -895,12 +904,34 @@ async def get_loan_given_detail(investment_id: str, request: Request):
 
 @router.post("/fix-loan-income-types")
 async def fix_loan_income_types(request: Request):
-    """One-time migration: update loan_repayment income sources from 'Other' to 'Interest'."""
+    """Migration: update loan income sources to 'Interest' type and clean up orphans."""
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    result = await db.income_sources.update_many(
-        {"userId": user.get("user_id"), "sourceCategory": {"$in": ["loan_repayment", "loan_interest"]}},
+    user_id = user.get("user_id")
+
+    # Fix type from Other to Interest
+    type_result = await db.income_sources.update_many(
+        {"userId": user_id, "sourceCategory": {"$in": ["loan_repayment", "loan_interest"]}},
         {"$set": {"type": "Interest"}}
     )
-    return {"updated": result.modified_count}
+
+    # Clean up orphaned income sources (linked to deleted investments)
+    loan_income_sources = await db.income_sources.find(
+        {"userId": user_id, "sourceCategory": {"$in": ["loan_repayment", "loan_interest"]}},
+        {"_id": 0, "id": 1}
+    ).to_list(500)
+
+    orphan_ids = []
+    for src in loan_income_sources:
+        linked_inv = await db.investments.find_one({"linkedIncomeSourceId": src["id"]}, {"_id": 0, "id": 1})
+        if not linked_inv:
+            orphan_ids.append(src["id"])
+
+    orphan_count = 0
+    for oid in orphan_ids:
+        await db.income_sources.delete_one({"id": oid})
+        await db.income_received.delete_many({"entityId": oid})
+        orphan_count += 1
+
+    return {"typeUpdated": type_result.modified_count, "orphansCleaned": orphan_count}
