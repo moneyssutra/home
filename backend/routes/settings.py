@@ -22,6 +22,13 @@ class NotificationSettings(BaseModel):
     weekly_summary: bool = True
     marketing_emails: bool = False
     reminder_days_before: int = 3
+    # Extended fields from frontend
+    income_reminders: bool = True
+    expense_reminders: bool = True
+    goal_reminders: bool = True
+    weekly_digest: bool = True
+    monthly_report: bool = True
+    sms_notifications: bool = False
 
 
 class PreferencesSettings(BaseModel):
@@ -56,27 +63,61 @@ async def get_notification_settings(request: Request):
         {"_id": 0}
     )
     
-    if not settings:
-        return NotificationSettings().dict()
+    if not settings or not settings.get("settings"):
+        # Return defaults in camelCase
+        return {
+            "emailNotifications": True, "pushNotifications": True, "smsNotifications": False,
+            "billReminders": True, "incomeReminders": True, "expenseReminders": True,
+            "goalReminders": True, "weeklyDigest": True, "monthlyReport": True,
+            "marketingEmails": False
+        }
     
-    return settings.get("settings", NotificationSettings().dict())
+    s = settings.get("settings", {})
+    return {
+        "emailNotifications": s.get("email_notifications", True),
+        "pushNotifications": s.get("push_notifications", True),
+        "smsNotifications": s.get("sms_notifications", False),
+        "billReminders": s.get("bill_reminders", True),
+        "incomeReminders": s.get("income_reminders", True),
+        "expenseReminders": s.get("expense_reminders", True),
+        "goalReminders": s.get("goal_reminders", True),
+        "weeklyDigest": s.get("weekly_digest", True),
+        "monthlyReport": s.get("monthly_report", True),
+        "marketingEmails": s.get("marketing_emails", False),
+    }
 
 
 @router.post("/notifications")
-async def update_notification_settings(settings: NotificationSettings, request: Request):
+@router.put("/notifications")
+async def update_notification_settings(request: Request):
     """Update user's notification settings"""
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     user_id = user.get('user_id')
+    body = await request.json()
+    
+    # Normalize camelCase keys from frontend to snake_case
+    settings = {
+        "email_notifications": body.get("emailNotifications", body.get("email_notifications", True)),
+        "push_notifications": body.get("pushNotifications", body.get("push_notifications", True)),
+        "sms_notifications": body.get("smsNotifications", body.get("sms_notifications", False)),
+        "bill_reminders": body.get("billReminders", body.get("bill_reminders", True)),
+        "income_reminders": body.get("incomeReminders", body.get("income_reminders", True)),
+        "expense_reminders": body.get("expenseReminders", body.get("expense_reminders", True)),
+        "goal_reminders": body.get("goalReminders", body.get("goal_reminders", True)),
+        "weekly_digest": body.get("weeklyDigest", body.get("weekly_digest", True)),
+        "monthly_report": body.get("monthlyReport", body.get("monthly_report", True)),
+        "marketing_emails": body.get("marketingEmails", body.get("marketing_emails", False)),
+    }
     
     await db.user_settings.update_one(
         {"userId": user_id, "type": "notifications"},
         {"$set": {
             "userId": user_id,
             "type": "notifications",
-            "settings": settings.dict(),
+            "settings": settings,
             "updatedAt": datetime.now(timezone.utc).isoformat()
         }},
         upsert=True

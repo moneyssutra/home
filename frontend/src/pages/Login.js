@@ -177,7 +177,7 @@ const Login = () => {
       return;
     }
     setIsSubmitting(true);
-    const result = await loginWithMpin(identifier.trim(), pinStr);
+    const result = await loginWithMpin(identifier.trim(), pinStr, rememberMe);
     if (result.success) {
       const from = location.state?.from?.pathname || "/home";
       navigate(from, { replace: true });
@@ -201,7 +201,7 @@ const Login = () => {
       return;
     }
     setIsSubmitting(true);
-    const result = await loginWithBiometric(identifier.trim());
+    const result = await loginWithBiometric(identifier.trim(), rememberMe);
     if (result.success) {
       const from = location.state?.from?.pathname || "/home";
       navigate(from, { replace: true });
@@ -476,7 +476,7 @@ const Login = () => {
 
               <button
                 type="button"
-                onClick={loginWithGoogle}
+                onClick={() => loginWithGoogle(rememberMe)}
                 className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-3 transition-all hover:shadow-sm"
                 style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
                 data-testid="google-login-button"
@@ -731,7 +731,7 @@ const Login = () => {
 
               {/* Google Login */}
               <button
-                onClick={loginWithGoogle}
+                onClick={() => loginWithGoogle(rememberMe)}
                 className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:shadow-md"
                 style={{ 
                   backgroundColor: "var(--bg-subtle)", 

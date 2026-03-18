@@ -29,6 +29,7 @@ import SupportIntelligence from "@/pages/admin/SupportIntelligence";
 import CampaignManager from "@/pages/admin/CampaignManager";
 import BehavioralInsights from "@/pages/admin/BehavioralInsights";
 import MonetizationEngine from "@/pages/admin/MonetizationEngine";
+import DataExport from "@/pages/admin/DataExport";
 
 // Pages
 import Dashboard from "@/Dashboard";
@@ -310,6 +311,7 @@ function AdminRouter() {
         <Route path="monetization" element={<MonetizationEngine />} />
         <Route path="users" element={<UserIntelligence />} />
         <Route path="risk" element={<RiskRadar />} />
+        <Route path="export" element={<DataExport />} />
       </Route>
       <Route path="*" element={null} />
     </Routes>

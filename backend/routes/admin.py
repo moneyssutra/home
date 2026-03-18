@@ -1165,3 +1165,124 @@ async def behavioral_insights(request: Request):
         "improvingUsers": improving_users[:10],
         "decliningUsers": declining_users[:10],
     }
+
+
+# ──────────────────── Data Export ────────────────────
+
+@router.get("/export/users")
+async def export_users_csv(request: Request):
+    """Export user list as CSV."""
+    await _require_admin(request)
+    import csv, io
+    from fastapi.responses import StreamingResponse
+
+    users = await db.users.find({}, {"_id": 0}).to_list(10000)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Email", "Name", "User ID", "Auth Type", "Created At", "Last Login", "Profile Complete"])
+    for u in users:
+        writer.writerow([
+            u.get("email", ""),
+            u.get("name", ""),
+            u.get("user_id", ""),
+            u.get("auth_type", "password"),
+            u.get("createdAt", ""),
+            u.get("lastLogin", ""),
+            u.get("profileComplete", False),
+        ])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=users_export_{datetime.now().strftime('%Y%m%d')}.csv"}
+    )
+
+
+@router.get("/export/financial/{user_id}")
+async def export_user_financial_csv(user_id: str, request: Request):
+    """Export a single user's full financial data as CSV."""
+    await _require_admin(request)
+    import csv, io
+    from fastapi.responses import StreamingResponse
+
+    user_filter = {"userId": user_id}
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Income Sources
+    writer.writerow(["=== INCOME SOURCES ==="])
+    writer.writerow(["Name", "Type", "Amount", "Frequency", "Start Date", "Category"])
+    incomes = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
+    for i in incomes:
+        writer.writerow([i.get("name",""), i.get("type",""), i.get("expectedAmount",0), i.get("frequency",""), i.get("startDate",""), i.get("sourceCategory","")])
+
+    writer.writerow([])
+
+    # Expenses
+    writer.writerow(["=== EXPENSES ==="])
+    writer.writerow(["Name", "Category", "Amount", "Frequency", "Selected Date", "Is Paid"])
+    expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
+    for e in expenses:
+        writer.writerow([e.get("expenseName",""), e.get("category",""), e.get("expectedAmount",0), e.get("frequency",""), e.get("selectedDate",""), e.get("isPaid",False)])
+
+    writer.writerow([])
+
+    # Investments
+    writer.writerow(["=== INVESTMENTS ==="])
+    writer.writerow(["Name", "Type", "Amount", "Frequency", "Start Date", "Current Value"])
+    investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+    for inv in investments:
+        writer.writerow([inv.get("name",""), inv.get("investmentType",""), inv.get("monthlyAmount",0), inv.get("frequency",""), inv.get("startDate",""), inv.get("currentValue",0)])
+
+    writer.writerow([])
+
+    # Accounts
+    writer.writerow(["=== ACCOUNTS ==="])
+    writer.writerow(["Name", "Type", "Balance", "Bank"])
+    accounts = await db.accounts.find(user_filter, {"_id": 0}).to_list(1000)
+    for a in accounts:
+        writer.writerow([a.get("accountName",""), a.get("accountType",""), a.get("balance",0), a.get("bankName","")])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=financial_{user_id}_{datetime.now().strftime('%Y%m%d')}.csv"}
+    )
+
+
+@router.get("/export/analytics")
+async def export_analytics_csv(request: Request):
+    """Export aggregated platform analytics as CSV."""
+    await _require_admin(request)
+    import csv, io
+    from fastapi.responses import StreamingResponse
+
+    users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Email", "Name", "Accounts", "Income Sources", "Expenses", "Investments", "Health Score", "Badges", "Last Login"])
+
+    for u in users:
+        uid = u.get("user_id")
+        uf = {"userId": uid}
+        acc = await db.accounts.count_documents(uf)
+        inc = await db.income_sources.count_documents(uf)
+        exp = await db.expenses.count_documents(uf)
+        inv = await db.investments.count_documents(uf)
+        profile = await db.user_gamification_profile.find_one({"user_id": uid}, {"_id": 0, "max_badges": 1})
+        badges = profile.get("max_badges", 0) if profile else 0
+        snapshot = await db.user_financial_snapshots.find_one({"userId": uid}, {"_id": 0, "healthScore": 1}, sort=[("date", -1)])
+        score = snapshot.get("healthScore", "N/A") if snapshot else "N/A"
+
+        writer.writerow([u.get("email",""), u.get("name",""), acc, inc, exp, inv, score, badges, u.get("lastLogin","")])
+
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=analytics_{datetime.now().strftime('%Y%m%d')}.csv"}
+    )

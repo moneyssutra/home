@@ -137,7 +137,18 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 
 ## Prioritized Backlog
 ### P2
-- Enhanced "Remember Me" with persistent sessions
+- ~~Enhanced "Remember Me" with persistent sessions~~ ✅ DONE (Mar 19, 2026)
+  - All login methods (password, MPIN, biometric, Google) now support `remember_me`
+  - When enabled: 30-day session; default: 7-day session
+  - Google auth saves preference to localStorage before redirect
 ### P3
-- Admin panel data export
-- User notification preferences
+- ~~Admin panel data export~~ ✅ DONE (Mar 19, 2026)
+  - 3 CSV export endpoints: users, analytics, per-user financial data
+  - Export page added to admin sidebar with Download buttons
+- ~~User notification preferences~~ ✅ DONE (Mar 19, 2026)
+  - Fixed PUT endpoint, camelCase normalization, GET returns proper defaults
+  - Frontend NotificationSettings.js connected to backend properly
+
+### Remaining Backlog
+- Repayment reminders for Loan Given
+- Skipped expense history view

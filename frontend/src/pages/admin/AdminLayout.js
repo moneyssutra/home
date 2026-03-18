@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, ShieldAlert, TrendingUp, LogOut, Activity, Timer, Layers, FlaskConical, HelpCircle, Megaphone, Brain, Menu, X, Rocket } from "lucide-react";
+import { LayoutDashboard, Users, ShieldAlert, TrendingUp, LogOut, Activity, Timer, Layers, FlaskConical, HelpCircle, Megaphone, Brain, Menu, X, Rocket, Download } from "lucide-react";
 import adminApi from "@/utils/adminApi";
 
 const navItems = [
@@ -15,6 +15,7 @@ const navItems = [
   { to: "/admin/monetization", icon: Rocket, label: "Monetize" },
   { to: "/admin/users", icon: Users, label: "Users" },
   { to: "/admin/risk", icon: ShieldAlert, label: "Risk" },
+  { to: "/admin/export", icon: Download, label: "Export" },
 ];
 
 const AdminLayout = () => {

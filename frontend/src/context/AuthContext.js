@@ -113,11 +113,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithMpin = async (email, mpin) => {
+  const loginWithMpin = async (email, mpin, rememberMe = false) => {
     try {
       const response = await axios.post(
         `${backendUrl}/api/mpin/login`,
-        { email, mpin },
+        { email, mpin, remember_me: rememberMe },
         { withCredentials: true }
       );
       setUser(response.data);
@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithBiometric = async (email) => {
+  const loginWithBiometric = async (email, rememberMe = false) => {
     try {
       // Iframe check
       if (window.self !== window.top) {
@@ -167,7 +167,7 @@ export const AuthProvider = ({ children }) => {
 
       const verifyRes = await axios.post(
         `${backendUrl}/api/biometric/login/verify`,
-        { credential, email },
+        { credential, email, remember_me: rememberMe },
         { withCredentials: true }
       );
 
@@ -187,17 +187,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithGoogle = () => {
-    // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
+  const loginWithGoogle = (rememberMe = false) => {
+    localStorage.setItem("moneyssutra_google_remember", rememberMe ? "1" : "0");
     const redirectUrl = window.location.origin + '/home';
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
   };
 
   const processGoogleSession = async (sessionId) => {
     try {
+      const rememberMe = localStorage.getItem("moneyssutra_google_remember") === "1";
+      localStorage.removeItem("moneyssutra_google_remember");
       const response = await axios.post(
         `${backendUrl}/api/auth/google/session`,
-        { session_id: sessionId },
+        { session_id: sessionId, remember_me: rememberMe },
         { withCredentials: true }
       );
       setUser(response.data);

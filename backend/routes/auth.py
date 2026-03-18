@@ -322,7 +322,8 @@ async def google_session(request: GoogleSessionRequest, response: Response):
         }})
 
     session_token = session_data.get("session_token") or str(uuid.uuid4())
-    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    session_days = 30 if request.remember_me else 7
+    expires_at = datetime.now(timezone.utc) + timedelta(days=session_days)
     session = {
         "session_id": str(uuid.uuid4()), "user_id": user_id,
         "session_token": session_token, "expires_at": expires_at.isoformat(),
@@ -330,7 +331,7 @@ async def google_session(request: GoogleSessionRequest, response: Response):
     }
     await db.user_sessions.insert_one(session)
     response.set_cookie(key="session_token", value=session_token, httponly=True,
-                        secure=True, samesite="none", path="/", max_age=7*24*60*60)
+                        secure=True, samesite="none", path="/", max_age=session_days*24*60*60)
     return {
         "user_id": user_id, "email": email, "name": session_data.get("name"),
         "picture": session_data.get("picture"), "session_token": session_token,
