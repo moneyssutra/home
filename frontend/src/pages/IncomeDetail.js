@@ -89,18 +89,31 @@ const getEditRoute = (incomeType, id) => {
             </button>}
           </div>
           {schedule.length > 0 ? (
-            <div className="max-h-[300px] overflow-y-auto">
-              {schedule.map((s, i) => (
-                <div key={i} className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)" }}>
-                  <span style={{ color: "var(--text-secondary)" }}>{formatDate(s.dueDate)}</span>
-                  <div className="flex items-center gap-2">
-                    <span style={{ color: "var(--text-primary)" }}>₹{fmt(s.amount)}</span>
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: s.status === "received" ? "#05966915" : "#F59E0B15", color: s.status === "received" ? "#059669" : "#F59E0B" }}>
-                      {s.status === "received" ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />} {s.status === "received" ? "Received" : "Upcoming"}
-                    </span>
+            <div className="max-h-[400px] overflow-y-auto">
+              {schedule.map((s, i) => {
+                const prevStatus = i > 0 ? schedule[i - 1].status : null;
+                const showDivider = prevStatus === "received" && s.status === "upcoming";
+                return (
+                  <div key={i}>
+                    {showDivider && (
+                      <div className="px-4 py-1.5 flex items-center gap-2" style={{ backgroundColor: "var(--bg-app)" }}>
+                        <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
+                        <span className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>UPCOMING</span>
+                        <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
+                      </div>
+                    )}
+                    <div className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                      <span style={{ color: "var(--text-secondary)" }}>{formatDate(s.dueDate)}</span>
+                      <div className="flex items-center gap-2">
+                        <span style={{ color: "var(--text-primary)" }}>₹{fmt(s.amount)}</span>
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: s.status === "received" ? "#05966915" : "#F59E0B15", color: s.status === "received" ? "#059669" : "#F59E0B" }}>
+                          {s.status === "received" ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />} {s.status === "received" ? "Received" : "Upcoming"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="px-4 py-6 text-center">

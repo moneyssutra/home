@@ -563,11 +563,17 @@ async def get_income_detail(income_id: str, request: Request):
     if inc.get("assetId"):
         linked_asset = await db.assets.find_one({"id": inc["assetId"]}, {"_id": 0, "assetName": 1, "currentValue": 1, "id": 1})
 
+    # Show balanced schedule: last N received + next N upcoming
+    received_entries = [s for s in schedule if s["status"] == "received"]
+    upcoming_entries = [s for s in schedule if s["status"] == "upcoming"]
+    # Take last 8 received (most recent first) + next 8 upcoming
+    balanced_schedule = received_entries[-8:] + upcoming_entries[:8]
+
     return {
         **{k: v for k, v in inc.items() if k != "createdAt"},
         "createdAt": inc.get("createdAt") if isinstance(inc.get("createdAt"), str) else inc.get("createdAt", datetime.now()).isoformat() if inc.get("createdAt") else None,
         "transactions": transactions[:30],
-        "schedule": schedule[-12:],
+        "schedule": balanced_schedule,
         "summary": {
             "totalReceived": round(monthly_received, 2),
             "monthlyTotal": round(monthly_total, 2),
