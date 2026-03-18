@@ -69,6 +69,13 @@ const MyJob = () => {
         return nextDate;
       case "Monthly":
         if (!selectedDate) return null;
+        if (typeof selectedDate === 'string' && selectedDate.includes('-')) {
+          const startDate = new Date(selectedDate + 'T00:00:00');
+          if (startDate > today) return startDate;
+          const nextFromStart = new Date(today.getFullYear(), today.getMonth(), startDate.getDate());
+          if (nextFromStart <= today) nextFromStart.setMonth(nextFromStart.getMonth() + 1);
+          return nextFromStart;
+        }
         const day = parseInt(selectedDate) || 1;
         const nextMonthlyDate = new Date(today.getFullYear(), today.getMonth(), day);
         if (nextMonthlyDate <= today) nextMonthlyDate.setMonth(nextMonthlyDate.getMonth() + 1);

@@ -77,6 +77,17 @@ const MyBusiness = () => {
         
       case "Monthly":
         if (!selectedDate) return null;
+        // Handle selectedDate as full date string (e.g., "2026-06-01") or day number
+        if (typeof selectedDate === 'string' && selectedDate.includes('-')) {
+          const startDate = new Date(selectedDate + 'T00:00:00');
+          if (startDate > today) return startDate;
+          // Find next monthly occurrence from start date
+          const nextFromStart = new Date(today.getFullYear(), today.getMonth(), startDate.getDate());
+          if (nextFromStart <= today) {
+            nextFromStart.setMonth(nextFromStart.getMonth() + 1);
+          }
+          return nextFromStart;
+        }
         const day = parseInt(selectedDate) || 1;
         const nextMonthlyDate = new Date(today.getFullYear(), today.getMonth(), day);
         if (nextMonthlyDate <= today) {
