@@ -40,7 +40,7 @@ const SecuritySettings = () => {
   const [activeSessions, setActiveSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
 
-  const hasPassword = user?.has_password || user?.auth_type === "jwt";
+  const hasPassword = user?.has_password === true;
 
   useEffect(() => {
     window.scrollTo(0, 0);

@@ -347,7 +347,7 @@ async def get_me(request: Request):
         "user_id": user.get("user_id"), "email": user.get("email"),
         "name": user.get("name"), "picture": user.get("picture"),
         "auth_type": user.get("auth_type"),
-        "has_password": user.get("has_password", user.get("auth_type") == "jwt" or user.get("password_hash") is not None)
+        "has_password": bool(user.get("password_hash"))
     }
 
 
