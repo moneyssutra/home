@@ -437,6 +437,7 @@ class Investment(BaseModel):
     repaymentFrequency: Optional[str] = None  # "Daily", "Weekly", "Monthly", "Quarterly", "Half-Yearly", "Yearly"
     installmentAmount: Optional[float] = None
     numberOfInstallments: Optional[int] = None
+    paymentDay: Optional[str] = None  # "Monday" for weekly, "1"-"28" for monthly
     linkedIncomeSourceId: Optional[str] = None  # auto-created income source for interest
     dueDate: Optional[str] = None
     amountReceived: Optional[float] = 0
@@ -482,6 +483,7 @@ class InvestmentCreate(BaseModel):
     repaymentFrequency: Optional[str] = None
     installmentAmount: Optional[float] = None
     numberOfInstallments: Optional[int] = None
+    paymentDay: Optional[str] = None
     dueDate: Optional[str] = None
     amountReceived: Optional[float] = 0
     outstandingAmount: Optional[float] = None

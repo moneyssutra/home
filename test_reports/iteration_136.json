@@ -1,0 +1,46 @@
+{
+  "summary": "Iteration 136: Bug fix for 'Income from Loan Given not visible on income page'. All 6 backend tests PASSED. Code review confirms frontend and backend fixes are correctly implemented. The root cause was that auto-created income sources were missing selectedDate/selectedDay fields needed by the income schedule system.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_loan_income_visibility_iter136.py",
+    "/app/test_reports/pytest/loan_income_visibility_iter136_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✓ Backend Fix (investments.py lines 60-68): paymentDay is now mapped to income_schedule as selectedDay (for weekly) or selectedDate (for monthly/quarterly/half-yearly/yearly)",
+    "✓ Backend Fix (investments.py lines 70-84): income_source dict includes **income_schedule to spread selectedDay/selectedDate fields",
+    "✓ Frontend Fix (InvestmentForm.js line 71): paymentDay state variable added",
+    "✓ Frontend Fix (InvestmentForm.js lines 858-869): Weekly shows day-of-week dropdown (Monday-Sunday) with data-testid='payment-day-select'",
+    "✓ Frontend Fix (InvestmentForm.js lines 873-884): Monthly shows date dropdown (1st-28th) with data-testid='payment-date-select'",
+    "✓ Frontend Fix (InvestmentForm.js line 531): paymentDay is included in API payload",
+    "✓ Frontend Fix (InvestmentDetail.js lines 352-353): Repayment input uses type='text' inputMode='decimal' instead of type='number' max=0",
+    "✓ Model (server_models.py line 440/486): paymentDay: Optional[str] field exists in both Investment and InvestmentCreate"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_loan_income_visibility_iter136.py"
+  ],
+  "success_rate": {
+    "backend": "100% (6/6 tests passed)",
+    "frontend": "Code review verified - all bug fixes correctly implemented"
+  },
+  "seed_data_creation": "Test users and sessions created via Python MongoDB driver for authenticated API testing - automatically cleaned up after tests",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 136 verified the income visibility bug fix. Key change: When creating Loan Given with interest and fixed EMI, the paymentDay from the form (e.g., 'Monday' for weekly or '15' for monthly) is now correctly mapped to the auto-created income source as selectedDay or selectedDate. This allows the income schedule calculation (income.py lines 103-131) to determine monthly received/pending amounts. Test file test_loan_income_visibility_iter136.py tests: (1) Monthly loan creates income with selectedDate, (2) Weekly loan creates income with selectedDay, (3) Income appears in /api/income/list/summary, (4) expectedAmount > 0 when agreedReturnAmount > principal, (5) loan-detail outstanding = principal for fresh loan, (6) income schedule uses selectedDate for calculations.",
+  "tests_passed": {
+    "test_01_monthly_loan_given_creates_income_with_selected_date": "PASSED - Monthly loan creates income source with selectedDate='15'",
+    "test_02_weekly_loan_given_creates_income_with_selected_day": "PASSED - Weekly loan creates income source with selectedDay='Monday'",
+    "test_03_income_source_appears_in_income_list_summary": "PASSED - Auto-created income appears in /api/income/list/summary",
+    "test_04_income_source_has_positive_expected_amount": "PASSED - expectedAmount=1000.0 for ₹60k loan with ₹72k agreed return",
+    "test_05_loan_detail_outstanding_equals_principal_for_fresh_loan": "PASSED - Fresh loan: outstanding=75000=principal, received=0",
+    "test_06_income_schedule_uses_selected_date": "PASSED - monthlyTotal/monthlyReceived/monthlyPending calculated using selectedDate"
+  }
+}

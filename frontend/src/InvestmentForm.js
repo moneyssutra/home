@@ -68,6 +68,7 @@ const InvestmentForm = () => {
   const [repaymentFrequency, setRepaymentFrequency] = useState("");
   const [installmentAmount, setInstallmentAmount] = useState("");
   const [numberOfInstallments, setNumberOfInstallments] = useState("");
+  const [paymentDay, setPaymentDay] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [dueDateCalendarOpen, setDueDateCalendarOpen] = useState(false);
   
@@ -356,6 +357,7 @@ const InvestmentForm = () => {
       setRepaymentFrequency(data.repaymentFrequency || "");
       setInstallmentAmount(data.installmentAmount?.toString() || "");
       setNumberOfInstallments(data.numberOfInstallments?.toString() || "");
+      setPaymentDay(data.paymentDay || "");
       setDueDate(data.dueDate || "");
     } catch (error) {
       console.error("Error fetching investment data:", error);
@@ -526,6 +528,7 @@ const InvestmentForm = () => {
           repaymentFrequency: repaymentType === "fixed" ? (repaymentFrequency || null) : null,
           installmentAmount: repaymentType === "fixed" && installmentAmount ? parseFloat(installmentAmount) : null,
           numberOfInstallments: repaymentType === "fixed" && numberOfInstallments ? parseInt(numberOfInstallments) : null,
+          paymentDay: paymentDay || null,
           dueDate: dueDate || null,
         }),
       };
@@ -842,6 +845,45 @@ const InvestmentForm = () => {
                         <option value="Yearly">Yearly</option>
                       </select>
                     </div>
+
+                    {/* Payment Day - when will borrower pay */}
+                    {repaymentFrequency && (
+                      <div className="w-full animate-in fade-in slide-in-from-top-2 duration-200">
+                        <label className="block text-xs font-medium text-[#334155] mb-1.5">
+                          {repaymentFrequency === "Weekly" ? "Payment Day" :
+                           repaymentFrequency === "Monthly" ? "Payment Date (day of month)" :
+                           repaymentFrequency === "Quarterly" || repaymentFrequency === "Half-Yearly" || repaymentFrequency === "Yearly" ? "Payment Date (day of month)" :
+                           "Payment Day"}
+                        </label>
+                        {repaymentFrequency === "Weekly" ? (
+                          <select
+                            value={paymentDay}
+                            onChange={(e) => setPaymentDay(e.target.value)}
+                            className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-2.5 text-sm text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                            data-testid="payment-day-select"
+                          >
+                            <option value="">Select Day</option>
+                            {["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].map(d => (
+                              <option key={d} value={d}>{d}</option>
+                            ))}
+                          </select>
+                        ) : repaymentFrequency === "Daily" ? (
+                          <p className="text-xs px-3 py-2.5 rounded-xl" style={{ backgroundColor: "#14B8A610", color: "#14B8A6" }}>Every day</p>
+                        ) : (
+                          <select
+                            value={paymentDay}
+                            onChange={(e) => setPaymentDay(e.target.value)}
+                            className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-2.5 text-sm text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                            data-testid="payment-date-select"
+                          >
+                            <option value="">Select Date</option>
+                            {Array.from({length: 28}, (_, i) => i + 1).map(d => (
+                              <option key={d} value={String(d)}>{d}{d === 1 ? "st" : d === 2 ? "nd" : d === 3 ? "rd" : "th"} of every {repaymentFrequency === "Quarterly" ? "quarter" : repaymentFrequency === "Half-Yearly" ? "half-year" : repaymentFrequency === "Yearly" ? "year" : "month"}</option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                    )}
 
                     {/* Installment Amount + Number of Installments */}
                     <div className="grid grid-cols-2 gap-3">

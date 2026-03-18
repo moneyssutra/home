@@ -57,6 +57,16 @@ async def create_investment(input: InvestmentCreate, request: Request):
             elif input.repaymentType == "lump_sum":
                 freq = "One-time"
 
+            # Map payment day to income source schedule fields
+            income_schedule = {}
+            payment_day = input.paymentDay or ""
+            if freq == "Weekly" and payment_day:
+                income_schedule["selectedDay"] = payment_day
+            elif freq in ("Monthly", "Quarterly", "Half-Yearly", "Yearly") and payment_day:
+                income_schedule["selectedDate"] = payment_day
+            elif freq == "Daily":
+                income_schedule["selectedDay"] = "Monday"  # placeholder for daily
+
             income_source = {
                 "id": str(uuid.uuid4()),
                 "userId": user.get('user_id'),
@@ -70,6 +80,7 @@ async def create_investment(input: InvestmentCreate, request: Request):
                 "startDate": input.startDate,
                 "notes": f"Auto-created from Loan Given: {input.name}. Total interest: ₹{total_interest:,.0f}" if total_interest > 0 else f"Auto-created from Loan Given: {input.name}",
                 "createdAt": datetime.now(timezone.utc).isoformat(),
+                **income_schedule,
             }
             await db.income_sources.insert_one(income_source)
             investment_dict['linkedIncomeSourceId'] = income_source['id']
