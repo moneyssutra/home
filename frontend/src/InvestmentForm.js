@@ -65,6 +65,7 @@ const InvestmentForm = () => {
   const [interestType, setInterestType] = useState("none");
   const [agreedReturnAmount, setAgreedReturnAmount] = useState("");
   const [repaymentType, setRepaymentType] = useState("flexible");
+  const [repaymentFrequency, setRepaymentFrequency] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [dueDateCalendarOpen, setDueDateCalendarOpen] = useState(false);
   
@@ -187,7 +188,7 @@ const InvestmentForm = () => {
       } else if (["Fixed Deposit (FD)", "Recurring Deposit (RD)", "Bonds"].includes(investmentCategory)) {
         setInvestmentMode("Growth with Maturity");
       } else if (investmentCategory === "Loan Given") {
-        setInvestmentMode("Income Generating");
+        setInvestmentMode(interestType !== "none" ? "Income Generating" : "Growth Only");
       }
     }
   }, [investmentCategory]);
@@ -235,6 +236,14 @@ const InvestmentForm = () => {
       setErrors(prev => { const n = {...prev}; delete n.maturityDate; return n; });
     }
   }, [maturityDate]);
+
+  // Auto-update investmentMode when interestType changes for Loan Given
+  useEffect(() => {
+    if (investmentCategory === "Loan Given") {
+      setInvestmentMode(interestType !== "none" ? "Income Generating" : "Growth Only");
+    }
+  }, [interestType, investmentCategory]);
+
 
   // Scroll to top on mount
   useEffect(() => {
@@ -318,6 +327,7 @@ const InvestmentForm = () => {
       setInterestType(data.interestType || "none");
       setAgreedReturnAmount(data.agreedReturnAmount?.toString() || "");
       setRepaymentType(data.repaymentType || "flexible");
+      setRepaymentFrequency(data.repaymentFrequency || "");
       setDueDate(data.dueDate || "");
     } catch (error) {
       console.error("Error fetching investment data:", error);
@@ -371,8 +381,8 @@ const InvestmentForm = () => {
       newErrors.investmentCategory = "Please select investment category.";
     }
 
-    // Investment Mode validation
-    if (!investmentMode) {
+    // Investment Mode validation (not needed for Loan Given)
+    if (!investmentMode && investmentCategory !== "Loan Given") {
       newErrors.investmentMode = "Please select investment mode.";
     }
 
@@ -485,7 +495,9 @@ const InvestmentForm = () => {
           interestType: interestType || "none",
           agreedReturnAmount: agreedReturnAmount ? parseFloat(agreedReturnAmount) : null,
           repaymentType: repaymentType || "flexible",
+          repaymentFrequency: repaymentType === "fixed" ? (repaymentFrequency || null) : null,
           dueDate: dueDate || null,
+          investmentMode: interestType === "none" ? "Growth Only" : "Income Generating",
         }),
       };
 
@@ -582,7 +594,8 @@ const InvestmentForm = () => {
               {errors.investmentCategory && <p className="text-sm text-red-500 mt-1">{errors.investmentCategory}</p>}
             </div>
 
-            {/* Investment Mode */}
+            {/* Investment Mode - Hidden for Loan Given */}
+            {!isLoanGiven && (
             <div className="w-full">
               <label htmlFor="investmentMode" className="block text-sm font-medium text-[#334155] mb-2">
                 Investment Mode
@@ -601,18 +614,46 @@ const InvestmentForm = () => {
               </select>
               {errors.investmentMode && <p className="text-sm text-red-500 mt-1">{errors.investmentMode}</p>}
             </div>
+            )}
+
+            {/* Amount Lent - For Loan Given, shown BEFORE name */}
+            {isLoanGiven && (
+              <div className="w-full">
+                <label htmlFor="principal" className="block text-sm font-medium text-[#334155] mb-2">
+                  Amount Lent / Amount Loaned *
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
+                  <input
+                    id="principal"
+                    type="text"
+                    value={principal}
+                    onChange={handleAmountChange(setPrincipal)}
+                    placeholder="How much did you lend?"
+                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    data-testid="principal-input"
+                  />
+                </div>
+                {parseFloat(principal) > 0 && (
+                  <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="principal-words">
+                    {numberToWords(parseFloat(principal))}
+                  </p>
+                )}
+                {errors.principal && <p className="text-sm text-red-500 mt-1">{errors.principal}</p>}
+              </div>
+            )}
 
             {/* Investment Name */}
             <div className="w-full">
               <label htmlFor="name" className="block text-sm font-medium text-[#334155] mb-2">
-                Investment Name
+                {isLoanGiven ? "Loan Label / Reference Name" : "Investment Name"}
               </label>
               <input
                 id="name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., SBI FD 2025, HDFC MF Growth"
+                placeholder={isLoanGiven ? "e.g., Loan to Rahul, Family Loan" : "e.g., SBI FD 2025, HDFC MF Growth"}
                 maxLength={100}
                 className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
                 data-testid="name-input"
@@ -742,6 +783,27 @@ const InvestmentForm = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Installment Frequency - shown only for Fixed repayment */}
+                {repaymentType === "fixed" && (
+                  <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="block text-sm font-medium text-[#334155] mb-2">Installment Frequency</label>
+                    <select
+                      value={repaymentFrequency}
+                      onChange={(e) => setRepaymentFrequency(e.target.value)}
+                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                      data-testid="repayment-frequency-select"
+                    >
+                      <option value="">Select Frequency</option>
+                      <option value="Daily">Daily</option>
+                      <option value="Weekly">Weekly</option>
+                      <option value="Monthly">Monthly</option>
+                      <option value="Quarterly">Quarterly</option>
+                      <option value="Half-Yearly">Semi-Annually</option>
+                      <option value="Yearly">Yearly</option>
+                    </select>
+                  </div>
+                )}
                 
                 {/* Due Date */}
                 <div className="w-full">
@@ -1098,7 +1160,8 @@ const InvestmentForm = () => {
               </div>
             )}
 
-            {/* Principal / Invested Amount - label changes based on SIP selection */}
+            {/* Principal / Invested Amount - Hidden for Loan Given (shown above) */}
+            {!isLoanGiven && (
             <div className="w-full">
               <label htmlFor="principal" className="block text-sm font-medium text-[#334155] mb-2">
                 {investmentFrequency && investmentFrequency !== "" ? "Initial Investment (can be 0)" : "Principal / Invested Amount"}
@@ -1125,11 +1188,12 @@ const InvestmentForm = () => {
               )}
               {errors.principal && <p className="text-sm text-red-500 mt-1">{errors.principal}</p>}
             </div>
+            )}
 
             {/* Start Date */}
             <div className="w-full">
               <label className="block text-sm font-medium text-[#334155] mb-2">
-                Start Date
+                {isLoanGiven ? "Loan Date" : "Start Date"}
               </label>
               <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
                 <PopoverTrigger asChild>
@@ -1161,8 +1225,8 @@ const InvestmentForm = () => {
               {errors.startDate && <p className="text-sm text-red-500 mt-1">{errors.startDate}</p>}
             </div>
 
-            {/* Digital Gold/Silver Specific Fields */}
-            {isDigitalMetal && (
+            {/* Digital Gold/Silver Specific Fields - Hidden for Loan Given */}
+            {isDigitalMetal && !isLoanGiven && (
               <>
                 <div className="w-full">
                   <label htmlFor="quantity" className="block text-sm font-medium text-[#334155] mb-2">
@@ -1198,8 +1262,8 @@ const InvestmentForm = () => {
               </>
             )}
 
-            {/* SGB Specific Fields */}
-            {isSGB && (
+            {/* SGB Specific Fields - Hidden for Loan Given */}
+            {isSGB && !isLoanGiven && (
               <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-[#F59E0B]/10 border border-[#F59E0B]/20">
                 <Info className="h-4 w-4 text-[#F59E0B] mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-[#92400E]">
@@ -1208,8 +1272,8 @@ const InvestmentForm = () => {
               </div>
             )}
 
-            {/* Income Generating Mode Fields */}
-            {isIncomeGenerating && (
+            {/* Income Generating Mode Fields - Hidden for Loan Given */}
+            {isIncomeGenerating && !isLoanGiven && (
               <>
                 <div className="w-full">
                   <label htmlFor="returnRate" className="block text-sm font-medium text-[#334155] mb-2">
@@ -1291,8 +1355,8 @@ const InvestmentForm = () => {
               </>
             )}
 
-            {/* Growth with Maturity Mode Fields */}
-            {isGrowthWithMaturity && (
+            {/* Growth with Maturity Mode Fields - Hidden for Loan Given */}
+            {isGrowthWithMaturity && !isLoanGiven && (
               <>
                 <div className="w-full">
                   <label htmlFor="lockInPeriod" className="block text-sm font-medium text-[#334155] mb-2">
@@ -1367,7 +1431,8 @@ const InvestmentForm = () => {
               </>
             )}
 
-            {/* Current Value */}
+            {/* Current Value - Hidden for Loan Given */}
+            {!isLoanGiven && (
             <div className="w-full">
               <label htmlFor="currentValue" className="block text-sm font-medium text-[#334155] mb-2">
                 Current Value <span className="text-[#94A3B8] font-normal">(Optional)</span>
@@ -1391,9 +1456,10 @@ const InvestmentForm = () => {
               )}
               <p className="text-xs text-[#334155]/60 mt-1">This feeds into your Net Worth calculation</p>
             </div>
+            )}
 
-            {/* Linked Account */}
-            {accounts.length > 0 && (
+            {/* Linked Account - Hidden for Loan Given */}
+            {accounts.length > 0 && !isLoanGiven && (
               <div className="w-full">
                 <label htmlFor="linkedAccount" className="block text-sm font-medium text-[#334155] mb-2">
                   Linked Account <span className="text-[#94A3B8] font-normal">(Optional)</span>
@@ -1429,7 +1495,8 @@ const InvestmentForm = () => {
               />
             </div>
 
-            {/* Consider as Liquid/Emergency Fund */}
+            {/* Consider as Liquid/Emergency Fund - Hidden for Loan Given */}
+            {!isLoanGiven && (
             <div className="w-full p-4 rounded-xl border border-[#334155] bg-[#1E293B]/50">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
@@ -1464,6 +1531,7 @@ const InvestmentForm = () => {
                 </div>
               )}
             </div>
+            )}
 
             {errors.submit && (
               <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">{errors.submit}</div>

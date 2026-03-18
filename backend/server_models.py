@@ -434,6 +434,7 @@ class Investment(BaseModel):
     interestType: Optional[str] = None  # "none", "simple", "custom"
     agreedReturnAmount: Optional[float] = None
     repaymentType: Optional[str] = None  # "flexible", "fixed"
+    repaymentFrequency: Optional[str] = None  # "Daily", "Weekly", "Monthly", "Quarterly", "Half-Yearly", "Yearly"
     dueDate: Optional[str] = None
     amountReceived: Optional[float] = 0
     outstandingAmount: Optional[float] = None
@@ -475,6 +476,7 @@ class InvestmentCreate(BaseModel):
     interestType: Optional[str] = None
     agreedReturnAmount: Optional[float] = None
     repaymentType: Optional[str] = None
+    repaymentFrequency: Optional[str] = None
     dueDate: Optional[str] = None
     amountReceived: Optional[float] = 0
     outstandingAmount: Optional[float] = None

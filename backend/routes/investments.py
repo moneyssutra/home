@@ -755,6 +755,7 @@ async def get_loan_given_detail(investment_id: str, request: Request):
         "interestRate": interest_rate,
         "agreedReturnAmount": agreed_return,
         "repaymentType": inv.get("repaymentType", "flexible"),
+        "repaymentFrequency": inv.get("repaymentFrequency"),
         "startDate": start_date_str,
         "dueDate": due_date_str,
         "notes": inv.get("notes"),
