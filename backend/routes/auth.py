@@ -351,6 +351,23 @@ async def get_me(request: Request):
     }
 
 
+@router.get("/security-status")
+async def security_status(request: Request):
+    """Check if user has MPIN and biometric set up."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = user["user_id"]
+    has_mpin = bool(user.get("mpin_hash"))
+    bio_count = await db.webauthn_credentials.count_documents({"user_id": user_id})
+    return {
+        "has_mpin": has_mpin,
+        "has_biometric": bio_count > 0,
+        "needs_setup": not has_mpin or bio_count == 0,
+    }
+
+
+
 @router.post("/set-password")
 async def set_password(request: SetPasswordRequest, req: Request):
     user = await get_current_user(req)

@@ -29,16 +29,37 @@ router = APIRouter(prefix="/biometric")
 
 
 def _get_rp_id(request: Request) -> str:
-    """Extract RP ID from the request origin (domain without port)."""
+    """Extract RP ID — the domain the browser actually sees."""
+    # x-forwarded-host is the real external domain behind proxy
+    forwarded = request.headers.get("x-forwarded-host", "")
+    if forwarded:
+        return forwarded.split(":")[0].split(",")[0].strip()
     host = request.headers.get("host", "localhost")
     return host.split(":")[0]
 
 
 def _get_origin(request: Request) -> str:
-    """Build origin from request."""
+    """Build origin — must match what the browser sees."""
     proto = request.headers.get("x-forwarded-proto", "https")
+    forwarded = request.headers.get("x-forwarded-host", "")
+    if forwarded:
+        host = forwarded.split(",")[0].strip()
+        return f"{proto}://{host}"
     host = request.headers.get("host", "localhost")
     return f"{proto}://{host}"
+
+
+@router.get("/debug-headers")
+async def debug_headers(request: Request):
+    """Debug: show what headers the backend sees (for RP ID debugging)."""
+    return {
+        "rp_id": _get_rp_id(request),
+        "origin": _get_origin(request),
+        "host": request.headers.get("host"),
+        "x-forwarded-host": request.headers.get("x-forwarded-host"),
+        "origin_header": request.headers.get("origin"),
+        "referer": request.headers.get("referer"),
+    }
 
 
 RP_NAME = "MoneySutra"
@@ -136,7 +157,7 @@ async def registration_verify(request: Request):
             expected_rp_id=rp_id,
         )
     except Exception as e:
-        logger.error(f"WebAuthn registration verification failed: {e}")
+        logger.error(f"WebAuthn registration verification failed: {e}, origin={origin}, rp_id={rp_id}")
         raise HTTPException(status_code=400, detail=f"Verification failed: {str(e)}")
 
     # Store the credential

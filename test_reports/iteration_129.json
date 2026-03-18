@@ -1,0 +1,88 @@
+{
+  "summary": "Bug fixes verified - both issues resolved. 1) Biometric RPID now correctly uses x-forwarded-host header instead of internal cluster host. 2) SecuritySetupPrompt modal appears after password login for new users without MPIN/biometric configured. All backend tests pass (8/8), frontend UI tests pass.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_bug_fixes_iter129.py",
+    "/app/test_reports/pytest/bug_fixes_iter129_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Biometric RPID fix properly extracts x-forwarded-host in _get_rp_id() and _get_origin() functions in routes/biometric.py",
+    "SecuritySetupPrompt uses sessionStorage to prevent modal from re-appearing during same session",
+    "SecuritySetupGuard in App.js correctly wraps AppRouter to check security status after authentication"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_bug_fixes_iter129.py"
+  ],
+  "success_rate": {
+    "backend": "100% (8/8 tests passed)",
+    "frontend": "100% - all login modes and SecuritySetupPrompt working"
+  },
+  "test_credentials": {
+    "admin": {
+      "email": "admin@moneyssutra.com",
+      "password": "admin123"
+    },
+    "test_user_mpin": {
+      "email": "test_mpin_e2e@example.com",
+      "password": "TestMpin123!",
+      "mpin": "1234"
+    }
+  },
+  "seed_data_creation": "Created several test users during testing for SecuritySetupPrompt validation",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Two bug fixes verified: 1) Biometric WebAuthn RPID mismatch fixed - _get_rp_id() now reads x-forwarded-host header. Debug at GET /api/biometric/debug-headers. 2) SecuritySetupPrompt shows after password login for new users without MPIN/biometric. It uses sessionStorage key 'security_setup_dismissed' to prevent re-showing. Login page defaults to biometric mode with switch buttons for MPIN and password.",
+  "features_tested": {
+    "biometric_rpid_fix": {
+      "GET /api/biometric/debug-headers with x-forwarded-host": "PASSED - Returns rp_id matching external domain",
+      "rp_id uses x-forwarded-host not internal host header": "PASSED - rp_id=mpin-auth-impl.preview.emergentagent.com",
+      "origin constructed correctly": "PASSED - https://mpin-auth-impl.preview.emergentagent.com"
+    },
+    "security_status_endpoint": {
+      "GET /api/auth/security-status requires auth": "PASSED - Returns 401 without session",
+      "GET /api/auth/security-status returns correct fields": "PASSED - has_mpin, has_biometric, needs_setup",
+      "needs_setup logic correct": "PASSED - true when MPIN or biometric missing",
+      "Works with Bearer token": "PASSED",
+      "New user returns needs_setup=true": "PASSED"
+    },
+    "login_page_modes": {
+      "Default mode is biometric": "PASSED - Shows fingerprint icon + 'Authenticate with Biometric'",
+      "Switch to MPIN mode button": "PASSED - data-testid='switch-to-mpin-btn'",
+      "Switch to Password mode button": "PASSED - data-testid='switch-to-password-btn'",
+      "MPIN mode shows 4 digit inputs": "PASSED",
+      "Password mode shows email + password fields": "PASSED",
+      "Back buttons in MPIN/Password modes": "PASSED"
+    },
+    "security_setup_prompt": {
+      "Modal appears after password login for new user": "PASSED - 'Set Your MPIN' modal displayed",
+      "Skip MPIN moves to biometric step": "PASSED - Shows 'Set Up Biometric' after skip",
+      "Skip biometric dismisses modal": "PASSED",
+      "X (dismiss) button dismisses modal": "PASSED",
+      "Progress indicator shows current step": "PASSED - Green dot on current step",
+      "sessionStorage prevents re-showing in same session": "PASSED"
+    },
+    "regression_admin_login": {
+      "POST /api/admin/login": "PASSED - Returns token"
+    },
+    "regression_mpin_login": {
+      "POST /api/mpin/login": "PASSED - Returns session for valid MPIN"
+    }
+  },
+  "bugs_verified_fixed": [
+    "Biometric WebAuthn RPID mismatch - now uses x-forwarded-host header",
+    "Existing users not prompted for MPIN/biometric setup - SecuritySetupPrompt now shows after login when needed"
+  ],
+  "api_endpoints_verified": [
+    {"endpoint": "/api/biometric/debug-headers", "method": "GET", "status": "WORKING", "auth": "none"},
+    {"endpoint": "/api/auth/security-status", "method": "GET", "status": "WORKING", "auth": "required"}
+  ]
+}

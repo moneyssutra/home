@@ -1,15 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 
 // Auth & Context
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { WorkspaceProvider } from "@/context/WorkspaceContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { FamilyProvider } from "@/context/FamilyContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AuthCallback from "@/components/AuthCallback";
+import SecuritySetupPrompt from "@/components/SecuritySetupPrompt";
 import Login from "@/pages/Login";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
@@ -322,6 +323,34 @@ function EventTracker() {
   return null;
 }
 
+function SecuritySetupGuard({ children }) {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  const [dismissed, setDismissed] = useState(false);
+
+  // Only show on protected pages, not on login/setup pages
+  const isProtectedPage = !(["/login", "/forgot-password", "/reset-password"].includes(location.pathname))
+    && !location.hash?.includes("session_id=");
+
+  // Check if user already dismissed this session
+  const sessionKey = "security_setup_dismissed";
+  const alreadyDismissed = sessionStorage.getItem(sessionKey) === "true";
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    sessionStorage.setItem(sessionKey, "true");
+  };
+
+  return (
+    <>
+      {children}
+      {isAuthenticated && isProtectedPage && !dismissed && !alreadyDismissed && (
+        <SecuritySetupPrompt onDismiss={handleDismiss} />
+      )}
+    </>
+  );
+}
+
 function AppContent() {
   const location = useLocation();
 
@@ -338,7 +367,9 @@ function AppContent() {
           <WorkspaceProvider>
             <FamilyProvider>
               <EventTracker />
-              <AppRouter />
+              <SecuritySetupGuard>
+                <AppRouter />
+              </SecuritySetupGuard>
               <Toaster />
             </FamilyProvider>
           </WorkspaceProvider>
