@@ -13,7 +13,7 @@ Build and maintain a full-stack financial management app ("MoneySutra") with Rea
 ## Key Environment Variables
 - `CUSTOM_MONGO_URL` / `CUSTOM_DB_DEV` / `CUSTOM_DB_PROD` — Auto-switching DB logic in `database.py`
 - `REACT_APP_BACKEND_URL` — Frontend API base URL
-- Admin credentials: `admin@moneyssutra.com` / `admin123` (hardcoded in `routes/admin.py`)
+- Admin credentials: Read from `ADMIN_EMAILS` and `ADMIN_PASSWORD` env vars in `backend/.env`
 
 ## Implemented Features
 

@@ -2,6 +2,7 @@
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Request, HTTPException
 import logging
+import os
 import uuid
 
 from database import db
@@ -10,12 +11,9 @@ from routes.utils import get_user_filter, get_user_now
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-ADMIN_CREDENTIALS = {
-    "admin@moneyssutra.com": "admin123",
-    "admin@moneysutra.com": "admin123",
-    "admin@moneysstra.com": "admin123",
-    "chandrashekhar.iter@gmail.com": "admin123",
-}
+_admin_emails = os.environ.get("ADMIN_EMAILS", "")
+_admin_password = os.environ.get("ADMIN_PASSWORD", "")
+ADMIN_CREDENTIALS = {email.strip(): _admin_password for email in _admin_emails.split(",") if email.strip()}
 
 # In-memory cache cleared periodically - use DB as source of truth
 admin_sessions_cache = {}
