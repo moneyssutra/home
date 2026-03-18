@@ -6,6 +6,7 @@ import RunwaySimulator from "@/components/RunwaySimulator";
 import MoneyPatternWidget from "@/components/MoneyPatternWidget";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
+import FinancialHealthWizard from "@/components/FinancialHealthWizard";
 import { useFamilyContext } from "@/context/FamilyContext";
 import { useState, useEffect } from "react";
 import { useIntelligenceData } from "@/hooks/useIntelligenceData";
@@ -17,8 +18,9 @@ import {
   AlertCircle, Info, Share2,
   HeartPulse, LifeBuoy, PieChart, ListChecks, Flag,
   Lock, XCircle, PiggyBank, CheckCircle, Rocket, Medal, Crown,
-  Gauge, Swords, ShieldCheck, Castle
+  Gauge, Swords, ShieldCheck, Castle, ClipboardEdit
 } from "lucide-react";
+import axios from "axios";
 
 // ─── HELPERS ───
 const fmt = (n) => { if (!n && n !== 0) return "0"; const a = Math.abs(n); if (a >= 10000000) return `${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `${(n/100000).toFixed(1)}L`; if (a >= 1000) return `${(n/1000).toFixed(0)}K`; return n.toFixed(0); };
@@ -1206,6 +1208,16 @@ const Insights = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const [openModule, setOpenModule] = useState(null);
+  const [showWizard, setShowWizard] = useState(false);
+  const [wizardData, setWizardData] = useState(null);
+
+  useEffect(() => {
+    if (isPersonalView) {
+      axios.get(`${backendUrl}/api/financial-health/wizard`, { withCredentials: true })
+        .then(res => { if (res.data && Object.keys(res.data).length > 1) setWizardData(res.data); })
+        .catch(() => {});
+    }
+  }, [backendUrl, isPersonalView]);
   const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, refresh, joinChallenge, leaveChallenge } = useIntelligenceData();
   const { activeViewLabel, isPersonalView, isFamilyView } = useFamilyContext();
 
@@ -1272,6 +1284,44 @@ const Insights = () => {
         )}
 
         <SurvivalWarning data={survivalClock} isEmpty={isEmpty} />
+
+        {/* Financial Health Wizard */}
+        {isPersonalView && !showWizard && (
+          <button
+            onClick={() => setShowWizard(true)}
+            className="w-full flex items-center justify-between p-4 rounded-2xl transition-all active:scale-[0.98]"
+            style={{ backgroundColor: isRedZone ? "#FEF2F2" : "var(--bg-card)", border: `1px solid ${isRedZone ? "#FECACA" : "var(--border-light)"}` }}
+            data-testid="insights-wizard-btn"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: isRedZone ? "#FEE2E2" : "#ECFDF5" }}>
+                <ClipboardEdit className="h-5 w-5" style={{ color: isRedZone ? "#DC2626" : "#059669" }} />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+                  {wizardData ? "Update Financial Profile" : "Complete Your Financial Profile"}
+                </p>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  {isRedZone ? "Enter your details to exit the RED ZONE" : "Get a more accurate health score"}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
+          </button>
+        )}
+
+        {isPersonalView && showWizard && (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Financial Profile</h4>
+              <button onClick={() => setShowWizard(false)} className="text-xs font-medium px-3 py-1.5 rounded-lg" style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)" }}>Close</button>
+            </div>
+            <FinancialHealthWizard
+              existingData={wizardData}
+              onComplete={() => { setShowWizard(false); refresh(); }}
+            />
+          </div>
+        )}
 
         {/* LAYER 1: HERO */}
         <HeroSection clockData={survivalClock} gamData={gamification} onImprove={scrollToActions} onShare={() => setShowShareCard(true)} />
