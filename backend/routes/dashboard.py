@@ -83,7 +83,11 @@ async def get_networth_summary(request: Request):
         "upcomingExpensesList": expense_upcoming_list,
         "assetCount": len(assets), "investmentCount": len(investments),
         "accountCount": len(accounts), "loanCount": len(loans),
-        "creditCardCount": len(credit_cards), "incomeCount": len(incomes), "expenseCount": len(expenses)
+        "creditCardCount": len(credit_cards), "incomeCount": len(incomes), "expenseCount": len(expenses),
+        # Loan Given snapshot
+        "loanGivenTotal": sum(inv.get('outstandingAmount', 0) or 0 for inv in investments if inv.get('investmentCategory') == 'Loan Given'),
+        "loanGivenAtRisk": sum(inv.get('outstandingAmount', 0) or 0 for inv in investments if inv.get('investmentCategory') == 'Loan Given' and inv.get('loanStatus') == 'default_risk'),
+        "loanGivenCount": sum(1 for inv in investments if inv.get('investmentCategory') == 'Loan Given'),
     }
 
 

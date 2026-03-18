@@ -21,6 +21,14 @@ async def create_investment(input: InvestmentCreate, request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
     investment_dict = input.model_dump()
     investment_dict['userId'] = user.get('user_id')
+
+    # Loan Given: auto-set computed fields on creation
+    if input.investmentCategory == "Loan Given":
+        investment_dict['amountReceived'] = 0
+        investment_dict['outstandingAmount'] = input.principal
+        investment_dict['loanStatus'] = "active"
+        investment_dict['currentValue'] = input.principal  # outstanding = principal initially
+
     investment_obj = Investment(**investment_dict)
     doc = investment_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
@@ -322,6 +330,10 @@ async def get_investment_detail(investment_id: str, request: Request):
     if not inv:
         raise HTTPException(status_code=404, detail="Investment not found")
 
+    # Redirect Loan Given to specialized endpoint
+    if inv.get("investmentCategory") == "Loan Given":
+        return await get_loan_given_detail(investment_id, request)
+
     principal = inv.get("principal", 0)
     current_value = inv.get("currentValue", 0)
     start_date_str = inv.get("startDate", "")
@@ -494,3 +506,268 @@ async def add_contribution(investment_id: str, request: Request):
         }
     }
 
+
+
+
+# ============ LOAN GIVEN: REPAYMENT ============
+
+@router.post("/{investment_id}/add-repayment")
+async def add_repayment(investment_id: str, request: Request):
+    """Add a repayment entry to a Loan Given investment."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    body = await request.json()
+    amount = body.get("amount", 0)
+    repayment_date = body.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+    notes = body.get("notes", "")
+
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Repayment amount must be positive")
+
+    user_filter = get_user_filter(user)
+    user_filter["id"] = investment_id
+    inv = await db.investments.find_one(user_filter, {"_id": 0})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investment not found")
+
+    if inv.get("investmentCategory") != "Loan Given":
+        raise HTTPException(status_code=400, detail="Repayments can only be added to Loan Given investments")
+
+    outstanding = inv.get("outstandingAmount", inv.get("principal", 0))
+    if amount > outstanding:
+        raise HTTPException(status_code=400, detail=f"Repayment amount (₹{amount}) exceeds outstanding (₹{outstanding})")
+
+    new_amount_received = (inv.get("amountReceived", 0) or 0) + amount
+    new_outstanding = inv.get("principal", 0) - new_amount_received
+
+    # Status logic
+    if new_outstanding <= 0:
+        new_status = "closed"
+        new_outstanding = 0
+    elif new_amount_received > 0:
+        new_status = "partial"
+    else:
+        new_status = "active"
+
+    await db.investments.update_one(
+        {"id": investment_id},
+        {"$set": {
+            "amountReceived": new_amount_received,
+            "outstandingAmount": new_outstanding,
+            "currentValue": new_outstanding,
+            "loanStatus": new_status,
+            "lastRepaymentDate": repayment_date,
+        }}
+    )
+
+    txn = {
+        "id": str(uuid.uuid4()),
+        "userId": user.get("user_id"),
+        "investmentId": investment_id,
+        "investmentName": inv.get("name", ""),
+        "amount": amount,
+        "type": "repayment",
+        "transactionDate": repayment_date,
+        "notes": notes,
+        "outstandingBefore": outstanding,
+        "outstandingAfter": new_outstanding,
+        "createdAt": datetime.now(timezone.utc).isoformat()
+    }
+    await db.investment_transactions.insert_one(txn)
+
+    return {
+        "success": True,
+        "transaction": {k: v for k, v in txn.items() if k != "_id"},
+        "updatedLoan": {
+            "amountReceived": new_amount_received,
+            "outstandingAmount": new_outstanding,
+            "loanStatus": new_status,
+        }
+    }
+
+
+@router.get("/{investment_id}/repayments")
+async def get_repayments(investment_id: str, request: Request):
+    """Get repayment history for a Loan Given investment."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_filter = get_user_filter(user)
+    user_filter["id"] = investment_id
+    inv = await db.investments.find_one(user_filter, {"_id": 0})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investment not found")
+
+    repayments = await db.investment_transactions.find(
+        {"investmentId": investment_id, "type": "repayment"},
+        {"_id": 0}
+    ).sort("transactionDate", -1).to_list(500)
+
+    return {
+        "repayments": repayments,
+        "summary": {
+            "principal": inv.get("principal", 0),
+            "amountReceived": inv.get("amountReceived", 0),
+            "outstandingAmount": inv.get("outstandingAmount", 0),
+            "loanStatus": inv.get("loanStatus", "active"),
+        }
+    }
+
+
+# ============ LOAN GIVEN: RISK DETECTION ============
+
+@router.post("/check-loan-risks")
+async def check_loan_risks(request: Request):
+    """Check and update risk status for all Loan Given investments."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_filter = get_user_filter(user)
+    user_filter["investmentCategory"] = "Loan Given"
+    user_filter["loanStatus"] = {"$nin": ["closed"]}
+
+    loans = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+    today = datetime.now(timezone.utc)
+    updated = []
+
+    for loan in loans:
+        last_repayment = loan.get("lastRepaymentDate")
+        start_date = loan.get("startDate", "")
+        reference_date_str = last_repayment or start_date
+
+        if not reference_date_str:
+            continue
+
+        try:
+            ref_date = datetime.strptime(reference_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        except (ValueError, TypeError):
+            continue
+
+        days_since = (today - ref_date).days
+        current_status = loan.get("loanStatus", "active")
+        risk_flag = None
+
+        if days_since >= 90 and current_status != "default_risk":
+            await db.investments.update_one(
+                {"id": loan["id"]},
+                {"$set": {"loanStatus": "default_risk"}}
+            )
+            updated.append({"id": loan["id"], "name": loan.get("name"), "newStatus": "default_risk", "daysSince": days_since})
+        elif days_since >= 30 and current_status in ("active", "partial"):
+            risk_flag = "medium_risk"
+            updated.append({"id": loan["id"], "name": loan.get("name"), "riskFlag": risk_flag, "daysSince": days_since})
+
+    return {"checked": len(loans), "updated": updated}
+
+
+# ============ LOAN GIVEN: DETAIL OVERRIDE ============
+
+@router.get("/{investment_id}/loan-detail")
+async def get_loan_given_detail(investment_id: str, request: Request):
+    """Get comprehensive detail for a Loan Given investment."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_filter = get_user_filter(user)
+    user_filter["id"] = investment_id
+    inv = await db.investments.find_one(user_filter, {"_id": 0})
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investment not found")
+
+    principal = inv.get("principal", 0)
+    amount_received = inv.get("amountReceived", 0) or 0
+    outstanding = inv.get("outstandingAmount", principal)
+    status = inv.get("loanStatus", "active")
+    start_date_str = inv.get("startDate", "")
+    due_date_str = inv.get("dueDate")
+    interest_type = inv.get("interestType", "none")
+    interest_rate = inv.get("returnRate", 0) or 0
+    agreed_return = inv.get("agreedReturnAmount")
+
+    # Risk detection
+    today = datetime.now(timezone.utc)
+    last_repayment = inv.get("lastRepaymentDate")
+    ref_date_str = last_repayment or start_date_str
+    days_since_activity = 0
+    risk_level = None
+
+    if ref_date_str:
+        try:
+            ref_date = datetime.strptime(ref_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            days_since_activity = (today - ref_date).days
+            if days_since_activity >= 90:
+                risk_level = "high"
+                if status not in ("closed",):
+                    status = "default_risk"
+                    await db.investments.update_one({"id": investment_id}, {"$set": {"loanStatus": "default_risk"}})
+            elif days_since_activity >= 30:
+                risk_level = "medium"
+        except (ValueError, TypeError):
+            pass
+
+    # Due date status
+    due_status = None
+    if due_date_str:
+        try:
+            due_date = datetime.strptime(due_date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            if today > due_date and status != "closed":
+                due_status = "overdue"
+            elif (due_date - today).days <= 7:
+                due_status = "due_soon"
+        except (ValueError, TypeError):
+            pass
+
+    # Interest calculation
+    expected_interest = 0
+    if interest_type == "simple" and interest_rate > 0:
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+            years = max((today - start_date.replace(tzinfo=timezone.utc)).days / 365.25, 0)
+            expected_interest = round(principal * (interest_rate / 100) * years, 2)
+        except (ValueError, TypeError):
+            pass
+    elif interest_type == "custom" and agreed_return:
+        expected_interest = round(agreed_return - principal, 2)
+
+    # Fetch repayment history
+    repayments = await db.investment_transactions.find(
+        {"investmentId": investment_id, "type": "repayment"},
+        {"_id": 0}
+    ).sort("transactionDate", -1).to_list(500)
+
+    # Recovery percentage
+    total_expected = agreed_return if agreed_return else principal
+    recovery_pct = round((amount_received / total_expected * 100), 1) if total_expected > 0 else 0
+
+    return {
+        "id": investment_id,
+        "name": inv.get("name"),
+        "investmentCategory": "Loan Given",
+        "borrowerName": inv.get("borrowerName"),
+        "borrowerContact": inv.get("borrowerContact"),
+        "principal": principal,
+        "interestType": interest_type,
+        "interestRate": interest_rate,
+        "agreedReturnAmount": agreed_return,
+        "repaymentType": inv.get("repaymentType", "flexible"),
+        "startDate": start_date_str,
+        "dueDate": due_date_str,
+        "notes": inv.get("notes"),
+        "amountReceived": amount_received,
+        "outstandingAmount": outstanding,
+        "loanStatus": status,
+        "lastRepaymentDate": last_repayment,
+        "expectedInterest": expected_interest,
+        "totalExpected": total_expected,
+        "recoveryPct": recovery_pct,
+        "dueStatus": due_status,
+        "riskLevel": risk_level,
+        "daysSinceActivity": days_since_activity,
+        "repayments": repayments,
+        "repaymentCount": len(repayments),
+    }

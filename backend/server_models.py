@@ -428,6 +428,17 @@ class Investment(BaseModel):
     isLiquidAsset: bool = False
     linkedExpenseId: Optional[str] = None
     lastSipUpdateDate: Optional[str] = None
+    # Loan Given fields
+    borrowerName: Optional[str] = None
+    borrowerContact: Optional[str] = None
+    interestType: Optional[str] = None  # "none", "simple", "custom"
+    agreedReturnAmount: Optional[float] = None
+    repaymentType: Optional[str] = None  # "flexible", "fixed"
+    dueDate: Optional[str] = None
+    amountReceived: Optional[float] = 0
+    outstandingAmount: Optional[float] = None
+    loanStatus: Optional[str] = None  # "active", "partial", "closed", "default_risk"
+    lastRepaymentDate: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class InvestmentCreate(BaseModel):
@@ -458,6 +469,17 @@ class InvestmentCreate(BaseModel):
     sipSelectedMonth: Optional[str] = None
     autoCreateExpense: bool = False
     isLiquidAsset: bool = False
+    # Loan Given fields
+    borrowerName: Optional[str] = None
+    borrowerContact: Optional[str] = None
+    interestType: Optional[str] = None
+    agreedReturnAmount: Optional[float] = None
+    repaymentType: Optional[str] = None
+    dueDate: Optional[str] = None
+    amountReceived: Optional[float] = 0
+    outstandingAmount: Optional[float] = None
+    loanStatus: Optional[str] = None
+    lastRepaymentDate: Optional[str] = None
 
 
 # ============ CREDIT CARD MODEL ============

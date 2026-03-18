@@ -96,6 +96,13 @@ def get_fallback_insights_internal(data: dict) -> list:
         insights.append({"type": "insurance", "icon": "\U0001f3e5", "title": "Get Health Insurance", "description": "No health insurance found. Medical emergencies can drain savings quickly.", "priority": "high", "actionable": True, "action_text": "Add Insurance", "action_link": "/my-insurance"})
     elif data.get('life_coverage', 0) < data.get('monthly_income', 0) * 120:
         insights.append({"type": "insurance", "icon": "\U0001f6e1\ufe0f", "title": "Increase Life Cover", "description": "Life cover should be 10x annual income. Consider term insurance.", "priority": "medium", "actionable": True, "action_text": "View Insurance", "action_link": "/my-insurance"})
+    # Loan Given insights
+    loan_given_total = data.get('loan_given_outstanding', 0)
+    total_assets_val = data.get('total_assets', 0) + data.get('total_investments', 0) + data.get('liquid_balance', 0)
+    if total_assets_val > 0 and loan_given_total > total_assets_val * 0.25:
+        insights.append({"type": "alert", "icon": "\u26a0\ufe0f", "title": "High Personal Lending Exposure", "description": f"Loans given ({loan_given_total:,.0f}) exceed 25% of your total assets. Consider diversifying.", "priority": "high", "actionable": True, "action_text": "View Investments", "action_link": "/my-investments"})
+    if data.get('loan_given_at_risk', 0) > 0:
+        insights.append({"type": "alert", "icon": "\u26a0\ufe0f", "title": "Recovery Risk Detected", "description": f"₹{data.get('loan_given_at_risk', 0):,.0f} in loans given are at default risk (90+ days without repayment).", "priority": "high", "actionable": True, "action_text": "Check Loans", "action_link": "/my-investments"})
     return insights
 
 
@@ -228,7 +235,9 @@ async def get_ai_insights(request: Request):
             "emergency_fund_goals": emergency_fund_goals_amount, "emergency_fund_goal_info": ef_goal_str,
             "active_goals": active_goals, "savings_rate": savings_rate, "top_expenses": top_expenses_str,
             "insurance_summary": insurance_summary, "insurance_gaps": ", ".join(insurance_gaps) if insurance_gaps else "Adequate coverage",
-            "has_health_insurance": has_health_insurance, "life_coverage": life_coverage, "total_annual_premium": total_annual_premium
+            "has_health_insurance": has_health_insurance, "life_coverage": life_coverage, "total_annual_premium": total_annual_premium,
+            "loan_given_outstanding": sum(inv.get('outstandingAmount', 0) or 0 for inv in investments if inv.get('investmentCategory') == 'Loan Given'),
+            "loan_given_at_risk": sum(inv.get('outstandingAmount', 0) or 0 for inv in investments if inv.get('investmentCategory') == 'Loan Given' and inv.get('loanStatus') == 'default_risk'),
         }
         insights = await generate_ai_insights_internal(financial_data)
         return {"insights": insights, "generated_at": datetime.now(timezone.utc).isoformat()}

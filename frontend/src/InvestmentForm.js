@@ -59,6 +59,15 @@ const InvestmentForm = () => {
   const [sipAmount, setSipAmount] = useState("");
   const [isLiquidAsset, setIsLiquidAsset] = useState(false);
   
+  // Loan Given fields
+  const [borrowerName, setBorrowerName] = useState("");
+  const [borrowerContact, setBorrowerContact] = useState("");
+  const [interestType, setInterestType] = useState("none");
+  const [agreedReturnAmount, setAgreedReturnAmount] = useState("");
+  const [repaymentType, setRepaymentType] = useState("flexible");
+  const [dueDate, setDueDate] = useState("");
+  const [dueDateCalendarOpen, setDueDateCalendarOpen] = useState(false);
+  
   // Accounts for linking
   const [accounts, setAccounts] = useState([]);
   
@@ -93,6 +102,7 @@ const InvestmentForm = () => {
     "Crypto",
     "PPF",
     "NPS",
+    "Loan Given",
     "Other"
   ];
 
@@ -176,6 +186,8 @@ const InvestmentForm = () => {
         setInvestmentMode("Growth Only");
       } else if (["Fixed Deposit (FD)", "Recurring Deposit (RD)", "Bonds"].includes(investmentCategory)) {
         setInvestmentMode("Growth with Maturity");
+      } else if (investmentCategory === "Loan Given") {
+        setInvestmentMode("Income Generating");
       }
     }
   }, [investmentCategory]);
@@ -300,6 +312,13 @@ const InvestmentForm = () => {
       setSipSelectedMonth(data.sipSelectedMonth || "");
       setAutoCreateExpense(data.autoCreateExpense || false);
       setIsLiquidAsset(data.isLiquidAsset || false);
+      // Loan Given fields
+      setBorrowerName(data.borrowerName || "");
+      setBorrowerContact(data.borrowerContact || "");
+      setInterestType(data.interestType || "none");
+      setAgreedReturnAmount(data.agreedReturnAmount?.toString() || "");
+      setRepaymentType(data.repaymentType || "flexible");
+      setDueDate(data.dueDate || "");
     } catch (error) {
       console.error("Error fetching investment data:", error);
       setErrors({ submit: "Failed to load investment data" });
@@ -398,6 +417,13 @@ const InvestmentForm = () => {
       if (sipError) newErrors.sipAmount = sipError;
     }
 
+    // Loan Given validations
+    if (investmentCategory === "Loan Given") {
+      if (!borrowerName || !borrowerName.trim()) {
+        newErrors.borrowerName = "Borrower name is required.";
+      }
+    }
+
     setErrors(newErrors);
     
     // Scroll to first error
@@ -452,6 +478,15 @@ const InvestmentForm = () => {
         sipSelectedMonth: sipSelectedMonth || null,
         autoCreateExpense: autoCreateExpense,
         isLiquidAsset: isLiquidAsset,
+        // Loan Given fields
+        ...(investmentCategory === "Loan Given" && {
+          borrowerName: borrowerName || null,
+          borrowerContact: borrowerContact || null,
+          interestType: interestType || "none",
+          agreedReturnAmount: agreedReturnAmount ? parseFloat(agreedReturnAmount) : null,
+          repaymentType: repaymentType || "flexible",
+          dueDate: dueDate || null,
+        }),
       };
 
       if (id) {
@@ -489,10 +524,11 @@ const InvestmentForm = () => {
   const isDigitalMetal = ["Digital Gold", "Digital Silver"].includes(investmentCategory);
   const isSGB = investmentCategory === "Sovereign Gold Bond (SGB)";
   const isSWP = investmentCategory === "SWP";
+  const isLoanGiven = investmentCategory === "Loan Given";
   const isIncomeGenerating = investmentMode === "Income Generating";
   const isGrowthWithMaturity = investmentMode === "Growth with Maturity";
-  // Show frequency field for ALL categories except SGB and SWP
-  const showFrequencyField = investmentCategory && !isSGB && !isSWP;
+  // Show frequency field for ALL categories except SGB, SWP, and Loan Given
+  const showFrequencyField = investmentCategory && !isSGB && !isSWP && !isLoanGiven;
 
   return (
     <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="investment-form-page">
@@ -589,6 +625,160 @@ const InvestmentForm = () => {
                 </div>
               )}
             </div>
+
+            {/* Loan Given Specific Fields */}
+            {isLoanGiven && (
+              <div className="w-full space-y-4 p-4 rounded-xl bg-[#FFF7ED] border border-[#F59E0B]/20" data-testid="loan-given-section">
+                <h4 className="text-sm font-semibold text-[#334155] mb-1 flex items-center gap-2">
+                  <Info className="h-4 w-4 text-[#F59E0B]" />
+                  Loan Details
+                </h4>
+                <p className="text-xs text-[#64748B] mb-3">Loan Given is not a regulated investment. Recovery depends on borrower reliability.</p>
+                
+                {/* Borrower Name */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">Borrower Name *</label>
+                  <input
+                    type="text"
+                    value={borrowerName}
+                    onChange={(e) => setBorrowerName(e.target.value)}
+                    placeholder="Who did you lend to?"
+                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    data-testid="borrower-name-input"
+                  />
+                  {errors.borrowerName && <p className="text-sm text-red-500 mt-1">{errors.borrowerName}</p>}
+                </div>
+                
+                {/* Borrower Contact */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">Borrower Contact</label>
+                  <input
+                    type="text"
+                    value={borrowerContact}
+                    onChange={(e) => setBorrowerContact(e.target.value)}
+                    placeholder="Phone or email (optional)"
+                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                    data-testid="borrower-contact-input"
+                  />
+                </div>
+                
+                {/* Interest Type */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">Interest Type</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { val: "none", label: "No Interest" },
+                      { val: "simple", label: "With Interest" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.val}
+                        type="button"
+                        onClick={() => setInterestType(opt.val)}
+                        className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
+                          interestType === opt.val
+                            ? "border-[#14B8A6] bg-[#14B8A6]/10 text-[#14B8A6]"
+                            : "border-[#334155] bg-[#1E293B] text-[#334155]"
+                        }`}
+                        data-testid={`interest-type-${opt.val}`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Interest Rate / Agreed Return (conditional) */}
+                {interestType !== "none" && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="w-full">
+                      <label className="block text-sm font-medium text-[#334155] mb-2">Interest Rate (% per year)</label>
+                      <input
+                        type="text"
+                        value={returnRate}
+                        onChange={handleAmountChange(setReturnRate)}
+                        placeholder="e.g., 12"
+                        className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                        data-testid="interest-rate-input"
+                      />
+                    </div>
+                    <div className="w-full">
+                      <label className="block text-sm font-medium text-[#334155] mb-2">OR Total Agreed Return Amount</label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
+                        <input
+                          type="text"
+                          value={agreedReturnAmount}
+                          onChange={handleAmountChange(setAgreedReturnAmount)}
+                          placeholder="Total amount to be returned"
+                          className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                          data-testid="agreed-return-input"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Repayment Type */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">Repayment Type</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { val: "flexible", label: "Flexible" },
+                      { val: "fixed", label: "Fixed Schedule" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.val}
+                        type="button"
+                        onClick={() => setRepaymentType(opt.val)}
+                        className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
+                          repaymentType === opt.val
+                            ? "border-[#14B8A6] bg-[#14B8A6]/10 text-[#14B8A6]"
+                            : "border-[#334155] bg-[#1E293B] text-[#334155]"
+                        }`}
+                        data-testid={`repayment-type-${opt.val}`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Due Date */}
+                <div className="w-full">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">Due Date (optional)</label>
+                  <Popover open={dueDateCalendarOpen} onOpenChange={setDueDateCalendarOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-left text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 flex items-center justify-between"
+                        data-testid="due-date-picker"
+                      >
+                        <span className={dueDate ? "text-[#334155]" : "text-[#94A3B8]"}>
+                          {dueDate || "Select due date"}
+                        </span>
+                        <CalendarIcon className="h-4 w-4 text-[#94A3B8]" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={dueDate ? new Date(dueDate + "T00:00:00") : undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            const y = date.getFullYear();
+                            const m = String(date.getMonth() + 1).padStart(2, "0");
+                            const d = String(date.getDate()).padStart(2, "0");
+                            setDueDate(`${y}-${m}-${d}`);
+                          }
+                          setDueDateCalendarOpen(false);
+                        }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            )}
 
             {/* Recurring Investment (SIP) Fields - Right after name, Hidden for SGB and SWP */}
             {showFrequencyField && (

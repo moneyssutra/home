@@ -517,6 +517,18 @@ const Dashboard = () => {
             </div>
             <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data?.totalInvestments || 0)}</p>
             <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{data?.investmentCount || 0} items</p>
+            {(data?.loanGivenTotal > 0) && (
+              <div className="mt-2 pt-2" style={{ borderTop: "1px solid var(--border-light)" }}>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  Loan Given: <span className="font-semibold" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(data.loanGivenTotal)}</span>
+                </p>
+                {data.loanGivenAtRisk > 0 && (
+                  <p className="text-xs mt-0.5" style={{ color: "var(--finance-loss)" }}>
+                    At Risk: ₹ {formatAmount(data.loanGivenAtRisk)}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Liquid Fund */}

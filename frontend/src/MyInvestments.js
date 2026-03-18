@@ -49,6 +49,7 @@ const MyInvestments = () => {
       "SWP": { bg: "#CFFAFE", text: "#0891B2" },
       "ULIP": { bg: "#F3E8FF", text: "#9333EA" },
       "Crypto": { bg: "#FEE2E2", text: "#DC2626" },
+      "Loan Given": { bg: "#FEF3C7", text: "#D97706" },
     };
     return styles[category] || { bg: "var(--bg-subtle)", text: "var(--text-secondary)" };
   };
@@ -258,8 +259,46 @@ const MyInvestments = () => {
                               {investment.investmentFrequency} SIP
                             </span>
                           )}
+                          {investment.investmentCategory === "Loan Given" && investment.loanStatus && (
+                            <span className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ 
+                              backgroundColor: investment.loanStatus === "closed" ? "#DCFCE7" : investment.loanStatus === "default_risk" ? "#FEE2E2" : investment.loanStatus === "partial" ? "#FEF3C7" : "#DBEAFE",
+                              color: investment.loanStatus === "closed" ? "#059669" : investment.loanStatus === "default_risk" ? "#DC2626" : investment.loanStatus === "partial" ? "#D97706" : "#2563EB"
+                            }}>
+                              {investment.loanStatus === "default_risk" ? "At Risk" : investment.loanStatus.charAt(0).toUpperCase() + investment.loanStatus.slice(1)}
+                            </span>
+                          )}
                         </div>
 
+                        {investment.investmentCategory === "Loan Given" ? (
+                          <div className="flex items-center gap-4">
+                            <div>
+                              <span className="text-sm" style={{ color: "var(--text-muted)" }}>Borrower</span>
+                              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                                {investment.borrowerName || "-"}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-sm" style={{ color: "var(--text-muted)" }}>Amount Given</span>
+                              <p className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
+                                ₹ {formatAmount(investment.principal || 0)}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-sm" style={{ color: "var(--text-muted)" }}>Outstanding</span>
+                              <p className="text-sm font-semibold" style={{ color: (investment.outstandingAmount || 0) > 0 ? "#DC2626" : "#059669" }}>
+                                ₹ {formatAmount(investment.outstandingAmount ?? investment.principal ?? 0)}
+                              </p>
+                            </div>
+                            {investment.lastRepaymentDate && (
+                              <div>
+                                <span className="text-sm" style={{ color: "var(--text-muted)" }}>Last Repaid</span>
+                                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                                  {investment.lastRepaymentDate}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
                         <div className="flex items-center gap-4">
                           <div>
                             <span className="text-sm" style={{ color: "var(--text-muted)" }}>Current Value</span>
@@ -284,6 +323,7 @@ const MyInvestments = () => {
                             </div>
                           )}
                         </div>
+                        )}
                       </div>
 
                       <ChevronRight className="h-6 w-6" style={{ color: "var(--text-muted)" }} />
