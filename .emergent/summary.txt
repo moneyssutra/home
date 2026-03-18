@@ -1,125 +1,147 @@
 <analysis>**original_problem_statement**: The user initially built a financial management app, MoneySutra, but a critical issue arose where a new deployment pointed to an empty database, making all real user data inaccessible. The primary goal became to diagnose this, migrate the data, and establish a stable development-production environment. After successfully migrating the data and setting up a dual-database system, the focus has shifted to fixing a series of UI/UX bugs and implementing new features. The current major task is the implementation and refinement of a new Loan Given investment type, which has involved multiple iterations of feature development, bug fixing, and UX adjustments based on user feedback. The user is now focused on automating loan repayment tracking and ensuring data integrity when loans are deleted.
 
-**PRODUCT REQUIREMENTS:**
-1.  **Loan Given Investment Type**: Implement a new investment category for tracking personal loans given to others. This includes a detailed data model, a dynamic creation form, repayment tracking, risk detection, dashboard integration, and income auto-creation. (In Progress)
-2.  **Data Integrity**: Ensure all related data is handled correctly. Specifically, when a Loan Given investment is deleted, its associated auto-created income source must also be deleted to prevent orphaned records. (In Progress)
-3.  **Automation**:
-    *   Automatically process loan repayments based on a schedule. (In Progress)
-    *   Notify the user when a repayment is due, allowing them to confirm receipt. (In Progress)
+PRODUCT REQUIREMENTS:
+The user has been providing rapid-fire feedback via screenshots, leading to a dynamic list of requirements focused on bug fixes and feature enhancements.
+1.  **Loan Given Feature Refinements**: Ensure calculations are correct across all pages (Dashboard, My Income, My Interest), handle backdated loans by retroactively processing past installments, and auto-populate the Due Date on the creation form for fixed-term plans.
+2.  **Expense Tracking Feature**: Add a Skip Payment option for monthly expenses, distinct from Mark Paid or Prepay.
+3.  **Financial Health Feature**: On the Red Zone screen (low score), add a guided wizard for users to manually input their financial details (income, assets, liabilities) to get a more accurate score.
+4.  **Data Integrity & UX Fixes**:
+    *   Fix incorrect category mappings for investments like Loan Given, PPF, and NPS.
+    *   Ensure data is immediately refreshed on the frontend after an item is deleted (fix caching issues).
+    *   Fix mobile UI issues where interactive elements are hidden by navigation bars.
+    *   Resolve all data discrepancies and calculation errors reported by the user.
+    *   Fix application crashes, such as the one currently affecting the Health/Insights tab.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI app connected to MongoDB. The agent has implemented the Loan Given investment feature, which allows users to create, view, and track personal loans. This includes a complex, dynamic form in the frontend () and corresponding backend logic () for data modeling, CRUD operations, and repayment tracking. The agent has gone through several rapid iterations of bug fixes and refinements based on user feedback, including fixing UI alignment, correcting data-flow issues that made income invisible, and ensuring repayments are categorized correctly. The agent is now working on adding automation and data integrity measures to this feature.
+The application is a full-stack React/FastAPI app with a MongoDB database. It includes features for tracking income, expenses, investments (including a complex Loan Given type), and a financial health scoring system with a gamified Insights page. The last session involved a high volume of bug fixes and new feature implementations based on user feedback, including:
+*   Automation and cascade-delete for the Loan Given feature.
+*   A Skip Payment option for expenses.
+*   A comprehensive financial health wizard to supplement user data.
+*   Numerous fixes for data calculation inconsistencies across multiple pages.
+*   Data correction for existing records in the production database.
+*   Fixes for UI layout and caching issues.
 
 **Last working item**:
--   **Last item agent was working**: The agent was implementing a three-part solution to address user feedback on the Loan Given feature:
-    1.  **Orphaned Income Source**: The income source created for a loan was not being deleted when the loan itself was deleted.
-    2.  **Auto-Deduction**: Loan repayments were not being processed automatically on their scheduled dates.
-    3.  **Repayment Confirmation**: The user wanted a notification to confirm if a scheduled payment was received.
-    The agent began by updating the investment  endpoint to cascade the deletion to the linked income source and added a new scheduler task () to create confirmation notifications for due repayments.
+-   **Last item agent was working**: Fixing a critical crash on the **Insights** page. The agent had just added the new Financial Health Wizard to this page but forgot to define the  constant, causing a fatal JavaScript error () when the component tried to fetch data.
 -   **Status**: IN PROGRESS
 -   **Agent Testing Done**: N
--   **Which testing method agent to use?**: backend testing agent
+-   **Which testing method agent to use?**: manual testing by screenshot tool
 -   **User Testing Done**: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Implement Loan Repayment Scheduler, Confirmation, and Cascade Delete (P0)**
+-   **Issue 1: Insights Page Crash (P0)**
+-   **Issue 2: Badge Count Verification (P2)**
 
 **Issues Detail**:
--   **Issue 1: Implement Loan Repayment Scheduler, Confirmation, and Cascade Delete**
-    -   **Attempted fixes**:
-        -   The  endpoint in  was modified to find and delete the associated income source using the  stored on the investment document.
-        -   A new function, , was created in . This function identifies loans with scheduled payments due today and creates a notification prompting the user to confirm the payment.
-        -   A new endpoint, , was added to  to handle the confirmation action from the notification, which then triggers the existing  logic.
+-   **Issue 1: Insights Page Crash**
+    -   **Attempted fixes**: The agent correctly identified the root cause in the  hook within  but did not get to implement the fix.
     -   **Next debug checklist**:
-        1.  Ensure the new  function is called from the main scheduler loop in .
-        2.  Thoroughly test the end-to-end flow: create a loan with a fixed schedule, verify the scheduler creates a confirmation notification, confirm the payment via the notification's action, and check that the loan's state and transaction history are updated correctly.
-        3.  Verify that deleting the loan investment also successfully deletes the orphaned income source.
-    -   **Why fix this issue and what will be achieved with the fix?**: This will complete the automation of the Loan Given feature, ensure data integrity by preventing orphaned records, and provide the user with the requested confirmation workflow for tracking repayments.
+        1.  In , add the line  before it is used in the  hook that fetches wizard data.
+        2.  Verify that the  page loads correctly without crashing.
+        3.  Confirm that the Complete Your Profile button and the wizard functionality now work as expected on the Insights page.
+    -   **Why fix this issue and what will be achieved with the fix?**: The Insights page is a core part of the user experience and is currently completely inaccessible due to the crash. This fix will restore its functionality.
     -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: backend
+    -   **Should Test frontend/backend/both after fix?**: frontend
     -   **Blocked on other issue**: None
 
+-   **Issue 2: Badge Count Verification**
+    -   **Attempted fixes**: The agent provided a verbal explanation that the 37/100 badge count for a new but active user is plausible.
+    -   **Next debug checklist**:
+        1.  Review the achievement criteria in .
+        2.  Identify which badges are awarded based on initial data entry or simple actions.
+        3.  Assess if the criteria for these badges are too lenient and should be tightened to improve the perceived value of the gamification system.
+    -   **Why fix this issue and what will be achieved with the fix?**: Ensures the gamification system feels rewarding and earned, rather than arbitrary.
+    -   **Status**: NOT STARTED
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: backend
+    -   **Blocked on other issue**: Issue 1
+
 **In progress Task List**:
-(None - all current work is classified under the issue above)
+(None)
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P1) Production Test Data Cleanup**: Remove any test data (e.g., old users, orphaned records) from the production database. A cleanup endpoint () was created for this.
-    -   **(P2) Enhanced Remember Me**: Implement a persistent login/auto-login feature using long-lived refresh tokens.
+    -   **(P1) Production Test Data Cleanup**: Remove any remaining test data or orphaned records from the production database.
 -   **Future Tasks**:
-    -   Repayment Reminders (suggested by the agent).
+    -   Enhanced Remember Me with persistent sessions.
     -   Admin panel data export.
+    -   Repayment reminders (agent suggestion).
     -   User notification preferences.
 
 **Completed work in this session**
--   **P0 Income Bug Fixes**:
-    -   Fixed a broken Edit button redirect on the income detail page.
-    -   Corrected the Current Month Income total on the  page.
--   **Loan Given Feature Implementation (Major Feature)**:
-    -   **Backend**: Extended the  model and implemented full CRUD logic, repayment tracking (), status transitions, and a specialized detail endpoint ().
-    -   **Frontend**: Built a highly dynamic and conditional form () for creating/editing loans, including a complex repayment plan structure (Lump Sum, Fixed Installments, Flexible). Updated list and detail views to show loan-specific data.
-    -   **Integrations**: Integrated loan data into the main dashboard (total investments, loans at risk) and the insights engine.
--   **Loan Given Bug Fixes & Refinements (Multiple Iterations)**:
-    -   Fixed multiple UI layout and data visibility bugs on the .
-    -   Resolved a critical bug where income sources were not created for no-interest loans, making repayments invisible on the income page.
-    -   Corrected the auto-created income source category from Other to Interest.
-
-**Earlier issues found/mentioned but not fixed**
--   **Issue 1: Production Test Data Cleanup**
-    -   **Debug checklist**: A test user or orphaned data might still exist in the  database. An endpoint to remove orphaned income sources was created ().
-    -   **Why to solve this issue and what will be achieved with this?**: Ensures the production database contains only clean, real user data. This is a low-priority cleanup task.
-    -   **Should Test frontend/backend/both after fix**: backend
-    -   **Is recurring issue?**: N
-
-**Known issue recurrence from previous fork**
--   **Data discrepancy** issues have been a recurring theme, particularly with how frontend calculations differ from backend logic and how different features (like Loans) integrate with the main Income system. The agent has been iteratively resolving these.
+-   **Loan Given Automation & Fixes**:
+    -   Integrated loan repayment scheduler and confirmation notifications.
+    -   Implemented cascade-delete for linked income sources.
+    -   Fixed numerous data calculation bugs across the Dashboard, My Income, and My Interest pages by adding  checks and correctly handling .
+    -   Implemented retroactive processing for backdated loans.
+-   **Feature: Skip Payment for Expenses**:
+    -   Added backend endpoints (, ) and a  field to the expense model.
+    -   Added frontend UI/UX in  for skipping, undoing a skip, and displaying the skipped status.
+-   **Feature: Financial Health Wizard**:
+    -   Created backend endpoints () to store and retrieve user-inputted financial data.
+    -   Integrated wizard data into the main health score calculation to supplement missing information.
+    -   Built a 6-step  React component.
+    -   Integrated the wizard into the  and  pages, making it appear for users with low scores.
+-   **Data Integrity & UX Fixes**:
+    -   Fixed investment category mappings for Loan Given, PPF, and NPS in both the frontend code and by correcting existing data in the DB.
+    -   Resolved a frontend caching issue by using SWR's  function to revalidate data after a deletion.
+    -   Fixed a mobile UI bug where a modal button was hidden by the bottom navigation bar.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Cascade Delete**: The agent is implementing logic to manually delete a related  document when its parent  document is deleted.
--   **Background Scheduler**: Using  to run periodic tasks. A new task is being added to check for due loan repayments.
--   **Actionable Notifications**: Leveraging the existing notification system to create alerts that trigger backend API calls (e.g., a Confirm Repayment button on a notification that calls the  endpoint).
--   **Dynamic Frontend Forms**: Heavy use of React state (, ) and conditional rendering in  to create a complex form that adapts to user input for the Loan Given type.
+-   **SWR Cache Invalidation**: Used  to force data refetching after a DELETE operation to fix stale UI.
+-   **Retroactive Data Processing**: Implemented logic on investment creation to process past-due installments for backdated loans.
+-   **Data Supplementation via Wizard**: Created a feature to allow users to manually input financial data, which is then merged with system-tracked data on the backend to provide a more complete financial health assessment.
+-   **Complex Backend Aggregation**: Refactored multiple backend endpoints (, ) to handle special cases (like loan repayments) and respect start dates to provide accurate, pre-calculated summaries.
+-   **Feature Augmentation**: Added a Skip Payment feature to the existing expense tracking system, involving both backend state () and frontend UI/logic.
 
 **key DB schema**
--   **investments**: 
--   **income_sources**: 
--   **notifications**: 
+-   **expenses**: Added  to track monthly skips.
+-   **financial_health_wizard**: New collection to store user-submitted wizard data: .
+-   **income_sources**:  field was added and is critical for correct calculations.
 
 **All files of reference**
--   : Contains all CRUD, repayment, and automation logic for investments.
--   : Contains the background task runner.
--   : The main UI for creating and editing investments.
--   : The detail page for viewing a single investment.
--   : Contains the Pydantic data models.
--   : The route for managing income sources.
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
 
 **Critical Info for New Agent**
--   The immediate task is to complete the integration of the loan repayment scheduler. This involves adding the  call to the main scheduler loop in  and then thoroughly testing the entire notification and confirmation flow.
--   The user is highly focused on data accuracy. The Loan Given feature's integration with the income system has been a recurring pain point. Ensure all data flows are verified.
--   Remember the cascading delete logic: when an investment is deleted, its linked income source (found via ) must also be deleted.
+-   **The user provides rapid, detailed feedback via screenshots.** Be prepared to address multiple, often interconnected, bugs in a single turn.
+-   **The immediate priority is fixing the crash on the  page.** This is a P0 blocker caused by a missing  definition in .
+-   Financial calculations are extremely sensitive. The Loan Given feature, in particular, affects summaries on the Dashboard, My Income, and My Interest pages. Any changes to , , , or  must be carefully tested.
 
 **documents and test reports created in this job**
 -   
 -   
--   
--   
--   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Reports that the Other income source remains after deleting the associated loan investment, asks about auto-deduction for loan payments, and requests a confirmation notification for received income.
-2.  **Agent**: Proposes a 3-part plan to fix cascade delete, add a scheduler for auto-repayments, and implement a confirmation notification system.
-3.  **User**: Yes - approves the plan.
-4.  **Agent**: Begins implementation of the three fixes.
-5.  ... (Previous messages detail the rapid bug-fixing and refinement of the Loan Given feature, covering issues with income visibility, form UI/UX, and data categorization).
+1.  **User**: Reports the Health tab is not opening and provides a screenshot of the error. (CRASH - In Progress)
+2.  **User**: Reports that deleted investments are still visible on the frontend. (Completed - Cache issue fixed)
+3.  **User**: Reports that the Complete Your Profile wizard icon is not visible and questions the high badge count for a new user. (In Progress - Wizard icon missing due to crash, badge count needs review)
+4.  **User**: Asks for a form/wizard on the Red Zone health screen. (Completed - Wizard feature implemented)
+5.  **User**: Requests a Skip Payment option for expenses. (Completed)
+6.  **User**: Reports data classification issues for SGB/PPF/NPS investments. (Completed - Data fixed)
+7.  **User**: Reports that all Loan Given cases are falling under the Other category. (Completed - Frontend config fixed)
+8.  **User**: Reports that flexible repayment loans are incorrectly being set to Monthly frequency. (Completed - Backend logic and existing data fixed)
+9.  **User**: Reports a mobile UI issue where the Add Repayment button is hidden. (Completed)
+10. **User**: Reports multiple calculation errors on the My Income and My Interest pages related to a new loan. (Completed)
 
 **Project Health Check:**
--   **Broken**: The automation aspect of the Loan Given feature is incomplete. Scheduled repayments are not yet processed automatically, and data integrity is at risk from orphaned income sources (though a fix is in progress).
+-   **Broken**: The  page is currently crashing due to a Javascript error (). This is a P0 blocker, making a key feature unusable.
 
 **3rd Party Integrations**
 -   MongoDB Atlas (User-provided cluster)
@@ -127,14 +149,14 @@ The application is a full-stack React/FastAPI app connected to MongoDB. The agen
 -   WebAuthn (for Biometric Authentication)
 
 **Testing status**
--   **Testing agent used after significant changes**: YES
+-   **Testing agent used after significant changes**: YES (for the initial loan automation feature)
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: []
--   **Known regressions**: None currently, but the income/loan integration has been fragile.
+-   **Known regressions**: None currently active, but a regression was introduced and is now the primary bug: the crash on the Insights page.
 
 **Credentials to test flow:**
--   **Production User (for feature testing):**
-    -   Email:  (Login via Continue with Google)
+-   **Email**:  (Login via Continue with Google)
+-   **Email**:  (Login via Continue with Google - user for whom production data was fixed)
 
 **What agent forgot to execute**
--   The agent has been responsive and is in the middle of implementing the user's latest requests. The low-priority Production Test Data Cleanup task remains pending, which is acceptable.</analysis>
+-   The agent forgot to define the  constant in  after adding the Financial Health Wizard logic, which directly caused the current application crash.</analysis>

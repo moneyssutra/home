@@ -45,7 +45,7 @@
     "biometric_rpid_fix": {
       "GET /api/biometric/debug-headers with x-forwarded-host": "PASSED - Returns rp_id matching external domain",
       "rp_id uses x-forwarded-host not internal host header": "PASSED - rp_id=mpin-auth-impl.preview.emergentagent.com",
-      "origin constructed correctly": "PASSED - https://invest-integrity-lab.preview.emergentagent.com"
+      "origin constructed correctly": "PASSED - https://financial-health-v2.preview.emergentagent.com"
     },
     "security_status_endpoint": {
       "GET /api/auth/security-status requires auth": "PASSED - Returns 401 without session",
