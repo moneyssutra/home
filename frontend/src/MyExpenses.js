@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ChevronRight, ChevronLeft, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal, TrendingUp, PiggyBank, Check, Clock, CalendarDays, FastForward, Undo2, List, Calendar, BarChart3, LineChart } from "lucide-react";
+import { ChevronRight, ChevronLeft, Plus, Receipt, Home, Zap, ShoppingBag, Car, Stethoscope, GraduationCap, Shield, Tv, CreditCard, Briefcase, Wallet, MoreHorizontal, TrendingUp, PiggyBank, Check, Clock, CalendarDays, FastForward, Undo2, List, Calendar, BarChart3, LineChart, SkipForward } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
@@ -85,18 +85,21 @@ const MyExpenses = () => {
   const monthStats = useMemo(() => {
     const paid = monthExpenses.filter(e => e._displayStatus === "paid" || e._displayStatus === "prepaid");
     const pending = monthExpenses.filter(e => e._displayStatus === "pending");
+    const skipped = monthExpenses.filter(e => e._displayStatus === "skipped");
     return {
       total: monthExpenses.reduce((s, e) => s + (e.expectedAmount || 0), 0),
       paidTotal: paid.reduce((s, e) => s + (e.expectedAmount || 0), 0),
       pendingTotal: pending.reduce((s, e) => s + (e.expectedAmount || 0), 0),
+      skippedTotal: skipped.reduce((s, e) => s + (e.expectedAmount || 0), 0),
       paidCount: paid.length,
       pendingCount: pending.length,
+      skippedCount: skipped.length,
     };
   }, [monthExpenses]);
 
-  // Sort: pending first, then paid/prepaid
+  // Sort: pending first, then skipped, then paid/prepaid
   const sortedExpenses = useMemo(() => {
-    const order = { pending: 0, paid: 1, prepaid: 2 };
+    const order = { pending: 0, skipped: 1, paid: 2, prepaid: 3 };
     return [...monthExpenses].sort((a, b) => (order[a._displayStatus] ?? 0) - (order[b._displayStatus] ?? 0));
   }, [monthExpenses]);
 
@@ -155,6 +158,32 @@ const MyExpenses = () => {
     }
   }, [mutateMonth]);
 
+  const handleSkip = useCallback(async (expenseId, expenseName) => {
+    setActionLoading(expenseId);
+    try {
+      await axios.post(`${API}/api/expenses/${expenseId}/skip`, {}, { withCredentials: true });
+      toast.success(`${expenseName} skipped for this month`);
+      mutateMonth();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to skip");
+    } finally {
+      setActionLoading(null);
+    }
+  }, [mutateMonth]);
+
+  const handleUndoSkip = useCallback(async (expenseId, expenseName) => {
+    setActionLoading(expenseId);
+    try {
+      await axios.post(`${API}/api/expenses/${expenseId}/undo-skip`, {}, { withCredentials: true });
+      toast.success(`Skip undone for ${expenseName}`);
+      mutateMonth();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to undo skip");
+    } finally {
+      setActionLoading(null);
+    }
+  }, [mutateMonth]);
+
   const getCategoryIcon = (category) => {
     const icons = {
       "Housing": Home, "Utilities": Zap, "Food": ShoppingBag, "Travel": Car,
@@ -191,6 +220,7 @@ const MyExpenses = () => {
       case "paid": return { label: "Paid", bg: "var(--status-success-soft)", text: "var(--status-success)", border: "var(--status-success)", icon: Check };
       case "prepaid": return { label: "Paid Early", bg: "#DBEAFE", text: "#2563EB", border: "#2563EB", icon: FastForward };
       case "pending": return { label: "Pending", bg: "var(--status-warning-soft)", text: "var(--status-warning)", border: "var(--status-warning)", icon: Clock };
+      case "skipped": return { label: "Skipped", bg: "#FEF3C7", text: "#D97706", border: "#D97706", icon: SkipForward };
       default: return { label: "Upcoming", bg: "var(--status-info-soft)", text: "var(--status-info)", border: "var(--status-info)", icon: CalendarDays };
     }
   };
@@ -483,7 +513,7 @@ const MyExpenses = () => {
                       else navigate(`/wealth/expenses/${expense.id}`);
                     }}
                     className="w-full flex items-center gap-3 p-4 transition-all"
-                    style={{ opacity: status === "paid" || status === "prepaid" ? 0.7 : 1 }}
+                    style={{ opacity: status === "paid" || status === "prepaid" ? 0.7 : status === "skipped" ? 0.5 : 1 }}
                   >
                     <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: catColor.bg }}>
                       <Icon className="h-6 w-6" style={{ color: catColor.text }} />
@@ -512,7 +542,7 @@ const MyExpenses = () => {
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
-                      <p className="font-bold" style={{ color: status === "paid" || status === "prepaid" ? "var(--status-success)" : "var(--text-primary)" }}>
+                      <p className="font-bold" style={{ color: status === "paid" || status === "prepaid" ? "var(--status-success)" : status === "skipped" ? "#D97706" : "var(--text-primary)", textDecoration: status === "skipped" ? "line-through" : "none" }}>
                         ₹ {formatAmount(expense.expectedAmount)}
                       </p>
                     </div>
@@ -546,7 +576,22 @@ const MyExpenses = () => {
                           data-testid={`prepay-btn-${expense.id}`}
                         >
                           <FastForward className="h-3.5 w-3.5" />
-                          {isLoading ? "Processing..." : "Prepay Next Month"}
+                          {isLoading ? "Processing..." : "Prepay"}
+                        </button>
+                      )}
+                      {isCurrentMonth && (
+                        <div className="w-px" style={{ backgroundColor: "var(--border-light)" }} />
+                      )}
+                      {isCurrentMonth && (
+                        <button
+                          onClick={() => handleSkip(expense.id, expense.expenseName)}
+                          disabled={isLoading}
+                          className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors hover:bg-amber-50 disabled:opacity-50"
+                          style={{ color: "#D97706" }}
+                          data-testid={`skip-btn-${expense.id}`}
+                        >
+                          <SkipForward className="h-3.5 w-3.5" />
+                          {isLoading ? "Skipping..." : "Skip"}
                         </button>
                       )}
                     </div>
@@ -564,6 +609,22 @@ const MyExpenses = () => {
                       >
                         <Undo2 className="h-3.5 w-3.5" />
                         {isLoading ? "Undoing..." : "Undo Payment"}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Undo button for skipped expenses */}
+                  {status === "skipped" && isCurrentMonth && (
+                    <div className="flex border-t" style={{ borderColor: "var(--border-light)" }}>
+                      <button
+                        onClick={() => handleUndoSkip(expense.id, expense.expenseName)}
+                        disabled={isLoading}
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 text-xs font-semibold transition-colors hover:bg-amber-50 disabled:opacity-50"
+                        style={{ color: "#D97706" }}
+                        data-testid={`undo-skip-btn-${expense.id}`}
+                      >
+                        <Undo2 className="h-3.5 w-3.5" />
+                        {isLoading ? "Undoing..." : "Undo Skip"}
                       </button>
                     </div>
                   )}

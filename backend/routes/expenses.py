@@ -295,7 +295,10 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
     for exp in result:
         if not exp.get('_displayStatus'):
             exp_id = exp.get('id')
-            if exp_id and prepaid_map.get(exp_id):
+            skipped = exp.get('skippedMonths', [])
+            if target_month in skipped:
+                exp['_displayStatus'] = 'skipped'
+            elif exp_id and prepaid_map.get(exp_id):
                 exp['_displayStatus'] = 'prepaid'
             elif exp.get('isPaid') and exp.get('lastPaidDate', '')[:7] == target_month:
                 exp['_displayStatus'] = 'paid'
@@ -1217,6 +1220,58 @@ async def unmark_expense_paid(expense_id: str, request: Request):
         {"$set": {"isPaid": False, "paidDate": None, "lastPaidDate": None}}
     )
     return {"message": "Payment undone", "id": expense_id}
+
+
+@router.post("/{expense_id}/skip")
+async def skip_expense(expense_id: str, request: Request):
+    """Skip an expense for the current month — acknowledges it without paying."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    now = get_user_now(request)
+    month_key = f"{now.year}-{now.month:02d}"
+    skipped_months = expense.get("skippedMonths", [])
+    if month_key not in skipped_months:
+        skipped_months.append(month_key)
+
+    await db.expenses.update_one(
+        {"id": expense_id},
+        {"$set": {"skippedMonths": skipped_months}}
+    )
+    return {"message": "Expense skipped for this month", "id": expense_id, "skippedMonth": month_key}
+
+
+@router.post("/{expense_id}/undo-skip")
+async def undo_skip_expense(expense_id: str, request: Request):
+    """Undo skipping an expense for the current month."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+
+    expense = await db.expenses.find_one(user_filter, {"_id": 0})
+    if not expense:
+        raise HTTPException(status_code=404, detail="Expense not found")
+
+    now = get_user_now(request)
+    month_key = f"{now.year}-{now.month:02d}"
+    skipped_months = [m for m in expense.get("skippedMonths", []) if m != month_key]
+
+    await db.expenses.update_one(
+        {"id": expense_id},
+        {"$set": {"skippedMonths": skipped_months}}
+    )
+    return {"message": "Skip undone", "id": expense_id}
+
+
 
 
 @router.post("/{expense_id}/undo-prepay")
