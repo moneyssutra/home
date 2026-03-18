@@ -30,8 +30,8 @@ class TestBiometricRPIDFix:
         
         # Verify origin is constructed correctly
         assert "origin" in data, "Response should contain origin"
-        assert data["origin"] == "https://mpin-auth-impl.preview.emergentagent.com", \
-            f"Expected origin 'https://mpin-auth-impl.preview.emergentagent.com', got '{data['origin']}'"
+        assert data["origin"] == "https://data-sync-24.preview.emergentagent.com", \
+            f"Expected origin 'https://data-sync-24.preview.emergentagent.com', got '{data['origin']}'"
         
         # Verify x-forwarded-host is captured
         assert "x-forwarded-host" in data, "Response should include x-forwarded-host"
