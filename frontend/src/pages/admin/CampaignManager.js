@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import adminApi from "@/utils/adminApi";
 import {
   Activity, Plus, Megaphone, Bell, MessageSquare, Trash2, Play, Pause,
   Edit3, X, Target, Calendar, ChevronDown, ChevronUp, Eye
 } from "lucide-react";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const typeConfig = {
   banner: { icon: Megaphone, color: "teal", label: "Banner" },
@@ -253,7 +252,7 @@ const CampaignManager = () => {
 
   const fetchCampaigns = async () => {
     try {
-      const res = await axios.get(`${backendUrl}/api/admin/campaigns`, { withCredentials: true });
+      const res = await adminApi.get("/admin/campaigns");
       setCampaigns(res.data.campaigns || []);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -264,9 +263,9 @@ const CampaignManager = () => {
   const handleSave = async (form) => {
     try {
       if (editingCampaign) {
-        await axios.put(`${backendUrl}/api/admin/campaigns/${editingCampaign.id}`, form, { withCredentials: true });
+        await adminApi.put(`/admin/campaigns/${editingCampaign.id}`, form);
       } else {
-        await axios.post(`${backendUrl}/api/admin/campaigns`, form, { withCredentials: true });
+        await adminApi.post("/admin/campaigns", form);
       }
       setShowForm(false);
       setEditingCampaign(null);
@@ -276,14 +275,14 @@ const CampaignManager = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${backendUrl}/api/admin/campaigns/${id}`, { withCredentials: true });
+      await adminApi.delete(`/admin/campaigns/${id}`);
       fetchCampaigns();
     } catch (e) { console.error(e); }
   };
 
   const handleToggle = async (id) => {
     try {
-      await axios.post(`${backendUrl}/api/admin/campaigns/${id}/toggle`, {}, { withCredentials: true });
+      await adminApi.post(`/admin/campaigns/${id}/toggle`, {});
       fetchCampaigns();
     } catch (e) { console.error(e); }
   };

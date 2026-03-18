@@ -17,8 +17,12 @@ const AdminLogin = () => {
     setError("");
     setLoading(true);
     try {
-      await axios.post(`${backendUrl}/api/admin/login`, { email, password }, { withCredentials: true });
-      navigate("/admin");
+      const res = await axios.post(`${backendUrl}/api/admin/login`, { email, password });
+      if (res.data?.token) {
+        localStorage.setItem("admin_token", res.data.token);
+        localStorage.setItem("admin_email", res.data.email);
+        navigate("/admin");
+      }
     } catch (err) {
       setError(err.response?.data?.detail || "Invalid credentials");
     } finally {

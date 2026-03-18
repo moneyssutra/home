@@ -74,7 +74,7 @@ exports = async function() {
       
       if (subscriptions.length > 0) {
         // Call your backend API to send push notification
-        const backendUrl = context.environment.values.BACKEND_URL || "https://database-fix-6.preview.emergentagent.com";
+        const backendUrl = context.environment.values.BACKEND_URL || "https://mpin-auth-impl.preview.emergentagent.com";
         
         try {
           const response = await context.http.post({

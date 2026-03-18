@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Edit3, Trash2, Rocket, BarChart3, Eye, MousePointerClick, XCircle, CheckCircle, ChevronDown, ChevronUp, Power, PowerOff } from "lucide-react";
-import axios from "axios";
-
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+import adminApi from "@/utils/adminApi";
 
 const CATEGORY_COLORS = {
   Safety: "#059669", Growth: "#3B82F6", Debt: "#F59E0B", Protection: "#8B5CF6",
@@ -32,8 +30,8 @@ export default function MonetizationEngine() {
   const fetchData = useCallback(async () => {
     try {
       const [oppRes, statsRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/opportunities/admin/list`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/opportunities/admin/stats`, { withCredentials: true }),
+        adminApi.get("/opportunities/admin/list"),
+        adminApi.get("/opportunities/admin/stats"),
       ]);
       setOpportunities(oppRes.data.opportunities || []);
       setStats(statsRes.data);
@@ -64,9 +62,9 @@ export default function MonetizationEngine() {
 
     try {
       if (editingOpp) {
-        await axios.put(`${backendUrl}/api/opportunities/admin/${editingOpp}`, payload, { withCredentials: true });
+        await adminApi.put(`/opportunities/admin/${editingOpp}`, payload);
       } else {
-        await axios.post(`${backendUrl}/api/opportunities/admin/create`, payload, { withCredentials: true });
+        await adminApi.post("/opportunities/admin/create", payload);
       }
       resetForm();
       fetchData();
@@ -91,14 +89,14 @@ export default function MonetizationEngine() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${backendUrl}/api/opportunities/admin/${id}`, { withCredentials: true });
+      await adminApi.delete(`/opportunities/admin/${id}`);
       fetchData();
     } catch { /* silent */ }
   };
 
   const handleToggleActive = async (opp) => {
     try {
-      await axios.put(`${backendUrl}/api/opportunities/admin/${opp.id}`, { active: !opp.active }, { withCredentials: true });
+      await adminApi.put(`/opportunities/admin/${opp.id}`, { active: !opp.active });
       fetchData();
     } catch { /* silent */ }
   };

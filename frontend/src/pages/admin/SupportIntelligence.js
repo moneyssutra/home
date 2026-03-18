@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import adminApi from "@/utils/adminApi";
 import { Activity, Search, HelpCircle, TrendingUp, MessageCircle, Users, Hash } from "lucide-react";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const StatCard = ({ icon: Icon, label, value, color = "teal" }) => (
   <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm" data-testid={`support-stat-${label.toLowerCase().replace(/\s/g, "-")}`}>
@@ -24,7 +23,7 @@ const SupportIntelligence = () => {
     (async () => {
       try {
         const tz = new Date().getTimezoneOffset();
-        const res = await axios.get(`${backendUrl}/api/admin/support-intelligence?tz_offset=${tz}`, { withCredentials: true });
+        const res = await adminApi.get(`/admin/support-intelligence?tz_offset=${tz}`);
         setData(res.data);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }

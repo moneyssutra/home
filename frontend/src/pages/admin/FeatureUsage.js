@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import adminApi from "@/utils/adminApi";
 import { Activity, BarChart3, Layers, ArrowDown } from "lucide-react";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 function formatDuration(sec) {
   if (!sec || sec === 0) return "—";
@@ -46,7 +45,7 @@ const FeatureUsage = () => {
     (async () => {
       try {
         const tz = new Date().getTimezoneOffset();
-        const res = await axios.get(`${backendUrl}/api/admin/feature-usage?tz_offset=${tz}`, { withCredentials: true });
+        const res = await adminApi.get(`/admin/feature-usage?tz_offset=${tz}`);
         setData(res.data);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }

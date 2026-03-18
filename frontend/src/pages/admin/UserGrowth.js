@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
-import axios from "axios";
+import adminApi from "@/utils/adminApi";
 import { Activity, TrendingUp, TrendingDown, Users, UserPlus, Calendar } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const PeriodToggle = ({ value, onChange }) => {
   const options = ["daily", "weekly", "monthly"];
@@ -61,7 +60,7 @@ const UserGrowth = () => {
     (async () => {
       try {
         const tz = new Date().getTimezoneOffset();
-        const res = await axios.get(`${backendUrl}/api/admin/user-growth?tz_offset=${tz}`, { withCredentials: true });
+        const res = await adminApi.get(`/admin/user-growth?tz_offset=${tz}`);
         setData(res.data);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }

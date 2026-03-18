@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import adminApi from "@/utils/adminApi";
 import {
   Activity, Users, AlertTriangle, TrendingUp, TrendingDown, Minus,
   UserX, UserCheck, Brain, ArrowUpRight
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const churnColors = { high: "#E11D48", medium: "#D97706", low: "#059669" };
 const trendIcons = { improving: TrendingUp, declining: TrendingDown, stable: Minus };
@@ -46,7 +45,7 @@ const BehavioralInsights = () => {
     (async () => {
       try {
         const tz = new Date().getTimezoneOffset();
-        const res = await axios.get(`${backendUrl}/api/admin/behavioral-insights?tz_offset=${tz}`, { withCredentials: true });
+        const res = await adminApi.get(`/admin/behavioral-insights?tz_offset=${tz}`);
         setData(res.data);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }

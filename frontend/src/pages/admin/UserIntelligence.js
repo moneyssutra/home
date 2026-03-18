@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import adminApi from "@/utils/adminApi";
 import { Users, Activity, Search, X, TrendingUp, Shield, Wallet, Heart } from "lucide-react";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const riskColors = { critical: "#E11D48", high: "#D97706", moderate: "#2563EB", stable: "#059669" };
 const bucketColors = { "Safety Boost": "#E11D48", "Wealth Optimization": "#7C3AED", "Debt Optimization": "#D97706", "None": "#94A3B8" };
@@ -65,7 +64,7 @@ const UserIntelligence = () => {
     (async () => {
       try {
         const tz = new Date().getTimezoneOffset();
-        const res = await axios.get(`${backendUrl}/api/admin/command-center?tz_offset=${tz}`, { withCredentials: true });
+        const res = await adminApi.get(`/admin/command-center?tz_offset=${tz}`);
         setData(res.data);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }

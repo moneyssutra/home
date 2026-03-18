@@ -1,12 +1,11 @@
 """Admin Command Center — Internal analytics and intelligence routes."""
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Request, HTTPException, Response
+from fastapi import APIRouter, Request, HTTPException
 import logging
 import uuid
 
 from database import db
 from routes.utils import get_user_filter, get_user_now
-from routes.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -17,14 +16,13 @@ ADMIN_CREDENTIALS = {
     "admin@moneysstra.com": "admin123",
     "chandrashekhar.iter@gmail.com": "admin123",
 }
-ADMIN_EMAILS = {"test@moneyssutra.com", "admin@moneyssutra.com", "admin@moneysutra.com", "admin@moneysstra.com", "chandrashekhar.iter@gmail.com"}
 
-# In-memory admin sessions (simple approach)
-admin_sessions = {}
+# In-memory cache cleared periodically - use DB as source of truth
+admin_sessions_cache = {}
 
 
 @router.post("/login")
-async def admin_login(request: Request, response: Response):
+async def admin_login(request: Request):
     """Admin-specific login endpoint."""
     body = await request.json()
     email = (body.get("email") or "").strip().lower()
@@ -34,9 +32,21 @@ async def admin_login(request: Request, response: Response):
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
 
     token = str(uuid.uuid4())
-    admin_sessions[token] = {"email": email, "created": datetime.now(timezone.utc).isoformat()}
-    response.set_cookie("admin_token", token, httponly=True, samesite="none", secure=True, max_age=86400)
-    return {"success": True, "email": email}
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=7)).isoformat()
+    session_data = {"token": token, "email": email, "created": datetime.now(timezone.utc).isoformat(), "expires_at": expires_at}
+    await db.admin_sessions.insert_one(session_data)
+    admin_sessions_cache[token] = session_data
+    return {"success": True, "email": email, "token": token}
+
+
+@router.post("/logout")
+async def admin_logout(request: Request):
+    """Admin logout — invalidate session."""
+    token = _extract_token(request)
+    if token:
+        admin_sessions_cache.pop(token, None)
+        await db.admin_sessions.delete_one({"token": token})
+    return {"success": True}
 
 
 @router.get("/verify")
@@ -46,20 +56,26 @@ async def verify_admin(request: Request):
     return {"admin": True}
 
 
-async def _require_admin(request: Request):
-    # Check admin_token cookie first (standalone admin login)
-    admin_token = request.cookies.get("admin_token")
-    if admin_token and admin_token in admin_sessions:
-        return admin_sessions[admin_token]
+def _extract_token(request: Request) -> str:
+    """Extract admin token from Authorization header or cookie."""
+    auth_header = request.headers.get("authorization", "")
+    if auth_header.startswith("Bearer "):
+        return auth_header[7:]
+    return request.cookies.get("admin_token", "")
 
-    # Fallback: check main app session
-    user = await get_current_user(request)
-    if not user:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    email = user.get("email", "").lower()
-    if email not in ADMIN_EMAILS:
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return user
+
+async def _require_admin(request: Request):
+    token = _extract_token(request)
+    if token:
+        # Check cache first, then DB
+        if token in admin_sessions_cache:
+            return admin_sessions_cache[token]
+        session = await db.admin_sessions.find_one({"token": token}, {"_id": 0})
+        if session:
+            admin_sessions_cache[token] = session
+            return session
+
+    raise HTTPException(status_code=401, detail="Not authenticated")
 
 # ── Helpers ──
 

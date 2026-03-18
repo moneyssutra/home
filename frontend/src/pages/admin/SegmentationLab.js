@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
+import adminApi from "@/utils/adminApi";
 import {
   Activity, Filter, Users, Shield, Heart, TrendingUp, ChevronDown, ChevronUp,
   Download, Search, X, DollarSign, MapPin, Briefcase, Calendar
 } from "lucide-react";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
 const fmt = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n));
 const riskColors = { critical: "#E11D48", high: "#D97706", moderate: "#2563EB", stable: "#059669" };
 
@@ -101,7 +100,7 @@ const SegmentationLab = () => {
       if (riskLevel) params.set("risk_level", riskLevel);
       if (bucket) params.set("bucket", bucket);
 
-      const res = await axios.get(`${backendUrl}/api/admin/segmentation?${params}`, { withCredentials: true });
+      const res = await adminApi.get(`/admin/segmentation?${params}`);
       setData(res.data);
       if (res.data.filterOptions) setFilterOptions(res.data.filterOptions);
     } catch (e) { console.error(e); }

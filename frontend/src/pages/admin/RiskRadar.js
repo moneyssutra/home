@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import adminApi from "@/utils/adminApi";
 import { ShieldAlert, Activity, TrendingDown, AlertTriangle, Wallet, Users } from "lucide-react";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const riskConfig = {
   critical: { color: "#E11D48", bg: "#FFF1F2", border: "#FECDD3", label: "Critical", icon: AlertTriangle },
@@ -55,7 +54,7 @@ const RiskRadar = () => {
     (async () => {
       try {
         const tz = new Date().getTimezoneOffset();
-        const res = await axios.get(`${backendUrl}/api/admin/risk-radar?tz_offset=${tz}`, { withCredentials: true });
+        const res = await adminApi.get(`/admin/risk-radar?tz_offset=${tz}`);
         setData(res.data);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }

@@ -322,13 +322,30 @@ function EventTracker() {
   return null;
 }
 
-function MainAppRouter() {
+function AppContent() {
   const location = useLocation();
-  
-  // Admin routes are handled separately
-  if (location.pathname.startsWith('/admin')) return null;
 
-  return <AppRouter />;
+  // Admin routes — fully isolated, no theme/auth/workspace providers
+  if (location.pathname.startsWith('/admin')) {
+    return <AdminRouter />;
+  }
+
+  // Main App — with all providers
+  return (
+    <div className="App">
+      <ThemeProvider>
+        <AuthProvider>
+          <WorkspaceProvider>
+            <FamilyProvider>
+              <EventTracker />
+              <AppRouter />
+              <Toaster />
+            </FamilyProvider>
+          </WorkspaceProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </div>
+  );
 }
 
 function App() {
@@ -341,23 +358,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      {/* Admin — fully isolated, no theme/auth/workspace providers */}
-      <AdminRouter />
-      
-      {/* Main App — with all providers */}
-      <div className="App">
-        <ThemeProvider>
-          <AuthProvider>
-            <WorkspaceProvider>
-              <FamilyProvider>
-                <EventTracker />
-                <MainAppRouter />
-                <Toaster />
-              </FamilyProvider>
-            </WorkspaceProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </div>
+      <AppContent />
     </BrowserRouter>
   );
 }
