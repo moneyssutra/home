@@ -130,6 +130,11 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 13. Database visibility (P1) — Fixed: Preview now connects to moneyssutra_prod
 14. Production test data cleanup (P1) — Done: Removed test3@test.com and associated data
 
+## Verification (Mar 19, 2026)
+- Dashboard vs My Expenses data: Spent=Paid, Upcoming=Pending, Total matches exactly ✅
+- Badge count: 36/100 — all legitimate (survival_days=95, score=93, no inflated badges) ✅
+- Mobile safe area: Global CSS rule applied to all header elements ✅
+
 ## Prioritized Backlog
 ### P2
 - Enhanced "Remember Me" with persistent sessions
