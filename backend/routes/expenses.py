@@ -412,6 +412,11 @@ async def get_monthly_summary(request: Request, last: int = 6):
             amt = exp.get('expectedAmount', 0) or 0
             cat = exp.get('category', 'Other')
 
+            # Skip expenses that were skipped for this month
+            skipped_months = exp.get('skippedMonths', [])
+            if mk in skipped_months:
+                continue
+
             applies = False
             if freq == 'One-Time':
                 ot = exp.get('oneTimeDate', '')
@@ -479,6 +484,10 @@ async def get_monthly_summary(request: Request, last: int = 6):
             upcoming_amt = 0
             for exp in all_expenses:
                 if exp.get('linkedPaymentId'):
+                    continue
+                # Skip expenses that were skipped for this month
+                skipped_months_inner = exp.get('skippedMonths', [])
+                if mk in skipped_months_inner:
                     continue
                 freq = exp.get('frequency', 'Monthly')
                 amt_raw = exp.get('expectedAmount', 0) or 0

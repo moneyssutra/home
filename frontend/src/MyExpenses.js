@@ -86,8 +86,9 @@ const MyExpenses = () => {
     const paid = monthExpenses.filter(e => e._displayStatus === "paid" || e._displayStatus === "prepaid");
     const pending = monthExpenses.filter(e => e._displayStatus === "pending");
     const skipped = monthExpenses.filter(e => e._displayStatus === "skipped");
+    const activeExpenses = monthExpenses.filter(e => e._displayStatus !== "skipped");
     return {
-      total: monthExpenses.reduce((s, e) => s + (e.expectedAmount || 0), 0),
+      total: activeExpenses.reduce((s, e) => s + (e.expectedAmount || 0), 0),
       paidTotal: paid.reduce((s, e) => s + (e.expectedAmount || 0), 0),
       pendingTotal: pending.reduce((s, e) => s + (e.expectedAmount || 0), 0),
       skippedTotal: skipped.reduce((s, e) => s + (e.expectedAmount || 0), 0),
@@ -321,9 +322,9 @@ const MyExpenses = () => {
           </h2>
           <p className="text-white/50 text-xs mt-1">{monthExpenses.length} expenses this month</p>
 
-          <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
+          <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-3 gap-4 text-sm">
             <div>
-              <p className="text-white/70 mb-1">Paid / Prepaid</p>
+              <p className="text-white/70 mb-1">Paid</p>
               <p className="font-semibold" style={{ color: "#A7F3D0" }}>
                 ₹{formatAmount(monthStats.paidTotal)}
               </p>
@@ -336,6 +337,15 @@ const MyExpenses = () => {
               </p>
               <p className="text-white/50 text-xs">{monthStats.pendingCount} expenses</p>
             </div>
+            {monthStats.skippedCount > 0 && (
+              <div>
+                <p className="text-white/70 mb-1">Skipped</p>
+                <p className="font-semibold" style={{ color: "#FDBA74" }}>
+                  ₹{formatAmount(monthStats.skippedTotal)}
+                </p>
+                <p className="text-white/50 text-xs">{monthStats.skippedCount} expenses</p>
+              </div>
+            )}
           </div>
 
           {/* Progress bar */}

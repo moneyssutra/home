@@ -212,8 +212,13 @@ def _calc_monthly_expenses(expenses, current_month, current_year):
     """Calculate normalized monthly expense total."""
     import calendar
     days_in_month = calendar.monthrange(current_year, current_month)[1]
+    current_month_key = f"{current_year}-{current_month:02d}"
     monthly_expenses = 0
     for expense in expenses:
+        # Skip expenses that were skipped for this month
+        skipped_months = expense.get('skippedMonths', [])
+        if current_month_key in skipped_months:
+            continue
         amount = expense.get('expectedAmount', 0)
         freq = expense.get('frequency', 'Monthly')
         if freq == 'Daily': monthly_expenses += amount * days_in_month

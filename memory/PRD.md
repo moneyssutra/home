@@ -117,6 +117,12 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 8. Insights Page Crash (P0) — Fixed (Mar 19, 2026)
    - Root cause: `backendUrl` not defined in main `Insights` component; `isPersonalView` used in `useEffect` before assignment from `useFamilyContext()`
    - Fix: Moved `backendUrl` definition and hook calls (`useIntelligenceData`, `useFamilyContext`) before the `useEffect` that depends on them
+9. "Complete Your Financial Profile" button invisible in dark mode (P1) — Fixed (Mar 19, 2026)
+   - Root cause: Light background (`#FEF2F2`) with `var(--text-primary)` which is white in dark mode
+   - Fix: Changed to dark backgrounds (`#1C0A0A`) with light text (`#FECACA`) for red zone; same pattern on FinancialHealth.js
+10. Skipped expenses still counted in current month total (P1) — Fixed (Mar 19, 2026)
+    - Root cause: `monthStats.total` in MyExpenses.js, `get_monthly_summary` in expenses.py, and `_calc_monthly_expenses` in dashboard.py all included skipped expenses
+    - Fix: Excluded expenses with current month in `skippedMonths` array from all total calculations; added "Skipped" column to month summary UI
 
 ## Prioritized Backlog
 ### P1
