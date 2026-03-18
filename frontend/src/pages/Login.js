@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, Eye, EyeOff, AlertCircle, Mail, Loader2, ArrowLeft, Check, Hash } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertCircle, Mail, Loader2, ArrowLeft, Check, KeyRound } from "lucide-react";
 import RegisterForm from "@/components/RegisterForm";
 import { LogoFull } from "@/components/Logo";
 import axios from "axios";
@@ -548,7 +548,7 @@ const Login = () => {
                   }}
                   data-testid="switch-to-mpin-btn"
                 >
-                  <Hash className="h-4 w-4" />
+                  <KeyRound className="h-4 w-4" />
                   Login with MPIN
                 </button>
 
