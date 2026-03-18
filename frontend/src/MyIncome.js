@@ -203,9 +203,10 @@ const MyIncome = () => {
 
   const chartColors = ["#059669", "#3B82F6", "#F59E0B", "#8B5CF6", "#06B6D4", "#EC4899"];
 
-  // Use backend-calculated received/pending for consistency with dashboard
+  // Use backend-calculated values for consistency with dashboard
   const receivedIncome = incomeSummary?.receivedIncome || 0;
   const pendingIncome = incomeSummary?.pendingIncome || 0;
+  const displayTotalIncome = incomeSummary?.totalIncome || totalIncome;
 
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-income-page">
@@ -221,7 +222,7 @@ const MyIncome = () => {
         {/* Total Income Card */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="total-income-card">
           <p className="text-white/70 text-sm font-medium mb-1">Current Month Income</p>
-          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalIncome)}</h2>
+          <h2 className="text-3xl font-bold text-white">₹ {formatAmount(displayTotalIncome)}</h2>
           <p className="text-white/50 text-xs mt-1">{incomes.length} sources</p>
           
           {/* Received vs Yet to Receive */}
