@@ -60,7 +60,7 @@ const AdminLayout = () => {
                 `flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${
                   isActive
                     ? "bg-teal-500/10 text-teal-400 border-l-2 border-teal-400 -ml-px"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                    : "text-slate-300 hover:text-white hover:bg-white/5"
                 }`
               }
               data-testid={`admin-nav-${label.toLowerCase().replace(/\s/g, "-")}`}
@@ -73,7 +73,7 @@ const AdminLayout = () => {
 
         <div className="px-3 py-3 border-t border-white/5 shrink-0">
           <button onClick={() => navigate("/admin/login")}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all w-full"
+            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-slate-300 hover:text-rose-400 hover:bg-rose-500/10 transition-all w-full"
             data-testid="admin-exit">
             <LogOut className="h-4 w-4" />
             Sign Out
@@ -87,11 +87,11 @@ const AdminLayout = () => {
           <span className="text-sm font-black tracking-widest text-teal-400">MoneySutra</span>
           <span className="text-[10px] font-medium text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">ADMIN</span>
           <div className="flex-1" />
-          <span className="text-xs font-medium text-slate-400 truncate max-w-[120px]">
+          <span className="text-xs font-medium text-slate-300 truncate max-w-[120px]">
             {navItems.find(n => n.end ? location.pathname === n.to : location.pathname.startsWith(n.to) && n.to !== "/admin")?.label || "Overview"}
           </span>
           <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 transition-all"
+            className="p-1.5 rounded-lg hover:bg-white/5 text-slate-300 transition-all"
             data-testid="mobile-menu-toggle">
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -109,8 +109,8 @@ const AdminLayout = () => {
                   className={({ isActive }) =>
                     `flex items-center gap-2 px-3 py-3 rounded-xl text-xs font-semibold transition-all ${
                       isActive
-                        ? "bg-teal-500/15 text-teal-400 border border-teal-500/20"
-                        : "text-slate-400 hover:bg-white/5 border border-transparent"
+                        ? "bg-teal-500/15 text-teal-300 border border-teal-500/20"
+                        : "text-slate-300 hover:bg-white/5 border border-transparent"
                     }`
                   }
                   data-testid={`mobile-nav-${label.toLowerCase().replace(/\s/g, "-")}`}
