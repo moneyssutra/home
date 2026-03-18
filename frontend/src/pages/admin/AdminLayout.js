@@ -50,7 +50,7 @@ const AdminLayout = () => {
       <aside className="hidden lg:flex flex-col w-56 shrink-0 bg-[#0A0A0A] border-r border-white/5">
         <div className="px-5 h-14 flex items-center border-b border-white/5 shrink-0">
           <span className="text-sm font-black tracking-widest text-teal-400">MoneySutra</span>
-          <span className="ml-2 text-[10px] font-medium text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">ADMIN</span>
+          <span className="ml-2 text-[10px] font-medium text-teal-300 bg-teal-900/50 px-1.5 py-0.5 rounded">ADMIN</span>
         </div>
 
         <nav className="flex-1 py-3 px-3 space-y-0.5 overflow-y-auto">
@@ -85,7 +85,7 @@ const AdminLayout = () => {
       <nav className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A] border-b border-white/5">
         <div className="flex items-center h-12 px-4 gap-3">
           <span className="text-sm font-black tracking-widest text-teal-400">MoneySutra</span>
-          <span className="text-[10px] font-medium text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">ADMIN</span>
+          <span className="text-[10px] font-medium text-teal-300 bg-teal-900/50 px-1.5 py-0.5 rounded">ADMIN</span>
           <div className="flex-1" />
           <span className="text-xs font-medium text-slate-300 truncate max-w-[120px]">
             {navItems.find(n => n.end ? location.pathname === n.to : location.pathname.startsWith(n.to) && n.to !== "/admin")?.label || "Overview"}
