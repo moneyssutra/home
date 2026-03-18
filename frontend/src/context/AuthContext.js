@@ -96,6 +96,25 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginWithMpin = async (email, mpin) => {
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/mpin/login`,
+        { email, mpin },
+        { withCredentials: true }
+      );
+      setUser(response.data);
+      setIsAuthenticated(true);
+      syncThemeFromBackend();
+      return { success: true, user: response.data };
+    } catch (error) {
+      return { 
+        success: false, 
+        error: error.response?.data?.detail || "MPIN login failed" 
+      };
+    }
+  };
+
   const loginWithGoogle = () => {
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const redirectUrl = window.location.origin + '/home';
@@ -136,6 +155,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     isAuthenticated,
     login,
+    loginWithMpin,
     register,
     loginWithGoogle,
     processGoogleSession,

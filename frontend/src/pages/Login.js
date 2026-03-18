@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, Eye, EyeOff, AlertCircle, Mail, Loader2, ArrowLeft, Check } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertCircle, Mail, Loader2, ArrowLeft, Check, Hash } from "lucide-react";
 import RegisterForm from "@/components/RegisterForm";
 import { LogoFull } from "@/components/Logo";
 import axios from "axios";
@@ -11,13 +11,16 @@ const backendUrl = process.env.REACT_APP_BACKEND_URL;
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loginWithGoogle, isAuthenticated, loading } = useAuth();
+  const { login, loginWithMpin, loginWithGoogle, isAuthenticated, loading } = useAuth();
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
-  const [forgotPasswordStep, setForgotPasswordStep] = useState(1); // 1: enter email/mobile, 2: success
+  const [isMpinMode, setIsMpinMode] = useState(false);
+  const [forgotPasswordStep, setForgotPasswordStep] = useState(1);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [mpin, setMpin] = useState(["", "", "", ""]);
+  const mpinRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
@@ -143,6 +146,47 @@ const Login = () => {
     setIdentifier("");
     setError("");
     setSuccessMessage("");
+  };
+
+  const handleMpinChange = (index, value) => {
+    if (!/^\d?$/.test(value)) return;
+    const newMpin = [...mpin];
+    newMpin[index] = value;
+    setMpin(newMpin);
+    if (value && index < 3) {
+      mpinRefs[index + 1].current?.focus();
+    }
+  };
+
+  const handleMpinKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !mpin[index] && index > 0) {
+      mpinRefs[index - 1].current?.focus();
+    }
+  };
+
+  const handleMpinSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    const pinStr = mpin.join("");
+    if (pinStr.length !== 4) {
+      setError("Please enter all 4 digits");
+      return;
+    }
+    if (!identifier.trim()) {
+      setError("Please enter your email");
+      return;
+    }
+    setIsSubmitting(true);
+    const result = await loginWithMpin(identifier.trim(), pinStr);
+    if (result.success) {
+      const from = location.state?.from?.pathname || "/home";
+      navigate(from, { replace: true });
+    } else {
+      setError(result.error);
+      setMpin(["", "", "", ""]);
+      mpinRefs[0].current?.focus();
+    }
+    setIsSubmitting(false);
   };
 
   if (loading) {
@@ -300,6 +344,98 @@ const Login = () => {
                 </div>
               )}
             </>
+          ) : isMpinMode ? (
+            /* MPIN Login Mode */
+            <>
+              <button
+                onClick={() => { setIsMpinMode(false); setError(""); setMpin(["", "", "", ""]); }}
+                className="flex items-center gap-2 mb-4 text-sm hover:underline"
+                style={{ color: "#059669" }}
+                data-testid="back-to-password-btn"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Password Login
+              </button>
+
+              <h2 className="text-xl font-bold mb-2 text-center" style={{ color: "var(--text-primary)" }}>
+                Login with MPIN
+              </h2>
+              <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
+                Enter your 4-digit security PIN
+              </p>
+
+              {error && (
+                <div className="mb-4 p-3 rounded-xl flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)", border: "1px solid var(--status-error)" }}>
+                  <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: "var(--status-error)" }} />
+                  <p className="text-sm" style={{ color: "var(--status-error)" }}>{error}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleMpinSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
+                    Email ID
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
+                    <input
+                      type="email"
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      placeholder="example@email.com"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
+                      style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+                      data-testid="mpin-email-input"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-3 text-center" style={{ color: "var(--text-secondary)" }}>
+                    Enter MPIN
+                  </label>
+                  <div className="flex gap-3 justify-center">
+                    {mpin.map((digit, i) => (
+                      <input
+                        key={i}
+                        ref={mpinRefs[i]}
+                        type="password"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleMpinChange(i, e.target.value)}
+                        onKeyDown={(e) => handleMpinKeyDown(i, e)}
+                        className="w-14 h-14 text-center text-2xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                        style={{
+                          backgroundColor: "var(--bg-subtle)",
+                          border: "2px solid var(--border-light)",
+                          color: "var(--text-primary)",
+                          "--tw-ring-color": "var(--brand-primary)",
+                        }}
+                        data-testid={`mpin-digit-${i}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting || mpin.join("").length !== 4 || !identifier.trim()}
+                  className="w-full py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={{ backgroundColor: "#047857" }}
+                  data-testid="mpin-login-button"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Login with MPIN"
+                  )}
+                </button>
+              </form>
+            </>
           ) : (
             /* Normal Login Form */
             <>
@@ -399,6 +535,22 @@ const Login = () => {
                     Forgot Password?
                   </button>
                 </div>
+
+                {/* Login with MPIN option */}
+                <button
+                  type="button"
+                  onClick={() => { setIsMpinMode(true); setError(""); setMpin(["", "", "", ""]); }}
+                  className="w-full py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:shadow-sm"
+                  style={{ 
+                    backgroundColor: "var(--bg-subtle)", 
+                    border: "1px solid var(--border-light)",
+                    color: "var(--brand-primary)"
+                  }}
+                  data-testid="switch-to-mpin-btn"
+                >
+                  <Hash className="h-4 w-4" />
+                  Login with MPIN
+                </button>
 
                 {/* Submit Button */}
                 <button

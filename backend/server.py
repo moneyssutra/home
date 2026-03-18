@@ -43,6 +43,7 @@ from routes.intelligence import router as intelligence_router
 from routes.gamification import router as gamification_router
 from routes.events import router as events_router
 from routes.opportunities import router as opportunities_router
+from routes.mpin import router as mpin_router
 from routes.utils import get_user_filter
 
 # Configure logging
@@ -241,6 +242,7 @@ app.include_router(family_router, prefix="/api")
 app.include_router(admin_router, prefix="/api/admin")
 app.include_router(events_router, prefix="/api")
 app.include_router(opportunities_router, prefix="/api")
+app.include_router(mpin_router, prefix="/api")
 
 
 # ============ LIFECYCLE EVENTS ============

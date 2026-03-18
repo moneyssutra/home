@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -17,7 +17,8 @@ import {
   LogOut,
   History,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Hash
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
@@ -39,6 +40,16 @@ const SecuritySettings = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [activeSessions, setActiveSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
+  // MPIN state
+  const [hasMpin, setHasMpin] = useState(false);
+  const [mpinLoading, setMpinLoading] = useState(true);
+  const [showMpinSetup, setShowMpinSetup] = useState(false);
+  const [mpinDigits, setMpinDigits] = useState(["", "", "", ""]);
+  const [mpinConfirm, setMpinConfirm] = useState(["", "", "", ""]);
+  const [mpinStep, setMpinStep] = useState(1); // 1=enter, 2=confirm
+  const [mpinSaving, setMpinSaving] = useState(false);
+  const mpinInputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const mpinConfirmRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   const hasPassword = user?.has_password === true;
 
@@ -46,6 +57,7 @@ const SecuritySettings = () => {
     window.scrollTo(0, 0);
     fetch2FAStatus();
     fetchSessions();
+    fetchMpinStatus();
   }, []);
 
   const fetch2FAStatus = async () => {
@@ -72,6 +84,69 @@ const SecuritySettings = () => {
       setSessionsLoading(false);
     }
   };
+
+  const fetchMpinStatus = async () => {
+    setMpinLoading(true);
+    try {
+      const res = await axios.get(`${backendUrl}/api/mpin/status`, { withCredentials: true });
+      setHasMpin(res.data.has_mpin);
+    } catch { setHasMpin(false); }
+    finally { setMpinLoading(false); }
+  };
+
+  const handleMpinDigitChange = (refs, digits, setDigits, index, value) => {
+    if (!/^\d?$/.test(value)) return;
+    const updated = [...digits];
+    updated[index] = value;
+    setDigits(updated);
+    if (value && index < 3) refs[index + 1].current?.focus();
+  };
+
+  const handleMpinDigitKeyDown = (refs, digits, index, e) => {
+    if (e.key === "Backspace" && !digits[index] && index > 0) {
+      refs[index - 1].current?.focus();
+    }
+  };
+
+  const handleSetMpin = async () => {
+    const pin = mpinDigits.join("");
+    const confirm = mpinConfirm.join("");
+    if (pin.length !== 4) { toast.error("Please enter all 4 digits"); return; }
+    if (mpinStep === 1) {
+      setMpinStep(2);
+      setTimeout(() => mpinConfirmRefs[0].current?.focus(), 100);
+      return;
+    }
+    if (pin !== confirm) {
+      toast.error("PINs do not match. Please try again.");
+      setMpinConfirm(["", "", "", ""]);
+      mpinConfirmRefs[0].current?.focus();
+      return;
+    }
+    setMpinSaving(true);
+    try {
+      await axios.post(`${backendUrl}/api/mpin/set`, { mpin: pin }, { withCredentials: true });
+      toast.success("MPIN set successfully");
+      setHasMpin(true);
+      setShowMpinSetup(false);
+      setMpinDigits(["", "", "", ""]);
+      setMpinConfirm(["", "", "", ""]);
+      setMpinStep(1);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to set MPIN");
+    } finally { setMpinSaving(false); }
+  };
+
+  const handleRemoveMpin = async () => {
+    try {
+      await axios.delete(`${backendUrl}/api/mpin/remove`, { withCredentials: true });
+      toast.success("MPIN removed");
+      setHasMpin(false);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to remove MPIN");
+    }
+  };
+
 
   // Password strength calculation
   const getPasswordStrength = (password) => {
@@ -338,7 +413,7 @@ const SecuritySettings = () => {
           </div>
 
           {/* Biometric Toggle */}
-          <div className="flex items-center justify-between py-4">
+          <div className="flex items-center justify-between py-4 border-b" style={{ borderColor: "var(--border-light)" }}>
             <div className="flex items-center gap-3">
               <Fingerprint className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
               <div>
@@ -355,6 +430,108 @@ const SecuritySettings = () => {
             >
               <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${biometricEnabled ? "translate-x-6" : "translate-x-1"}`} />
             </button>
+          </div>
+
+          {/* MPIN Setup */}
+          <div className="py-4" data-testid="mpin-section">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Hash className="h-5 w-5" style={{ color: hasMpin ? "var(--brand-primary)" : "var(--text-muted)" }} />
+                <div>
+                  <p className="font-medium" style={{ color: "var(--text-primary)" }}>MPIN Login</p>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    {hasMpin ? "4-digit PIN is set" : "Quick login with 4-digit PIN"}
+                  </p>
+                </div>
+              </div>
+              {mpinLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--text-muted)" }} />
+              ) : hasMpin ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => { setShowMpinSetup(true); setMpinStep(1); setMpinDigits(["","","",""]); setMpinConfirm(["","","",""]); }}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all"
+                    style={{ color: "var(--brand-primary)", backgroundColor: "var(--brand-primary-soft)" }}
+                    data-testid="change-mpin-btn"
+                  >
+                    Change
+                  </button>
+                  <button
+                    onClick={handleRemoveMpin}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all text-red-500 bg-red-50 hover:bg-red-100"
+                    data-testid="remove-mpin-btn"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => { setShowMpinSetup(true); setMpinStep(1); setMpinDigits(["","","",""]); setMpinConfirm(["","","",""]); }}
+                  className="text-xs font-semibold px-4 py-2 rounded-xl text-white transition-all"
+                  style={{ backgroundColor: "var(--brand-primary)" }}
+                  data-testid="setup-mpin-btn"
+                >
+                  Set Up
+                </button>
+              )}
+            </div>
+
+            {showMpinSetup && (
+              <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+                <p className="text-sm font-medium mb-3 text-center" style={{ color: "var(--text-primary)" }}>
+                  {mpinStep === 1 ? "Enter a 4-digit MPIN" : "Confirm your MPIN"}
+                </p>
+                <div className="flex gap-3 justify-center mb-4">
+                  {(mpinStep === 1 ? mpinDigits : mpinConfirm).map((digit, i) => (
+                    <input
+                      key={`mpin-setup-${mpinStep}-${i}`}
+                      ref={mpinStep === 1 ? mpinInputRefs[i] : mpinConfirmRefs[i]}
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleMpinDigitChange(
+                        mpinStep === 1 ? mpinInputRefs : mpinConfirmRefs,
+                        mpinStep === 1 ? mpinDigits : mpinConfirm,
+                        mpinStep === 1 ? setMpinDigits : setMpinConfirm,
+                        i, e.target.value
+                      )}
+                      onKeyDown={(e) => handleMpinDigitKeyDown(
+                        mpinStep === 1 ? mpinInputRefs : mpinConfirmRefs,
+                        mpinStep === 1 ? mpinDigits : mpinConfirm,
+                        i, e
+                      )}
+                      className="w-12 h-12 text-center text-xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                      style={{
+                        backgroundColor: "var(--bg-card)",
+                        border: "2px solid var(--border-light)",
+                        color: "var(--text-primary)",
+                      }}
+                      data-testid={`setup-mpin-digit-${mpinStep}-${i}`}
+                    />
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setShowMpinSetup(false); setMpinStep(1); }}
+                    className="flex-1 py-2.5 rounded-xl font-medium text-sm"
+                    style={{ color: "var(--text-secondary)", border: "1px solid var(--border-light)" }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSetMpin}
+                    disabled={mpinSaving || (mpinStep === 1 ? mpinDigits : mpinConfirm).join("").length !== 4}
+                    className="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 flex items-center justify-center gap-1"
+                    style={{ backgroundColor: "var(--brand-primary)" }}
+                    data-testid="confirm-mpin-btn"
+                  >
+                    {mpinSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {mpinStep === 1 ? "Next" : "Set MPIN"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
