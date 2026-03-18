@@ -45,7 +45,7 @@ const AdminLayout = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#0F172A]" data-testid="admin-layout">
+    <div className="min-h-screen bg-[#1E293B]" data-testid="admin-layout">
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-56 bg-[#1E293B] border-r border-white/5 z-50">
         <div className="px-5 h-14 flex items-center border-b border-white/5">
@@ -130,7 +130,7 @@ const AdminLayout = () => {
       )}
 
       {/* Main Content */}
-      <main className="lg:ml-56 min-h-screen bg-[#F8FAFC]">
+      <main className="lg:ml-56 bg-[#F8FAFC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
           <Outlet />
         </div>
