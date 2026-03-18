@@ -1,0 +1,48 @@
+{
+  "summary": "Iteration 137: CRITICAL BUG FIX VERIFIED - Income from Loan Given now visible for ALL loans. All 10 backend tests PASSED. Previous code only created income source for loans WITH interest (interestType != 'none'). Now ALL Loan Given investments create an income source regardless of interestType.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_loan_income_all_loans_iter137.py",
+    "/app/test_reports/pytest/loan_income_all_loans_iter137_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✓ CRITICAL FIX (investments.py lines 26-84): Income source creation is now INSIDE the 'if investmentCategory == Loan Given' block WITHOUT any interestType check - ALL loans get income source",
+    "✓ FIX (investments.py lines 38-45): expectedAmount calculation: fixed EMI = installmentAmount, lump_sum = agreedReturnAmount or principal, flexible = principal/12",
+    "✓ FIX (investments.py lines 54-62): paymentDay mapping: Weekly → selectedDay, Monthly/Quarterly/etc → selectedDate",
+    "✓ FIX (investments.py lines 64-66): Income label: 'Loan Repayment - {name}' for no-interest, 'Loan Repayment (incl. interest) - {name}' for with-interest",
+    "✓ FIX (investments.py lines 675-691): add-repayment creates income_received for ALL repayments when linkedIncomeSourceId exists (removed interest_portion > 0 check)",
+    "✓ FIX (investments.py line 79): Notes indicate 'No interest.' for no-interest loans"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_loan_income_all_loans_iter137.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "N/A - backend only testing requested"
+  },
+  "seed_data_creation": "Test users and sessions created via Python MongoDB driver for authenticated API testing - automatically cleaned up after tests",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 137 verified the critical fix for income visibility from ALL Loan Given investments. Previous bug: code had 'if input.interestType and input.interestType != \"none\":' guard around income source creation, so no-interest loans never got income tracking. Fix: Now ALL Loan Given investments (regardless of interestType) create an income source with: (1) expectedAmount = installmentAmount for fixed, agreedReturn/principal for lump_sum, principal/12 for flexible; (2) selectedDay for Weekly, selectedDate for Monthly/Quarterly/etc; (3) name = 'Loan Repayment - {name}' or 'Loan Repayment (incl. interest) - {name}'; (4) sourceCategory = 'loan_repayment'. Also: add-repayment now creates income_received for ALL repayments (not just interest portion).",
+  "tests_passed": {
+    "test_01_loan_without_interest_creates_income_source": "PASSED - CRITICAL: No-interest loan (interestType='none') now creates income source with linkedIncomeSourceId",
+    "test_02_loan_with_interest_creates_income_source": "PASSED - With-interest loan creates income source with 'interest' in name",
+    "test_03_income_sources_appear_in_list_summary": "PASSED - Auto-created income sources appear in GET /api/income/list/summary with expectedAmount > 0",
+    "test_04_fixed_emi_expected_amount_equals_installment": "PASSED - Fixed EMI: expectedAmount=installmentAmount (7500)",
+    "test_05_lump_sum_expected_amount": "PASSED - Lump Sum: expectedAmount=agreedReturnAmount (110000)",
+    "test_06_flexible_expected_amount": "PASSED - Flexible: expectedAmount=principal/12 (5000)",
+    "test_07_weekly_frequency_has_selected_day": "PASSED - Weekly: selectedDay='Wednesday' from paymentDay",
+    "test_08_monthly_frequency_has_selected_date": "PASSED - Monthly: selectedDate='18' from paymentDay",
+    "test_09_add_repayment_creates_income_received_for_all": "PASSED - CRITICAL: add-repayment creates income_received for no-interest loans (source='auto_loan_repayment')",
+    "test_10_income_source_name_format": "PASSED - Name='Loan Repayment - {name}', notes='No interest.', sourceCategory='loan_repayment'"
+  }
+}

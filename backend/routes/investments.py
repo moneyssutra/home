@@ -29,61 +29,59 @@ async def create_investment(input: InvestmentCreate, request: Request):
         investment_dict['loanStatus'] = "active"
         investment_dict['currentValue'] = input.principal  # outstanding = principal initially
 
-        # Auto-create linked income source for interest tracking
-        if input.interestType and input.interestType != "none":
-            # Calculate expected periodic interest income
-            expected_interest_per_period = 0
-            agreed_return = input.agreedReturnAmount or 0
-            total_interest = max(agreed_return - input.principal, 0) if agreed_return > 0 else 0
+        # Auto-create linked income source for repayment tracking
+        # ALL loan given repayments are cash inflow that should be tracked as income
+        expected_per_period = 0
+        agreed_return = input.agreedReturnAmount or 0
+        total_interest = max(agreed_return - input.principal, 0) if agreed_return > 0 else 0
 
-            if input.repaymentType == "fixed" and input.installmentAmount and total_interest > 0:
-                # Fixed EMI: interest portion per installment
-                interest_fraction = total_interest / agreed_return if agreed_return > 0 else 0
-                expected_interest_per_period = round(input.installmentAmount * interest_fraction, 2)
-            elif input.repaymentType == "fixed" and input.installmentAmount and input.returnRate:
-                # Rate-based: approximate monthly interest
-                expected_interest_per_period = round(input.principal * (input.returnRate / 100) / 12, 2)
-            elif input.returnRate:
-                # Simple rate-based monthly interest
-                expected_interest_per_period = round(input.principal * (input.returnRate / 100) / 12, 2)
-            elif total_interest > 0 and input.numberOfInstallments:
-                # Distribute total interest across installments
-                expected_interest_per_period = round(total_interest / input.numberOfInstallments, 2)
+        if input.repaymentType == "fixed" and input.installmentAmount:
+            expected_per_period = input.installmentAmount
+        elif input.repaymentType == "lump_sum":
+            expected_per_period = agreed_return if agreed_return > 0 else input.principal
+        elif input.repaymentType == "flexible":
+            # Estimate: divide total by 12 months
+            total_return = agreed_return if agreed_return > 0 else input.principal
+            expected_per_period = round(total_return / 12, 2)
 
-            # Determine frequency for income source
-            freq = "Monthly"
-            if input.repaymentType == "fixed" and input.repaymentFrequency:
-                freq = input.repaymentFrequency
-            elif input.repaymentType == "lump_sum":
-                freq = "One-time"
+        # Determine frequency for income source
+        freq = "Monthly"
+        if input.repaymentType == "fixed" and input.repaymentFrequency:
+            freq = input.repaymentFrequency
+        elif input.repaymentType == "lump_sum":
+            freq = "One-time"
 
-            # Map payment day to income source schedule fields
-            income_schedule = {}
-            payment_day = input.paymentDay or ""
-            if freq == "Weekly" and payment_day:
-                income_schedule["selectedDay"] = payment_day
-            elif freq in ("Monthly", "Quarterly", "Half-Yearly", "Yearly") and payment_day:
-                income_schedule["selectedDate"] = payment_day
-            elif freq == "Daily":
-                income_schedule["selectedDay"] = "Monday"  # placeholder for daily
+        # Map payment day to income source schedule fields
+        income_schedule = {}
+        payment_day = input.paymentDay or ""
+        if freq == "Weekly" and payment_day:
+            income_schedule["selectedDay"] = payment_day
+        elif freq in ("Monthly", "Quarterly", "Half-Yearly", "Yearly") and payment_day:
+            income_schedule["selectedDate"] = payment_day
+        elif freq == "Daily":
+            income_schedule["selectedDay"] = "Monday"
 
-            income_source = {
-                "id": str(uuid.uuid4()),
-                "userId": user.get('user_id'),
-                "type": "Other",
-                "name": f"Interest - {input.name}",
-                "expectedAmount": expected_interest_per_period,
-                "frequency": freq,
-                "incomeType": "variable" if input.repaymentType == "flexible" else "fixed",
-                "sourceCategory": "loan_interest",
-                "isVariable": input.repaymentType == "flexible",
-                "startDate": input.startDate,
-                "notes": f"Auto-created from Loan Given: {input.name}. Total interest: ₹{total_interest:,.0f}" if total_interest > 0 else f"Auto-created from Loan Given: {input.name}",
-                "createdAt": datetime.now(timezone.utc).isoformat(),
-                **income_schedule,
-            }
-            await db.income_sources.insert_one(income_source)
-            investment_dict['linkedIncomeSourceId'] = income_source['id']
+        income_label = f"Loan Repayment - {input.name}"
+        if total_interest > 0:
+            income_label = f"Loan Repayment (incl. interest) - {input.name}"
+
+        income_source = {
+            "id": str(uuid.uuid4()),
+            "userId": user.get('user_id'),
+            "type": "Other",
+            "name": income_label,
+            "expectedAmount": expected_per_period,
+            "frequency": freq,
+            "incomeType": "variable" if input.repaymentType == "flexible" else "fixed",
+            "sourceCategory": "loan_repayment",
+            "isVariable": input.repaymentType == "flexible",
+            "startDate": input.startDate,
+            "notes": f"Auto-tracked from Loan Given: {input.name}." + (f" Total interest: ₹{total_interest:,.0f}" if total_interest > 0 else " No interest."),
+            "createdAt": datetime.now(timezone.utc).isoformat(),
+            **income_schedule,
+        }
+        await db.income_sources.insert_one(income_source)
+        investment_dict['linkedIncomeSourceId'] = income_source['id']
 
     investment_obj = Investment(**investment_dict)
     doc = investment_obj.model_dump()
@@ -674,24 +672,23 @@ async def add_repayment(investment_id: str, request: Request):
 
     await db.investment_transactions.insert_one(txn)
 
-    # Auto-create income transaction for interest portion
-    if interest_portion > 0:
-        linked_income_id = inv.get("linkedIncomeSourceId")
-        if linked_income_id:
-            income_txn = {
-                "id": str(uuid.uuid4()),
-                "userId": user.get("user_id"),
-                "entityId": linked_income_id,
-                "entityType": "income",
-                "entityName": f"Interest - {inv.get('name', '')}",
-                "amount": interest_portion,
-                "transactionDate": repayment_date,
-                "notes": f"Interest from loan repayment (₹{amount} total, ₹{principal_portion} principal, ₹{interest_portion} interest)",
-                "source": "auto_loan_repayment",
-                "isLocked": False,
-                "createdAt": datetime.now(timezone.utc).isoformat()
-            }
-            await db.income_received.insert_one(income_txn)
+    # Auto-create income transaction for cash flow tracking
+    linked_income_id = inv.get("linkedIncomeSourceId")
+    if linked_income_id:
+        income_txn = {
+            "id": str(uuid.uuid4()),
+            "userId": user.get("user_id"),
+            "entityId": linked_income_id,
+            "entityType": "income",
+            "entityName": f"Loan Repayment - {inv.get('name', '')}",
+            "amount": amount,
+            "transactionDate": repayment_date,
+            "notes": "Repayment received" + (f" (₹{principal_portion} principal, ₹{interest_portion} interest)" if interest_portion > 0 else ""),
+            "source": "auto_loan_repayment",
+            "isLocked": False,
+            "createdAt": datetime.now(timezone.utc).isoformat()
+        }
+        await db.income_received.insert_one(income_txn)
 
     return {
         "success": True,
