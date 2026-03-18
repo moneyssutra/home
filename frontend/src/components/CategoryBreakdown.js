@@ -80,7 +80,7 @@ const CategoryBreakdown = ({
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-base)" }}>
-      <div className="px-6 pt-6 pb-4">
+      <header className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3 mb-4">
           <button
             onClick={() => navigate(backPath)}
@@ -112,7 +112,7 @@ const CategoryBreakdown = ({
             ))}
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="px-6">
         <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>By Category</h3>
