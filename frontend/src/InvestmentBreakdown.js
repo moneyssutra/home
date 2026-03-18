@@ -1,4 +1,4 @@
-import { TrendingUp, Building2, Landmark, PiggyBank, Banknote, MoreHorizontal } from "lucide-react";
+import { TrendingUp, Building2, Landmark, PiggyBank, Banknote, MoreHorizontal, HandCoins } from "lucide-react";
 import CategoryBreakdown from "@/components/CategoryBreakdown";
 import { useInvestmentList } from "@/hooks/useApi";
 
@@ -13,6 +13,7 @@ const investmentTypeConfig = {
   "gold": { name: "Gold", icon: Banknote, color: "#F59E0B", bgColor: "#FEF3C7" },
   "bonds": { name: "Bonds", icon: Landmark, color: "#0EA5E9", bgColor: "#E0F2FE" },
   "cryptocurrency": { name: "Cryptocurrency", icon: Banknote, color: "#8B5CF6", bgColor: "#F3E8FF" },
+  "loan-given": { name: "Loan Given", icon: HandCoins, color: "#F97316", bgColor: "#FFF7ED" },
   "other": { name: "Other", icon: MoreHorizontal, color: "#6B7280", bgColor: "#F3F4F6" },
 };
 

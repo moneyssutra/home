@@ -90,6 +90,15 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
    - Also: Frontend `calculateMonthlyAmount()` was counting loan repayment `expectedAmount` in "Current Month Income" total
    - Fix: Excluded `sourceCategory: "loan_repayment"` from both the scheduler query and frontend calculation
    - Cleanup: `POST /api/investments/fix-loan-income-types` now also removes any fake `auto_fixed` transactions for loan sources
+5. "Next: Not set" for Weekly/Daily interest income sources (P0) — Fixed
+   - Root cause: `getNextPaymentDateObj` in MyInterest.js had no `case "Weekly"` or `case "Daily"` — fell to default null
+   - Fix: Added Weekly (uses selectedDay to compute next occurrence) and Daily (tomorrow) cases
+6. Investment Breakdown showing "Other" for Loan Given (P1) — Fixed
+   - Root cause: `investmentTypeConfig` in InvestmentBreakdown.js had no "loan-given" entry
+   - Fix: Added "loan-given" with HandCoins icon and orange color
+7. Monthly Cashflow Received incorrectly including loan repayments (P0) — Fixed
+   - Root cause: `get_income_monthly_summary` backend was including loan repayment income sources
+   - Fix: Added `sourceCategory != 'loan_repayment'` check in the loop
 
 ## Prioritized Backlog
 ### P1

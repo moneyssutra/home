@@ -51,10 +51,26 @@ const MyInterest = () => {
   };
 
   const getNextPaymentDateObj = (interest) => {
-    const { frequency, selectedDate, selectedMonth, customDate } = interest;
+    const { frequency, selectedDate, selectedDay, selectedMonth, customDate } = interest;
     const today = new Date();
     
     switch (frequency) {
+      case "Daily":
+        // Next day
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow;
+      case "Weekly":
+        if (!selectedDay) return null;
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const targetDayIndex = dayNames.indexOf(selectedDay);
+        if (targetDayIndex === -1) return null;
+        const currentDayIndex = today.getDay();
+        let daysUntil = targetDayIndex - currentDayIndex;
+        if (daysUntil <= 0) daysUntil += 7;
+        const nextWeekly = new Date(today);
+        nextWeekly.setDate(today.getDate() + daysUntil);
+        return nextWeekly;
       case "Monthly":
         if (!selectedDate) return null;
         if (typeof selectedDate === 'string' && selectedDate.includes('-')) {

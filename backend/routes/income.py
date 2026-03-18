@@ -161,6 +161,9 @@ async def get_income_monthly_summary(request: Request):
     pending_income = 0
 
     for inc in incomes:
+        # Skip loan repayment income sources — they should only show when actual repayments are received
+        if inc.get('sourceCategory') == 'loan_repayment':
+            continue
         amount = inc.get('expectedAmount', 0) or 0
         freq = inc.get('frequency', 'Monthly')
 
