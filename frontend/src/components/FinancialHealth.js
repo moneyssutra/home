@@ -23,10 +23,12 @@ import {
   ArrowUpDown,
   ArrowDownUp,
   Check,
-  X
+  X,
+  ClipboardEdit
 } from "lucide-react";
 import axios from "axios";
 import { useFamilyContext } from "@/context/FamilyContext";
+import FinancialHealthWizard from "./FinancialHealthWizard";
 import {
   DndContext,
   closestCenter,
@@ -256,9 +258,11 @@ const FinancialHealth = () => {
   const [overallScore, setOverallScore] = useState(0);
   const [activeTooltip, setActiveTooltip] = useState(null);
   const [allExpanded, setAllExpanded] = useState(false);
-  const [sortMode, setSortMode] = useState("smart"); // "smart" | "custom"
+  const [sortMode, setSortMode] = useState("smart");
   const [isReorderMode, setIsReorderMode] = useState(false);
   const [customOrder, setCustomOrder] = useState(null);
+  const [showWizard, setShowWizard] = useState(false);
+  const [wizardData, setWizardData] = useState(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -266,6 +270,15 @@ const FinancialHealth = () => {
   );
 
   const { isPersonalView, isFamilyView, activeViewId, activeViewLabel } = useFamilyContext();
+
+  // Load wizard data
+  useEffect(() => {
+    if (isPersonalView) {
+      axios.get(`${backendUrl}/api/financial-health/wizard`, { withCredentials: true })
+        .then(res => { if (res.data && Object.keys(res.data).length > 1) setWizardData(res.data); })
+        .catch(() => {});
+    }
+  }, [backendUrl, isPersonalView]);
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -894,6 +907,54 @@ const FinancialHealth = () => {
           </div>
         </div>
       </div>
+
+      {/* Wizard: Complete Your Profile */}
+      {isPersonalView && !showWizard && (
+        <div className="mb-4">
+          <button
+            onClick={() => setShowWizard(true)}
+            className="w-full flex items-center justify-between p-3.5 rounded-xl transition-all hover:shadow-md"
+            style={{ backgroundColor: overallScore < 40 ? "#FEF2F2" : "#F0FDF4", border: `1px solid ${overallScore < 40 ? "#FECACA" : "#BBF7D0"}` }}
+            data-testid="open-wizard-btn"
+          >
+            <div className="flex items-center gap-3">
+              <ClipboardEdit className="h-5 w-5" style={{ color: overallScore < 40 ? "#DC2626" : "#16A34A" }} />
+              <div className="text-left">
+                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  {wizardData ? "Update Your Financial Profile" : "Complete Your Financial Profile"}
+                </p>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                  {wizardData ? "Update details for a more accurate score" : "Enter your details to get an accurate health score"}
+                </p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
+          </button>
+        </div>
+      )}
+
+      {isPersonalView && showWizard && (
+        <div className="mb-5">
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Financial Profile Wizard</h4>
+            <button
+              onClick={() => setShowWizard(false)}
+              className="text-xs font-medium px-2.5 py-1 rounded-lg"
+              style={{ backgroundColor: "#F3F4F6", color: "#6B7280" }}
+              data-testid="close-wizard-btn"
+            >
+              Close
+            </button>
+          </div>
+          <FinancialHealthWizard
+            existingData={wizardData}
+            onComplete={() => {
+              setShowWizard(false);
+              fetchHealthData();
+            }}
+          />
+        </div>
+      )}
 
       {/* Health Modules */}
       <div className="space-y-3">

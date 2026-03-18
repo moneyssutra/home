@@ -60,13 +60,27 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 - Frontend: NotificationBell shows "Received" / "Not Received" buttons for these notifications
 
 ### API Endpoints
-- `POST /api/investments` — Create with auto-init + income source creation
+- `POST /api/investments` — Create with auto-init + income source creation + backdated catch-up
 - `POST /api/investments/{id}/add-repayment` — Smart split + income auto-creation
 - `GET /api/investments/{id}/repayments` — History with split details
 - `GET /api/investments/{id}/loan-detail` — Full detail with risk + installment plan
 - `POST /api/investments/check-loan-risks` — Batch risk detection
 - `POST /api/investments/confirm-repayment/{notification_id}` — Confirm/reject auto-recorded repayment
 - `DELETE /api/investments/{id}` — Cascade delete (income source + transactions)
+- `POST /api/investments/fix-loan-income-types` — Data migration + cleanup
+
+## Financial Health Wizard (Implemented - Mar 18, 2026)
+- 6-step guided wizard: Income → Expenses → Savings → Debts → Insurance → Investments
+- Saves to `financial_health_wizard` collection
+- Backend merges wizard data with auto-collected data for score calculation
+- Shows "Complete Your Financial Profile" button on the Financial Health page
+- API: `GET/POST /api/financial-health/wizard`
+
+## Skip Payment Feature (Implemented - Mar 18, 2026)
+- Added "Skip" button alongside "Mark Paid" and "Prepay" for pending expenses
+- "Skipped" status with amber badge, line-through amount, and "Undo Skip" option
+- Per-month tracking via `skippedMonths` array
+- API: `POST /api/expenses/{id}/skip`, `POST /api/expenses/{id}/undo-skip`
 
 ### Display
 - **Investment List**: Loan cards with borrower, outstanding, status badges

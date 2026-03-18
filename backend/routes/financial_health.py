@@ -25,7 +25,7 @@ async def get_financial_health(request: Request):
     # Fetch all required data in parallel
     (
         assets, investments, accounts, loans, credit_cards, 
-        incomes, expenses, insurances, profile, snapshots
+        incomes, expenses, insurances, profile, snapshots, wizard_data
     ) = await asyncio.gather(
         db.assets.find(user_filter, {"_id": 0}).to_list(1000),
         db.investments.find(user_filter, {"_id": 0}).to_list(1000),
@@ -36,8 +36,12 @@ async def get_financial_health(request: Request):
         db.expenses.find(user_filter, {"_id": 0}).to_list(1000),
         db.insurances.find(user_filter, {"_id": 0}).to_list(1000),
         db.profiles.find_one({"userId": user_id}, {"_id": 0}),
-        db.analytics_snapshots.find(user_filter, {"_id": 0}).sort([("year", -1), ("month", -1)]).to_list(2)
+        db.analytics_snapshots.find(user_filter, {"_id": 0}).sort([("year", -1), ("month", -1)]).to_list(2),
+        db.financial_health_wizard.find_one({"userId": user_id}, {"_id": 0})
     )
+    
+    # Wizard data supplements when primary data is missing
+    w = wizard_data or {}
     
     # ============ GLOBAL DATA DEFINITIONS ============
     # Monthly Income
@@ -60,6 +64,11 @@ async def get_financial_health(request: Request):
     
     annual_income = monthly_income * 12
     
+    # Supplement with wizard data if primary income data is sparse
+    if monthly_income == 0 and w.get('monthlyIncome'):
+        monthly_income = w['monthlyIncome']
+        annual_income = monthly_income * 12
+    
     # Monthly Expense
     monthly_expense = 0
     for exp in expenses:
@@ -80,6 +89,11 @@ async def get_financial_health(request: Request):
     
     annual_expense = monthly_expense * 12
     
+    # Supplement with wizard data if primary expense data is sparse
+    if monthly_expense == 0 and w.get('monthlyExpenses'):
+        monthly_expense = w['monthlyExpenses']
+        annual_expense = monthly_expense * 12
+    
     # Essential Expenses (Fixed + EMI + Insurance)
     essential_expense = 0
     for exp in expenses:
@@ -97,6 +111,10 @@ async def get_financial_health(request: Request):
         if exp_type == 'Fixed' or category in ['EMI', 'Insurance', 'Utilities', 'Housing']:
             essential_expense += monthly_amt
     
+    # Supplement with wizard data
+    if essential_expense == 0 and w.get('essentialExpenses'):
+        essential_expense = w['essentialExpenses']
+    
     # Liquid Funds
     liquid_funds = sum(acc.get('currentBalance', 0) or acc.get('balance', 0) for acc in accounts)
     for inv in investments:
@@ -105,12 +123,25 @@ async def get_financial_health(request: Request):
         if 'liquid' in cat or 'liquid' in name or cat == 'fd' or cat == 'fixed deposit' or 'fd' in name.split():
             liquid_funds += inv.get('currentValue', 0)
     
+    # Supplement with wizard data
+    if liquid_funds == 0 and w.get('liquidSavings'):
+        liquid_funds = w['liquidSavings']
+    
     # Totals
     total_investments = sum(inv.get('currentValue', 0) for inv in investments)
+    if total_investments == 0 and w.get('totalInvestments'):
+        total_investments = w['totalInvestments']
+    
     total_assets = sum(a.get('currentValue', 0) for a in assets)
     total_loans = sum(l.get('outstandingAmount', 0) for l in loans)
+    if total_loans == 0 and w.get('totalLoans'):
+        total_loans = w['totalLoans']
+    
     cc_outstanding = sum(c.get('currentOutstanding', 0) or c.get('outstandingAmount', 0) for c in credit_cards)
     cc_limit = sum(c.get('creditLimit', 0) for c in credit_cards)
+    if cc_limit == 0 and w.get('creditCardLimit'):
+        cc_limit = w['creditCardLimit']
+        cc_outstanding = w.get('creditCardOutstanding', 0)
     
     # Age
     age = 30
@@ -125,6 +156,8 @@ async def get_financial_health(request: Request):
     surplus = monthly_income - monthly_expense
     savings_rate = (surplus / monthly_income * 100) if monthly_income > 0 else 0
     total_emi = sum(l.get('emiAmount', 0) for l in loans)
+    if total_emi == 0 and w.get('totalEmi'):
+        total_emi = w['totalEmi']
     
     # ============ 1. EMERGENCY FUND ============
     emergency_target = essential_expense * 6
@@ -148,6 +181,8 @@ async def get_financial_health(request: Request):
     life_insurance_types = ['term life', 'term', 'life', 'whole life', 'life insurance', 'term insurance']
     life_cover = sum(i.get('coverageAmount', 0) or i.get('coverAmount', 0) or i.get('sumAssured', 0) for i in insurances 
                      if (i.get('insuranceType', '') or i.get('type', '')).lower() in life_insurance_types)
+    if life_cover == 0 and w.get('lifeInsuranceCover'):
+        life_cover = w['lifeInsuranceCover']
     life_target = annual_income * 12
     life_gap = max(0, life_target - life_cover)
     
@@ -167,6 +202,8 @@ async def get_financial_health(request: Request):
     # ============ 3. HEALTH INSURANCE ADEQUACY ============
     health_cover = sum(i.get('coverageAmount', 0) or i.get('coverAmount', 0) or i.get('sumAssured', 0) for i in insurances 
                        if (i.get('insuranceType', '') or i.get('type', '')).lower() in ['health', 'medical', 'mediclaim', 'health insurance'])
+    if health_cover == 0 and w.get('healthInsuranceCover'):
+        health_cover = w['healthInsuranceCover']
     health_target = 1000000
     health_gap = max(0, health_target - health_cover)
     
@@ -193,6 +230,9 @@ async def get_financial_health(request: Request):
         name = (inv.get('name', '') or '').lower()
         if any(x in cat for x in equity_keywords) or any(x in name for x in equity_keywords):
             equity_investments += inv.get('currentValue', 0)
+    
+    if equity_investments == 0 and w.get('equityInvestments'):
+        equity_investments = w['equityInvestments']
     
     actual_equity = (equity_investments / total_investments * 100) if total_investments > 0 else 0
     equity_gap = recommended_equity - actual_equity
@@ -463,3 +503,32 @@ async def get_financial_health(request: Request):
             "action": nw_action
         }
     }
+
+
+
+@router.get("/wizard")
+async def get_wizard_data(request: Request):
+    """Get saved financial health wizard data."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    data = await db.financial_health_wizard.find_one({"userId": user["user_id"]}, {"_id": 0})
+    return data or {}
+
+
+@router.post("/wizard")
+async def save_wizard_data(request: Request):
+    """Save financial health wizard data and use it for score calculation."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    body = await request.json()
+    body["userId"] = user["user_id"]
+    body["updatedAt"] = datetime.now(timezone.utc).isoformat()
+
+    await db.financial_health_wizard.update_one(
+        {"userId": user["user_id"]},
+        {"$set": body},
+        upsert=True
+    )
+    return {"success": True, "message": "Financial profile saved"}
