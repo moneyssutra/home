@@ -914,21 +914,21 @@ const FinancialHealth = () => {
           <button
             onClick={() => setShowWizard(true)}
             className="w-full flex items-center justify-between p-3.5 rounded-xl transition-all hover:shadow-md"
-            style={{ backgroundColor: overallScore < 40 ? "#FEF2F2" : "#F0FDF4", border: `1px solid ${overallScore < 40 ? "#FECACA" : "#BBF7D0"}` }}
+            style={{ backgroundColor: overallScore < 40 ? "#1C0A0A" : "#052E16", border: `1px solid ${overallScore < 40 ? "#7F1D1D" : "#166534"}` }}
             data-testid="open-wizard-btn"
           >
             <div className="flex items-center gap-3">
-              <ClipboardEdit className="h-5 w-5" style={{ color: overallScore < 40 ? "#DC2626" : "#16A34A" }} />
+              <ClipboardEdit className="h-5 w-5" style={{ color: overallScore < 40 ? "#FCA5A5" : "#86EFAC" }} />
               <div className="text-left">
-                <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                <p className="text-sm font-semibold" style={{ color: overallScore < 40 ? "#FECACA" : "#BBF7D0" }}>
                   {wizardData ? "Update Your Financial Profile" : "Complete Your Financial Profile"}
                 </p>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                <p className="text-xs" style={{ color: overallScore < 40 ? "#FCA5A5" : "#86EFAC" }}>
                   {wizardData ? "Update details for a more accurate score" : "Enter your details to get an accurate health score"}
                 </p>
               </div>
             </div>
-            <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
+            <ChevronRight className="h-5 w-5" style={{ color: overallScore < 40 ? "#FCA5A5" : "#86EFAC" }} />
           </button>
         </div>
       )}
@@ -940,7 +940,7 @@ const FinancialHealth = () => {
             <button
               onClick={() => setShowWizard(false)}
               className="text-xs font-medium px-2.5 py-1 rounded-lg"
-              style={{ backgroundColor: "#F3F4F6", color: "#6B7280" }}
+              style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)" }}
               data-testid="close-wizard-btn"
             >
               Close

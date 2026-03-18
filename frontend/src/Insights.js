@@ -1291,23 +1291,23 @@ const Insights = () => {
           <button
             onClick={() => setShowWizard(true)}
             className="w-full flex items-center justify-between p-4 rounded-2xl transition-all active:scale-[0.98]"
-            style={{ backgroundColor: isRedZone ? "#FEF2F2" : "var(--bg-card)", border: `1px solid ${isRedZone ? "#FECACA" : "var(--border-light)"}` }}
+            style={{ backgroundColor: isRedZone ? "#1C0A0A" : "var(--bg-card)", border: `1px solid ${isRedZone ? "#7F1D1D" : "var(--border-light)"}` }}
             data-testid="insights-wizard-btn"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: isRedZone ? "#FEE2E2" : "#ECFDF5" }}>
-                <ClipboardEdit className="h-5 w-5" style={{ color: isRedZone ? "#DC2626" : "#059669" }} />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: isRedZone ? "#450A0A" : "#ECFDF5" }}>
+                <ClipboardEdit className="h-5 w-5" style={{ color: isRedZone ? "#FCA5A5" : "#059669" }} />
               </div>
               <div className="text-left">
-                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+                <p className="text-sm font-bold" style={{ color: isRedZone ? "#FECACA" : "var(--text-primary)" }}>
                   {wizardData ? "Update Financial Profile" : "Complete Your Financial Profile"}
                 </p>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                <p className="text-xs" style={{ color: isRedZone ? "#FCA5A5" : "var(--text-muted)" }}>
                   {isRedZone ? "Enter your details to exit the RED ZONE" : "Get a more accurate health score"}
                 </p>
               </div>
             </div>
-            <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
+            <ChevronRight className="h-5 w-5" style={{ color: isRedZone ? "#FCA5A5" : "var(--text-muted)" }} />
           </button>
         )}
 
