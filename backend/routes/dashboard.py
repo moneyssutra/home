@@ -51,7 +51,11 @@ async def get_networth_summary(request: Request):
     current_day = today.day
 
     income_received_list, income_expected_list = _split_by_schedule_date(incomes, current_day, current_month, current_year, is_income=True)
-    expense_done_list, expense_upcoming_list = _split_by_schedule_date(expenses, current_day, current_month, current_year, is_income=False)
+
+    # For expenses, use payment-status-aware splitting to match My Expenses page
+    expense_done_list, expense_upcoming_list = await _split_expenses_by_status(
+        expenses, current_day, current_month, current_year
+    )
 
     # Also include other_incomes in received/expected
     oi_received, oi_expected = _split_other_income(other_incomes, current_day, current_month, current_year)
@@ -208,6 +212,131 @@ def _calc_monthly_income(incomes, other_incomes, current_month, current_year):
     return monthly_income
 
 
+async def _split_expenses_by_status(expenses, current_day, current_month, current_year):
+    """Split expenses into done/upcoming using payment status, matching My Expenses page logic."""
+    import calendar
+    done = []
+    upcoming = []
+    days_in_month = calendar.monthrange(current_year, current_month)[1]
+    target_month = f"{current_year}-{current_month:02d}"
+
+    # Filter to expenses that apply this month
+    applicable = []
+    for exp in expenses:
+        if exp.get('linkedPaymentId'):
+            continue
+        # Skip if skipped for this month
+        skipped_months = exp.get('skippedMonths', [])
+        if target_month in skipped_months:
+            continue
+        freq = exp.get('frequency', 'Monthly')
+        amount = exp.get('expectedAmount', 0)
+        if freq == 'One-Time':
+            otd = exp.get('oneTimeDate', '')
+            if otd:
+                try:
+                    d = datetime.fromisoformat(otd).date()
+                    if d.month == current_month and d.year == current_year:
+                        applicable.append(exp)
+                except (ValueError, TypeError):
+                    pass
+        elif freq == 'Quarterly':
+            sm = exp.get('selectedMonth', '')
+            q_start = {"Q1 (Jan-Mar)": 1, "Q2 (Apr-Jun)": 4, "Q3 (Jul-Sep)": 7, "Q4 (Oct-Dec)": 10}.get(sm, None)
+            if q_start and current_month in (q_start, q_start+1, q_start+2):
+                applicable.append(exp)
+        elif freq == 'Half-Yearly':
+            months_str = exp.get('selectedMonth', '')
+            if months_str:
+                month_map = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,
+                             "July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
+                for m in months_str.split(','):
+                    if month_map.get(m.strip()) == current_month:
+                        applicable.append(exp)
+                        break
+        elif freq == 'Yearly':
+            sm = exp.get('selectedMonth', '')
+            month_map = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,
+                         "July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
+            if month_map.get(sm) == current_month:
+                applicable.append(exp)
+        elif freq in ('Monthly', 'Daily', 'Weekly'):
+            applicable.append(exp)
+
+    # Get prepaid records for this month
+    expense_ids = [e.get('id') for e in applicable if e.get('id')]
+    prepaid_map = {}
+    if expense_ids:
+        prepaid_records = await db.expenses.find({
+            "linkedPaymentId": {"$in": expense_ids},
+            "expenseMonth": target_month,
+            "prepaidFlag": True
+        }, {"_id": 0, "linkedPaymentId": 1}).to_list(500)
+        for rec in prepaid_records:
+            prepaid_map[rec.get("linkedPaymentId")] = True
+
+    for exp in applicable:
+        amount = exp.get('expectedAmount', 0)
+        freq = exp.get('frequency', 'Monthly')
+        exp_id = exp.get('id', '')
+        name = exp.get('expenseName', exp.get('name', 'Unknown'))
+
+        # Handle Daily/Weekly with count-based splitting
+        if freq == 'Daily':
+            done_amt = round(amount * current_day, 2)
+            upcoming_amt = round(amount * (days_in_month - current_day), 2)
+            if done_amt > 0:
+                done.append({"id": exp_id, "name": name, "amount": done_amt, "frequency": freq, "scheduleDay": 1, "type": exp.get('category', '')})
+            if upcoming_amt > 0:
+                upcoming.append({"id": exp_id, "name": name, "amount": upcoming_amt, "frequency": freq, "scheduleDay": 1, "type": exp.get('category', '')})
+            continue
+        if freq == 'Weekly':
+            from routes.utils import count_weekday_occurrences
+            day_name = exp.get('selectedDay', '')
+            if day_name:
+                past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
+                total_count = count_weekday_occurrences(current_year, current_month, day_name)
+                future_count = total_count - past_count
+            else:
+                past_count = current_day // 7
+                future_count = max(0, 4 - past_count)
+            done_amt = round(amount * past_count, 2)
+            upcoming_amt = round(amount * future_count, 2)
+            if done_amt > 0:
+                done.append({"id": exp_id, "name": name, "amount": done_amt, "frequency": freq, "scheduleDay": 1, "type": exp.get('category', '')})
+            if upcoming_amt > 0:
+                upcoming.append({"id": exp_id, "name": name, "amount": upcoming_amt, "frequency": freq, "scheduleDay": 1, "type": exp.get('category', '')})
+            continue
+
+        entry = {"id": exp_id, "name": name, "amount": amount, "frequency": freq, "scheduleDay": 1, "type": exp.get('category', '')}
+
+        # Determine paid/pending using same logic as My Expenses
+        is_paid = False
+        if prepaid_map.get(exp_id):
+            is_paid = True
+        elif exp.get('isPaid') and (exp.get('lastPaidDate', '') or '')[:7] == target_month:
+            is_paid = True
+        else:
+            # Auto-mark as paid if due date has passed
+            due_day = None
+            sd = exp.get('selectedDate')
+            if sd:
+                try:
+                    due_day = int(sd)
+                except (ValueError, TypeError):
+                    pass
+            if due_day and due_day <= current_day:
+                is_paid = True
+
+        if is_paid:
+            done.append(entry)
+        else:
+            upcoming.append(entry)
+
+    return done, upcoming
+
+
+
 def _calc_monthly_expenses(expenses, current_month, current_year):
     """Calculate normalized monthly expense total."""
     import calendar
@@ -336,6 +465,12 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
         # Skip linked expenses to avoid double-counting (consistent with monthly-summary)
         if not is_income and item.get('linkedPaymentId'):
             continue
+        # Skip expenses that were skipped for this month
+        if not is_income:
+            skipped_months = item.get('skippedMonths', [])
+            month_key = f"{current_year}-{current_month:02d}"
+            if month_key in skipped_months:
+                continue
         amount = item.get('expectedAmount', 0)
         freq = item.get('frequency', 'Monthly')
 
