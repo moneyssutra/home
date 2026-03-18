@@ -95,7 +95,7 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 - Dashboard, Financial health, Gamification, Notifications, Reports
 - Admin panel with token-based auth
 
-## Bug Fixes (Mar 18, 2026)
+## Bug Fixes (Mar 18-19, 2026)
 1. Edit Button Redirect (P0) — Fixed
 2. Incorrect Current Month Income (P0) — Fixed
 3. Confusing Received/Pending Labels (P0) — Verified
@@ -113,6 +113,10 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 7. Monthly Cashflow Received incorrectly including loan repayments (P0) — Fixed
    - Root cause: `get_income_monthly_summary` backend was including loan repayment income sources
    - Fix: Added `sourceCategory != 'loan_repayment'` check in the loop
+
+8. Insights Page Crash (P0) — Fixed (Mar 19, 2026)
+   - Root cause: `backendUrl` not defined in main `Insights` component; `isPersonalView` used in `useEffect` before assignment from `useFamilyContext()`
+   - Fix: Moved `backendUrl` definition and hook calls (`useIntelligenceData`, `useFamilyContext`) before the `useEffect` that depends on them
 
 ## Prioritized Backlog
 ### P1

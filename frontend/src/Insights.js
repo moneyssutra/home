@@ -1205,11 +1205,14 @@ const ActionSection = ({ clockData, scoreData, challenges }) => {
 // ─── MAIN INSIGHTS PAGE ───
 const Insights = () => {
   const navigate = useNavigate();
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const [openModule, setOpenModule] = useState(null);
   const [showWizard, setShowWizard] = useState(false);
   const [wizardData, setWizardData] = useState(null);
+  const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, refresh, joinChallenge, leaveChallenge } = useIntelligenceData();
+  const { activeViewLabel, isPersonalView, isFamilyView } = useFamilyContext();
 
   useEffect(() => {
     if (isPersonalView) {
@@ -1218,8 +1221,6 @@ const Insights = () => {
         .catch(() => {});
     }
   }, [backendUrl, isPersonalView]);
-  const { survivalClock, controlScore, behaviorAlerts, gamification, challenges, moneyPattern, futureYou, personalityHistory, loading, refresh, joinChallenge, leaveChallenge } = useIntelligenceData();
-  const { activeViewLabel, isPersonalView, isFamilyView } = useFamilyContext();
 
   const isEmpty = !hasRealData(survivalClock, controlScore);
   const isRedZone = !isEmpty && survivalClock && survivalClock.survivalDays < 30;
