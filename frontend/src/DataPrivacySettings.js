@@ -69,8 +69,10 @@ const DataPrivacySettings = () => {
     setDeleting(true);
     try {
       const response = await fetch(`${backendUrl}/api/settings/delete-account`, {
-        method: 'DELETE',
-        credentials: 'include'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ confirmation: "DELETE" })
       });
       
       if (!response.ok) throw new Error('Delete failed');

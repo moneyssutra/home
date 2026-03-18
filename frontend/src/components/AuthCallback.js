@@ -28,11 +28,8 @@ const AuthCallback = () => {
         if (result.success) {
           setUserData(result.user);
           
-          // New Google user → redirect to profile to complete DOB, phone, etc.
-          if (result.user.is_new_user) {
-            navigate("/settings/profile", { replace: true, state: { completeProfile: true } });
-          } else if (result.user.auth_type === 'google' && !result.user.has_password) {
-            // Show the set password modal for returning Google users without password
+          // Google user without password → show set password modal
+          if (result.user.auth_type === 'google' && !result.user.has_password) {
             setShowSetPasswordModal(true);
           } else {
             // Navigate to home with user data
@@ -52,14 +49,22 @@ const AuthCallback = () => {
   }, []);
 
   const handlePasswordSet = () => {
-    // Navigate to home after password is set
-    navigate("/home", { replace: true, state: { user: userData } });
+    // New users go to profile setup, existing users go home
+    if (userData?.is_new_user) {
+      navigate("/settings/profile", { replace: true, state: { completeProfile: true } });
+    } else {
+      navigate("/home", { replace: true, state: { user: userData } });
+    }
   };
 
   const handleSkipPassword = () => {
-    // Navigate to home even if password is skipped
     setShowSetPasswordModal(false);
-    navigate("/home", { replace: true, state: { user: userData } });
+    // New users go to profile setup, existing users go home
+    if (userData?.is_new_user) {
+      navigate("/settings/profile", { replace: true, state: { completeProfile: true } });
+    } else {
+      navigate("/home", { replace: true, state: { user: userData } });
+    }
   };
 
   return (
