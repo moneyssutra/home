@@ -353,7 +353,7 @@ async def command_center(request: Request):
     await _require_admin(request)
     now = get_user_now(request)
 
-    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
     total_users = len(all_users)
 
     # Active users (7d / 30d) from sessions
@@ -993,7 +993,7 @@ async def behavioral_insights(request: Request):
     await _require_admin(request)
     now = get_user_now(request)
 
-    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
     all_profiles = await db.profiles.find({}, {"_id": 0}).to_list(10000)
     profile_map = {p["userId"]: p for p in all_profiles}
 
