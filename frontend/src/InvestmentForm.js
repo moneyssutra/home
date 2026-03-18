@@ -66,6 +66,8 @@ const InvestmentForm = () => {
   const [agreedReturnAmount, setAgreedReturnAmount] = useState("");
   const [repaymentType, setRepaymentType] = useState("flexible");
   const [repaymentFrequency, setRepaymentFrequency] = useState("");
+  const [installmentAmount, setInstallmentAmount] = useState("");
+  const [numberOfInstallments, setNumberOfInstallments] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [dueDateCalendarOpen, setDueDateCalendarOpen] = useState(false);
   
@@ -244,11 +246,29 @@ const InvestmentForm = () => {
         setInvestmentMode("Fixed");
       } else if (repaymentType === "fixed") {
         setInvestmentMode("Income Generating");
+      } else if (repaymentType === "lump_sum") {
+        setInvestmentMode("Growth with Maturity");
       } else {
         setInvestmentMode("Growth with Maturity");
       }
     }
   }, [interestType, repaymentType, investmentCategory]);
+
+  // Auto-calculate installment amount OR number of installments for Loan Given
+  useEffect(() => {
+    if (investmentCategory === "Loan Given" && repaymentType === "fixed") {
+      const totalReturn = agreedReturnAmount ? parseFloat(agreedReturnAmount) : (parseFloat(principal) || 0);
+      if (totalReturn > 0) {
+        if (numberOfInstallments && !installmentAmount) {
+          const num = parseInt(numberOfInstallments);
+          if (num > 0) setInstallmentAmount(String(Math.ceil(totalReturn / num)));
+        } else if (installmentAmount && !numberOfInstallments) {
+          const amt = parseFloat(installmentAmount);
+          if (amt > 0) setNumberOfInstallments(String(Math.ceil(totalReturn / amt)));
+        }
+      }
+    }
+  }, [investmentCategory, repaymentType, principal, agreedReturnAmount]);
 
 
   // Scroll to top on mount
@@ -334,6 +354,8 @@ const InvestmentForm = () => {
       setAgreedReturnAmount(data.agreedReturnAmount?.toString() || "");
       setRepaymentType(data.repaymentType || "flexible");
       setRepaymentFrequency(data.repaymentFrequency || "");
+      setInstallmentAmount(data.installmentAmount?.toString() || "");
+      setNumberOfInstallments(data.numberOfInstallments?.toString() || "");
       setDueDate(data.dueDate || "");
     } catch (error) {
       console.error("Error fetching investment data:", error);
@@ -502,6 +524,8 @@ const InvestmentForm = () => {
           agreedReturnAmount: agreedReturnAmount ? parseFloat(agreedReturnAmount) : null,
           repaymentType: repaymentType || "flexible",
           repaymentFrequency: repaymentType === "fixed" ? (repaymentFrequency || null) : null,
+          installmentAmount: repaymentType === "fixed" && installmentAmount ? parseFloat(installmentAmount) : null,
+          numberOfInstallments: repaymentType === "fixed" && numberOfInstallments ? parseInt(numberOfInstallments) : null,
           dueDate: dueDate || null,
         }),
       };
@@ -672,34 +696,6 @@ const InvestmentForm = () => {
               )}
             </div>
 
-            {/* Investment Mode for Loan Given - after Loan Label, with 4th "Fixed" option */}
-            {isLoanGiven && (
-              <div className="w-full">
-                <label htmlFor="loanInvestmentMode" className="block text-sm font-medium text-[#334155] mb-2">
-                  Investment Mode
-                </label>
-                <select
-                  id="loanInvestmentMode"
-                  value={investmentMode}
-                  onChange={(e) => setInvestmentMode(e.target.value)}
-                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                  data-testid="loan-mode-select"
-                >
-                  <option value="">Select Mode</option>
-                  <option value="Fixed">Fixed (No Interest)</option>
-                  <option value="Growth Only">Growth Only</option>
-                  <option value="Income Generating">Income Generating</option>
-                  <option value="Growth with Maturity">Growth with Maturity</option>
-                </select>
-                <p className="text-xs mt-1.5" style={{ color: "#64748B" }}>
-                  {investmentMode === "Fixed" && "Principal returned as-is, no interest applied"}
-                  {investmentMode === "Growth Only" && "Value may appreciate over time"}
-                  {investmentMode === "Income Generating" && "Regular repayments / interest income expected"}
-                  {investmentMode === "Growth with Maturity" && "Interest accumulates, lump sum return at maturity"}
-                </p>
-              </div>
-            )}
-
             {/* Loan Given Specific Fields */}
             {isLoanGiven && (
               <div className="w-full space-y-4 p-4 rounded-xl bg-[#FFF7ED] border border-[#F59E0B]/20" data-testid="loan-given-section">
@@ -792,19 +788,20 @@ const InvestmentForm = () => {
                   </div>
                 )}
                 
-                {/* Repayment Type */}
+                {/* Repayment Plan */}
                 <div className="w-full">
-                  <label className="block text-sm font-medium text-[#334155] mb-2">Repayment Type</label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <label className="block text-sm font-medium text-[#334155] mb-2">Repayment Plan</label>
+                  <div className="grid grid-cols-3 gap-2">
                     {[
+                      { val: "lump_sum", label: "Lump Sum" },
+                      { val: "fixed", label: "Fixed EMI" },
                       { val: "flexible", label: "Flexible" },
-                      { val: "fixed", label: "Fixed Schedule" },
                     ].map((opt) => (
                       <button
                         key={opt.val}
                         type="button"
                         onClick={() => setRepaymentType(opt.val)}
-                        className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all ${
+                        className={`rounded-xl border px-3 py-2.5 text-xs font-medium transition-all ${
                           repaymentType === opt.val
                             ? "border-[#14B8A6] bg-[#14B8A6]/10 text-[#14B8A6]"
                             : "border-[#334155] bg-[#1E293B] text-[#334155]"
@@ -815,26 +812,97 @@ const InvestmentForm = () => {
                       </button>
                     ))}
                   </div>
+                  <p className="text-xs mt-1.5" style={{ color: "#94A3B8" }}>
+                    {repaymentType === "lump_sum" && "Full amount returned at once on due date"}
+                    {repaymentType === "fixed" && "Fixed amount paid at regular intervals"}
+                    {repaymentType === "flexible" && "Borrower pays as and when possible, no fixed schedule"}
+                  </p>
                 </div>
 
-                {/* Installment Frequency - shown only for Fixed repayment */}
+                {/* Fixed EMI Details */}
                 {repaymentType === "fixed" && (
-                  <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="block text-sm font-medium text-[#334155] mb-2">Installment Frequency</label>
-                    <select
-                      value={repaymentFrequency}
-                      onChange={(e) => setRepaymentFrequency(e.target.value)}
-                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="repayment-frequency-select"
-                    >
-                      <option value="">Select Frequency</option>
-                      <option value="Daily">Daily</option>
-                      <option value="Weekly">Weekly</option>
-                      <option value="Monthly">Monthly</option>
-                      <option value="Quarterly">Quarterly</option>
-                      <option value="Half-Yearly">Semi-Annually</option>
-                      <option value="Yearly">Yearly</option>
-                    </select>
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300 p-3 rounded-lg" style={{ backgroundColor: "rgba(20,184,166,0.05)", border: "1px solid rgba(20,184,166,0.15)" }}>
+                    <p className="text-xs font-semibold text-[#334155]">Installment Plan</p>
+                    
+                    {/* Frequency */}
+                    <div className="w-full">
+                      <label className="block text-xs font-medium text-[#334155] mb-1.5">Payment Frequency</label>
+                      <select
+                        value={repaymentFrequency}
+                        onChange={(e) => setRepaymentFrequency(e.target.value)}
+                        className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-2.5 text-sm text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                        data-testid="repayment-frequency-select"
+                      >
+                        <option value="">Select Frequency</option>
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Monthly">Monthly</option>
+                        <option value="Quarterly">Quarterly</option>
+                        <option value="Half-Yearly">Semi-Annually</option>
+                        <option value="Yearly">Yearly</option>
+                      </select>
+                    </div>
+
+                    {/* Installment Amount + Number of Installments */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-[#334155] mb-1.5">Amount per Installment</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#334155] text-xs font-medium">₹</span>
+                          <input
+                            type="text"
+                            value={installmentAmount}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9.]/g, "");
+                              setInstallmentAmount(val);
+                              // Auto-calc number of installments
+                              const totalReturn = agreedReturnAmount ? parseFloat(agreedReturnAmount) : (parseFloat(principal) || 0);
+                              const amt = parseFloat(val);
+                              if (amt > 0 && totalReturn > 0) {
+                                setNumberOfInstallments(String(Math.ceil(totalReturn / amt)));
+                              }
+                            }}
+                            placeholder="e.g., 5000"
+                            className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-8 pr-3 py-2.5 text-sm text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                            data-testid="installment-amount-input"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-[#334155] mb-1.5">No. of Installments</label>
+                        <input
+                          type="text"
+                          value={numberOfInstallments}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, "");
+                            setNumberOfInstallments(val);
+                            // Auto-calc installment amount
+                            const totalReturn = agreedReturnAmount ? parseFloat(agreedReturnAmount) : (parseFloat(principal) || 0);
+                            const num = parseInt(val);
+                            if (num > 0 && totalReturn > 0) {
+                              setInstallmentAmount(String(Math.ceil(totalReturn / num)));
+                            }
+                          }}
+                          placeholder="e.g., 10"
+                          className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-3 py-2.5 text-sm text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                          data-testid="num-installments-input"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Installment Preview */}
+                    {installmentAmount && numberOfInstallments && repaymentFrequency && (
+                      <div className="p-2.5 rounded-lg" style={{ backgroundColor: "#14B8A610", border: "1px solid #14B8A620" }}>
+                        <p className="text-xs font-medium" style={{ color: "#14B8A6" }}>
+                          ₹{parseFloat(installmentAmount).toLocaleString("en-IN")} x {numberOfInstallments} {repaymentFrequency.toLowerCase()} installments = ₹{(parseFloat(installmentAmount) * parseInt(numberOfInstallments)).toLocaleString("en-IN")}
+                        </p>
+                        {interestType !== "none" && agreedReturnAmount && parseFloat(agreedReturnAmount) > (parseFloat(principal) || 0) && (
+                          <p className="text-xs mt-1" style={{ color: "#64748B" }}>
+                            Interest earned: ₹{(parseFloat(agreedReturnAmount) - (parseFloat(principal) || 0)).toLocaleString("en-IN")} (auto-tracked in Income)
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
                 
@@ -872,6 +940,34 @@ const InvestmentForm = () => {
                     </PopoverContent>
                   </Popover>
                 </div>
+              </div>
+            )}
+
+            {/* Investment Mode for Loan Given - AFTER Loan Details, auto-set from selections */}
+            {isLoanGiven && (
+              <div className="w-full">
+                <label htmlFor="loanInvestmentMode" className="block text-sm font-medium text-[#334155] mb-2">
+                  Investment Mode
+                </label>
+                <select
+                  id="loanInvestmentMode"
+                  value={investmentMode}
+                  onChange={(e) => setInvestmentMode(e.target.value)}
+                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  data-testid="loan-mode-select"
+                >
+                  <option value="">Select Mode</option>
+                  <option value="Fixed">Fixed (No Interest)</option>
+                  <option value="Growth Only">Growth Only</option>
+                  <option value="Income Generating">Income Generating</option>
+                  <option value="Growth with Maturity">Growth with Maturity</option>
+                </select>
+                <p className="text-xs mt-1.5" style={{ color: "#64748B" }}>
+                  {investmentMode === "Fixed" && "Principal returned as-is, no interest applied"}
+                  {investmentMode === "Growth Only" && "Value may appreciate over time"}
+                  {investmentMode === "Income Generating" && "Regular repayments / interest income expected"}
+                  {investmentMode === "Growth with Maturity" && "Interest accumulates, lump sum return at maturity"}
+                </p>
               </div>
             )}
 

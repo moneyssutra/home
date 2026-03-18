@@ -433,8 +433,11 @@ class Investment(BaseModel):
     borrowerContact: Optional[str] = None
     interestType: Optional[str] = None  # "none", "simple", "custom"
     agreedReturnAmount: Optional[float] = None
-    repaymentType: Optional[str] = None  # "flexible", "fixed"
+    repaymentType: Optional[str] = None  # "flexible", "fixed", "lump_sum"
     repaymentFrequency: Optional[str] = None  # "Daily", "Weekly", "Monthly", "Quarterly", "Half-Yearly", "Yearly"
+    installmentAmount: Optional[float] = None
+    numberOfInstallments: Optional[int] = None
+    linkedIncomeSourceId: Optional[str] = None  # auto-created income source for interest
     dueDate: Optional[str] = None
     amountReceived: Optional[float] = 0
     outstandingAmount: Optional[float] = None
@@ -477,6 +480,8 @@ class InvestmentCreate(BaseModel):
     agreedReturnAmount: Optional[float] = None
     repaymentType: Optional[str] = None
     repaymentFrequency: Optional[str] = None
+    installmentAmount: Optional[float] = None
+    numberOfInstallments: Optional[int] = None
     dueDate: Optional[str] = None
     amountReceived: Optional[float] = 0
     outstandingAmount: Optional[float] = None

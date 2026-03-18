@@ -237,7 +237,7 @@ export default function InvestmentDetail() {
             })}
           </div>
 
-          {/* Borrower Info */}
+          {/* Borrower Info & Repayment Plan */}
           {(data.borrowerName || data.borrowerContact) && (
             <div className="rounded-2xl p-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
               <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--text-primary)" }}>Borrower Details</h3>
@@ -248,7 +248,22 @@ export default function InvestmentDetail() {
                 <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>Contact: <span className="font-medium" style={{ color: "var(--text-primary)" }}>{data.borrowerContact}</span></p>
               )}
               {data.repaymentType && (
-                <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>Repayment: <span className="font-medium capitalize" style={{ color: "var(--text-primary)" }}>{data.repaymentType}</span></p>
+                <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>Repayment Plan: <span className="font-medium capitalize" style={{ color: "var(--text-primary)" }}>
+                  {data.repaymentType === "fixed" ? "Fixed Installments" : data.repaymentType === "lump_sum" ? "Lump Sum" : "Flexible"}
+                </span></p>
+              )}
+              {data.repaymentType === "fixed" && data.installmentAmount && data.numberOfInstallments && (
+                <div className="mt-2 p-2.5 rounded-lg" style={{ backgroundColor: "rgba(20,184,166,0.05)", border: "1px solid rgba(20,184,166,0.12)" }}>
+                  <p className="text-xs font-medium" style={{ color: "#14B8A6" }}>
+                    ₹{data.installmentAmount.toLocaleString("en-IN")} x {data.numberOfInstallments} {(data.repaymentFrequency || "").toLowerCase()} installments
+                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                    Paid: {data.repaymentCount || 0} of {data.numberOfInstallments} installments
+                  </p>
+                </div>
+              )}
+              {data.linkedIncomeSourceId && (
+                <p className="text-xs mt-2" style={{ color: "#059669" }}>Interest income auto-tracked</p>
               )}
             </div>
           )}
@@ -273,19 +288,23 @@ export default function InvestmentDetail() {
             </div>
 
             <div className="grid grid-cols-12 gap-1 px-4 py-2 text-xs font-semibold" style={{ color: "var(--text-muted)", backgroundColor: "var(--bg-subtle)" }}>
-              <span className="col-span-3">Date</span>
-              <span className="col-span-3 text-right">Amount</span>
-              <span className="col-span-3 text-right">Outstanding</span>
-              <span className="col-span-3 text-right">Notes</span>
+              <span className="col-span-2">Date</span>
+              <span className="col-span-2 text-right">Amount</span>
+              <span className="col-span-2 text-right">Principal</span>
+              <span className="col-span-2 text-right">Interest</span>
+              <span className="col-span-2 text-right">Balance</span>
+              <span className="col-span-2 text-right">Notes</span>
             </div>
 
             <div className="max-h-[300px] overflow-y-auto">
               {(data.repayments || []).map((row, i) => (
                 <div key={i} className="grid grid-cols-12 gap-1 px-4 py-2.5 items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)" }} data-testid={`repayment-row-${i}`}>
-                  <span className="col-span-3" style={{ color: "var(--text-secondary)" }}>{formatDate(row.transactionDate)}</span>
-                  <span className="col-span-3 text-right font-semibold" style={{ color: "#059669" }}>+₹{fmtCompact(row.amount)}</span>
-                  <span className="col-span-3 text-right" style={{ color: "var(--text-secondary)" }}>₹{fmtCompact(row.outstandingAfter)}</span>
-                  <span className="col-span-3 text-right truncate" style={{ color: "var(--text-muted)" }}>{row.notes || "-"}</span>
+                  <span className="col-span-2" style={{ color: "var(--text-secondary)" }}>{formatDate(row.transactionDate)}</span>
+                  <span className="col-span-2 text-right font-semibold" style={{ color: "#059669" }}>+₹{fmtCompact(row.amount)}</span>
+                  <span className="col-span-2 text-right" style={{ color: "var(--text-secondary)" }}>₹{fmtCompact(row.principalPortion || row.amount)}</span>
+                  <span className="col-span-2 text-right" style={{ color: row.interestPortion > 0 ? "#F59E0B" : "var(--text-muted)" }}>{row.interestPortion > 0 ? `₹${fmtCompact(row.interestPortion)}` : "-"}</span>
+                  <span className="col-span-2 text-right" style={{ color: "var(--text-secondary)" }}>₹{fmtCompact(row.outstandingAfter)}</span>
+                  <span className="col-span-2 text-right truncate" style={{ color: "var(--text-muted)" }}>{row.notes || "-"}</span>
                 </div>
               ))}
               {(!data.repayments || data.repayments.length === 0) && (

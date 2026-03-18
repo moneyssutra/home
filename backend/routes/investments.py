@@ -29,6 +29,25 @@ async def create_investment(input: InvestmentCreate, request: Request):
         investment_dict['loanStatus'] = "active"
         investment_dict['currentValue'] = input.principal  # outstanding = principal initially
 
+        # Auto-create linked income source for interest tracking
+        if input.interestType and input.interestType != "none":
+            income_source = {
+                "id": str(uuid.uuid4()),
+                "userId": user.get('user_id'),
+                "type": "Other",
+                "name": f"Interest - {input.name}",
+                "expectedAmount": 0,  # variable
+                "frequency": input.repaymentFrequency or "Monthly",
+                "incomeType": "variable",
+                "sourceCategory": "loan_interest",
+                "isVariable": True,
+                "startDate": input.startDate,
+                "notes": f"Auto-created from Loan Given: {input.name}",
+                "createdAt": datetime.now(timezone.utc).isoformat(),
+            }
+            await db.income_sources.insert_one(income_source)
+            investment_dict['linkedIncomeSourceId'] = income_source['id']
+
     investment_obj = Investment(**investment_dict)
     doc = investment_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
@@ -573,9 +592,69 @@ async def add_repayment(investment_id: str, request: Request):
         "notes": notes,
         "outstandingBefore": outstanding,
         "outstandingAfter": new_outstanding,
+        "principalPortion": 0,
+        "interestPortion": 0,
         "createdAt": datetime.now(timezone.utc).isoformat()
     }
+
+    # Smart interest/principal split for income tracking
+    interest_type = inv.get("interestType", "none")
+    principal_total = inv.get("principal", 0)
+    agreed_return = inv.get("agreedReturnAmount")
+    interest_portion = 0
+    principal_portion = amount
+
+    if interest_type != "none" and principal_total > 0:
+        if agreed_return and agreed_return > principal_total:
+            # Proportional split: each repayment splits proportionally
+            total_interest = agreed_return - principal_total
+            interest_fraction = total_interest / agreed_return
+            interest_portion = round(amount * interest_fraction, 2)
+            principal_portion = round(amount - interest_portion, 2)
+        elif inv.get("returnRate", 0):
+            # Simple interest split per repayment
+            rate = inv.get("returnRate", 0)
+            start_str = inv.get("startDate", "")
+            try:
+                start_dt = datetime.strptime(start_str, "%Y-%m-%d")
+                repay_dt = datetime.strptime(repayment_date, "%Y-%m-%d")
+                prev_repay = inv.get("lastRepaymentDate")
+                if prev_repay:
+                    from_dt = datetime.strptime(prev_repay, "%Y-%m-%d")
+                else:
+                    from_dt = start_dt
+                days = max((repay_dt - from_dt).days, 0)
+                # Interest accrued since last repayment on remaining outstanding
+                interest_portion = round(outstanding * (rate / 100) * days / 365.25, 2)
+                interest_portion = min(interest_portion, amount)  # cap at repayment amount
+                principal_portion = round(amount - interest_portion, 2)
+            except (ValueError, TypeError):
+                interest_portion = 0
+                principal_portion = amount
+
+    txn["interestPortion"] = interest_portion
+    txn["principalPortion"] = principal_portion
+
     await db.investment_transactions.insert_one(txn)
+
+    # Auto-create income transaction for interest portion
+    if interest_portion > 0:
+        linked_income_id = inv.get("linkedIncomeSourceId")
+        if linked_income_id:
+            income_txn = {
+                "id": str(uuid.uuid4()),
+                "userId": user.get("user_id"),
+                "entityId": linked_income_id,
+                "entityType": "income",
+                "entityName": f"Interest - {inv.get('name', '')}",
+                "amount": interest_portion,
+                "transactionDate": repayment_date,
+                "notes": f"Interest from loan repayment (₹{amount} total, ₹{principal_portion} principal, ₹{interest_portion} interest)",
+                "source": "auto_loan_repayment",
+                "isLocked": False,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            await db.income_received.insert_one(income_txn)
 
     return {
         "success": True,
@@ -584,6 +663,8 @@ async def add_repayment(investment_id: str, request: Request):
             "amountReceived": new_amount_received,
             "outstandingAmount": new_outstanding,
             "loanStatus": new_status,
+            "interestPortion": interest_portion,
+            "principalPortion": principal_portion,
         }
     }
 
@@ -756,6 +837,9 @@ async def get_loan_given_detail(investment_id: str, request: Request):
         "agreedReturnAmount": agreed_return,
         "repaymentType": inv.get("repaymentType", "flexible"),
         "repaymentFrequency": inv.get("repaymentFrequency"),
+        "installmentAmount": inv.get("installmentAmount"),
+        "numberOfInstallments": inv.get("numberOfInstallments"),
+        "linkedIncomeSourceId": inv.get("linkedIncomeSourceId"),
         "startDate": start_date_str,
         "dueDate": due_date_str,
         "notes": inv.get("notes"),
