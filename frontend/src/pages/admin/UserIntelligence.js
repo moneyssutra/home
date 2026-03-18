@@ -23,7 +23,8 @@ const UserDrawer = ({ user, onClose }) => {
         <div className="p-5">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-sm font-bold text-gray-900">{user.userId}</h3>
+              <h3 className="text-sm font-bold text-gray-900">{user.userName || user.userId}</h3>
+              <p className="text-[10px] font-mono text-gray-400">{user.userId}</p>
               <span className="text-[10px] px-2 py-0.5 rounded-full font-bold" style={{ backgroundColor: `${riskColors[user.riskLevel]}10`, color: riskColors[user.riskLevel] }}>
                 {user.riskLevel.toUpperCase()}
               </span>
@@ -108,7 +109,7 @@ const UserIntelligence = () => {
           <table className="w-full text-xs" data-testid="user-table">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50/50">
-                {["User ID", "Income", "Safety", "Wealth%", "Lifestyle%", "EMI%", "Health", "Risk", "Bucket"].map(h => (
+                {["User", "Income", "Safety", "Wealth%", "Lifestyle%", "EMI%", "Health", "Risk", "Bucket"].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{h}</th>
                 ))}
               </tr>
@@ -119,7 +120,10 @@ const UserIntelligence = () => {
                   className="border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-all"
                   data-testid={`user-row-${i}`}
                 >
-                  <td className="px-4 py-3 font-mono text-gray-500">{u.userId}</td>
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-gray-900">{u.userName || "—"}</div>
+                    <div className="font-mono text-[10px] text-gray-400">{u.userId}</div>
+                  </td>
                   <td className="px-4 py-3 text-gray-700">{u.incomeBand}</td>
                   <td className="px-4 py-3 font-bold" style={{ color: riskColors[u.riskLevel] }}>{u.safetyDays}d</td>
                   <td className="px-4 py-3 text-gray-700">{u.wealthPct}%</td>

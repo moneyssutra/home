@@ -74,7 +74,7 @@ def _classify(cat):
     return "lifestyle"
 
 
-async def _compute_user_metrics(user_id: str, now: datetime):
+async def _compute_user_metrics(user_id: str, now: datetime, user_name: str = ""):
     """Compute financial metrics for a single user."""
     import asyncio
     # Parallel DB queries
@@ -145,6 +145,7 @@ async def _compute_user_metrics(user_id: str, now: datetime):
 
     return {
         "userId": user_id[:8] + "****",
+        "userName": user_name,
         "incomeBand": band,
         "safetyDays": safety_days,
         "wealthPct": wealth_pct,
@@ -368,7 +369,7 @@ async def command_center(request: Request):
         if not uid:
             continue
         try:
-            m = await _compute_user_metrics(uid, now)
+            m = await _compute_user_metrics(uid, now, u.get("name", u.get("firstName", "")))
             user_metrics.append(m)
         except Exception as e:
             logger.warning(f"Skipping user {uid}: {e}")
@@ -430,9 +431,9 @@ async def risk_radar(request: Request):
         if not uid:
             continue
         try:
-            m = await _compute_user_metrics(uid, now)
-            metrics.append(m)
+            m = await _compute_user_metrics(uid, now, u.get("name", u.get("firstName", "")))
         except:
+            metrics.append(m)
             pass
 
     total = len(metrics) or 1
@@ -702,12 +703,12 @@ async def segmentation_lab(request: Request):
         if not uid:
             continue
         try:
-            metrics = await _compute_user_metrics(uid, now)
+            metrics = await _compute_user_metrics(uid, now, u.get("name", u.get("firstName", "")))
+
         except Exception:
             continue
 
         profile = profile_map.get(uid, {})
-
         # Calculate age
         age = None
         dob_str = profile.get("dateOfBirth", "")
