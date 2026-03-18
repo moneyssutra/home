@@ -68,7 +68,7 @@ async def create_investment(input: InvestmentCreate, request: Request):
         income_source = {
             "id": str(uuid.uuid4()),
             "userId": user.get('user_id'),
-            "type": "Other",
+            "type": "Interest",
             "name": income_label,
             "expectedAmount": expected_per_period,
             "frequency": freq,
@@ -890,3 +890,17 @@ async def get_loan_given_detail(investment_id: str, request: Request):
         "repayments": repayments,
         "repaymentCount": len(repayments),
     }
+
+
+
+@router.post("/fix-loan-income-types")
+async def fix_loan_income_types(request: Request):
+    """One-time migration: update loan_repayment income sources from 'Other' to 'Interest'."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    result = await db.income_sources.update_many(
+        {"userId": user.get("user_id"), "sourceCategory": {"$in": ["loan_repayment", "loan_interest"]}},
+        {"$set": {"type": "Interest"}}
+    )
+    return {"updated": result.modified_count}
