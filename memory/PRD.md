@@ -43,13 +43,18 @@ Build and maintain a full-stack financial management app ("MoneySutra") with Rea
 
 ## What's Been Completed (Mar 18, 2026)
 
-### P0 Bug Fixes
+### Bug Fixes
 1. **Admin Login Instability** — FIXED: Token-based auth (localStorage + Bearer header)
 2. **Admin Page Long Scroll** — FIXED: Isolated admin routes from main app providers
+3. **Biometric RPID Mismatch** — FIXED: `_get_rp_id()` now uses `x-forwarded-host` header instead of internal cluster hostname
+4. **Existing users not prompted for setup** — FIXED: SecuritySetupPrompt modal shows after login when MPIN or biometric is not configured
 
-### P0 Features
+### Features
 1. **MPIN Login** — Full backend + frontend (set/verify/login/remove, 4-digit PIN boxes)
 2. **Biometric Login (WebAuthn)** — Full backend + frontend (register/login/status/remove, fingerprint/face ID)
+3. **Login page defaults to Biometric** — Flow: Biometric → MPIN → Password
+4. **Post-login Security Setup** — Guided MPIN + biometric setup for existing users after login
+5. **New Google user → Set MPIN** — AuthCallback shows SetMPINModal instead of SetPasswordModal
 
 ## Prioritized Backlog
 
