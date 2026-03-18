@@ -60,7 +60,7 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
     projection = {
         "_id": 0, "id": 1, "name": 1, "type": 1, "expectedAmount": 1,
         "frequency": 1, "selectedDay": 1, "selectedDate": 1, "selectedMonth": 1,
-        "selectedQuarter": 1, "incomeType": 1
+        "selectedQuarter": 1, "incomeType": 1, "sourceCategory": 1
     }
     income_sources = await db.income_sources.find(user_filter, projection).to_list(1000)
     entity_ids = [s["id"] for s in income_sources]

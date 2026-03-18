@@ -15,11 +15,15 @@ const MyIncome = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
 
   // Use SWR for data fetching with caching
-  const { data: incomes = [], isLoading: incomeLoading } = useSWR(
+  const { data: rawIncomes = [], isLoading: incomeLoading } = useSWR(
     `${backendUrl}/api/income/list/summary`,
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
+  
+  // Filter out loan repayment income sources — they are tracked via the investment system
+  // and visible on My Interest Income page
+  const incomes = rawIncomes.filter(inc => inc.sourceCategory !== 'loan_repayment');
   
   const { data: otherIncomes = [], isLoading: otherLoading } = useSWR(
     `${backendUrl}/api/other-income`,
@@ -45,10 +49,6 @@ const MyIncome = () => {
   };
 
   const calculateMonthlyAmount = (income) => {
-    // Loan repayment income sources should not count as expected monthly income
-    // They only count when actual repayments are received
-    if (income.sourceCategory === 'loan_repayment') return 0;
-    
     const amount = income.expectedAmount || 0;
     const freq = income.frequency || 'Monthly';
     const currentMonth = new Date().getMonth() + 1;

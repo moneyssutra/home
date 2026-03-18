@@ -331,6 +331,9 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
         # Skip linked expenses to avoid double-counting (consistent with monthly-summary)
         if not is_income and item.get('linkedPaymentId'):
             continue
+        # Skip loan repayment income sources — tracked through investment system
+        if is_income and item.get('sourceCategory') == 'loan_repayment':
+            continue
         amount = item.get('expectedAmount', 0)
         freq = item.get('frequency', 'Monthly')
 
