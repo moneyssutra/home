@@ -46,8 +46,10 @@ Build and maintain a full-stack financial management app ("MoneySutra") with Rea
 ### Bug Fixes
 1. **Admin Login Instability** — FIXED: Token-based auth (localStorage + Bearer header)
 2. **Admin Page Long Scroll** — FIXED: Isolated admin routes from main app providers
-3. **Biometric RPID Mismatch** — FIXED: `_get_rp_id()` now uses `x-forwarded-host` header instead of internal cluster hostname
-4. **Existing users not prompted for setup** — FIXED: SecuritySetupPrompt modal shows after login when MPIN or biometric is not configured
+3. **Biometric RPID Mismatch** — FIXED: Uses `x-forwarded-host` header
+4. **Existing users not prompted for setup** — FIXED: SecuritySetupPrompt modal
+5. **Biometric iframe error** — FIXED: Detects iframe context, shows helpful message
+6. **Income Data Discrepancy (P0)** — FIXED: Weekly income showed ₹0 received in Business Detail but ₹1.5L in My Income. Root cause: weekly schedule not generated in detail endpoint, list summary missing monthly fields. All three endpoints (monthly-summary, list/summary, detail) now use consistent `count_weekday_occurrences` logic.
 
 ### Features
 1. **MPIN Login** — Full backend + frontend (set/verify/login/remove, 4-digit PIN boxes)
