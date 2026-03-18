@@ -1,86 +1,80 @@
-# MoneySSutra - Product Requirements Document
+# MoneySutra — Product Requirements Document
 
 ## Original Problem Statement
-MoneySutra is a premium personal finance application (PWA) built with React + FastAPI + MongoDB. Full financial management engine with detailed entity pages, smart schedulers, AI insights, and a native opportunity system with premium mode.
+Build and maintain a full-stack financial management app ("MoneySutra") with React + FastAPI + MongoDB. The app tracks income, expenses, assets, loans, insurance, investments, credit cards, goals, and provides financial health insights, analytics, admin panel, and more.
 
-## Architecture
-- **Frontend**: React (CRA) with ShadCN UI, Recharts, SWR
-- **Backend**: FastAPI with async MongoDB (motor)
-- **Database**: MongoDB Atlas
-- **Auth**: Session-based + Emergent Google OAuth
-- **AI**: OpenAI GPT-5.2 via emergentintegrations
+## Core Architecture
+- **Frontend**: React (CRA with Craco) + Tailwind CSS + Shadcn/UI
+- **Backend**: FastAPI (Python) on port 8001
+- **Database**: MongoDB Atlas (dual-database: `moneyssutra_dev` for preview, `moneyssutra_prod` for production)
+- **Auth**: JWT sessions (cookie-based) + Emergent-managed Google OAuth + MPIN login
+- **Admin**: Token-based auth (localStorage + Bearer header), fully isolated from main app
 
-## Completed Features
+## Key Environment Variables
+- `CUSTOM_MONGO_URL` / `CUSTOM_DB_DEV` / `CUSTOM_DB_PROD` — Auto-switching DB logic in `database.py`
+- `REACT_APP_BACKEND_URL` — Frontend API base URL
+- Admin credentials: `admin@moneyssutra.com` / `admin123` (hardcoded in `routes/admin.py`)
 
-### Core App
-- Full CRUD for all entities (expenses, income, investments, assets, loans, accounts, credit cards, insurance)
-- Dashboard, Expense views, Spending Insights, Theme persistence, Family management, Gamification
+## User Personas
+1. **End Users**: Track personal finances, view dashboards, set goals
+2. **Admin**: Monitor platform health, user growth, engagement, risk, campaigns
 
-### Smart Financial Schedulers
-- SIP Investment Auto-Update, Loan EMI Auto-Deduction with ledger
-- Fixed Income/Insurance/Variable Income auto-recording and reminders
+## Implemented Features
 
-### Entity Detail Pages (ALL 8 Complete)
-| Entity | Route | Key Features |
-|--------|-------|-------------|
-| Loan | `/wealth/loans/:id` | Amortization schedule, EMI ledger, mark-EMI-paid, extra payment |
-| Investment | `/wealth/investments/:id` | CAGR, projected growth, SIP transaction ledger |
-| Credit Card | `/wealth/credit-cards/:id` | Utilization bar, payoff estimate, payment history |
-| Insurance | `/wealth/insurance/:id` | Premium schedule, coverage ratio |
-| Asset | `/wealth/assets/:id` | Appreciation %, CAGR, net equity |
-| Income | `/wealth/income/:id` | Receipt schedule, transaction history, linked asset |
-| Expense | `/wealth/expenses/:id` | Monthly/yearly cost, expense-to-income % |
-| Account | `/wealth/accounts/:id` | Transaction ledger, inflow/outflow/net monthly flow |
+### User-Facing
+- Full CRUD for: Income, Expenses, Loans, Assets, Accounts, Insurance, Investments, Credit Cards, Goals
+- Dashboard with cashflow summary
+- Financial health score & insights
+- Gamification (levels, achievements, challenges)
+- Notifications & push notifications
+- Data import
+- Family/workspace management
+- Opportunity engine
+- Reports & analytics
+- **MPIN Login** (4-digit PIN) — set/verify/login/remove
 
-### Opportunity System (March 2026)
-**Backend Engine** (`backend/routes/opportunities.py`):
-- MongoDB collections: `opportunities`, `campaigns`, `user_opportunity_logs`, `opportunity_events`
-- User API: `GET /eligible` (max 2, rule-based), `POST /dismiss` (30-day), `POST /track`
-- Admin CRUD + Stats + Campaign launcher
-- Eligibility rules engine with financial metric evaluation
+### Admin Panel
+- Command Center (KPIs, PFSI)
+- User Growth analytics
+- Engagement analytics (heatmap, session duration)
+- Feature/Page usage
+- Segmentation Lab (filters)
+- Support Intelligence (search terms)
+- Campaign Manager (CRUD)
+- Behavioral Insights (churn risk)
+- Monetization Engine (opportunities)
+- User Intelligence (user metrics table)
+- Risk Radar
 
-**Frontend**:
-- `OpportunityCard` component with category colors, dismiss, CTA, premium badge
-- `/opportunities` page grouped by category
-- Dashboard integration (lazy-loaded, max 1 card)
-- Admin Monetization Engine at `/admin/monetization`
+### Auth System
+- Email/password registration & login
+- Google OAuth via Emergent
+- MPIN (4-digit PIN) login
+- Remember Me
+- Forgot/Reset Password
+- First-time Google user password setup
 
-### Premium Mode (March 2026)
-**Backend**:
-- `is_premium` and `partner_consent` fields in PreferencesSettings model
-- Premium users: campaign-type opportunities hidden, premium_only opportunities shown
-- Non-premium users: premium_only opportunities hidden
-- `premium_only` flag on opportunities (admin-configurable)
+## What's Been Completed (Latest Session — Mar 18, 2026)
 
-**Frontend**:
-- Settings > Preferences: "Subscription & Opportunities" section
-  - Premium Mode toggle (amber Crown icon, ACTIVE badge)
-  - Partner Suggestions toggle (green Handshake icon)
-- OpportunityCard: PREMIUM badge with Crown icon for premium_only opportunities
-- Admin form: Premium Only checkbox
+### P0 Bug Fixes
+1. **Admin Login Instability** — FIXED: Switched from cookie-based to token-based auth (localStorage + Authorization: Bearer header). All 11 admin pages updated to use shared `adminApi.js` interceptor. Admin sessions stored in MongoDB `admin_sessions` collection.
+2. **Admin Page Long Scroll** — FIXED: Restructured `App.js` to conditionally render admin routes in complete isolation (no ThemeProvider/AuthProvider/etc wrapping admin routes). Previously, both AdminRouter and main App div rendered simultaneously, causing extra height.
 
-### Navigation & Bug Fixes
-- ALL entity clicks navigate to detail pages
-- Income type navigation fixed (Job, Business, Self-Employed, Commission, Rental)
-- Insurance date crash, Credit Card UI overlap, Account ledger, Income sections fixed
-- Opportunities page UI overlap fixed
+### P0 Feature: MPIN Login
+- Backend: `/api/mpin/set`, `/api/mpin/status`, `/api/mpin/verify`, `/api/mpin/login`, `/api/mpin/remove`
+- Frontend: "Login with MPIN" button on Login page, MPIN setup in Security Settings
+- MPIN hashed with bcrypt, stored in `users.mpin_hash`
+- 24/24 backend tests passed, all frontend flows working
 
-### Admin Command Center (All 6 Phases + Monetization)
+## Prioritized Backlog
 
-## Key API Endpoints
-- `GET /api/{entity}/:id/detail` - All 8 entities
-- `GET /api/opportunities/eligible` - Max 2 eligible (respects premium mode)
-- `POST /api/opportunities/dismiss` - 30-day dismiss
-- `POST /api/opportunities/track` - Event tracking
-- `GET/POST/PUT/DELETE /api/opportunities/admin/*` - Admin CRUD + stats
-- `GET/POST /api/settings/preferences` - Premium & partner consent
+### P1 — Next Up
+- **Harden Admin Credentials**: Move hardcoded admin email/password to environment variables
+- **Biometric Login (WebAuthn)**: Face ID / Fingerprint login using WebAuthn API
+- **Production Test Data Cleanup**: Remove leftover test users from production database
 
-## Backlog (P2)
-- Cash Flow Engine: Rolling Balance, Timeline
-- Decision Impact Engine: Financial simulation
-- Deeper Analytics: Behavioral Pattern Detection, Financial Improvement Tracker, Churn Prediction
-- Refactor detail pages into generic DetailView wrapper
-
-## Credentials
-- Test: test@moneyssutra.com / test (username: test)
-- Admin: admin@moneyssutra.com / admin123
+### P2 — Future
+- Enhanced "Remember Me" with persistent sessions
+- Production deployment stability improvements
+- Admin panel data export
+- User notification preferences enhancement
