@@ -161,11 +161,37 @@ async def get_income_monthly_summary(request: Request):
     pending_income = 0
 
     for inc in incomes:
-        # Skip loan repayment income sources — they should only show when actual repayments are received
-        if inc.get('sourceCategory') == 'loan_repayment':
-            continue
         amount = inc.get('expectedAmount', 0) or 0
         freq = inc.get('frequency', 'Monthly')
+
+        # Loan repayment income: only count future occurrences, all go to pending (never auto-received)
+        if inc.get('sourceCategory') == 'loan_repayment':
+            if freq == 'Weekly':
+                day_name = inc.get('selectedDay', '')
+                if day_name:
+                    total_count = count_weekday_occurrences(current_year, current_month, day_name)
+                    past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
+                    future_count = total_count - past_count
+                else:
+                    future_count = max(0, 4 - (current_day // 7))
+                future_amt = amount * future_count
+                total_income += future_amt
+                pending_income += future_amt
+            elif freq == 'Daily':
+                remaining_days = days_in_month - current_day
+                future_amt = amount * remaining_days
+                total_income += future_amt
+                pending_income += future_amt
+            else:
+                sd_str = inc.get('selectedDate')
+                try:
+                    sd = min(int(sd_str), days_in_month) if sd_str else 0
+                except (ValueError, TypeError):
+                    sd = 0
+                if sd > current_day:
+                    total_income += amount
+                    pending_income += amount
+            continue
 
         applies = False
         if freq in ('Daily', 'Weekly', 'Monthly'):

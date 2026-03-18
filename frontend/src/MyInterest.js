@@ -121,7 +121,7 @@ const MyInterest = () => {
   });
 
   const interestBySource = interests.reduce((acc, i) => {
-    const src = i.sourceType || "Other";
+    const src = i.sourceType || (i.sourceCategory === 'loan_repayment' ? 'Loan Repayment' : i.type) || "Other";
     if (!acc[src]) acc[src] = { total: 0, count: 0 };
     acc[src].total += i.expectedAmount || 0;
     acc[src].count += 1;

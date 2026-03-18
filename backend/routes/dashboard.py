@@ -331,10 +331,36 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
         # Skip linked expenses to avoid double-counting (consistent with monthly-summary)
         if not is_income and item.get('linkedPaymentId'):
             continue
-        # Skip loan repayment income sources — tracked through investment system
-        if is_income and item.get('sourceCategory') == 'loan_repayment':
-            continue
         amount = item.get('expectedAmount', 0)
+        freq = item.get('frequency', 'Monthly')
+
+        # Loan repayment income: never mark as received (needs confirmation), only count future occurrences
+        if is_income and item.get('sourceCategory') == 'loan_repayment':
+            if freq == 'Weekly':
+                day_name = item.get('selectedDay', '')
+                if day_name:
+                    total_count = count_weekday_occurrences(current_year, current_month, day_name)
+                    past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
+                    future_count = total_count - past_count
+                else:
+                    future_count = max(0, 4 - (current_day // 7))
+                if future_count > 0:
+                    expected.append({"id": item.get('id', ''), "name": item.get(name_field, item.get('name', 'Unknown')),
+                                     "amount": round(amount * future_count, 2), "frequency": freq,
+                                     "scheduleDay": 1, "type": item.get('type', item.get('category', ''))})
+            elif freq == 'Daily':
+                remaining_days = days_in_month - current_day
+                if remaining_days > 0:
+                    expected.append({"id": item.get('id', ''), "name": item.get(name_field, item.get('name', 'Unknown')),
+                                     "amount": round(amount * remaining_days, 2), "frequency": freq,
+                                     "scheduleDay": 1, "type": item.get('type', item.get('category', ''))})
+            else:
+                schedule_day = _get_schedule_day(item, is_income)
+                if schedule_day > current_day:
+                    expected.append({"id": item.get('id', ''), "name": item.get(name_field, item.get('name', 'Unknown')),
+                                     "amount": amount, "frequency": freq,
+                                     "scheduleDay": schedule_day, "type": item.get('type', item.get('category', ''))})
+            continue
         freq = item.get('frequency', 'Monthly')
 
         if not _is_due_this_month(freq, item, current_month, current_year, is_income):
