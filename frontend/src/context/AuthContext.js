@@ -134,11 +134,14 @@ export const AuthProvider = ({ children }) => {
 
   const loginWithBiometric = async (email) => {
     try {
+      // Iframe check
+      if (window.self !== window.top) {
+        return { success: false, error: "Biometric login requires a direct browser window. Please open the app in a new tab." };
+      }
       // Step 1: Get authentication options
       const optRes = await axios.post(`${backendUrl}/api/biometric/login/options`, { email });
       const options = JSON.parse(optRes.data.options);
 
-      // Decode challenge and allowCredentials
       options.challenge = _base64urlToBuffer(options.challenge);
       if (options.allowCredentials) {
         options.allowCredentials = options.allowCredentials.map(c => ({
@@ -173,6 +176,12 @@ export const AuthProvider = ({ children }) => {
       syncThemeFromBackend();
       return { success: true, user: verifyRes.data };
     } catch (error) {
+      if (error.name === "NotAllowedError") {
+        return { success: false, error: "Biometric authentication was denied. Ensure Touch ID/Windows Hello is enabled." };
+      }
+      if (error.response?.status === 404) {
+        return { success: false, error: "No biometric credentials registered for this account. Set up biometric in Security Settings first." };
+      }
       const msg = error.response?.data?.detail || error.message || "Biometric login failed";
       return { success: false, error: msg };
     }

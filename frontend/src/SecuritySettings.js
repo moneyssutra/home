@@ -186,25 +186,33 @@ const SecuritySettings = () => {
       toast.error("Biometrics not supported on this device/browser");
       return;
     }
+    // Check if running inside an iframe (WebAuthn is blocked in cross-origin iframes)
+    const isInIframe = window.self !== window.top;
+    if (isInIframe) {
+      toast.error("Biometric setup requires a direct browser window. Please open the app in a new tab.", { duration: 5000 });
+      // Try to open in a new tab
+      window.open(window.location.href, "_blank");
+      return;
+    }
+    // Check if platform authenticator is available (Touch ID, Windows Hello, etc.)
+    try {
+      const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      if (!available) {
+        toast.error("No biometric authenticator found on this device (e.g., Touch ID, Windows Hello, fingerprint scanner)", { duration: 5000 });
+        return;
+      }
+    } catch { /* proceed anyway, some browsers don't support this check */ }
+
     setBiometricRegistering(true);
     try {
-      // Step 1: Get registration options
       const optRes = await axios.post(`${backendUrl}/api/biometric/register/options`, {}, { withCredentials: true });
       const options = JSON.parse(optRes.data.options);
-
-      // Decode challenge and user.id
       options.challenge = _base64urlToBuffer(options.challenge);
       options.user.id = _base64urlToBuffer(options.user.id);
       if (options.excludeCredentials) {
-        options.excludeCredentials = options.excludeCredentials.map(c => ({
-          ...c, id: _base64urlToBuffer(c.id),
-        }));
+        options.excludeCredentials = options.excludeCredentials.map(c => ({ ...c, id: _base64urlToBuffer(c.id) }));
       }
-
-      // Step 2: Prompt for biometric
       const credential = await navigator.credentials.create({ publicKey: options });
-
-      // Step 3: Encode and verify
       const attestation = {
         id: credential.id,
         rawId: _bufferToBase64url(credential.rawId),
@@ -214,17 +222,18 @@ const SecuritySettings = () => {
           clientDataJSON: _bufferToBase64url(credential.response.clientDataJSON),
         },
       };
-
       await axios.post(`${backendUrl}/api/biometric/register/verify`, {
         credential: attestation,
         device_name: navigator.userAgent.includes("Mobile") ? "Mobile Device" : "Desktop",
       }, { withCredentials: true });
-
       toast.success("Biometric registered successfully!");
       fetchBiometricStatus();
     } catch (err) {
       if (err.name === "NotAllowedError") {
-        toast.error("Biometric registration was cancelled");
+        toast.error("Biometric registration was denied. Make sure you have Touch ID, Windows Hello, or a fingerprint scanner enabled.", { duration: 5000 });
+      } else if (err.name === "SecurityError") {
+        toast.error("Biometric blocked by browser security. Please open the app directly (not in an iframe/preview).", { duration: 5000 });
+        window.open(window.location.href, "_blank");
       } else {
         toast.error(err.response?.data?.detail || err.message || "Failed to register biometric");
       }

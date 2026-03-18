@@ -102,6 +102,22 @@ const SecuritySetupPrompt = ({ onDismiss }) => {
       setError("Biometrics not supported on this device");
       return;
     }
+    // Iframe check
+    const isInIframe = window.self !== window.top;
+    if (isInIframe) {
+      setError("Biometric needs a direct browser window. Opening in new tab...");
+      window.open(window.location.href, "_blank");
+      return;
+    }
+    // Check platform authenticator
+    try {
+      const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      if (!available) {
+        setError("No biometric sensor found (Touch ID, Windows Hello, etc.). You can set this up later on a supported device.");
+        return;
+      }
+    } catch { /* proceed */ }
+
     setSaving(true);
     try {
       const optRes = await axios.post(`${backendUrl}/api/biometric/register/options`, {}, { withCredentials: true });
@@ -128,7 +144,10 @@ const SecuritySetupPrompt = ({ onDismiss }) => {
       setStep("done");
     } catch (err) {
       if (err.name === "NotAllowedError") {
-        setError("Biometric registration cancelled");
+        setError("Registration denied. Ensure your device biometric (Touch ID, Windows Hello) is enabled.");
+      } else if (err.name === "SecurityError") {
+        setError("Blocked by browser security. Open the app directly (not in iframe/preview).");
+        window.open(window.location.href, "_blank");
       } else {
         setError(err.response?.data?.detail || err.message || "Failed to set up biometric");
       }
