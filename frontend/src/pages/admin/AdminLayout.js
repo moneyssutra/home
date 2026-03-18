@@ -38,6 +38,20 @@ const AdminLayout = () => {
 
   useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
 
+  // Lock body scroll for admin layout
+  useEffect(() => {
+    document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.height = '100vh';
+    document.body.style.overflow = 'hidden';
+    document.body.style.height = '100vh';
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.height = '';
+      document.body.style.overflow = '';
+      document.body.style.height = '';
+    };
+  }, []);
+
   if (!verified) return (
     <div className="min-h-screen bg-[#0F172A] flex items-center justify-center">
       <Activity className="h-8 w-8 text-teal-400 animate-spin" />
