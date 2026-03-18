@@ -34,12 +34,23 @@ export default function IncomeDetail() {
   const schedule = expandedSchedule ? (data.schedule || []) : (data.schedule || []).slice(-6);
   const typeColor = data.type === "Fixed" ? "#059669" : "#F59E0B";
 
+const getEditRoute = (incomeType, id) => {
+    const routes = {
+      "Business": `/business-income/${id}`,
+      "Job": `/job-income/${id}`,
+      "Self-Employed": `/self-employed-income/${id}`,
+      "Commission": `/commission-income/${id}`,
+      "Other": `/other-income/${id}`,
+    };
+    return routes[incomeType] || `/other-income/${id}`;
+  };
+
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="income-detail-page">
       <header className="px-5 pt-6 pb-6" style={{ background: `linear-gradient(135deg, ${typeColor} 0%, ${typeColor}CC 100%)` }}>
         <div className="flex items-center justify-between mb-5">
           <button onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white" data-testid="back-button"><ArrowLeft className="h-5 w-5" /></button>
-          <button onClick={() => navigate(`/income/${id}`)} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium" data-testid="edit-income-btn"><Edit3 className="h-4 w-4" /> Edit</button>
+          <button onClick={() => navigate(getEditRoute(data.incomeType, id))} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium" data-testid="edit-income-btn"><Edit3 className="h-4 w-4" /> Edit</button>
         </div>
         <div className="mb-4">
           <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-1">{data.type} Income</p>
