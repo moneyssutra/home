@@ -53,6 +53,8 @@ async def create_investment(input: InvestmentCreate, request: Request):
             freq = input.repaymentFrequency
         elif input.repaymentType == "lump_sum":
             freq = "One-time"
+        elif input.repaymentType == "flexible":
+            freq = "Irregular"
 
         # Map payment day to income source schedule fields
         income_schedule = {}
