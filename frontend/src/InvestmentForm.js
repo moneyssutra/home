@@ -580,6 +580,11 @@ const InvestmentForm = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/investments/${id}`);
+      // Clear SWR cache so lists refresh immediately
+      const { mutate: globalMutate } = await import("swr");
+      globalMutate(key => typeof key === 'string' && key.includes('/api/investments'), undefined, { revalidate: true });
+      globalMutate(key => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
+      globalMutate(key => typeof key === 'string' && key.includes('/api/dashboard'), undefined, { revalidate: true });
       navigate("/my-investments");
     } catch (error) {
       console.error("Error deleting investment:", error);
