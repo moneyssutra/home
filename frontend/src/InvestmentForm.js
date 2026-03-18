@@ -188,7 +188,7 @@ const InvestmentForm = () => {
       } else if (["Fixed Deposit (FD)", "Recurring Deposit (RD)", "Bonds"].includes(investmentCategory)) {
         setInvestmentMode("Growth with Maturity");
       } else if (investmentCategory === "Loan Given") {
-        setInvestmentMode(interestType !== "none" ? "Income Generating" : "Growth Only");
+        setInvestmentMode("Fixed"); // default: no interest = Fixed
       }
     }
   }, [investmentCategory]);
@@ -237,12 +237,18 @@ const InvestmentForm = () => {
     }
   }, [maturityDate]);
 
-  // Auto-update investmentMode when interestType changes for Loan Given
+  // Auto-update investmentMode when interestType/repaymentType changes for Loan Given
   useEffect(() => {
     if (investmentCategory === "Loan Given") {
-      setInvestmentMode(interestType !== "none" ? "Income Generating" : "Growth Only");
+      if (interestType === "none") {
+        setInvestmentMode("Fixed");
+      } else if (repaymentType === "fixed") {
+        setInvestmentMode("Income Generating");
+      } else {
+        setInvestmentMode("Growth with Maturity");
+      }
     }
-  }, [interestType, investmentCategory]);
+  }, [interestType, repaymentType, investmentCategory]);
 
 
   // Scroll to top on mount
@@ -381,8 +387,8 @@ const InvestmentForm = () => {
       newErrors.investmentCategory = "Please select investment category.";
     }
 
-    // Investment Mode validation (not needed for Loan Given)
-    if (!investmentMode && investmentCategory !== "Loan Given") {
+    // Investment Mode validation (required for all including Loan Given)
+    if (!investmentMode) {
       newErrors.investmentMode = "Please select investment mode.";
     }
 
@@ -497,7 +503,6 @@ const InvestmentForm = () => {
           repaymentType: repaymentType || "flexible",
           repaymentFrequency: repaymentType === "fixed" ? (repaymentFrequency || null) : null,
           dueDate: dueDate || null,
-          investmentMode: interestType === "none" ? "Growth Only" : "Income Generating",
         }),
       };
 
@@ -666,6 +671,34 @@ const InvestmentForm = () => {
                 </div>
               )}
             </div>
+
+            {/* Investment Mode for Loan Given - after Loan Label, with 4th "Fixed" option */}
+            {isLoanGiven && (
+              <div className="w-full">
+                <label htmlFor="loanInvestmentMode" className="block text-sm font-medium text-[#334155] mb-2">
+                  Investment Mode
+                </label>
+                <select
+                  id="loanInvestmentMode"
+                  value={investmentMode}
+                  onChange={(e) => setInvestmentMode(e.target.value)}
+                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+                  data-testid="loan-mode-select"
+                >
+                  <option value="">Select Mode</option>
+                  <option value="Fixed">Fixed (No Interest)</option>
+                  <option value="Growth Only">Growth Only</option>
+                  <option value="Income Generating">Income Generating</option>
+                  <option value="Growth with Maturity">Growth with Maturity</option>
+                </select>
+                <p className="text-xs mt-1.5" style={{ color: "#64748B" }}>
+                  {investmentMode === "Fixed" && "Principal returned as-is, no interest applied"}
+                  {investmentMode === "Growth Only" && "Value may appreciate over time"}
+                  {investmentMode === "Income Generating" && "Regular repayments / interest income expected"}
+                  {investmentMode === "Growth with Maturity" && "Interest accumulates, lump sum return at maturity"}
+                </p>
+              </div>
+            )}
 
             {/* Loan Given Specific Fields */}
             {isLoanGiven && (
