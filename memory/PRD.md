@@ -1,60 +1,53 @@
 # MoneySutra — Product Requirements Document
 
 ## Original Problem Statement
-Build and maintain a full-stack financial management app ("MoneySutra") with React + FastAPI + MongoDB. The app tracks income, expenses, assets, loans, insurance, investments, credit cards, goals, and provides financial health insights, analytics, admin panel, and more.
+Build and maintain a full-stack financial management app ("MoneySutra") with React + FastAPI + MongoDB. Tracks income, expenses, assets, loans, insurance, investments, credit cards, goals, and provides financial health insights, analytics, admin panel.
 
 ## Core Architecture
 - **Frontend**: React (CRA with Craco) + Tailwind CSS + Shadcn/UI
 - **Backend**: FastAPI (Python) on port 8001
-- **Database**: MongoDB Atlas (dual-database: `moneyssutra_dev` for preview, `moneyssutra_prod` for production)
-- **Auth**: JWT sessions (cookie-based) + Emergent Google OAuth + MPIN login + WebAuthn Biometric login
-- **Admin**: Token-based auth (localStorage + Bearer header)
+- **Database**: MongoDB Atlas (dual: `moneyssutra_dev` for preview, `moneyssutra_prod` for production)
+- **Auth**: JWT sessions (cookie-based) + Emergent Google OAuth + MPIN + WebAuthn Biometric
 
 ## Implemented Features
 
 ### Auth System (Complete)
 - Email/password, Google OAuth, MPIN (4-digit PIN), Biometric (WebAuthn)
 - Login flow: Biometric -> MPIN -> Password
-- Post-login security setup prompt for new users
+- Post-login security setup prompt
 
-### User-Facing (Complete)
-- Full CRUD: Income, Expenses, Loans, Assets, Accounts, Insurance, Investments, Credit Cards, Goals
-- Dashboard with cashflow summary, net worth
-- Financial health score & insights
-- Gamification, Notifications, Data import, Family management
-- Opportunity engine, Reports & analytics
+### Loan Given Investment Type (Complete - Mar 18, 2026)
 
-### Loan Given Investment Type (NEW - Mar 18, 2026)
 **Backend:**
-- Extended Investment model with loan-specific fields (borrowerName, borrowerContact, interestType, agreedReturnAmount, repaymentType, dueDate, amountReceived, outstandingAmount, loanStatus, lastRepaymentDate)
-- Auto-initialization on create: amountReceived=0, outstandingAmount=principal, loanStatus='active'
-- `POST /api/investments/{id}/add-repayment` — Records repayments, auto-updates status (active -> partial -> closed)
-- `GET /api/investments/{id}/repayments` — Repayment history with summary
-- `POST /api/investments/check-loan-risks` — Risk detection (30-day medium, 90-day default_risk)
-- `GET /api/investments/{id}/loan-detail` — Comprehensive loan detail with risk analysis
-- Validation: repayment capped at outstanding, negatives blocked
+- Extended Investment model with loan fields (borrowerName, borrowerContact, interestType, agreedReturnAmount, repaymentType, repaymentFrequency, dueDate, amountReceived, outstandingAmount, loanStatus, lastRepaymentDate)
+- Auto-initialization: amountReceived=0, outstandingAmount=principal, loanStatus='active'
+- `POST /api/investments/{id}/add-repayment` — Status transitions (active -> partial -> closed)
+- `GET /api/investments/{id}/repayments` — Repayment history
+- `POST /api/investments/check-loan-risks` — 30-day medium, 90-day default_risk
+- `GET /api/investments/{id}/loan-detail` — Full loan detail with risk analysis
 - Dashboard networth returns loanGivenTotal, loanGivenAtRisk, loanGivenCount
 
-**Frontend:**
-- "Loan Given" in investment category dropdown
-- Conditional form: Borrower Name*, Contact, Interest Type (No Interest/With Interest), Interest Rate/Agreed Return Amount, Repayment Type (Flexible/Fixed), Due Date
-- Investment list: Loan-specific cards with borrower, outstanding, status badges (Active/Partial/Closed/At Risk)
-- Loan detail page: Recovery progress bar, borrower info, repayment history table, Add Repayment modal with validation
-- Dashboard: Loan Given total + At Risk amount in investments card
+**Frontend Form (Refined):**
+- "Loan Given" in category dropdown
+- Investment Mode auto-set (hidden for Loan Given): no interest = "Growth Only", with interest = "Income Generating"
+- Field order: Category -> Amount Lent/Loaned -> Loan Label/Reference Name -> Loan Details Section -> Loan Date -> Notes -> Save
+- Conditional Loan Details: Borrower Name*, Contact, Interest Type toggle, Interest Rate/Agreed Return, Repayment Type (Flexible/Fixed), Installment Frequency (Daily/Weekly/Monthly/Quarterly/Semi-Annually/Yearly - only for Fixed), Due Date
+- ALL irrelevant fields hidden: SIP/Frequency, Digital Metal, SGB, Income Generating mode fields (Return Rate, Interest Type, Payout Frequency), Growth with Maturity fields (Lock-in, Maturity Date, Expected Maturity Value), Current Value, Linked Account, Emergency Fund toggle
 - Disclaimer: "Loan Given is not a regulated investment. Recovery depends on borrower reliability."
 
+**Frontend Display:**
+- Investment list: Loan cards with borrower, outstanding, status badges (Active/Partial/Closed/At Risk)
+- Loan detail page: Recovery progress bar, borrower info, repayment history, Add Repayment modal
+- Dashboard: Loan Given total + At Risk in investments card
+
 **Insights:**
-- Rule 1: Loan Given > 25% of total assets -> "High Personal Lending Exposure"
-- Rule 2: Any default_risk loans -> "Recovery Risk Detected"
+- Loan Given > 25% of total assets -> "High Personal Lending Exposure"
+- Any default_risk loans -> "Recovery Risk Detected"
 
-### Admin Panel (Stable)
-- Full admin dashboard with analytics, user management, campaigns, etc.
-- Token-based auth with MongoDB-backed sessions
-
-## Bug Fixes (Mar 18, 2026)
-1. **Edit Button Redirect (P0)** — Fixed: IncomeDetail.js used data.type instead of data.incomeType
-2. **Incorrect Current Month Income (P0)** — Fixed: MyIncome.js uses backend totalIncome
-3. **Confusing Received/Pending Labels (P0)** — Verified: Labels show "(This Month)"
+### Bug Fixes (Mar 18, 2026)
+1. Edit Button Redirect (P0) — Fixed
+2. Incorrect Current Month Income (P0) — Fixed
+3. Confusing Received/Pending Labels (P0) — Verified
 
 ## Prioritized Backlog
 
@@ -62,10 +55,9 @@ Build and maintain a full-stack financial management app ("MoneySutra") with Rea
 - Production test data cleanup
 
 ### P2
-- Enhanced "Remember Me" with persistent sessions / auto-login
-- Income integration: auto-create Interest Income entries when interest repayments are recorded
+- Enhanced "Remember Me" with persistent sessions
+- Income integration: auto-create Interest Income on interest repayments
 
 ### P3
-- Production deployment stability improvements
 - Admin panel data export
-- User notification preferences enhancement
+- User notification preferences
