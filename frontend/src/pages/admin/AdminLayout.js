@@ -47,7 +47,7 @@ const AdminLayout = () => {
   return (
     <div className="h-screen overflow-hidden flex bg-[#F8FAFC]" data-testid="admin-layout">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex flex-col w-56 shrink-0 bg-[#1E293B] border-r border-white/5">
+      <aside className="hidden lg:flex flex-col w-56 shrink-0 bg-[#0A0A0A] border-r border-white/5">
         <div className="px-5 h-14 flex items-center border-b border-white/5 shrink-0">
           <span className="text-sm font-black tracking-widest text-teal-400">MoneySutra</span>
           <span className="ml-2 text-[10px] font-medium text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">ADMIN</span>
@@ -82,7 +82,7 @@ const AdminLayout = () => {
       </aside>
 
       {/* Mobile Top Bar */}
-      <nav className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#1E293B] border-b border-white/5">
+      <nav className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A] border-b border-white/5">
         <div className="flex items-center h-12 px-4 gap-3">
           <span className="text-sm font-black tracking-widest text-teal-400">MoneySutra</span>
           <span className="text-[10px] font-medium text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">ADMIN</span>
@@ -102,7 +102,7 @@ const AdminLayout = () => {
       {mobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-12 z-40" data-testid="mobile-menu">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
-          <div className="relative bg-[#1E293B] border-b border-white/5 shadow-2xl max-h-[75vh] overflow-y-auto">
+          <div className="relative bg-[#0A0A0A] border-b border-white/5 shadow-2xl max-h-[75vh] overflow-y-auto">
             <div className="p-3 grid grid-cols-2 gap-1.5">
               {navItems.map(({ to, icon: Icon, label, end }) => (
                 <NavLink key={to} to={to} end={end}
