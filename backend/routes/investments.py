@@ -31,18 +31,44 @@ async def create_investment(input: InvestmentCreate, request: Request):
 
         # Auto-create linked income source for interest tracking
         if input.interestType and input.interestType != "none":
+            # Calculate expected periodic interest income
+            expected_interest_per_period = 0
+            agreed_return = input.agreedReturnAmount or 0
+            total_interest = max(agreed_return - input.principal, 0) if agreed_return > 0 else 0
+
+            if input.repaymentType == "fixed" and input.installmentAmount and total_interest > 0:
+                # Fixed EMI: interest portion per installment
+                interest_fraction = total_interest / agreed_return if agreed_return > 0 else 0
+                expected_interest_per_period = round(input.installmentAmount * interest_fraction, 2)
+            elif input.repaymentType == "fixed" and input.installmentAmount and input.returnRate:
+                # Rate-based: approximate monthly interest
+                expected_interest_per_period = round(input.principal * (input.returnRate / 100) / 12, 2)
+            elif input.returnRate:
+                # Simple rate-based monthly interest
+                expected_interest_per_period = round(input.principal * (input.returnRate / 100) / 12, 2)
+            elif total_interest > 0 and input.numberOfInstallments:
+                # Distribute total interest across installments
+                expected_interest_per_period = round(total_interest / input.numberOfInstallments, 2)
+
+            # Determine frequency for income source
+            freq = "Monthly"
+            if input.repaymentType == "fixed" and input.repaymentFrequency:
+                freq = input.repaymentFrequency
+            elif input.repaymentType == "lump_sum":
+                freq = "One-time"
+
             income_source = {
                 "id": str(uuid.uuid4()),
                 "userId": user.get('user_id'),
                 "type": "Other",
                 "name": f"Interest - {input.name}",
-                "expectedAmount": 0,  # variable
-                "frequency": input.repaymentFrequency or "Monthly",
-                "incomeType": "variable",
+                "expectedAmount": expected_interest_per_period,
+                "frequency": freq,
+                "incomeType": "variable" if input.repaymentType == "flexible" else "fixed",
                 "sourceCategory": "loan_interest",
-                "isVariable": True,
+                "isVariable": input.repaymentType == "flexible",
                 "startDate": input.startDate,
-                "notes": f"Auto-created from Loan Given: {input.name}",
+                "notes": f"Auto-created from Loan Given: {input.name}. Total interest: ₹{total_interest:,.0f}" if total_interest > 0 else f"Auto-created from Loan Given: {input.name}",
                 "createdAt": datetime.now(timezone.utc).isoformat(),
             }
             await db.income_sources.insert_one(income_source)
@@ -554,8 +580,8 @@ async def add_repayment(investment_id: str, request: Request):
     if inv.get("investmentCategory") != "Loan Given":
         raise HTTPException(status_code=400, detail="Repayments can only be added to Loan Given investments")
 
-    outstanding = inv.get("outstandingAmount", inv.get("principal", 0))
-    if amount > outstanding:
+    outstanding = inv.get("outstandingAmount") or inv.get("principal", 0) or 0
+    if outstanding > 0 and amount > outstanding:
         raise HTTPException(status_code=400, detail=f"Repayment amount (₹{amount}) exceeds outstanding (₹{outstanding})")
 
     new_amount_received = (inv.get("amountReceived", 0) or 0) + amount
@@ -760,10 +786,10 @@ async def get_loan_given_detail(investment_id: str, request: Request):
     if not inv:
         raise HTTPException(status_code=404, detail="Investment not found")
 
-    principal = inv.get("principal", 0)
+    principal = inv.get("principal", 0) or 0
     amount_received = inv.get("amountReceived", 0) or 0
-    outstanding = inv.get("outstandingAmount", principal)
-    status = inv.get("loanStatus", "active")
+    outstanding = inv.get("outstandingAmount") or principal
+    status = inv.get("loanStatus", "active") or "active"
     start_date_str = inv.get("startDate", "")
     due_date_str = inv.get("dueDate")
     interest_type = inv.get("interestType", "none")

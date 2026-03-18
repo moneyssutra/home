@@ -106,7 +106,8 @@ export default function InvestmentDetail() {
   const handleRepayment = async () => {
     const amt = parseFloat(repayAmount);
     if (!amt || amt <= 0) return toast.error("Enter a valid amount");
-    if (data && amt > (data.outstandingAmount || 0)) return toast.error(`Amount exceeds outstanding (₹${fmt(data.outstandingAmount)})`);
+    const outstanding = data?.outstandingAmount || data?.principal || 0;
+    if (outstanding > 0 && amt > outstanding) return toast.error(`Amount exceeds outstanding (₹${fmt(outstanding)})`);
     setSubmitting(true);
     try {
       await axios.post(`${backendUrl}/api/investments/${id}/add-repayment`, {
@@ -348,18 +349,14 @@ export default function InvestmentDetail() {
                 <div>
                   <label className="text-xs font-semibold uppercase tracking-wider mb-1 block" style={{ color: "var(--text-muted)" }}>Repayment Amount</label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     value={repayAmount}
                     onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      if (val > (data.outstandingAmount || 0)) {
-                        setRepayAmount(String(data.outstandingAmount));
-                      } else {
-                        setRepayAmount(e.target.value);
-                      }
+                      const val = e.target.value.replace(/[^0-9.]/g, "");
+                      setRepayAmount(val);
                     }}
                     placeholder="Enter amount"
-                    max={data.outstandingAmount || 0}
                     className="w-full px-4 py-3 rounded-xl text-base font-medium"
                     style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
                     data-testid="repayment-amount-input"
@@ -378,7 +375,7 @@ export default function InvestmentDetail() {
                   />
                 </div>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  Outstanding: ₹{fmt(data.outstandingAmount)} | Received so far: ₹{fmt(data.amountReceived)}
+                  Outstanding: ₹{fmt(data.outstandingAmount || data.principal || 0)} | Received so far: ₹{fmt(data.amountReceived || 0)}
                 </p>
                 <button
                   onClick={handleRepayment}
