@@ -165,7 +165,7 @@ export default function InvestmentDetail() {
     return (
       <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="loan-given-detail-page">
         {/* Header */}
-        <header className="px-5 pt-6 pb-6" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}>
+        <header className="px-5 pb-6" style={{ paddingTop: "max(2.5rem, env(safe-area-inset-top, 1.5rem))", background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}>
           <div className="flex items-center justify-between mb-5">
             <button onClick={() => navigate("/my-investments")} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white" data-testid="back-button">
               <ArrowLeft className="h-5 w-5" />
@@ -405,7 +405,7 @@ export default function InvestmentDetail() {
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="investment-detail-page">
       {/* Header */}
-      <header className="px-5 pt-6 pb-6" style={{ background: `linear-gradient(135deg, ${catColor} 0%, ${catColor}CC 100%)` }}>
+      <header className="px-5 pb-6" style={{ paddingTop: "max(2.5rem, env(safe-area-inset-top, 1.5rem))", background: `linear-gradient(135deg, ${catColor} 0%, ${catColor}CC 100%)` }}>
         <div className="flex items-center justify-between mb-5">
           <button onClick={() => navigate("/my-investments")} className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white" data-testid="back-button">
             <ArrowLeft className="h-5 w-5" />
