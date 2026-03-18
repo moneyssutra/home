@@ -35,7 +35,7 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 
 ### Backend Logic
 - Auto-initialization: amountReceived=0, outstandingAmount=principal, loanStatus='active'
-- **Income Auto-Creation**: When loan has interest, auto-creates linked income source (`sourceCategory: loan_interest`)
+- **Income Auto-Creation**: When loan has interest, auto-creates linked income source (`sourceCategory: loan_repayment`)
 - **Smart Repayment Split**: Each repayment splits into principalPortion + interestPortion
   - Proportional split when agreedReturnAmount exists
   - Simple interest accrual when returnRate exists
@@ -43,12 +43,30 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 - Risk Detection: 30-day medium risk, 90-day default_risk auto-status
 - Validation: repayment capped at outstanding, negatives/zero blocked
 
+### Cascade Delete (Implemented - Mar 18, 2026)
+- When a Loan Given investment is deleted, the linked income source (via `linkedIncomeSourceId`) is also deleted
+- All related `investment_transactions` and `income_received` entries are cleaned up
+
+### Auto Loan Repayment Scheduler (Implemented - Mar 18, 2026)
+- `auto_process_loan_repayments()` runs daily in the background scheduler
+- Checks for fixed-schedule Loan Given investments with payments due today
+- Auto-records repayment transactions and updates loan state
+- Creates `loan_repayment_due` notification with `requiresConfirmation: true`
+
+### Repayment Confirmation Flow (Implemented - Mar 18, 2026)
+- `POST /api/investments/confirm-repayment/{notification_id}` endpoint
+- **Confirm** (`action: "confirm"`): Marks auto-recorded transaction as confirmed
+- **Reject** (`action: "reject"`): Rolls back the auto-recorded repayment (restores loan amounts, deletes transaction and income entry)
+- Frontend: NotificationBell shows "Received" / "Not Received" buttons for these notifications
+
 ### API Endpoints
 - `POST /api/investments` — Create with auto-init + income source creation
 - `POST /api/investments/{id}/add-repayment` — Smart split + income auto-creation
 - `GET /api/investments/{id}/repayments` — History with split details
 - `GET /api/investments/{id}/loan-detail` — Full detail with risk + installment plan
 - `POST /api/investments/check-loan-risks` — Batch risk detection
+- `POST /api/investments/confirm-repayment/{notification_id}` — Confirm/reject auto-recorded repayment
+- `DELETE /api/investments/{id}` — Cascade delete (income source + transactions)
 
 ### Display
 - **Investment List**: Loan cards with borrower, outstanding, status badges
