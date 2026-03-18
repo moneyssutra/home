@@ -205,10 +205,59 @@ const MyInterest = () => {
 
   const chartColors = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B", "#EC4899", "#06B6D4"];
 
-  const fixedReceivedTotal = fixedInterests.filter(i => getPaymentStatus(i) === 'received').reduce((sum, i) => sum + getMonthlyExpected(i), 0);
-  const fixedPendingTotal = fixedInterests.filter(i => getPaymentStatus(i) !== 'received').reduce((sum, i) => sum + getMonthlyExpected(i), 0);
-  const variableReceivedTotal = variableInterests.filter(i => getPaymentStatus(i) === 'received').reduce((sum, i) => sum + getMonthlyExpected(i), 0);
-  const variablePendingTotal = variableInterests.filter(i => getPaymentStatus(i) !== 'received').reduce((sum, i) => sum + getMonthlyExpected(i), 0);
+  // Calculate received and pending amounts per source for the current month
+  const getReceivedPending = (inc) => {
+    const amount = inc.expectedAmount || 0;
+    const freq = inc.frequency || 'Monthly';
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const currentDay = today.getDate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const isLoan = inc.sourceCategory === 'loan_repayment';
+
+    let loanStart = null;
+    if (isLoan && inc.startDate) {
+      try { loanStart = new Date(inc.startDate); } catch(e) {}
+    }
+
+    if (freq === 'Weekly') {
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const targetIdx = dayNames.indexOf(inc.selectedDay);
+      if (targetIdx === -1) return { received: 0, pending: amount };
+      let past = 0, future = 0;
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dt = new Date(year, month, d);
+        if (dt.getDay() === targetIdx) {
+          if (loanStart && dt <= loanStart) continue;
+          if (d <= currentDay) past++;
+          else future++;
+        }
+      }
+      return { received: amount * past, pending: amount * future };
+    }
+    if (freq === 'Daily') {
+      const effectiveStart = (loanStart && loanStart.getMonth() === month && loanStart.getFullYear() === year) ? loanStart.getDate() : 0;
+      const pastDays = Math.max(currentDay - effectiveStart, 0);
+      const futureDays = daysInMonth - currentDay;
+      return { received: amount * pastDays, pending: amount * futureDays };
+    }
+    // Monthly/other
+    if (isLoan && loanStart && loanStart.getMonth() === month && loanStart.getFullYear() === year) {
+      return { received: 0, pending: 0 }; // Started this month, first payment next month
+    }
+    const sd = parseInt(inc.selectedDate) || 1;
+    const effectiveDay = Math.min(sd, daysInMonth);
+    if (effectiveDay <= currentDay) {
+      return { received: amount, pending: 0 };
+    }
+    return { received: 0, pending: amount };
+  };
+
+  const fixedReceivedTotal = fixedInterests.reduce((sum, i) => sum + getReceivedPending(i).received, 0);
+  const fixedPendingTotal = fixedInterests.reduce((sum, i) => sum + getReceivedPending(i).pending, 0);
+  const variableReceivedTotal = variableInterests.reduce((sum, i) => sum + getReceivedPending(i).received, 0);
+  const variablePendingTotal = variableInterests.reduce((sum, i) => sum + getReceivedPending(i).pending, 0);
 
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-interest-page">

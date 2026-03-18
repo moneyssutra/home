@@ -47,23 +47,43 @@ const MyIncome = () => {
   const calculateMonthlyAmount = (income) => {
     const amount = income.expectedAmount || 0;
     const freq = income.frequency || 'Monthly';
-    const currentMonth = new Date().getMonth() + 1;
-    const currentYear = new Date().getFullYear();
+    const now = new Date();
+    const currentMonth = now.getMonth(); // 0-indexed
+    const currentYear = now.getFullYear();
+    const currentDay = now.getDate();
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const isLoan = income.sourceCategory === 'loan_repayment';
     
-    // Loan repayment: check startDate to handle first month correctly
-    if (isLoan && income.startDate) {
-      try {
-        const start = new Date(income.startDate);
-        if (start.getMonth() + 1 === currentMonth && start.getFullYear() === currentYear) {
-          // Loan started this month — for non-weekly/daily, first payment is next month
-          if (freq !== 'Weekly' && freq !== 'Daily') return 0;
+    if (isLoan) {
+      let loanStart = null;
+      if (income.startDate) {
+        try { loanStart = new Date(income.startDate); } catch(e) {}
+      }
+
+      if (freq === 'Weekly') {
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const targetIdx = dayNames.indexOf(income.selectedDay);
+        if (targetIdx === -1) return amount;
+        let count = 0;
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dt = new Date(currentYear, currentMonth, d);
+          if (dt.getDay() === targetIdx) {
+            if (loanStart && dt <= loanStart) continue;
+            count++;
+          }
         }
-      } catch(e) {}
+        return amount * count;
+      }
+      if (freq === 'Daily') {
+        const effectiveStart = (loanStart && loanStart.getMonth() === currentMonth && loanStart.getFullYear() === currentYear) ? loanStart.getDate() : 0;
+        return amount * (daysInMonth - effectiveStart);
+      }
+      // Monthly: first payment is one period after start
+      if (loanStart && loanStart.getMonth() === currentMonth && loanStart.getFullYear() === currentYear) {
+        return 0;
+      }
+      return amount;
     }
-    
-    // For loan repayment: show per-period amount (consistent with Interest page)
-    if (isLoan) return amount;
     
     switch (freq) {
       case 'Daily': return amount * 30;
@@ -71,9 +91,9 @@ const MyIncome = () => {
       case 'Monthly': return amount;
       case 'Quarterly':
         const quarterMonths = [1, 4, 7, 10];
-        return quarterMonths.includes(currentMonth) ? amount : 0;
+        return quarterMonths.includes(currentMonth + 1) ? amount : 0;
       case 'Half-Yearly':
-        return [1, 7].includes(currentMonth) ? amount : 0;
+        return [1, 7].includes(currentMonth + 1) ? amount : 0;
       case 'Yearly':
         const monthMapping = {
           "January": 1, "February": 2, "March": 3, "April": 4,
@@ -81,7 +101,7 @@ const MyIncome = () => {
           "September": 9, "October": 10, "November": 11, "December": 12
         };
         const selectedMonth = income.selectedMonth || '';
-        return monthMapping[selectedMonth] === currentMonth ? amount : 0;
+        return monthMapping[selectedMonth] === (currentMonth + 1) ? amount : 0;
       case 'Irregular':
       case 'Others':
         if (income.customDate) {

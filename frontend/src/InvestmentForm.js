@@ -271,6 +271,30 @@ const InvestmentForm = () => {
     }
   }, [investmentCategory, repaymentType, principal, agreedReturnAmount]);
 
+  // Auto-calculate due date for fixed repayment plans
+  useEffect(() => {
+    if (investmentCategory === "Loan Given" && repaymentType === "fixed" && startDate && numberOfInstallments && repaymentFrequency) {
+      try {
+        const num = parseInt(numberOfInstallments);
+        if (num > 0) {
+          const start = new Date(startDate + "T00:00:00");
+          let endDate = new Date(start);
+          const freqMonths = { "Monthly": 1, "Quarterly": 3, "Half-Yearly": 6, "Semi-Annually": 6, "Yearly": 12 };
+          if (freqMonths[repaymentFrequency]) {
+            endDate.setMonth(endDate.getMonth() + freqMonths[repaymentFrequency] * num);
+          } else if (repaymentFrequency === "Weekly") {
+            endDate.setDate(endDate.getDate() + 7 * num);
+          } else if (repaymentFrequency === "Daily") {
+            endDate.setDate(endDate.getDate() + num);
+          }
+          const formatted = endDate.toISOString().split('T')[0];
+          setDueDate(formatted);
+        }
+      } catch(e) {}
+    }
+  }, [investmentCategory, repaymentType, startDate, numberOfInstallments, repaymentFrequency]);
+
+
 
   // Scroll to top on mount
   useEffect(() => {

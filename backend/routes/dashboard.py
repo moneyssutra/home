@@ -344,7 +344,6 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
                     loan_start = datetime.fromisoformat(start_str).date() if isinstance(start_str, str) else start_str
                 except (ValueError, TypeError):
                     loan_start = None
-            first_of_month = date_type(current_year, current_month, 1) if loan_start else None
 
             if freq == 'Weekly':
                 day_name = item.get('selectedDay', '')
