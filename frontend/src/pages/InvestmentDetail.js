@@ -338,7 +338,7 @@ export default function InvestmentDetail() {
         {/* Repayment Modal */}
         {showRepayment && (
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
-            <div className="w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6" style={{ backgroundColor: "var(--bg-card)" }} data-testid="repayment-modal">
+            <div className="w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 pb-24 sm:pb-6 max-h-[90vh] overflow-y-auto" style={{ backgroundColor: "var(--bg-card)" }} data-testid="repayment-modal">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>Add Repayment</h3>
                 <button onClick={() => setShowRepayment(false)} className="p-1 rounded-full" style={{ backgroundColor: "var(--bg-subtle)" }}>
