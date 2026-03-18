@@ -15,8 +15,7 @@ const Login = () => {
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
-  const [isMpinMode, setIsMpinMode] = useState(false);
-  const [isBiometricMode, setIsBiometricMode] = useState(false);
+  const [loginMode, setLoginMode] = useState("biometric"); // "biometric" | "mpin" | "password"
   const [forgotPasswordStep, setForgotPasswordStep] = useState(1);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -368,17 +367,135 @@ const Login = () => {
                 </div>
               )}
             </>
-          ) : isMpinMode ? (
+          ) : loginMode === "biometric" ? (
+            /* Biometric Login Mode (DEFAULT) */
+            <>
+              <h2 className="text-xl font-bold mb-2 text-center" style={{ color: "var(--text-primary)" }}>
+                Welcome Back
+              </h2>
+              <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
+                Use your fingerprint or face to sign in
+              </p>
+
+              {error && (
+                <div className="mb-4 p-3 rounded-xl flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)", border: "1px solid var(--status-error)" }}>
+                  <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: "var(--status-error)" }} />
+                  <p className="text-sm" style={{ color: "var(--status-error)" }}>{error}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleBiometricSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
+                    Email ID
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
+                    <input
+                      type="email"
+                      value={identifier}
+                      onChange={(e) => setIdentifier(e.target.value)}
+                      placeholder="example@email.com"
+                      className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
+                      style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+                      data-testid="biometric-email-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center py-4">
+                  <Fingerprint className="h-16 w-16 mb-3" style={{ color: "var(--brand-primary)", opacity: 0.8 }} />
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                    Your device will prompt for biometric verification
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !identifier.trim()}
+                  className="w-full py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  style={{ backgroundColor: "#047857" }}
+                  data-testid="biometric-login-button"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <Fingerprint className="h-5 w-5" />
+                      Authenticate with Biometric
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Alternative login methods */}
+              <div className="mt-4 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => { setLoginMode("mpin"); setError(""); setMpin(["", "", "", ""]); }}
+                  className="w-full py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:shadow-sm"
+                  style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--brand-primary)" }}
+                  data-testid="switch-to-mpin-btn"
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Login with MPIN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setLoginMode("password"); setError(""); }}
+                  className="w-full py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:shadow-sm"
+                  style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-secondary)" }}
+                  data-testid="switch-to-password-btn"
+                >
+                  <Lock className="h-4 w-4" />
+                  Login with Password
+                </button>
+              </div>
+
+              {/* Create Account & Google */}
+              <p className="text-sm text-center mt-4" style={{ color: "var(--text-secondary)" }}>
+                New to Moneyssutra?{" "}
+                <button
+                  onClick={() => { setIsRegisterMode(true); setError(""); }}
+                  className="font-semibold hover:underline"
+                  style={{ color: "var(--brand-primary)" }}
+                  data-testid="create-account-link"
+                >
+                  Create Account
+                </button>
+              </p>
+
+              <div className="flex items-center my-3">
+                <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
+                <span className="px-3 text-xs" style={{ color: "var(--text-muted)" }}>OR</span>
+                <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
+              </div>
+
+              <button
+                type="button"
+                onClick={loginWithGoogle}
+                className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-3 transition-all hover:shadow-sm"
+                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+                data-testid="google-login-button"
+              >
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                Continue with Google
+              </button>
+            </>
+          ) : loginMode === "mpin" ? (
             /* MPIN Login Mode */
             <>
               <button
-                onClick={() => { setIsMpinMode(false); setError(""); setMpin(["", "", "", ""]); }}
+                onClick={() => { setLoginMode("biometric"); setError(""); setMpin(["", "", "", ""]); }}
                 className="flex items-center gap-2 mb-4 text-sm hover:underline"
                 style={{ color: "#059669" }}
-                data-testid="back-to-password-btn"
+                data-testid="back-to-biometric-btn"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Password Login
+                Back
               </button>
 
               <h2 className="text-xl font-bold mb-2 text-center" style={{ color: "var(--text-primary)" }}>
@@ -460,85 +577,21 @@ const Login = () => {
                 </button>
               </form>
             </>
-          ) : isBiometricMode ? (
-            /* Biometric Login Mode */
+          ) : (
+            /* Password Login Form (Fallback) */
             <>
               <button
-                onClick={() => { setIsBiometricMode(false); setError(""); }}
+                onClick={() => { setLoginMode("biometric"); setError(""); }}
                 className="flex items-center gap-2 mb-4 text-sm hover:underline"
                 style={{ color: "#059669" }}
-                data-testid="back-from-biometric-btn"
+                data-testid="back-to-biometric-from-password"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Password Login
+                Back
               </button>
 
-              <h2 className="text-xl font-bold mb-2 text-center" style={{ color: "var(--text-primary)" }}>
-                Biometric Login
-              </h2>
-              <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
-                Use your fingerprint or face to sign in
-              </p>
-
-              {error && (
-                <div className="mb-4 p-3 rounded-xl flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)", border: "1px solid var(--status-error)" }}>
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: "var(--status-error)" }} />
-                  <p className="text-sm" style={{ color: "var(--status-error)" }}>{error}</p>
-                </div>
-              )}
-
-              <form onSubmit={handleBiometricSubmit} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
-                    Email ID
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
-                    <input
-                      type="email"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="example@email.com"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
-                      style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
-                      data-testid="biometric-email-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center py-4">
-                  <Fingerprint className="h-16 w-16 mb-3" style={{ color: "var(--brand-primary)", opacity: 0.8 }} />
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    Your device will prompt for biometric verification
-                  </p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !identifier.trim()}
-                  className="w-full py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={{ backgroundColor: "#047857" }}
-                  data-testid="biometric-login-button"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    <>
-                      <Fingerprint className="h-5 w-5" />
-                      Authenticate with Biometric
-                    </>
-                  )}
-                </button>
-              </form>
-            </>
-          ) : (
-            /* Normal Login Form */
-            <>
               <h2 className="text-xl font-bold mb-6 text-center" style={{ color: "var(--text-primary)" }}>
-                Welcome Back
+                Login with Password
               </h2>
 
               {/* Error Message */}
@@ -633,38 +686,6 @@ const Login = () => {
                     Forgot Password?
                   </button>
                 </div>
-
-                {/* Login with MPIN option */}
-                <button
-                  type="button"
-                  onClick={() => { setIsMpinMode(true); setError(""); setMpin(["", "", "", ""]); }}
-                  className="w-full py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:shadow-sm"
-                  style={{ 
-                    backgroundColor: "var(--bg-subtle)", 
-                    border: "1px solid var(--border-light)",
-                    color: "var(--brand-primary)"
-                  }}
-                  data-testid="switch-to-mpin-btn"
-                >
-                  <KeyRound className="h-4 w-4" />
-                  Login with MPIN
-                </button>
-
-                {/* Login with Biometric option */}
-                <button
-                  type="button"
-                  onClick={() => { setIsBiometricMode(true); setError(""); }}
-                  className="w-full py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:shadow-sm"
-                  style={{ 
-                    backgroundColor: "var(--bg-subtle)", 
-                    border: "1px solid var(--border-light)",
-                    color: "var(--brand-primary)"
-                  }}
-                  data-testid="switch-to-biometric-btn"
-                >
-                  <Fingerprint className="h-4 w-4" />
-                  Login with Biometric
-                </button>
 
                 {/* Submit Button */}
                 <button

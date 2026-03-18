@@ -19,12 +19,12 @@ Build and maintain a full-stack financial management app ("MoneySutra") with Rea
 
 ### Auth System (Complete)
 - Email/password registration & login
-- Google OAuth via Emergent
-- **MPIN (4-digit PIN) login** — set/verify/login/remove via `/api/mpin/*`
-- **Biometric (WebAuthn) login** — fingerprint/face ID via `/api/biometric/*`
-- Remember Me
-- Forgot/Reset Password
-- First-time Google user password setup
+- Google OAuth via Emergent → new users prompted to set MPIN (not password)
+- **Biometric (WebAuthn) login** — DEFAULT login method (fingerprint/face ID)
+- **MPIN (4-digit PIN) login** — secondary login method
+- Password login — fallback
+- Login page flow: Biometric → MPIN → Password
+- Remember Me, Forgot/Reset Password
 
 ### User-Facing
 - Full CRUD for: Income, Expenses, Loans, Assets, Accounts, Insurance, Investments, Credit Cards, Goals
