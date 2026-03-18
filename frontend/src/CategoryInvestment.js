@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronRight, Plus, TrendingUp, Landmark, BarChart3, PiggyBank, Coins, Bitcoin, CircleDollarSign, MoreHorizontal } from "lucide-react";
+import { ChevronRight, Plus, TrendingUp, Landmark, BarChart3, PiggyBank, Coins, Bitcoin, CircleDollarSign, MoreHorizontal, HandCoins } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { useInvestmentList } from "@/hooks/useApi";
@@ -20,6 +20,13 @@ const investmentTypeConfig = {
   "swp": { name: "SWP", icon: TrendingUp, color: "#0891B2", bgColor: "#CFFAFE", description: "Systematic withdrawal plans" },
   "ulip": { name: "ULIP", icon: BarChart3, color: "#9333EA", bgColor: "#F3E8FF", description: "Unit linked insurance plans" },
   "crypto": { name: "Crypto", icon: Bitcoin, color: "#DC2626", bgColor: "#FEE2E2", description: "Cryptocurrency investments" },
+  "loan-given": { name: "Loan Given", icon: HandCoins, color: "#F97316", bgColor: "#FFF7ED", description: "Personal loans given" },
+  "us-stocks": { name: "US Stocks", icon: TrendingUp, color: "#2563EB", bgColor: "#DBEAFE", description: "US equity stocks" },
+  "ppf": { name: "PPF", icon: PiggyBank, color: "#16A34A", bgColor: "#DCFCE7", description: "Public Provident Fund" },
+  "nps": { name: "NPS", icon: PiggyBank, color: "#6366F1", bgColor: "#E0E7FF", description: "National Pension System" },
+  "epf": { name: "EPF", icon: PiggyBank, color: "#14B8A6", bgColor: "#CCFBF1", description: "Employee Provident Fund" },
+  "real-estate": { name: "Real Estate", icon: Landmark, color: "#EC4899", bgColor: "#FCE7F3", description: "Property investments" },
+  "gold": { name: "Gold", icon: Coins, color: "#CA8A04", bgColor: "#FEF9C3", description: "Gold investments" },
   "other": { name: "Other", icon: MoreHorizontal, color: "#6B7280", bgColor: "#F3F4F6", description: "Other investments" },
 };
 
