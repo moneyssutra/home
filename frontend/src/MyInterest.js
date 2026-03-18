@@ -20,16 +20,47 @@ const MyInterest = () => {
     return new Intl.NumberFormat("en-IN").format(amount);
   };
 
+  // Calculate expected monthly amount for an interest source
+  const getMonthlyExpected = (inc) => {
+    const amount = inc.expectedAmount || 0;
+    const freq = inc.frequency || 'Monthly';
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth(); // 0-indexed
+    const currentDay = today.getDate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const isLoan = inc.sourceCategory === 'loan_repayment';
+
+    if (freq === 'Weekly') {
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const targetIdx = dayNames.indexOf(inc.selectedDay);
+      if (targetIdx === -1) return isLoan ? amount : amount * 4;
+      // Count occurrences in this month
+      let total = 0, future = 0;
+      for (let d = 1; d <= daysInMonth; d++) {
+        if (new Date(year, month, d).getDay() === targetIdx) {
+          total++;
+          if (d > currentDay) future++;
+        }
+      }
+      return isLoan ? amount * future : amount * total;
+    }
+    if (freq === 'Daily') {
+      return isLoan ? amount * (daysInMonth - currentDay) : amount * daysInMonth;
+    }
+    return amount;
+  };
+
   const { totalIncome, fixedInterests, variableInterests, fixedTotal, variableTotal } = useMemo(() => {
-    const total = interests.reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
+    const total = interests.reduce((sum, i) => sum + getMonthlyExpected(i), 0);
     const fixed = interests.filter(i => i.incomeType === "fixed" || !i.incomeType);
     const variable = interests.filter(i => i.incomeType === "variable");
     return {
       totalIncome: total,
       fixedInterests: fixed,
       variableInterests: variable,
-      fixedTotal: fixed.reduce((sum, i) => sum + (i.expectedAmount || 0), 0),
-      variableTotal: variable.reduce((sum, i) => sum + (i.expectedAmount || 0), 0)
+      fixedTotal: fixed.reduce((sum, i) => sum + getMonthlyExpected(i), 0),
+      variableTotal: variable.reduce((sum, i) => sum + getMonthlyExpected(i), 0)
     };
   }, [interests]);
 
@@ -123,7 +154,7 @@ const MyInterest = () => {
   const interestBySource = interests.reduce((acc, i) => {
     const src = i.sourceType || (i.sourceCategory === 'loan_repayment' ? 'Loan Repayment' : i.type) || "Other";
     if (!acc[src]) acc[src] = { total: 0, count: 0 };
-    acc[src].total += i.expectedAmount || 0;
+    acc[src].total += getMonthlyExpected(i);
     acc[src].count += 1;
     return acc;
   }, {});
@@ -161,10 +192,10 @@ const MyInterest = () => {
 
   const chartColors = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B", "#EC4899", "#06B6D4"];
 
-  const fixedReceivedTotal = fixedInterests.filter(i => getPaymentStatus(i) === 'received').reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
-  const fixedPendingTotal = fixedInterests.filter(i => getPaymentStatus(i) !== 'received').reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
-  const variableReceivedTotal = variableInterests.filter(i => getPaymentStatus(i) === 'received').reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
-  const variablePendingTotal = variableInterests.filter(i => getPaymentStatus(i) !== 'received').reduce((sum, i) => sum + (i.expectedAmount || 0), 0);
+  const fixedReceivedTotal = fixedInterests.filter(i => getPaymentStatus(i) === 'received').reduce((sum, i) => sum + getMonthlyExpected(i), 0);
+  const fixedPendingTotal = fixedInterests.filter(i => getPaymentStatus(i) !== 'received').reduce((sum, i) => sum + getMonthlyExpected(i), 0);
+  const variableReceivedTotal = variableInterests.filter(i => getPaymentStatus(i) === 'received').reduce((sum, i) => sum + getMonthlyExpected(i), 0);
+  const variablePendingTotal = variableInterests.filter(i => getPaymentStatus(i) !== 'received').reduce((sum, i) => sum + getMonthlyExpected(i), 0);
 
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="my-interest-page">
