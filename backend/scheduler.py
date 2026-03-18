@@ -676,6 +676,118 @@ async def auto_process_loan_repayments():
         logger.error(f"Error processing loan repayments: {str(e)}")
 
 
+async def check_loan_repayment_reminders():
+    """Check for upcoming loan repayments and send reminders."""
+    try:
+        today = datetime.now()
+        today_str = today.strftime("%Y-%m-%d")
+        logger.info(f"Checking loan repayment reminders for {today_str}")
+
+        # Find all active Loan Given investments with fixed repayment
+        loans = await db.investments.find({
+            "investmentCategory": "Loan Given",
+            "repaymentType": "fixed",
+            "status": {"$ne": "completed"}
+        }, {"_id": 0}).to_list(10000)
+
+        reminders_sent = 0
+        for loan in loans:
+            user_id = loan.get("userId")
+            loan_id = loan.get("id")
+            loan_name = loan.get("name", "Loan")
+            borrower = loan.get("borrowerName", "")
+            installment_amt = loan.get("installmentAmount", 0)
+            freq = loan.get("repaymentFrequency", "Monthly")
+
+            # Check user's notification preferences
+            user_settings = await db.user_settings.find_one(
+                {"userId": user_id, "type": "notifications"}, {"_id": 0}
+            )
+            settings = user_settings.get("settings", {}) if user_settings else {}
+            if not settings.get("bill_reminders", True):
+                continue
+
+            # Calculate next due date from loan data
+            due_date_str = loan.get("nextDueDate") or loan.get("dueDate")
+            if not due_date_str:
+                # Calculate from start date + frequency
+                start = loan.get("startDate", "")
+                selected_date = loan.get("selectedDate", "")
+                if selected_date:
+                    try:
+                        due_day = int(selected_date)
+                        # Find the next due day in current or next month
+                        import calendar
+                        if due_day <= today.day:
+                            # Next month
+                            nm = today.month + 1
+                            ny = today.year
+                            if nm > 12:
+                                nm = 1
+                                ny += 1
+                            due_date_str = f"{ny}-{nm:02d}-{min(due_day, calendar.monthrange(ny, nm)[1]):02d}"
+                        else:
+                            due_date_str = f"{today.year}-{today.month:02d}-{min(due_day, calendar.monthrange(today.year, today.month)[1]):02d}"
+                    except (ValueError, TypeError):
+                        continue
+                else:
+                    continue
+
+            if not due_date_str:
+                continue
+
+            try:
+                due_date = datetime.strptime(due_date_str[:10], "%Y-%m-%d")
+            except (ValueError, TypeError):
+                continue
+
+            days_until_due = (due_date.date() - today.date()).days
+
+            # Send reminder if due in 0-3 days
+            if days_until_due < 0 or days_until_due > 3:
+                continue
+
+            # Check if reminder already sent today for this loan
+            existing = await db.notifications.find_one({
+                "userId": user_id,
+                "relatedEntityId": loan_id,
+                "type": "loan_repayment_reminder",
+                "createdAt": {"$regex": f"^{today_str}"}
+            })
+            if existing:
+                continue
+
+            # Build reminder message
+            if days_until_due == 0:
+                title = f"Loan repayment due today"
+                msg = f"{loan_name}: {borrower or 'Borrower'} owes ₹{installment_amt:,.0f} today ({freq})"
+            elif days_until_due == 1:
+                title = f"Loan repayment due tomorrow"
+                msg = f"{loan_name}: {borrower or 'Borrower'} owes ₹{installment_amt:,.0f} tomorrow ({freq})"
+            else:
+                title = f"Loan repayment in {days_until_due} days"
+                msg = f"{loan_name}: {borrower or 'Borrower'} owes ₹{installment_amt:,.0f} on {due_date.strftime('%b %d')} ({freq})"
+
+            notification = {
+                "id": str(uuid.uuid4()),
+                "userId": user_id,
+                "title": title,
+                "message": msg,
+                "type": "loan_repayment_reminder",
+                "relatedEntityId": loan_id,
+                "actionUrl": f"/investments/{loan_id}",
+                "isRead": False,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            await create_notification_and_cleanup(notification)
+            reminders_sent += 1
+            logger.info(f"Sent loan reminder for {loan_name} to user {user_id}")
+
+        logger.info(f"Loan repayment reminders: {reminders_sent} sent")
+    except Exception as e:
+        logger.error(f"Error checking loan repayment reminders: {str(e)}")
+
+
 async def check_and_send_reminders():
     """Background task that runs every minute to check for income reminders."""
     global scheduler_running
@@ -697,6 +809,7 @@ async def check_and_send_reminders():
                 await auto_update_sip_investments()
                 await auto_process_loan_emi()
                 await auto_process_loan_repayments()
+                await check_loan_repayment_reminders()
                 last_premium_check_date = today
 
             logger.debug(f"Checking reminders for time: {current_time}")
@@ -744,6 +857,10 @@ async def check_and_send_reminders():
 
         except Exception as e:
             logger.error(f"Error in reminder scheduler: {str(e)}")
+
+        # Loan repayment reminders - check once daily at 08:00
+        if current_time == "08:00":
+            await check_loan_repayment_reminders()
 
         # Weekly gamification processing - Sunday at 23:59
         if now.weekday() == 6 and current_time == "23:59":

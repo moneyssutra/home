@@ -150,5 +150,12 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
   - Frontend NotificationSettings.js connected to backend properly
 
 ### Remaining Backlog
-- Repayment reminders for Loan Given
-- Skipped expense history view
+- ~~Repayment reminders for Loan Given~~ ✅ DONE (Mar 19, 2026)
+  - Added `check_loan_repayment_reminders()` to scheduler — runs daily at startup and 08:00
+  - Sends in-app notifications 0-3 days before loan repayment due date
+  - Respects user's `billReminders` notification preference
+  - Auto-dismisses duplicate reminders (one per loan per day)
+- ~~Skipped expense history view~~ ✅ DONE (Mar 19, 2026)
+  - Added `GET /api/expenses/skipped-history` endpoint — returns month-grouped skipped expenses with totals
+  - Added "Skipped" tab to My Expenses page with grand total card and month-wise breakdown
+  - Shows expense name, category, and amount saved per skip

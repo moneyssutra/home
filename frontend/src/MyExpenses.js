@@ -67,6 +67,20 @@ const MyExpenses = () => {
 
   useEffect(() => { fetchMonthExpenses(); }, [fetchMonthExpenses]);
 
+  // Skipped history data
+  const [skippedHistory, setSkippedHistory] = useState(null);
+  const [skippedLoading, setSkippedLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeView === "skipped" && !skippedHistory) {
+      setSkippedLoading(true);
+      axios.get(`${API}/api/expenses/skipped-history`, { withCredentials: true })
+        .then(res => setSkippedHistory(res.data))
+        .catch(() => setSkippedHistory({ history: [], grandTotal: 0 }))
+        .finally(() => setSkippedLoading(false));
+    }
+  }, [activeView, skippedHistory]);
+
   const mutateMonth = fetchMonthExpenses;
 
   const formatAmount = (amount) => {
@@ -265,6 +279,7 @@ const MyExpenses = () => {
             { id: "daily", label: "Daily", icon: Calendar },
             { id: "weekly", label: "Weekly", icon: BarChart3 },
             { id: "monthly", label: "Monthly", icon: LineChart },
+            { id: "skipped", label: "Skipped", icon: SkipForward },
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -374,6 +389,62 @@ const MyExpenses = () => {
       {activeView === "daily" && <ExpenseCalendar embedded expenses={monthExpenses} monthKey={currentMonthKey} monthOffset={monthOffset} setMonthOffset={setMonthOffset} dataLoading={loading} />}
       {activeView === "weekly" && <ExpenseWeekly />}
       {activeView === "monthly" && <ExpenseMonthly />}
+      {activeView === "skipped" && (
+        <div className="px-5 py-4" data-testid="skipped-history-view">
+          {skippedLoading ? (
+            <div className="text-center py-12" style={{ color: "var(--text-muted)" }}>Loading...</div>
+          ) : !skippedHistory?.history?.length ? (
+            <div className="text-center py-12">
+              <SkipForward className="h-12 w-12 mx-auto mb-3" style={{ color: "var(--text-muted)", opacity: 0.4 }} />
+              <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>No skipped expenses yet</p>
+              <p className="text-xs mt-1" style={{ color: "var(--text-muted)", opacity: 0.7 }}>When you skip an expense, it will appear here</p>
+            </div>
+          ) : (
+            <>
+              {/* Grand Total Card */}
+              <div className="rounded-2xl p-5 mb-5 shadow-card" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}>
+                <p className="text-white/80 text-xs font-medium mb-1">Total Saved by Skipping</p>
+                <p className="text-white text-2xl font-bold" data-testid="skipped-grand-total">
+                  {"\u20B9"}{(skippedHistory.grandTotal || 0).toLocaleString("en-IN")}
+                </p>
+                <p className="text-white/70 text-xs mt-1">{skippedHistory.history.length} month{skippedHistory.history.length !== 1 ? "s" : ""} with skipped expenses</p>
+              </div>
+
+              {/* Month-wise breakdown */}
+              <div className="space-y-4">
+                {skippedHistory.history.map((monthData) => (
+                  <div key={monthData.month} className="rounded-2xl overflow-hidden shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+                    <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                      <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{getMonthLabel(monthData.month)}</p>
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#FEF3C7", color: "#92400E" }}>
+                        Saved {"\u20B9"}{monthData.totalSaved.toLocaleString("en-IN")}
+                      </span>
+                    </div>
+                    <div className="divide-y" style={{ borderColor: "var(--border-light)" }}>
+                      {monthData.expenses.map((exp, idx) => (
+                        <div key={`${exp.id}-${idx}`} className="flex items-center justify-between px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "var(--brand-primary-soft)" }}>
+                              <SkipForward className="h-4 w-4" style={{ color: "#F59E0B" }} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{exp.name}</p>
+                              <p className="text-xs" style={{ color: "var(--text-muted)" }}>{exp.category}</p>
+                            </div>
+                          </div>
+                          <p className="text-sm font-semibold" style={{ color: "#F59E0B" }}>
+                            {"\u20B9"}{(exp.amount || 0).toLocaleString("en-IN")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
       {activeView === "list" && (
       <>
 

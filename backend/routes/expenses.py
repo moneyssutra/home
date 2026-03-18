@@ -1281,6 +1281,44 @@ async def undo_skip_expense(expense_id: str, request: Request):
     return {"message": "Skip undone", "id": expense_id}
 
 
+@router.get("/skipped-history")
+async def get_skipped_history(request: Request):
+    """Get history of all skipped expenses, grouped by month."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+
+    # Find all expenses that have any skipped months
+    expenses = await db.expenses.find(
+        {**user_filter, "skippedMonths": {"$exists": True, "$ne": []}},
+        {"_id": 0, "id": 1, "expenseName": 1, "expectedAmount": 1, "category": 1, "skippedMonths": 1}
+    ).to_list(1000)
+
+    # Group by month
+    month_map = {}
+    for exp in expenses:
+        for month_key in exp.get("skippedMonths", []):
+            if month_key not in month_map:
+                month_map[month_key] = {"month": month_key, "expenses": [], "totalSaved": 0}
+            month_map[month_key]["expenses"].append({
+                "id": exp.get("id"),
+                "name": exp.get("expenseName", "Unknown"),
+                "amount": exp.get("expectedAmount", 0),
+                "category": exp.get("category", "Other"),
+            })
+            month_map[month_key]["totalSaved"] += exp.get("expectedAmount", 0)
+
+    # Sort by month descending
+    result = sorted(month_map.values(), key=lambda x: x["month"], reverse=True)
+
+    # Calculate grand total
+    grand_total = sum(m["totalSaved"] for m in result)
+
+    return {"history": result, "grandTotal": grand_total}
+
+
+
 
 
 @router.post("/{expense_id}/undo-prepay")
