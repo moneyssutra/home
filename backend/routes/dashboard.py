@@ -240,6 +240,22 @@ def _is_due_this_month(freq, item, current_month, current_year, is_income=True):
     month_map = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,
                  "July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
 
+    # Check if the income/expense has a future start date
+    start_date_str = item.get('startDate') or None
+    if not start_date_str:
+        sel_date = item.get('selectedDate')
+        if sel_date and isinstance(sel_date, str) and len(str(sel_date)) > 4:
+            start_date_str = str(sel_date)
+    if start_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            from datetime import date
+            current_first = date(current_year, current_month, 1)
+            if start_date > date(current_year, current_month, 28):
+                return False
+        except (ValueError, TypeError):
+            pass
+
     if freq == 'Monthly' or freq == 'Daily' or freq == 'Weekly':
         return True
     elif freq == 'Quarterly':

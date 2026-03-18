@@ -315,13 +315,23 @@ async def get_income_detail(income_id: str, request: Request):
 
     schedule = []
     if period_months > 0:
-        # Determine start date: use startDate, or fall back to createdAt
+        # Determine start date: use startDate, then selectedDate (full date string), then createdAt
         start = None
         if start_str:
             try:
                 start = datetime.strptime(start_str, "%Y-%m-%d")
             except (ValueError, TypeError):
                 pass
+        
+        # Try selectedDate as a full date string (e.g., "2026-06-01")
+        if not start:
+            sel_date_val = inc.get("selectedDate")
+            if sel_date_val and isinstance(sel_date_val, str) and len(str(sel_date_val)) > 4:
+                try:
+                    start = datetime.strptime(str(sel_date_val), "%Y-%m-%d")
+                except (ValueError, TypeError):
+                    pass
+
         if not start:
             # Use createdAt as fallback
             created = inc.get("createdAt", "")
@@ -333,9 +343,9 @@ async def get_income_detail(income_id: str, request: Request):
             if not start:
                 start = today - relativedelta(months=6)
 
-            # Adjust to selectedDate day of month if available
+            # Adjust to selectedDate day of month if available (when selectedDate is an int)
             sel_date = inc.get("selectedDate")
-            if sel_date:
+            if sel_date and isinstance(sel_date, (int, float)):
                 try:
                     day = min(int(sel_date), 28)
                     start = start.replace(day=day)
