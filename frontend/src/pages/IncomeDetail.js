@@ -38,8 +38,10 @@ const getEditRoute = (incomeType, id) => {
     const routes = {
       "Business": `/business-income/${id}`,
       "Job": `/job-income/${id}`,
+      "Salary": `/job-income/${id}`,
       "Self-Employed": `/self-employed-income/${id}`,
       "Commission": `/commission-income/${id}`,
+      "Interest": `/other-income/${id}`,
       "Other": `/other-income/${id}`,
     };
     return routes[incomeType] || `/other-income/${id}`;

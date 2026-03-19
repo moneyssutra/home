@@ -1,0 +1,60 @@
+{
+  "summary": "Iteration 140: Income Received/Pending Calculation Bug Fix Testing - ALL 12 TESTS PASSED. Verified fix for future-dated income incorrectly showing as 'Received' when income starts in a future month.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_income_received_pending_iter140.py",
+    "/app/test_reports/pytest/income_received_pending_iter140_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "✓ _parse_selected_date() correctly handles full ISO dates (2026-04-01) vs day numbers (15)",
+    "✓ Future-dated income (selectedDate='2026-04-01') returns applies=False, resulting in received=0, pending=0",
+    "✓ Current/past month income correctly applies with proper received/pending calculation",
+    "✓ Day-number selectedDate ('15') correctly determines received vs pending based on current day",
+    "✓ No-date income (selectedDate=null) correctly shows as pending (intentional behavior)",
+    "✓ /list/summary, /monthly-summary, and /{id}/detail endpoints all use consistent _parse_selected_date logic",
+    "✓ Frontend getEditRoute() correctly maps: Salary→/job-income, Job→/job-income, Business→/business-income, Interest→/other-income"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_income_received_pending_iter140.py"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 tests passed)",
+    "frontend": "Not tested (backend only requested)"
+  },
+  "test_credentials": {
+    "note": "Test users created dynamically with unique names, all test data cleaned up after tests"
+  },
+  "seed_data_creation": "No persistent seed data - all test data cleaned up",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 140 verified the income received/pending calculation fix. The key bug was that income with selectedDate='2026-04-01' (future month) was being incorrectly parsed and showing as 'Received' instead of not applying. The fix in _parse_selected_date() now properly detects full ISO dates and returns applies=False for future months. Test cases verified: (1) Future-dated Business income shows received=0, pending=0 (not started), (2) Day-number income (selectedDate='15') correctly shows received when day>=15, (3) No-date income shows as pending (intentional), (4) monthly-summary totals are consistent, (5) detail endpoint matches list summary values. Frontend edit routing for Salary type was also verified to go to /job-income (not /other-income).",
+  "tests_passed": {
+    "test_01_create_future_dated_business_income": "PASSED - Created income with selectedDate='2026-04-01'",
+    "test_02_verify_future_income_list_summary": "PASSED - received=0, pending=0, total=0 (correct for future income)",
+    "test_03_verify_future_income_detail_endpoint": "PASSED - totalReceived=0, monthlyPending=0, monthlyTotal=0",
+    "test_04_create_job_income_no_date": "PASSED - received=0, pending=100000 (no date = pending)",
+    "test_05_create_job_income_day_15": "PASSED - Day 19 >= 15, so received=50000, pending=0",
+    "test_06_monthly_summary_totals": "PASSED - total=150000, received=50000, pending=100000",
+    "test_07_income_detail_consistency": "PASSED - List and detail endpoints match",
+    "test_08_create_interest_income_for_routing_test": "PASSED - Interest → /other-income/{id}",
+    "test_09_verify_salary_type_exists": "PASSED - Salary → /job-income/{id}",
+    "test_10_cleanup_verification": "PASSED - All 5 test incomes deleted",
+    "test_full_date_current_month": "PASSED - Current month income applies correctly",
+    "test_full_date_past_month": "PASSED - Past month income applies to current month"
+  },
+  "bug_verification": {
+    "original_bug": "Income with selectedDate='2026-04-01' was showing received=200000 instead of 0",
+    "root_cause": "int('2026-04-01') failed, fell back to day 1, which is <= current_day, so marked as Received",
+    "fix_applied": "_parse_selected_date() now checks for '-' in date string and parses full ISO dates",
+    "verification": "Future-dated income now correctly shows received=0, pending=0, total=0"
+  }
+}

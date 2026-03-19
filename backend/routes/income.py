@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from typing import List, Optional
 from datetime import datetime, timedelta
+import calendar as cal
 
 from database import db
 from server_models import IncomeSource, IncomeSourceCreate
@@ -9,6 +10,31 @@ from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_user_now, count_weekday_occurrences
 
 router = APIRouter(prefix="/income", tags=["Income"])
+
+
+def _parse_selected_date(sd_str, current_year, current_month, days_in_month):
+    """Parse selectedDate and determine if income applies this month.
+    Returns (applies_this_month: bool, day_of_month: int)
+    """
+    if not sd_str:
+        return True, 1
+    sd_str = str(sd_str)
+    # Full date like "2026-04-01"
+    if "-" in sd_str and len(sd_str) > 4:
+        try:
+            full_date = datetime.strptime(sd_str, "%Y-%m-%d").date()
+            if (full_date.year > current_year) or (
+                full_date.year == current_year and full_date.month > current_month
+            ):
+                return False, full_date.day
+            return True, min(full_date.day, days_in_month)
+        except (ValueError, TypeError):
+            return True, 1
+    # Day number like "1" or "15"
+    try:
+        return True, min(int(sd_str), days_in_month)
+    except (ValueError, TypeError):
+        return True, 1
 
 
 @router.post("", response_model=IncomeSource)
@@ -113,20 +139,18 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
                 source["monthlyReceived"] = round(mt * ratio, 2)
                 source["monthlyPending"] = round(mt * (1 - ratio), 2)
         else:
-            source["monthlyTotal"] = amount
             sd_str = source.get('selectedDate')
-            if sd_str:
-                try:
-                    sd = min(int(sd_str), days_in_month)
-                except (ValueError, TypeError):
-                    sd = 1
-                if sd <= current_day:
-                    source["monthlyReceived"] = amount
-                    source["monthlyPending"] = 0
-                else:
-                    source["monthlyReceived"] = 0
-                    source["monthlyPending"] = amount
+            applies, sd = _parse_selected_date(sd_str, now.year, now.month, days_in_month)
+            if not applies:
+                source["monthlyTotal"] = 0
+                source["monthlyReceived"] = 0
+                source["monthlyPending"] = 0
+            elif sd_str and sd <= current_day:
+                source["monthlyTotal"] = amount
+                source["monthlyReceived"] = amount
+                source["monthlyPending"] = 0
             else:
+                source["monthlyTotal"] = amount
                 source["monthlyReceived"] = 0
                 source["monthlyPending"] = amount
 
@@ -283,21 +307,17 @@ async def get_income_monthly_summary(request: Request):
         else:
             month_amt = amount
             sd_str = inc.get('selectedDate')
-            if not sd_str:
-                # No schedule date known → treat as expected (matches dashboard logic)
+            applies, sd = _parse_selected_date(sd_str, current_year, current_month, days_in_month)
+            if not applies:
+                month_amt = 0
+                rec = 0
+                pend = 0
+            elif sd_str and sd <= current_day:
+                rec = month_amt
+                pend = 0
+            else:
                 rec = 0
                 pend = month_amt
-            else:
-                try:
-                    sd = min(int(sd_str), days_in_month)
-                except (ValueError, TypeError):
-                    sd = 1
-                if sd <= current_day:
-                    rec = month_amt
-                    pend = 0
-                else:
-                    rec = 0
-                    pend = month_amt
 
         total_income += month_amt
         received_income += rec
@@ -545,16 +565,18 @@ async def get_income_detail(income_id: str, request: Request):
         monthly_total = expected * days_in_month
         monthly_pending = expected * (days_in_month - current_day)
     else:
-        monthly_total = expected
-        sd = inc.get("selectedDate")
-        try:
-            sd_int = min(int(sd), days_in_month)
-        except (ValueError, TypeError):
-            sd_int = 1
-        if sd_int <= current_day:
+        sd_str = inc.get("selectedDate")
+        applies, sd_int = _parse_selected_date(sd_str, current_year, current_month, days_in_month)
+        if not applies:
+            monthly_total = 0
+            monthly_received = 0
+            monthly_pending = 0
+        elif sd_str and sd_int <= current_day:
+            monthly_total = expected
             monthly_received = expected
             monthly_pending = 0
         else:
+            monthly_total = expected
             monthly_received = 0
             monthly_pending = expected
 
