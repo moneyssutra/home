@@ -547,6 +547,8 @@ code {
   display: flex;
   gap: 8px;
   padding: 12px 20px 0;
+  isolation: isolate;
+  contain: layout style paint;
 }
 
 .rb-pill {
@@ -560,6 +562,8 @@ code {
   padding: 0 12px;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.12s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .rb-pill:active {
@@ -574,7 +578,6 @@ code {
 .rb-track {
   display: flex;
   flex-direction: column;
-  will-change: transform;
 }
 
 .rb-item {
