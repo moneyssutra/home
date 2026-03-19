@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Wallet,
@@ -48,22 +48,19 @@ const BUTTON_GROUPS = [
   },
 ];
 
-const ITEM_H = 38;
-
 const RollingButton = ({ group }) => {
   const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isRolling, setIsRolling] = useState(false);
+  const [fading, setFading] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const items = group.items;
 
   const advance = useCallback(() => {
-    setIsRolling(true);
-    const timeout = setTimeout(() => {
+    setFading(true);
+    setTimeout(() => {
       setActiveIndex((prev) => (prev + 1) % items.length);
-      setIsRolling(false);
-    }, 350);
-    return () => clearTimeout(timeout);
+      setFading(false);
+    }, 250);
   }, [items.length]);
 
   useEffect(() => {
@@ -73,9 +70,7 @@ const RollingButton = ({ group }) => {
   }, [isPaused, advance, group.interval]);
 
   const curr = items[activeIndex];
-  const next = items[(activeIndex + 1) % items.length];
-  const CurrIcon = curr.icon;
-  const NextIcon = next.icon;
+  const Icon = curr.icon;
 
   return (
     <button
@@ -86,29 +81,15 @@ const RollingButton = ({ group }) => {
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={() => setIsPaused(true)}
       onTouchEnd={() => setIsPaused(false)}
-      style={{ height: ITEM_H }}
     >
-      <div className="rb-clip" style={{ height: ITEM_H }}>
-        <div
-          className="rb-track"
-          style={{
-            transform: isRolling ? `translateY(-${ITEM_H}px)` : "translateY(0)",
-            transition: isRolling ? "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
-          }}
-        >
-          <div className="rb-item" style={{ height: ITEM_H }}>
-            <span className="rb-icon" style={{ background: `${curr.color}15`, color: curr.color }}>
-              <CurrIcon size={13} strokeWidth={2.5} />
-            </span>
-            <span className="rb-label">{curr.label}</span>
-          </div>
-          <div className="rb-item" style={{ height: ITEM_H }}>
-            <span className="rb-icon" style={{ background: `${next.color}15`, color: next.color }}>
-              <NextIcon size={13} strokeWidth={2.5} />
-            </span>
-            <span className="rb-label">{next.label}</span>
-          </div>
-        </div>
+      <div
+        className="rb-item"
+        style={{ opacity: fading ? 0 : 1, transition: "opacity 0.25s ease" }}
+      >
+        <span className="rb-icon" style={{ background: `${curr.color}15`, color: curr.color }}>
+          <Icon size={13} strokeWidth={2.5} />
+        </span>
+        <span className="rb-label">{curr.label}</span>
       </div>
     </button>
   );
