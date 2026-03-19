@@ -540,16 +540,8 @@ code {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   Rolling Buttons — Pure CSS cycling (no JS repaints)
+   Rolling Buttons — CRED-style vertical roll animation
    ═══════════════════════════════════════════════════════════════ */
-
-@keyframes rbCycle {
-  0%   { opacity: 0; }
-  3%   { opacity: 1; }
-  22%  { opacity: 1; }
-  25%  { opacity: 0; }
-  100% { opacity: 0; }
-}
 
 .rb-container {
   display: flex;
@@ -564,27 +556,33 @@ code {
   border-radius: 100px;
   border: 1px solid var(--border-light);
   background: var(--bg-card);
-  overflow: hidden;
-  position: relative;
-}
-
-.rb-layer {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 12px;
-  opacity: 0;
   cursor: pointer;
-  background: transparent;
-  border: none;
-  width: 100%;
+  overflow: hidden;
+  padding: 0 12px;
   -webkit-tap-highlight-color: transparent;
 }
 
-.rb-layer:active {
-  background: rgba(0,0,0,0.04);
+.rb-pill:active {
+  opacity: 0.7;
+}
+
+.rb-clip {
+  height: 38px;
+  overflow: hidden;
+}
+
+.rb-track {
+  display: flex;
+  flex-direction: column;
+}
+
+.rb-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .rb-icon {
@@ -604,5 +602,4 @@ code {
   letter-spacing: -0.02em;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
