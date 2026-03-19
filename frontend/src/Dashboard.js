@@ -319,13 +319,11 @@ const Dashboard = () => {
 
       {/* Onboarding Wizard Modal */}
       {showOnboarding && (
-        <div className="fixed inset-0 z-[999] flex flex-col overflow-hidden" style={{ backgroundColor: "var(--bg-app)" }} data-testid="onboarding-modal">
-          <div className="flex-1 overflow-y-auto">
-            <OnboardingWizard
-              onComplete={() => { setShowOnboarding(false); fetchDashboardData(); }}
-              onDismiss={() => setShowOnboarding(false)}
-            />
-          </div>
+        <div className="fixed inset-0 z-[999]" style={{ backgroundColor: "var(--bg-app)" }} data-testid="onboarding-modal">
+          <OnboardingWizard
+            onComplete={() => { setShowOnboarding(false); fetchDashboardData(); }}
+            onDismiss={() => setShowOnboarding(false)}
+          />
         </div>
       )}
 

@@ -270,7 +270,7 @@ export default function OnboardingWizard({ onComplete, onDismiss, isModal = fals
   // Entry screen
   if (currentStep === 0) {
     return (
-      <div className="flex flex-col px-5 pt-12 pb-6" data-testid="onboarding-entry">
+      <div className="h-screen overflow-hidden flex flex-col px-5 pt-12 pb-6" data-testid="onboarding-entry">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Setup Your Financial Profile</h2>
           {!isModal && <button onClick={handleDismiss} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="onboarding-dismiss-btn"><X className="h-5 w-5" /></button>}
