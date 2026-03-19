@@ -22,7 +22,7 @@ from datetime import datetime, timezone, timedelta
 # Add backend path for database access
 sys.path.insert(0, '/app/backend')
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://financial-health-v2.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://finance-wizard-112.preview.emergentagent.com').rstrip('/')
 
 
 def create_test_session():
