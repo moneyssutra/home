@@ -270,10 +270,10 @@ export default function OnboardingWizard({ onComplete, onDismiss, isModal = fals
   // Entry screen
   if (currentStep === 0) {
     return (
-      <div className="min-h-[60vh] flex flex-col px-5 py-6" data-testid="onboarding-entry">
-        <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col px-5 pt-12 pb-6" data-testid="onboarding-entry">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Setup Your Financial Profile</h2>
-          {!isModal && <button onClick={handleDismiss} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }}><X className="h-5 w-5" /></button>}
+          {!isModal && <button onClick={handleDismiss} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="onboarding-dismiss-btn"><X className="h-5 w-5" /></button>}
         </div>
         <p className="text-sm mb-8" style={{ color: "var(--text-muted)" }}>
           Get accurate insights by completing your financial data
