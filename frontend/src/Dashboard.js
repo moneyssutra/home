@@ -33,6 +33,7 @@ import { OpportunityCard } from "@/components/OpportunityCard";
 import { useAuth } from "@/context/AuthContext";
 import { useFamilyContext } from "@/context/FamilyContext";
 import OnboardingWizard from "@/components/OnboardingWizard";
+import RollingButtons from "@/components/RollingButtons";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -49,9 +50,9 @@ const Dashboard = () => {
   const [profileCompletion, setProfileCompletion] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Show onboarding on first login
+  // Show onboarding on first login (only if not previously dismissed)
   useEffect(() => {
-    if (profileCompletion && profileCompletion.profileCompletion === 0 && isPersonalView) {
+    if (profileCompletion && profileCompletion.profileCompletion === 0 && !profileCompletion.dismissed && isPersonalView) {
       setShowOnboarding(true);
     }
   }, [profileCompletion, isPersonalView]);
@@ -296,6 +297,9 @@ const Dashboard = () => {
           </div>
         </div>
       </header>
+
+      {/* Rolling Quick Actions */}
+      <RollingButtons />
 
       {/* Profile Completion Banner */}
       {profileCompletion && profileCompletion.profileCompletion < 100 && isPersonalView && !showOnboarding && (

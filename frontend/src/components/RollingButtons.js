@@ -1,0 +1,127 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Wallet,
+  TrendingUp,
+  Shield,
+  CreditCard,
+  PiggyBank,
+  Target,
+  Receipt,
+  HandCoins,
+  Building2,
+  LineChart,
+  Landmark,
+  BadgeDollarSign,
+} from "lucide-react";
+
+const BUTTON_GROUPS = [
+  {
+    id: "track",
+    items: [
+      { label: "Expenses", icon: Receipt, route: "/my-expenses", color: "#EF4444" },
+      { label: "Income", icon: BadgeDollarSign, route: "/my-income", color: "#10B981" },
+      { label: "Accounts", icon: Wallet, route: "/my-accounts", color: "#3B82F6" },
+      { label: "Cards", icon: CreditCard, route: "/my-credit-cards", color: "#8B5CF6" },
+    ],
+    interval: 2800,
+  },
+  {
+    id: "grow",
+    items: [
+      { label: "Invest", icon: LineChart, route: "/my-investments", color: "#8B5CF6" },
+      { label: "Assets", icon: Building2, route: "/my-assets", color: "#3B82F6" },
+      { label: "Loans", icon: HandCoins, route: "/my-investments", color: "#F59E0B" },
+      { label: "Insure", icon: Shield, route: "/my-insurance", color: "#10B981" },
+    ],
+    interval: 3200,
+  },
+  {
+    id: "plan",
+    items: [
+      { label: "Goals", icon: Target, route: "/my-goals", color: "#F59E0B" },
+      { label: "Savings", icon: PiggyBank, route: "/my-accounts", color: "#10B981" },
+      { label: "Debts", icon: Landmark, route: "/my-liabilities", color: "#EF4444" },
+      { label: "Worth", icon: TrendingUp, route: "/dashboard", color: "#3B82F6" },
+    ],
+    interval: 3600,
+  },
+];
+
+const ITEM_H = 38;
+
+const RollingButton = ({ group }) => {
+  const navigate = useNavigate();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isRolling, setIsRolling] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const items = group.items;
+
+  const advance = useCallback(() => {
+    setIsRolling(true);
+    const timeout = setTimeout(() => {
+      setActiveIndex((prev) => (prev + 1) % items.length);
+      setIsRolling(false);
+    }, 350);
+    return () => clearTimeout(timeout);
+  }, [items.length]);
+
+  useEffect(() => {
+    if (isPaused) return;
+    const id = setInterval(advance, group.interval);
+    return () => clearInterval(id);
+  }, [isPaused, advance, group.interval]);
+
+  const curr = items[activeIndex];
+  const next = items[(activeIndex + 1) % items.length];
+  const CurrIcon = curr.icon;
+  const NextIcon = next.icon;
+
+  return (
+    <button
+      className="rb-pill"
+      data-testid={`rolling-btn-${group.id}`}
+      onClick={() => navigate(curr.route)}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={() => setIsPaused(true)}
+      onTouchEnd={() => setIsPaused(false)}
+      style={{ height: ITEM_H }}
+    >
+      <div className="rb-clip" style={{ height: ITEM_H }}>
+        <div
+          className="rb-track"
+          style={{
+            transform: isRolling ? `translateY(-${ITEM_H}px)` : "translateY(0)",
+            transition: isRolling ? "transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
+          }}
+        >
+          <div className="rb-item" style={{ height: ITEM_H }}>
+            <span className="rb-icon" style={{ background: `${curr.color}15`, color: curr.color }}>
+              <CurrIcon size={13} strokeWidth={2.5} />
+            </span>
+            <span className="rb-label">{curr.label}</span>
+          </div>
+          <div className="rb-item" style={{ height: ITEM_H }}>
+            <span className="rb-icon" style={{ background: `${next.color}15`, color: next.color }}>
+              <NextIcon size={13} strokeWidth={2.5} />
+            </span>
+            <span className="rb-label">{next.label}</span>
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+};
+
+const RollingButtons = () => {
+  return (
+    <div className="rb-container" data-testid="rolling-buttons-section">
+      {BUTTON_GROUPS.map((group) => (
+        <RollingButton key={group.id} group={group} />
+      ))}
+    </div>
+  );
+};
+
+export default RollingButtons;

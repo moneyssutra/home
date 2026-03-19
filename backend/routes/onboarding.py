@@ -43,8 +43,11 @@ async def _get_profile_completion(user_id: str) -> dict:
         (20 if investments_added else 0)
     )
 
+    dismissed = progress.get("dismissed", False) if progress else False
+
     return {
         "profileCompletion": completion,
+        "dismissed": dismissed,
         "incomeAdded": income_added,
         "expensesAdded": expenses_added,
         "assetsAdded": assets_added,

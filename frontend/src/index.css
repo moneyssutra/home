@@ -537,3 +537,69 @@ code {
         border-bottom-color: inherit;
     }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   Rolling Buttons — CRED-style vertical text cycling animation
+   ═══════════════════════════════════════════════════════════════ */
+
+.rb-container {
+  display: flex;
+  gap: 8px;
+  padding: 12px 20px 0;
+}
+
+.rb-pill {
+  flex: 1;
+  min-width: 0;
+  border-radius: 100px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  cursor: pointer;
+  overflow: hidden;
+  padding: 0 12px;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.12s ease;
+}
+
+.rb-pill:active {
+  transform: scale(0.95);
+}
+
+.rb-clip {
+  overflow: hidden;
+  position: relative;
+}
+
+.rb-track {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.rb-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.rb-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.rb-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
