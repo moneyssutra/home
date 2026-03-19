@@ -170,3 +170,21 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 - **Entry Points**: Dashboard banner, `/onboarding` route
 - **Event Tracking**: `onboarding_events` collection for admin analytics
 - **Admin**: `/api/admin/onboarding-stats` endpoint for funnel analytics
+
+## Feature: CRED-Style Rolling Buttons (Mar 19, 2026) ✅
+- **Component**: `/app/frontend/src/components/RollingButtons.js`
+- **CSS**: `.rb-*` classes in `/app/frontend/src/index.css` (lines 541+)
+- **Dashboard**: Renders between header and profile completion banner
+- **Design**: 3 pill-shaped buttons with icons, vertically cycling text animation
+- **Button Groups**:
+  - Track (2.8s): Expenses → Income → Accounts → Cards
+  - Grow (3.2s): Invest → Assets → Loans → Insure
+  - Plan (3.6s): Goals → Savings → Debts → Worth
+- **Animation**: Smooth vertical slide transition (0.35s cubic-bezier), pauses on hover/touch
+- **Navigation**: Each button navigates to the currently displayed item's route on click
+- **Tested**: Backend 100% (6/6), Frontend 100% (all features verified)
+
+## Bug Fix: Onboarding Dismiss Persistence (Mar 19, 2026) ✅
+- **Issue**: Onboarding modal kept re-appearing after user dismissed it
+- **Root Cause**: `profile-completion` endpoint didn't return `dismissed` flag, and Dashboard only checked `profileCompletion === 0`
+- **Fix**: Added `dismissed` field to profile-completion response; Dashboard now checks `!dismissed` before showing modal
