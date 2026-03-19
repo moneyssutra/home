@@ -50,6 +50,16 @@ const Dashboard = () => {
   const [profileCompletion, setProfileCompletion] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  // Lock body scroll when onboarding modal is open
+  useEffect(() => {
+    if (showOnboarding) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [showOnboarding]);
+
   // Show onboarding on first login (only if not previously dismissed)
   useEffect(() => {
     if (profileCompletion && profileCompletion.profileCompletion === 0 && !profileCompletion.dismissed && isPersonalView) {
@@ -319,7 +329,7 @@ const Dashboard = () => {
 
       {/* Onboarding Wizard Modal */}
       {showOnboarding && (
-        <div className="fixed inset-0 z-[999]" style={{ backgroundColor: "var(--bg-app)" }} data-testid="onboarding-modal">
+        <div className="fixed inset-0 z-[999]" style={{ backgroundColor: "var(--bg-app)", overscrollBehavior: "none" }} data-testid="onboarding-modal">
           <OnboardingWizard
             onComplete={() => { setShowOnboarding(false); fetchDashboardData(); }}
             onDismiss={() => setShowOnboarding(false)}
