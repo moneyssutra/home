@@ -908,53 +908,6 @@ const FinancialHealth = () => {
         </div>
       </div>
 
-      {/* Wizard: Complete Your Profile */}
-      {isPersonalView && !showWizard && (
-        <div className="mb-4">
-          <button
-            onClick={() => setShowWizard(true)}
-            className="w-full flex items-center justify-between p-3.5 rounded-xl transition-all hover:shadow-md"
-            style={{ backgroundColor: overallScore < 40 ? "#1C0A0A" : "#052E16", border: `1px solid ${overallScore < 40 ? "#7F1D1D" : "#166534"}` }}
-            data-testid="open-wizard-btn"
-          >
-            <div className="flex items-center gap-3">
-              <ClipboardEdit className="h-5 w-5" style={{ color: overallScore < 40 ? "#FCA5A5" : "#86EFAC" }} />
-              <div className="text-left">
-                <p className="text-sm font-semibold" style={{ color: overallScore < 40 ? "#FECACA" : "#BBF7D0" }}>
-                  {wizardData ? "Update Your Financial Profile" : "Complete Your Financial Profile"}
-                </p>
-                <p className="text-xs" style={{ color: overallScore < 40 ? "#FCA5A5" : "#86EFAC" }}>
-                  {wizardData ? "Update details for a more accurate score" : "Enter your details to get an accurate health score"}
-                </p>
-              </div>
-            </div>
-            <ChevronRight className="h-5 w-5" style={{ color: overallScore < 40 ? "#FCA5A5" : "#86EFAC" }} />
-          </button>
-        </div>
-      )}
-
-      {isPersonalView && showWizard && (
-        <div className="mb-5">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Financial Profile Wizard</h4>
-            <button
-              onClick={() => setShowWizard(false)}
-              className="text-xs font-medium px-2.5 py-1 rounded-lg"
-              style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)" }}
-              data-testid="close-wizard-btn"
-            >
-              Close
-            </button>
-          </div>
-          <FinancialHealthWizard
-            existingData={wizardData}
-            onComplete={() => {
-              setShowWizard(false);
-              fetchHealthData();
-            }}
-          />
-        </div>
-      )}
 
       {/* Health Modules */}
       <div className="space-y-3">
