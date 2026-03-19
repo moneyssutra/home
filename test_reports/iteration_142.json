@@ -1,0 +1,62 @@
+{
+  "summary": "Tested 6 bug fixes for MoneySutra app - All major bugs verified as FIXED",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_bug_fixes_iteration142.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/backend/tests/test_bug_fixes_iteration142.py"
+  ],
+  "success_rate": {
+    "backend": "100% (6/6 tests passed)",
+    "frontend": "100% (all 6 bugs verified fixed via UI testing)"
+  },
+  "bugs_tested": {
+    "bug_1_mobile_layout": {
+      "description": "Financial Health 'Expand' button overflow on mobile",
+      "status": "FIXED",
+      "verification": "Buttons (Best First, Expand) fit within 390px viewport (right edges at 136px, 204px), displayed on separate row below title"
+    },
+    "bug_2_double_word": {
+      "description": "Bank Account Detail page showing 'BANK ACCOUNT ACCOUNT' double word",
+      "status": "FIXED",
+      "verification": "Header shows 'BANK ACCOUNT' (single) with proper account name below"
+    },
+    "bug_3_investment_allocation": {
+      "description": "Investment Allocation showing 100% overexposed when user has bond/gold funds",
+      "status": "FIXED",
+      "verification": "API returns actualEquity: 48.5% (not 100%), status: 'Underexposed' (not 'Overexposed')"
+    },
+    "bug_4_life_insurance_score": {
+      "description": "Life Insurance score showing 1.9/7.5 when current coverage is 0",
+      "status": "FIXED",
+      "verification": "API returns rawScore: 0, contribution: 0.0, status: 'Not Covered' when coverage is 0"
+    },
+    "bug_5_income_start_date": {
+      "description": "Add Start Date field to income forms",
+      "status": "FIXED",
+      "verification": "All 5 income forms have data-testid='start-date-input' field - JobIncome, SelfEmployedIncome, BusinessIncome, CommissionIncome, OtherIncomeForm"
+    },
+    "bug_6_start_date_api": {
+      "description": "Start Date should be included in save payload",
+      "status": "FIXED",
+      "verification": "Income API model includes startDate field, tested via GET /api/income and PUT /api/income/{id}"
+    }
+  },
+  "test_credentials": {
+    "user_session": "session_token=4bf40bb8-b8bb-4bda-bb96-ec262a903a1d (sandeepdash24 user)"
+  },
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 6 bugs tested and verified as fixed. Income form routes: /job-income, /self-employed-income, /business-income, /commission-income, /other-income. Account detail route: /wealth/accounts/{id}. Use session_token cookie for auth."
+}

@@ -44,7 +44,7 @@ export default function AccountDetail() {
           <button onClick={() => navigate(`/account/${id}`)} className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/20 text-white text-sm font-medium" data-testid="edit-account-btn"><Edit3 className="h-4 w-4" /> Edit</button>
         </div>
         <div className="mb-4">
-          <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-1">{data.accountType} Account</p>
+          <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-1">{data.accountType?.toLowerCase() === 'bank account' ? 'Bank Account' : `${data.accountType} Account`}</p>
           <h1 className="text-2xl font-bold text-white" data-testid="account-name">{data.accountName}</h1>
           {data.bankName && <p className="text-white/70 text-sm mt-1">{data.bankName}</p>}
         </div>
@@ -62,7 +62,7 @@ export default function AccountDetail() {
         </div>
       </header>
 
-      <div className="px-5 -mt-3 space-y-4">
+      <div className="px-5 mt-4 space-y-4">
         {/* Monthly Flow */}
         <div className="grid grid-cols-3 gap-3" data-testid="account-flow">
           <div className="rounded-2xl p-3 text-center" style={{ backgroundColor: "#05966910" }}>

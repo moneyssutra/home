@@ -47,6 +47,7 @@ const OtherIncomeForm = () => {
     selectedHalf: "",
     notes: "",
     isReceived: false,
+    startDate: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -131,6 +132,7 @@ const OtherIncomeForm = () => {
         selectedHalf: data.selectedHalf || "",
         notes: data.notes || "",
         isReceived: data.isReceived || false,
+        startDate: data.startDate || "",
       });
     } catch (error) {
       console.error("Error fetching income:", error);
@@ -193,6 +195,7 @@ const OtherIncomeForm = () => {
         selectedHalf: formData.selectedHalf || null,
         notes: formData.notes.trim() || null,
         isReceived: formData.isReceived,
+        startDate: formData.startDate || null,
       };
 
       if (isEdit) {
@@ -639,6 +642,22 @@ const OtherIncomeForm = () => {
                 )}
               />
             </button>
+          </div>
+
+          {/* Start Date (optional) */}
+          <div>
+            <label className="block text-sm font-medium text-[#334155] mb-2">
+              Start Date <span className="text-xs text-[#94A3B8] font-normal">(optional)</span>
+            </label>
+            <input
+              type="date"
+              value={formData.startDate}
+              onChange={(e) => handleChange("startDate", e.target.value)}
+              className="w-full rounded-xl border px-4 py-3 text-[#334155] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+              style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)" }}
+              data-testid="start-date-input"
+            />
+            <p className="text-xs text-[#94A3B8] mt-1">When did this income source start? Helps track received vs pending accurately.</p>
           </div>
 
           {/* Notes */}

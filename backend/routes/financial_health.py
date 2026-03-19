@@ -190,8 +190,8 @@ async def get_financial_health(request: Request):
         life_status = "N/A"
         life_action = "Add your income details to calculate life insurance needs."
     elif life_cover == 0:
-        life_status = "High Risk"
-        life_action = "Get term life insurance coverage of at least 10-12x your annual income."
+        life_status = "Not Covered"
+        life_action = "You have no life insurance. Get term life coverage of at least 10-12x your annual income."
     elif life_cover < annual_income * 10:
         life_status = "Underinsured"
         life_action = f"Increase term cover to at least ₹{int(annual_income * 10):,} (10x annual income)."
@@ -223,12 +223,23 @@ async def get_financial_health(request: Request):
     # ============ 4. INVESTMENT ALLOCATION ============
     recommended_equity = max(30, 100 - age)
     
-    equity_keywords = ['equity', 'stock', 'stocks', 'mutual fund', 'mf', 'elss', 'index', 'share', 'shares', 'smallcap', 'midcap', 'largecap', 'bluechip', 'reit']
+    equity_keywords = ['equity', 'stock', 'stocks', 'elss', 'share', 'shares', 'smallcap', 'midcap', 'largecap', 'bluechip', 'reit', 'nifty', 'sensex', 'flexi cap', 'flexicap', 'multi cap', 'multicap', 'large cap', 'mid cap', 'small cap', 'index fund', 'thematic']
+    debt_keywords = ['bond', 'debt', 'gilt', 'liquid', 'overnight', 'money market', 'corporate bond', 'banking', 'credit risk', 'fixed income', 'fd', 'fixed deposit', 'ppf', 'nsc', 'post office']
+    gold_keywords = ['gold', 'silver', 'commodity', 'precious metal']
+    
     equity_investments = 0
     for inv in investments:
         cat = (inv.get('investmentCategory', '') or inv.get('category', '') or '').lower()
         name = (inv.get('name', '') or '').lower()
-        if any(x in cat for x in equity_keywords) or any(x in name for x in equity_keywords):
+        inv_type = (inv.get('investmentType', '') or '').lower()
+        combined = f"{cat} {name} {inv_type}"
+        
+        # Skip if clearly debt or gold
+        if any(x in combined for x in debt_keywords) or any(x in combined for x in gold_keywords):
+            continue
+        
+        # Count as equity if matches equity keywords OR if category is explicitly equity-related
+        if any(x in combined for x in equity_keywords) or cat in ['equity', 'stocks', 'shares']:
             equity_investments += inv.get('currentValue', 0)
     
     if equity_investments == 0 and w.get('equityInvestments'):
@@ -242,10 +253,11 @@ async def get_financial_health(request: Request):
         allocation_action = "Start investing to build your portfolio."
     elif actual_equity < recommended_equity - 10:
         allocation_status = "Underexposed"
-        allocation_action = f"Increase equity allocation to ~{int(recommended_equity)}% for long-term growth."
+        allocation_action = f"Only {actual_equity:.0f}% of your portfolio is in equity. For your age, aim for ~{int(recommended_equity)}% in equity (stocks/mutual funds) for long-term growth."
     elif actual_equity > recommended_equity + 15:
         allocation_status = "Overexposed"
-        allocation_action = f"Consider rebalancing - reduce equity exposure to ~{int(recommended_equity)}%."
+        over_pct = actual_equity - recommended_equity
+        allocation_action = f"{actual_equity:.0f}% of your investments are in equity — that's {over_pct:.0f}% more than recommended for your age ({int(recommended_equity)}%). Diversify into debt instruments (FDs, bonds, PPF) to reduce risk."
     else:
         allocation_status = "Balanced"
         allocation_action = "Your investment allocation is well-balanced for your age."

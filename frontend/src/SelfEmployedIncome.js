@@ -99,6 +99,7 @@ const SelfEmployedIncome = () => {
   // Variable income fields
   const [incomeType, setIncomeType] = useState("fixed");
   const [reminderTime, setReminderTime] = useState("19:00");
+  const [startDate, setStartDate] = useState("");
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -165,6 +166,7 @@ const SelfEmployedIncome = () => {
       // Variable income fields
       setIncomeType(data.incomeType || "fixed");
       setReminderTime(data.reminderTime || "19:00");
+      setStartDate(data.startDate || "");
       
       // Mark initial load as complete after a brief delay to allow state to settle
       setTimeout(() => setIsInitialLoad(false), 100);
@@ -412,6 +414,7 @@ const SelfEmployedIncome = () => {
         // Variable income fields
         incomeType: incomeType,
         reminderTime: incomeType === "variable" ? reminderTime : null,
+        startDate: startDate || null,
       };
 
       if (id) {
@@ -563,6 +566,23 @@ const SelfEmployedIncome = () => {
               testId="reminder-time-picker"
             />
           )}
+
+          {/* Start Date (optional) */}
+          <div className="w-full">
+            <label htmlFor="startDate" className="block text-sm font-medium text-[#334155] mb-2">
+              Start Date <span className="text-xs text-[#94A3B8] font-normal">(optional)</span>
+            </label>
+            <input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-full rounded-xl border px-4 py-3 text-[#334155] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
+              style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)" }}
+              data-testid="start-date-input"
+            />
+            <p className="text-xs text-[#94A3B8] mt-1">When did this income source start? Helps track received vs pending accurately.</p>
+          </div>
 
           {/* Expected Amount */}
           <div>

@@ -788,70 +788,72 @@ const FinancialHealth = () => {
       data-testid="financial-health-card"
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #10B981 0%, #059669 100%)" }}>
-            <Activity className="h-5 w-5 text-white" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-black">{isFamilyView ? `${activeViewLabel} Health` : !isPersonalView ? `${activeViewLabel}'s Health` : "Financial Health"}</h3>
-            <p className="text-xs text-black/60">Rule-based financial assessment</p>
+      <div className="mb-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #10B981 0%, #059669 100%)" }}>
+              <Activity className="h-5 w-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-black truncate">{isFamilyView ? `${activeViewLabel} Health` : !isPersonalView ? `${activeViewLabel}'s Health` : "Financial Health"}</h3>
+              <p className="text-xs text-black/60">Rule-based financial assessment</p>
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          {healthModules.length > 0 && !isReorderMode && (
-            <>
-              <button
-                onClick={sortMode === "smart" ? enterReorder : switchToSmart}
-                className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors"
-                style={{
-                  backgroundColor: sortMode === "smart" ? "#ECFDF5" : "#F3E8FF",
-                  color: sortMode === "smart" ? "#059669" : "#7C3AED"
-                }}
-                data-testid="sort-mode-btn"
-              >
-                {sortMode === "smart" ? (
-                  <><ArrowDownUp className="h-3.5 w-3.5" />Best First</>
-                ) : (
-                  <><ArrowDownUp className="h-3.5 w-3.5" />Smart Sort</>
-                )}
-              </button>
-              {sortMode === "custom" && (
+        {healthModules.length > 0 && (
+          <div className="flex items-center gap-1.5 mt-3 flex-wrap">
+            {!isReorderMode && (
+              <>
                 <button
-                  onClick={enterReorder}
-                  className="flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors"
-                  style={{ backgroundColor: "#F3E8FF", color: "#7C3AED" }}
-                  data-testid="reorder-health-btn"
+                  onClick={sortMode === "smart" ? enterReorder : switchToSmart}
+                  className="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: sortMode === "smart" ? "#ECFDF5" : "#F3E8FF",
+                    color: sortMode === "smart" ? "#059669" : "#7C3AED"
+                  }}
+                  data-testid="sort-mode-btn"
                 >
-                  <GripVertical className="h-3.5 w-3.5" />Reorder
+                  {sortMode === "smart" ? (
+                    <><ArrowDownUp className="h-3.5 w-3.5" />Best First</>
+                  ) : (
+                    <><ArrowDownUp className="h-3.5 w-3.5" />Smart Sort</>
+                  )}
                 </button>
-              )}
-            </>
-          )}
-          {isReorderMode && (
-            <button
-              onClick={doneReorder}
-              className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-colors"
-              style={{ backgroundColor: "#059669" }}
-              data-testid="done-reorder-btn"
-            >
-              <Check className="h-3.5 w-3.5" />Done
-            </button>
-          )}
-          {healthModules.length > 0 && !isReorderMode && (
-            <button
-              onClick={() => toggleAllCards(healthModules.map(m => m.key))}
-              className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors"
-              style={{ 
-                backgroundColor: allExpanded ? "#F3F4F6" : "#ECFDF5", 
-                color: allExpanded ? "#6B7280" : "#059669"
-              }}
-              data-testid="toggle-all-health-cards"
-            >
-              {allExpanded ? "Collapse" : "Expand"}
-            </button>
-          )}
-        </div>
+                {sortMode === "custom" && (
+                  <button
+                    onClick={enterReorder}
+                    className="flex items-center gap-1 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors"
+                    style={{ backgroundColor: "#F3E8FF", color: "#7C3AED" }}
+                    data-testid="reorder-health-btn"
+                  >
+                    <GripVertical className="h-3.5 w-3.5" />Reorder
+                  </button>
+                )}
+                <button
+                  onClick={() => toggleAllCards(healthModules.map(m => m.key))}
+                  className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors"
+                  style={{ 
+                    backgroundColor: allExpanded ? "#F3F4F6" : "#ECFDF5", 
+                    color: allExpanded ? "#6B7280" : "#059669"
+                  }}
+                  data-testid="toggle-all-health-cards"
+                >
+                  {allExpanded ? "Collapse" : "Expand"}
+                </button>
+              </>
+            )}
+            {isReorderMode && (
+              <button
+                onClick={doneReorder}
+                className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-colors"
+                style={{ backgroundColor: "#059669" }}
+                data-testid="done-reorder-btn"
+              >
+                <Check className="h-3.5 w-3.5" />Done
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Reorder mode banner */}
