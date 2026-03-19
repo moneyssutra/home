@@ -527,6 +527,9 @@ async def get_challenges(request: Request):
         db.user_challenges.find({"user_id": user_id, "is_completed": True}, {"_id": 0}).to_list(50),
     )
     active_codes = {c["challenge_code"] for c in active}
+    # Add explainer to active challenges too
+    for c in active:
+        c["explainer"] = _get_explainer(c.get("challenge_code", ""))
     available = [{**c, "explainer": _get_explainer(c["code"])} for c in CHALLENGES if c["code"] not in active_codes]
     return {"active": active, "available": available, "completed": completed}
 

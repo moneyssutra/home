@@ -615,13 +615,29 @@ const ChallengesWidget = ({ challenges, onJoin, onLeave }) => {
           {active.map((c) => (
             <div key={c.id} className="p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{c.title}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{c.title}</p>
+                  {c.difficulty && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${DIFF_COLORS[c.difficulty] || "#8B5CF6"}15`, color: DIFF_COLORS[c.difficulty] || "#8B5CF6" }}>{c.difficulty}</span>}
+                </div>
                 <button onClick={() => onLeave(c.id)} className="text-xs font-bold px-2.5 py-1 rounded" style={{ color: "#EF4444", backgroundColor: "#EF444410" }} data-testid={`leave-challenge-${c.id}`}>Abandon</button>
               </div>
-              <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
-                <div className="h-full rounded-full" style={{ width: `${(c.progress / c.target) * 100}%`, backgroundColor: "#10B981" }} />
+              {c.description && <p className="text-xs mt-1.5" style={{ color: "var(--text-secondary)" }}>{c.description}</p>}
+              {c.explainer && (
+                <div className="mt-2 p-2.5 rounded-lg" style={{ backgroundColor: "var(--bg-app)", border: "1px solid var(--border-light)" }}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "#8B5CF6" }}>How to complete</p>
+                  <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>{c.explainer}</p>
+                </div>
+              )}
+              <div className="mt-2 h-2 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-app)" }}>
+                <div className="h-full rounded-full" style={{ width: `${Math.min((c.progress / (c.target_pct || c.target || 1)) * 100, 100)}%`, backgroundColor: "#10B981", transition: "width 0.5s ease" }} />
               </div>
-              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{c.progress}/{c.target} · {c.daysLeft}d left</p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>{c.progress || 0}% progress</p>
+                <div className="flex items-center gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
+                  <span>{c.daysLeft || c.duration_days}d left</span>
+                  <span className="font-bold" style={{ color: "#8B5CF6" }}>+{c.xp_reward} XP</span>
+                </div>
+              </div>
             </div>
           ))}
         </div>

@@ -540,8 +540,14 @@ code {
 
 
 /* ═══════════════════════════════════════════════════════════════
-   Rolling Buttons — CRED-style vertical roll animation
+   Rolling Buttons — CRED-style vertical roll + shimmer animation
    ═══════════════════════════════════════════════════════════════ */
+
+@keyframes rbShimmer {
+  0%   { left: -100%; }
+  50%  { left: 100%; }
+  100% { left: 100%; }
+}
 
 .rb-container {
   display: flex;
@@ -560,7 +566,31 @@ code {
   overflow: hidden;
   padding: 0 12px;
   -webkit-tap-highlight-color: transparent;
+  position: relative;
 }
+
+.rb-pill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.15) 30%,
+    rgba(255,255,255,0.3) 50%,
+    rgba(255,255,255,0.15) 70%,
+    transparent 100%
+  );
+  animation: rbShimmer 4s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: 100px;
+}
+
+.rb-pill:nth-child(2)::after { animation-delay: 1.3s; }
+.rb-pill:nth-child(3)::after { animation-delay: 2.6s; }
 
 .rb-pill:active {
   opacity: 0.7;
