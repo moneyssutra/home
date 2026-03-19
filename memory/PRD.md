@@ -159,3 +159,14 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
   - Added `GET /api/expenses/skipped-history` endpoint — returns month-grouped skipped expenses with totals
   - Added "Skipped" tab to My Expenses page with grand total card and month-wise breakdown
   - Shows expense name, category, and amount saved per skip
+
+## Feature: Financial Profile Onboarding (Mar 19, 2026) ✅
+- **Backend**: `/api/onboarding/profile-completion`, `/save-step`, `/complete`, `/dismiss`, `/progress`
+- **Profile Completion Engine**: Auto-detects data from 5 categories (income, expenses, assets, liabilities, investments) = 20% each
+- **Manual Flow**: 5-step wizard with preset categories, custom items, skip/resume, progress bar
+- **Finvu Integration**: Placeholder ("Coming Soon") — can be plugged in later
+- **Dashboard Integration**: Completion banner with percentage + "Complete Now" CTA
+- **First Login**: Auto-shows onboarding if profile completion = 0%
+- **Entry Points**: Dashboard banner, `/onboarding` route
+- **Event Tracking**: `onboarding_events` collection for admin analytics
+- **Admin**: `/api/admin/onboarding-stats` endpoint for funnel analytics

@@ -35,6 +35,7 @@ import DataExport from "@/pages/admin/DataExport";
 import Dashboard from "@/Dashboard";
 import Welcome from "@/Welcome";
 import BasicSetup from "@/BasicSetup";
+import OnboardingPage from "@/pages/OnboardingPage";
 import MyIncome from "@/MyIncome";
 import Portfolio from "@/Portfolio";
 import WorkspaceSettings from "@/pages/WorkspaceSettings";
@@ -149,6 +150,7 @@ function AppRouter() {
       <Route path="/home" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
       <Route path="/setup" element={<ProtectedRoute><BasicSetup /></ProtectedRoute>} />
+      <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
       
       {/* Navigation Routes */}
       <Route path="/my-income" element={<ProtectedRoute><MyIncome /></ProtectedRoute>} />

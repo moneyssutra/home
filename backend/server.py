@@ -45,6 +45,7 @@ from routes.events import router as events_router
 from routes.opportunities import router as opportunities_router
 from routes.mpin import router as mpin_router
 from routes.biometric import router as biometric_router
+from routes.onboarding import router as onboarding_router
 from routes.utils import get_user_filter
 
 # Configure logging
@@ -245,6 +246,7 @@ app.include_router(events_router, prefix="/api")
 app.include_router(opportunities_router, prefix="/api")
 app.include_router(mpin_router, prefix="/api")
 app.include_router(biometric_router, prefix="/api")
+app.include_router(onboarding_router, prefix="/api")
 
 
 # ============ LIFECYCLE EVENTS ============

@@ -1286,3 +1286,39 @@ async def export_analytics_csv(request: Request):
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename=analytics_{datetime.now().strftime('%Y%m%d')}.csv"}
     )
+
+
+@router.get("/onboarding-stats")
+async def get_onboarding_stats(request: Request):
+    """Get onboarding funnel analytics."""
+    await _require_admin(request)
+
+    total_users = await db.users.count_documents({})
+    started = await db.onboarding_events.count_documents({"eventType": "onboarding_started"})
+    completed = await db.onboarding_events.count_documents({"eventType": "onboarding_completed"})
+    manual_started = await db.onboarding_events.count_documents({"eventType": "manual_started"})
+
+    # Step completion rates
+    step_stats = {}
+    for step in range(1, 6):
+        step_name = {1: "income", 2: "expenses", 3: "assets", 4: "liabilities", 5: "investments"}[step]
+        completed_count = await db.onboarding_events.count_documents({
+            "eventType": "step_completed",
+            "metadata.step": step,
+            "metadata.skipped": False
+        })
+        skipped_count = await db.onboarding_events.count_documents({
+            "eventType": "step_completed",
+            "metadata.step": step,
+            "metadata.skipped": True
+        })
+        step_stats[step_name] = {"completed": completed_count, "skipped": skipped_count}
+
+    return {
+        "totalUsers": total_users,
+        "onboardingStarted": started,
+        "onboardingCompleted": completed,
+        "manualStarted": manual_started,
+        "conversionRate": round((completed / started * 100) if started > 0 else 0, 1),
+        "stepStats": step_stats,
+    }

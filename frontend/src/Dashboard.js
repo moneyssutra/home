@@ -32,6 +32,7 @@ import FinancialHealth from "@/components/FinancialHealth";
 import { OpportunityCard } from "@/components/OpportunityCard";
 import { useAuth } from "@/context/AuthContext";
 import { useFamilyContext } from "@/context/FamilyContext";
+import OnboardingWizard from "@/components/OnboardingWizard";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -45,6 +46,15 @@ const Dashboard = () => {
   const [familyData, setFamilyData] = useState(null);
   const [opportunities, setOpportunities] = useState([]);
   const [isPremium, setIsPremium] = useState(false);
+  const [profileCompletion, setProfileCompletion] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Show onboarding on first login
+  useEffect(() => {
+    if (profileCompletion && profileCompletion.profileCompletion === 0 && isPersonalView) {
+      setShowOnboarding(true);
+    }
+  }, [profileCompletion, isPersonalView]);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -62,12 +72,14 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setFamilyData(null);
-      const [networthRes, profileRes, goalsRes] = await Promise.all([
+      const [networthRes, profileRes, goalsRes, completionRes] = await Promise.all([
         axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/profile/basic`, { withCredentials: true }),
         axios.get(`${backendUrl}/api/goals/summary/dashboard`, { withCredentials: true }).catch(() => ({ data: null })),
+        axios.get(`${backendUrl}/api/onboarding/profile-completion`, { withCredentials: true }).catch(() => ({ data: null })),
       ]);
       setData(networthRes.data);
+      setProfileCompletion(completionRes.data);
       setProfile(profileRes.data);
       setGoalsSummary(goalsRes.data);
     } catch (error) {
@@ -284,6 +296,34 @@ const Dashboard = () => {
           </div>
         </div>
       </header>
+
+      {/* Profile Completion Banner */}
+      {profileCompletion && profileCompletion.profileCompletion < 100 && isPersonalView && !showOnboarding && (
+        <div className="mx-5 mt-4 rounded-2xl p-4 shadow-card" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }} data-testid="profile-completion-banner">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-white text-sm font-bold">Profile Completion: {profileCompletion.profileCompletion}%</p>
+            <button onClick={() => setShowOnboarding(true)} className="text-xs px-3 py-1.5 rounded-full bg-white/20 text-white font-bold active:scale-95 transition-all" data-testid="complete-profile-btn">
+              Complete Now
+            </button>
+          </div>
+          <div className="h-2 rounded-full bg-white/20">
+            <div className="h-full rounded-full bg-white transition-all duration-500" style={{ width: `${profileCompletion.profileCompletion}%` }} />
+          </div>
+          <p className="text-white/80 text-xs mt-2">Complete your profile to unlock accurate insights</p>
+        </div>
+      )}
+
+      {/* Onboarding Wizard Modal */}
+      {showOnboarding && (
+        <div className="fixed inset-0 z-[60] flex flex-col" style={{ backgroundColor: "var(--bg-app)" }} data-testid="onboarding-modal">
+          <div className="flex-1 overflow-y-auto">
+            <OnboardingWizard
+              onComplete={() => { setShowOnboarding(false); fetchDashboardData(); }}
+              onDismiss={() => setShowOnboarding(false)}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       {/* Family Combined View - member breakdown */}
