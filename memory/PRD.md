@@ -222,6 +222,19 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 - Backend returns `explainer` for active challenges (was only in available challenges)
 
 ## Feature: Pre-fill Last Email on Login (Mar 19, 2026) ✅
+
+## Bug Fix: Income Received/Pending Calculation (Mar 19, 2026) ✅
+- **Issue**: Business income "Qnet1" with `selectedDate=2026-04-01` (starts in April) was incorrectly showing ₹2L as "Received" in March
+- **Root Cause**: `int("2026-04-01")` fails → fallback to day 1 → `1 <= current_day` = true → marked as Received
+- **Fix**: Created `_parse_selected_date()` helper that handles both full ISO dates and day numbers, checks if income applies to current month
+- **Applied to**: All 3 income endpoints (`/list/summary`, `/monthly-summary`, `/{income_id}`)
+- **Testing**: 12/12 tests passed
+
+## Bug Fix: Income Edit Routing (Mar 19, 2026) ✅
+- **Issue**: Clicking Edit on Salary income detail page redirected to Other Income form
+- **Root Cause**: `getEditRoute()` in IncomeDetail.js was missing "Salary" and "Interest" type mappings
+- **Fix**: Added `"Salary" → /job-income/{id}` and `"Interest" → /other-income/{id}` to the routes map
+
 - On logout, saves user email to `localStorage`
 - Login page pre-fills email field from last logged-in user
 
