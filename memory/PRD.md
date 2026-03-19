@@ -240,3 +240,15 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 
 ## Documentation: Admin Panel Guide (Mar 19, 2026) ✅
 - Created `/app/memory/ADMIN_GUIDE.md` with detailed explanation of every element, metric, tab, and column across all 12 admin pages
+
+## Bug Fix: Mobile UI Layout — BottomNav on Form Pages (Mar 19, 2026) ✅
+- **Issue**: BottomNav was rendered on all form pages, obscuring Save/Submit buttons on mobile
+- **Fix**: Removed BottomNav and AddActionSheet from 13 form files: CreditCardForm, LoanForm, GoalForm, InvestmentForm, InsuranceForm, ExpenseForm, AccountForm, OtherIncomeForm, JobIncome, SelfEmployedIncome, BusinessIncome, CommissionIncome, AssetForm
+- **Non-form pages** (Dashboard, Wealth, Settings, MyGoals, Insights, etc.) still retain BottomNav
+- **Testing**: 100% pass — all form pages verified without BottomNav, all list pages verified with BottomNav
+
+## Bug Fix: Toast Notification Safe Area (Mar 19, 2026) ✅
+- **Issue**: Toast notifications overlapped with mobile status bar
+- **Fix**: Added `offset="max(16px, env(safe-area-inset-top, 16px))"` to Sonner Toaster component
+- **CSS**: Added `[data-sonner-toaster] { top: env(safe-area-inset-top) !important }` for mobile
+- **Added**: `.form-safe-bottom` CSS class for future form safe area padding needs
