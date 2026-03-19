@@ -37,6 +37,10 @@ const Login = () => {
         if (savedPw) setPassword(savedPw);
         setRememberMe(true);
       } catch (e) {}
+    } else {
+      // Pre-fill last logged-in email
+      const lastEmail = localStorage.getItem("moneyssutra_last_email");
+      if (lastEmail) setIdentifier(lastEmail);
     }
   }, []);
 

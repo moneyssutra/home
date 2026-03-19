@@ -215,6 +215,10 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
+      // Save email for pre-fill on next login
+      if (user?.email) {
+        localStorage.setItem("moneyssutra_last_email", user.email);
+      }
       await axios.post(`${backendUrl}/api/auth/logout`, {}, { withCredentials: true });
     } catch (error) {
       console.error("Logout error:", error);
