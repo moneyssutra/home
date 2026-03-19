@@ -42,6 +42,7 @@ class JWTLoginRequest(BaseModel):
 
 class GoogleSessionRequest(BaseModel):
     session_id: str
+    remember_me: bool = False
 
 class RegisterRequest(BaseModel):
     firstName: str
