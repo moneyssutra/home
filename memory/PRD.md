@@ -280,3 +280,31 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 - **Purpose**: Explicit start date for accurate received/pending income tracking (previously relied on selectedDate which only stored day-of-month)
 - **Backend**: Already supported `startDate` field in IncomeSource model
 - **Testing**: All 5 forms verified with start-date-input field present
+
+
+## Bug Fix: Back Button Infinite Loop (Mar 19, 2026) ✅
+- **Issue**: Back button on pages using `forceNavigate={true}` pushed new history entries, creating infinite navigation loops
+- **Fix**: Changed `navigate(fallbackPath)` to `navigate(fallbackPath, { replace: true })` in BackButton.js
+- **Testing**: Verified code change in BackButton.js
+
+## Bug Fix: Wealth Page Showing All ₹0 (Mar 19, 2026) ✅
+- **Root cause**: Loan model required `outstandingAmount` and `startDate` → loans created via onboarding (with null fields) caused 500 error → `Promise.all` cascaded failure → all data = 0
+- **Fix 1**: Made Loan model fields Optional in server_models.py
+- **Fix 2**: Changed Wealth.js to use `Promise.allSettled` for resilience
+- **Testing**: Expenses now shows ₹38K correctly
+
+## Enhancement: Investment Allocation Detailed Breakdown (Mar 19, 2026) ✅
+- **Added**: `breakdown` object in API response with equity/debt/gold/other percentages and amounts
+- **Frontend**: Portfolio Breakdown bar chart in expanded Financial Health card
+- **Testing**: sandeepdash24 shows Equity 48.5%, Debt 21.3%, Gold 30.1%
+
+## Enhancement: Debt to Asset Score Clarity (Mar 19, 2026) ✅
+- **Updated**: Action text now includes actual rupee amounts and percentage
+- **Example**: "Your debt (₹7,154) is just 2.1% of your net worth (₹347,258). Very healthy."
+
+## Enhancement: Removed "Worth" from Rolling Buttons (Mar 19, 2026) ✅
+- Worth option removed from Dashboard rolling buttons (no matching page)
+
+## Enhancement: Reduced Badges from 100 to 30 (Mar 19, 2026) ✅
+- Trimmed ACHIEVEMENTS dict from 100 to 30 effective badges across 8 categories
+- Updated unlock conditions to match new badge set
