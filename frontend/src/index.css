@@ -569,8 +569,7 @@ code {
   position: relative;
 }
 
-.rb-pill::after {
-  content: "";
+.rb-shimmer {
   position: absolute;
   top: 0;
   left: -100%;
@@ -579,18 +578,18 @@ code {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255,255,255,0.15) 30%,
-    rgba(255,255,255,0.3) 50%,
-    rgba(255,255,255,0.15) 70%,
+    rgba(16, 185, 129, 0.12) 30%,
+    rgba(16, 185, 129, 0.25) 50%,
+    rgba(16, 185, 129, 0.12) 70%,
     transparent 100%
   );
   animation: rbShimmer 4s ease-in-out infinite;
   pointer-events: none;
-  border-radius: 100px;
+  z-index: 1;
 }
 
-.rb-pill:nth-child(2)::after { animation-delay: 1.3s; }
-.rb-pill:nth-child(3)::after { animation-delay: 2.6s; }
+.rb-pill:nth-child(2) .rb-shimmer { animation-delay: 1.3s; }
+.rb-pill:nth-child(3) .rb-shimmer { animation-delay: 2.6s; }
 
 .rb-pill:active {
   opacity: 0.7;

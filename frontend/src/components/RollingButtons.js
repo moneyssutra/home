@@ -25,6 +25,7 @@ const BUTTON_GROUPS = [
       { label: "Cards", icon: CreditCard, route: "/my-credit-cards", color: "#8B5CF6" },
     ],
     interval: 2800,
+    shimmerDelay: "0s",
   },
   {
     id: "grow",
@@ -35,6 +36,7 @@ const BUTTON_GROUPS = [
       { label: "Insure", icon: Shield, route: "/my-insurance", color: "#10B981" },
     ],
     interval: 3200,
+    shimmerDelay: "1.3s",
   },
   {
     id: "plan",
@@ -45,6 +47,7 @@ const BUTTON_GROUPS = [
       { label: "Worth", icon: TrendingUp, route: "/dashboard", color: "#3B82F6" },
     ],
     interval: 3600,
+    shimmerDelay: "2.6s",
   },
 ];
 
@@ -87,6 +90,8 @@ const RollingButton = ({ group }) => {
       onTouchStart={() => setIsPaused(true)}
       onTouchEnd={() => setIsPaused(false)}
     >
+      {/* Shimmer light sweep */}
+      <span className="rb-shimmer" style={{ animationDelay: group.shimmerDelay }} />
       <div className="rb-clip">
         <div
           className="rb-track"
