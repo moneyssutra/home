@@ -216,7 +216,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="dashboard-page">
       {/* Minimal Header */}
-      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)", contain: "paint" }}>
+      <header className="relative overflow-hidden" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
         <div className="relative px-5 pt-4 pb-6">
           {/* Header Row - Profile left, Notification right */}
           <div className="flex items-center justify-between mb-4">
@@ -232,7 +232,7 @@ const Dashboard = () => {
 
           {/* Net Worth Card - Hero */}
           <div className="relative">
-            <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20" data-testid="networth-card">
+            <div className="relative rounded-3xl p-6 border border-white/20" style={{ backgroundColor: "rgba(255,255,255,0.12)" }} data-testid="networth-card">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <p className="text-white text-sm font-semibold mb-1" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.2)" }}>
