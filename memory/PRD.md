@@ -188,3 +188,42 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 - **Issue**: Onboarding modal kept re-appearing after user dismissed it
 - **Root Cause**: `profile-completion` endpoint didn't return `dismissed` flag, and Dashboard only checked `profileCompletion === 0`
 - **Fix**: Added `dismissed` field to profile-completion response; Dashboard now checks `!dismissed` before showing modal
+
+
+## Bug Fix: Google Auth Crash (Mar 19, 2026) ✅
+- **Issue**: All Google logins failing with `AttributeError: 'GoogleSessionRequest' object has no attribute 'remember_me'`
+- **Root Cause**: "Remember Me" feature added `request.remember_me` but `GoogleSessionRequest` model didn't have the field
+- **Fix**: Added `remember_me: bool = False` to `GoogleSessionRequest` in `server_models.py`
+
+## Bug Fix: Header White Line Flash (Mar 19, 2026) ✅
+- **Issue**: White line flashing at header boundary when rolling buttons animated
+- **Root Cause**: `backdrop-blur-xl` on Net Worth card caused Safari to re-composite during nearby animations
+- **Fix**: Replaced `backdrop-blur-xl` with solid `rgba(255,255,255,0.12)` background
+
+## Feature: Rolling Buttons Shimmer Effect (Mar 19, 2026) ✅
+- Added green light sweep animation (`@keyframes rbShimmer`) using a real DOM `<span>` element (Safari doesn't support `::after` on `<button>`)
+- Staggered delays: 0s, 1.3s, 2.6s for cascading shimmer
+
+## Bug Fix: Back Button Navigation (Mar 19, 2026) ✅
+- **Issue**: Back buttons on all wealth pages hardcoded to `/wealth` instead of using browser history
+- **Fix**: Changed to `navigate(-1)` on 8 pages: MyIncome, MyExpenses, MyAccounts, MyInvestments, MyAssets, MyInsurance, MyLiabilities, MyCreditCards
+
+## Bug Fix: Dashboard Header Spacing (Mar 19, 2026) ✅
+- **Issue**: Global CSS `header { padding-top: 3.5rem !important }` added excessive space on desktop
+- **Fix**: Changed to `env(safe-area-inset-top, 0px)` so padding only applies on notched devices
+
+## Feature: Onboarding Modal Scroll Lock (Mar 19, 2026) ✅
+- Added `document.body.style.overflow = "hidden"` when onboarding modal is open
+- Added `overscroll-behavior: none` to prevent elastic bounce
+- Raised modal z-index to 999
+
+## Feature: Challenge Content in Active View (Mar 19, 2026) ✅
+- Active challenges now show description, "How to Complete" explainer, difficulty badge
+- Backend returns `explainer` for active challenges (was only in available challenges)
+
+## Feature: Pre-fill Last Email on Login (Mar 19, 2026) ✅
+- On logout, saves user email to `localStorage`
+- Login page pre-fills email field from last logged-in user
+
+## Documentation: Admin Panel Guide (Mar 19, 2026) ✅
+- Created `/app/memory/ADMIN_GUIDE.md` with detailed explanation of every element, metric, tab, and column across all 12 admin pages
