@@ -229,6 +229,30 @@ const HealthCardContent = ({ module, Icon, statusColors, isExpanded, explanation
             <ValueBox label="Benchmark" value={module.format === "percent" ? `${module.target}%` : `₹${formatAmount(module.target)}`} explanation={explanations?.benchmark} metricKey={module.key} boxType="benchmark" />
           </div>
         )}
+        {/* Investment Allocation Breakdown */}
+        {module.key === "investmentAllocation" && healthData?.investmentAllocation?.breakdown && healthData.investmentAllocation.breakdown.total > 0 && (
+          <div className="mb-3 p-2.5 rounded-lg bg-white/40">
+            <p className="text-[10px] font-semibold mb-2 uppercase tracking-wider" style={{ color: statusColors.text }}>Portfolio Breakdown</p>
+            <div className="space-y-1.5">
+              {[
+                { label: "Equity", pct: healthData.investmentAllocation.breakdown.equity.percent, amt: healthData.investmentAllocation.breakdown.equity.amount, color: "#3B82F6" },
+                { label: "Debt", pct: healthData.investmentAllocation.breakdown.debt.percent, amt: healthData.investmentAllocation.breakdown.debt.amount, color: "#10B981" },
+                { label: "Gold", pct: healthData.investmentAllocation.breakdown.gold.percent, amt: healthData.investmentAllocation.breakdown.gold.amount, color: "#F59E0B" },
+                { label: "Other", pct: healthData.investmentAllocation.breakdown.other.percent, amt: healthData.investmentAllocation.breakdown.other.amount, color: "#8B5CF6" },
+              ].filter(r => r.amt > 0).map(row => (
+                <div key={row.label} className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: row.color }} />
+                  <span className="text-[11px] font-medium w-10" style={{ color: statusColors.text }}>{row.label}</span>
+                  <div className="flex-1 h-1.5 rounded-full bg-white/50 overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${row.pct}%`, backgroundColor: row.color }} />
+                  </div>
+                  <span className="text-[10px] font-semibold w-9 text-right" style={{ color: statusColors.text }}>{row.pct}%</span>
+                  <span className="text-[10px] w-12 text-right" style={{ color: statusColors.text }}>₹{formatAmount(row.amt)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {module.gap > 0 && module.key !== "netWorthTrend" && (
           <div className="mb-3">
             <ValueBox label="Gap" value={module.format === "percent" ? `${module.gap?.toFixed(1)}%` : `₹${formatAmount(module.gap)}`} explanation={explanations?.gap} metricKey={module.key} boxType="gap" />

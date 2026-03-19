@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Wallet,
-  TrendingUp,
   Shield,
   CreditCard,
   PiggyBank,
@@ -44,7 +43,6 @@ const BUTTON_GROUPS = [
       { label: "Goals", icon: Target, route: "/my-goals", color: "#F59E0B" },
       { label: "Savings", icon: PiggyBank, route: "/my-accounts", color: "#10B981" },
       { label: "Debts", icon: Landmark, route: "/my-liabilities", color: "#EF4444" },
-      { label: "Worth", icon: TrendingUp, route: "/dashboard", color: "#3B82F6" },
     ],
     interval: 3600,
     shimmerDelay: "2.6s",

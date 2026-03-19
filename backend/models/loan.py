@@ -15,12 +15,12 @@ class Loan(BaseModel):
     loanName: str
     lenderName: Optional[str] = None
     principalAmount: float
-    outstandingAmount: float
+    outstandingAmount: Optional[float] = None
     interestRate: float
     emiAmount: float
     emiFrequency: str = "Monthly"
     tenureMonths: Optional[int] = None
-    startDate: str
+    startDate: Optional[str] = None
     endDate: Optional[str] = None
     linkedAssetId: Optional[str] = None
     linkedAccountId: Optional[str] = None
@@ -33,12 +33,12 @@ class LoanCreate(BaseModel):
     loanName: str
     lenderName: Optional[str] = None
     principalAmount: float
-    outstandingAmount: float
+    outstandingAmount: Optional[float] = None
     interestRate: float
     emiAmount: float
     emiFrequency: str = "Monthly"
     tenureMonths: Optional[int] = None
-    startDate: str
+    startDate: Optional[str] = None
     endDate: Optional[str] = None
     linkedAssetId: Optional[str] = None
     linkedAccountId: Optional[str] = None

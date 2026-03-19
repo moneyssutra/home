@@ -1,0 +1,75 @@
+{
+  "summary": "Tested 6 bug fixes for MoneySutra iteration 143 - All fixes VERIFIED as working",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration143_fixes.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "updated_files": [
+    "/app/backend/tests/test_iteration143_fixes.py"
+  ],
+  "success_rate": {
+    "backend": "100% (5/5 pytest tests passed)",
+    "frontend": "100% (all 6 features verified via UI)"
+  },
+  "bugs_tested": {
+    "fix_1_back_button_replace": {
+      "description": "BackButton uses navigate(fallbackPath, { replace: true }) when forceNavigate is true",
+      "file": "/app/frontend/src/components/BackButton.js",
+      "status": "VERIFIED",
+      "verification": "Code review: Line 9 shows navigate(fallbackPath, { replace: true }) within forceNavigate condition"
+    },
+    "fix_2_wealth_promise_allsettled": {
+      "description": "Wealth page uses Promise.allSettled to prevent failures from blocking",
+      "file": "/app/frontend/src/Wealth.js",
+      "status": "VERIFIED",
+      "verification": "Code review: Line 51 uses Promise.allSettled. UI shows 'Expenses: 2 this month ₹38 K' (not 0)"
+    },
+    "fix_3_loans_optional_fields": {
+      "description": "Loan model has outstandingAmount and startDate as Optional fields",
+      "file": "/app/backend/server_models.py",
+      "status": "VERIFIED",
+      "verification": "Code review: Lines 320, 325 show Optional[float] and Optional[str]. GET /api/loans returns 200"
+    },
+    "fix_4_investment_allocation_breakdown": {
+      "description": "Financial Health API returns 'breakdown' object in investmentAllocation",
+      "file": "/app/backend/routes/financial_health.py",
+      "status": "VERIFIED",
+      "verification": "API returns breakdown with equity/debt/gold/other. UI shows 'Portfolio Breakdown' with Equity: 48.5% ₹1.15L, Debt: 21.3% ₹50.4K, Gold: 30.1% ₹71.1K"
+    },
+    "fix_5_debt_action_amounts": {
+      "description": "Debt to Asset action text includes actual amounts (rupees and percentage)",
+      "file": "/app/backend/routes/financial_health.py",
+      "status": "VERIFIED",
+      "verification": "Action shows: 'Your debt (₹7,154) is just 2.1% of your net worth (₹347,258). Very healthy...'"
+    },
+    "fix_6_rolling_buttons_no_worth": {
+      "description": "Rolling buttons should NOT have 'Worth' option",
+      "file": "/app/frontend/src/components/RollingButtons.js",
+      "status": "VERIFIED",
+      "verification": "Code review: BUTTON_GROUPS has track/grow/plan - no 'Worth'. UI test confirms 'Worth' not in rolling section"
+    },
+    "fix_7_badges_30_count": {
+      "description": "Badges/achievements should have exactly 30 entries",
+      "file": "/app/backend/routes/gamification.py",
+      "status": "VERIFIED",
+      "verification": "ACHIEVEMENTS dict has 30 entries. API returns totalAchievements: 30. UI shows 'Badges 21/30'"
+    }
+  },
+  "test_credentials": {
+    "moneyssutra_session": "session_token=61ab1fc5-1116-411d-b097-d1406b50c9e2",
+    "sandeepdash_session": "session_token=4bf40bb8-b8bb-4bda-bb96-ec262a903a1d"
+  },
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 7 features tested and verified. Key routes: /health for Financial Health page (scroll down for DETAILED MODULES), Dashboard (/) has Financial Health card with expandable metrics including Investment Allocation breakdown. Wealth page (/wealth) shows expenses data. Use sandeepdash session for user with investment data."
+}

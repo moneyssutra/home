@@ -6,7 +6,7 @@ const BackButton = ({ fallbackPath = "/", className = "", forceNavigate = false 
 
   const handleBack = () => {
     if (forceNavigate) {
-      navigate(fallbackPath);
+      navigate(fallbackPath, { replace: true });
       return;
     }
     

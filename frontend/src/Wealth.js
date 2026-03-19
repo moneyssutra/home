@@ -48,7 +48,7 @@ const Wealth = () => {
   const fetchAll = async () => {
     try {
       setLoading(true);
-      const [nwRes, assetsRes, investRes, loansRes, insRes, accRes, ccRes, incomeRes, expenseRes] = await Promise.all([
+      const results = await Promise.allSettled([
         axios.get(`${API}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
         axios.get(`${API}/api/assets`, { withCredentials: true }),
         axios.get(`${API}/api/investments`, { withCredentials: true }),
@@ -59,17 +59,18 @@ const Wealth = () => {
         axios.get(`${API}/api/income`, { withCredentials: true }),
         axios.get(`${API}/api/expenses/by-month?month=${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`, { withCredentials: true }),
       ]);
-      const nw = nwRes.data;
-      const expenses = Array.isArray(expenseRes.data) ? expenseRes.data : [];
-      const incomes = Array.isArray(incomeRes.data) ? incomeRes.data : [];
+      const getVal = (idx, fallback = {}) => results[idx].status === "fulfilled" ? results[idx].value.data : fallback;
+      const nw = getVal(0, {});
+      const expenses = Array.isArray(getVal(8, [])) ? getVal(8, []) : [];
+      const incomes = Array.isArray(getVal(7, [])) ? getVal(7, []) : [];
       setData({
         nw,
-        assets: assetsRes.data || [],
-        investments: investRes.data || [],
-        loans: loansRes.data || [],
-        insurances: insRes.data || [],
-        accounts: accRes.data || [],
-        creditCards: ccRes.data || [],
+        assets: getVal(1, []) || [],
+        investments: getVal(2, []) || [],
+        loans: getVal(3, []) || [],
+        insurances: getVal(4, []) || [],
+        accounts: getVal(5, []) || [],
+        creditCards: getVal(6, []) || [],
         incomes,
         expenses,
         totalIncome: (nw.incomeReceived || 0) + (nw.expectedIncome || 0),

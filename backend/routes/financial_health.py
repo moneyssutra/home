@@ -228,19 +228,24 @@ async def get_financial_health(request: Request):
     gold_keywords = ['gold', 'silver', 'commodity', 'precious metal']
     
     equity_investments = 0
+    debt_investments = 0
+    gold_investments = 0
+    other_investments = 0
     for inv in investments:
         cat = (inv.get('investmentCategory', '') or inv.get('category', '') or '').lower()
         name = (inv.get('name', '') or '').lower()
         inv_type = (inv.get('investmentType', '') or '').lower()
         combined = f"{cat} {name} {inv_type}"
+        value = inv.get('currentValue', 0)
         
-        # Skip if clearly debt or gold
-        if any(x in combined for x in debt_keywords) or any(x in combined for x in gold_keywords):
-            continue
-        
-        # Count as equity if matches equity keywords OR if category is explicitly equity-related
-        if any(x in combined for x in equity_keywords) or cat in ['equity', 'stocks', 'shares']:
-            equity_investments += inv.get('currentValue', 0)
+        if any(x in combined for x in debt_keywords):
+            debt_investments += value
+        elif any(x in combined for x in gold_keywords):
+            gold_investments += value
+        elif any(x in combined for x in equity_keywords) or cat in ['equity', 'stocks', 'shares']:
+            equity_investments += value
+        else:
+            other_investments += value
     
     if equity_investments == 0 and w.get('equityInvestments'):
         equity_investments = w['equityInvestments']
@@ -313,13 +318,16 @@ async def get_financial_health(request: Request):
         debt_action = "Add your assets and investments to calculate debt ratio."
     elif debt_ratio > 70:
         debt_status = "High Leverage"
-        debt_action = "Debt is very high relative to assets. Prioritize debt reduction."
+        debt_action = f"Your debt (₹{int(total_debt):,}) is {debt_ratio:.1f}% of your net worth (₹{int(total_worth):,}). This is dangerously high — prioritize paying off debts."
     elif debt_ratio > 40:
         debt_status = "Moderate"
-        debt_action = "Debt levels are moderate. Focus on building assets."
+        debt_action = f"Your debt (₹{int(total_debt):,}) is {debt_ratio:.1f}% of your net worth (₹{int(total_worth):,}). Focus on reducing debt and building assets."
+    elif debt_ratio > 15:
+        debt_status = "Stable"
+        debt_action = f"Your debt (₹{int(total_debt):,}) is only {debt_ratio:.1f}% of your net worth (₹{int(total_worth):,}). This is manageable — keep it under control."
     else:
         debt_status = "Stable"
-        debt_action = "Your debt-to-asset ratio is healthy."
+        debt_action = f"Your debt (₹{int(total_debt):,}) is just {debt_ratio:.1f}% of your net worth (₹{int(total_worth):,}). Very healthy — your assets far exceed your liabilities."
     
     # ============ 8. SAVINGS RATE ============
     if monthly_income == 0:
@@ -470,7 +478,14 @@ async def get_financial_health(request: Request):
             "recommendedEquity": recommended_equity,
             "gap": round(abs(equity_gap), 1),
             "status": allocation_status,
-            "action": allocation_action
+            "action": allocation_action,
+            "breakdown": {
+                "equity": {"amount": round(equity_investments), "percent": round(equity_investments / total_investments * 100, 1) if total_investments > 0 else 0},
+                "debt": {"amount": round(debt_investments), "percent": round(debt_investments / total_investments * 100, 1) if total_investments > 0 else 0},
+                "gold": {"amount": round(gold_investments), "percent": round(gold_investments / total_investments * 100, 1) if total_investments > 0 else 0},
+                "other": {"amount": round(other_investments), "percent": round(other_investments / total_investments * 100, 1) if total_investments > 0 else 0},
+                "total": round(total_investments)
+            }
         },
         "creditUtilization": {
             "utilization": round(cc_utilization, 1),
