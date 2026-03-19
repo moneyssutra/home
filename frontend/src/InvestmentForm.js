@@ -6,8 +6,6 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { numberToWords } from "@/lib/formatters";
-import BottomNav from "@/components/BottomNav";
-import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
 import { 
@@ -23,7 +21,6 @@ const InvestmentForm = () => {
   const { id } = useParams();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const [showAddSheet, setShowAddSheet] = useState(false);
   
   // Get pre-filled investment category from URL params
   const prefilledCategory = searchParams.get('category') || '';
@@ -1807,8 +1804,6 @@ const InvestmentForm = () => {
       )}
 
       {/* Bottom Navigation */}
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

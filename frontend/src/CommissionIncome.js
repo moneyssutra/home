@@ -3,8 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Trash2, PlusCircle } from "lucide-react";
 import axios from "axios";
 import { mutate } from "swr";
-import BottomNav from "@/components/BottomNav";
-import AddActionSheet from "@/components/AddActionSheet";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
 import ReminderTimePicker from "@/components/ReminderTimePicker";
 import { ValidationMessage } from "@/components/ValidationMessage";
@@ -28,7 +26,6 @@ import { toast } from "sonner";
 const CommissionIncome = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [showAddSheet, setShowAddSheet] = useState(false);
   
   // Refs for auto-scroll (kept for frequency dropdowns)
   const dayFieldRef = useRef(null);
@@ -808,8 +805,6 @@ const CommissionIncome = () => {
       />
 
       {/* Bottom Navigation */}
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

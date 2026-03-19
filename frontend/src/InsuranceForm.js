@@ -6,8 +6,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, addDays, addWeeks, addMonths, addQuarters, addYears } from "date-fns";
 import { numberToWords } from "@/lib/formatters";
-import BottomNav from "@/components/BottomNav";
-import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
@@ -21,7 +19,6 @@ import {
 } from "@/lib/validations";
 
 const InsuranceForm = () => {
-  const [showAddSheet, setShowAddSheet] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
@@ -1452,8 +1449,6 @@ const InsuranceForm = () => {
         </div>
       )}
 
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

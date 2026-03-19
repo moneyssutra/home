@@ -5,8 +5,6 @@ import axios from "axios";
 import { format } from "date-fns";
 import { numberToWords } from "@/lib/formatters";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
-import BottomNav from "@/components/BottomNav";
-import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
 import { 
@@ -19,7 +17,6 @@ import {
 } from "@/lib/validations";
 
 const LoanIncome = () => {
-  const [showAddSheet, setShowAddSheet] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
@@ -1011,8 +1008,6 @@ const LoanIncome = () => {
       )}
 
       {/* Bottom Navigation */}
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

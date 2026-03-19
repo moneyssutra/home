@@ -8,6 +8,7 @@ const Toaster = ({
       theme="light"
       className="toaster group"
       position="top-center"
+      offset="max(16px, env(safe-area-inset-top, 16px))"
       toastOptions={{
         classNames: {
           toast:

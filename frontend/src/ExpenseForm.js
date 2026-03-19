@@ -7,8 +7,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { numberToWords } from "@/lib/formatters";
-import BottomNav from "@/components/BottomNav";
-import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
 import { 
@@ -29,7 +27,6 @@ import {
 import { toast } from "sonner";
 
 const ExpenseForm = () => {
-  const [showAddSheet, setShowAddSheet] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -1029,8 +1026,6 @@ const ExpenseForm = () => {
       />
 
       {/* Bottom Navigation */}
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

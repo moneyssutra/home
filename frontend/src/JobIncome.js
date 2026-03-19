@@ -3,8 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Trash2, Check, Loader2, Calendar, PlusCircle } from "lucide-react";
 import axios from "axios";
 import { mutate } from "swr";
-import BottomNav from "@/components/BottomNav";
-import AddActionSheet from "@/components/AddActionSheet";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
 import ReminderTimePicker from "@/components/ReminderTimePicker";
 import { ValidationMessage } from "@/components/ValidationMessage";
@@ -32,7 +30,6 @@ const JobIncome = () => {
   const { id } = useParams(); // Get ID from URL if editing
   const [companyName, setCompanyName] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
-  const [showAddSheet, setShowAddSheet] = useState(false);
   const [frequency, setFrequency] = useState("");
   
   // Conditional fields
@@ -1143,8 +1140,6 @@ const JobIncome = () => {
       />
 
       {/* Bottom Navigation */}
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

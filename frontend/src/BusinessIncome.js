@@ -3,8 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Trash2, Check, Loader2, Calendar, PlusCircle } from "lucide-react";
 import axios from "axios";
 import { mutate } from "swr";
-import BottomNav from "@/components/BottomNav";
-import AddActionSheet from "@/components/AddActionSheet";
 import AmountInput from "@/components/AmountInput";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
 import ReminderTimePicker from "@/components/ReminderTimePicker";
@@ -33,7 +31,6 @@ const BusinessIncome = () => {
   const [businessName, setBusinessName] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
   const [frequency, setFrequency] = useState("");
-  const [showAddSheet, setShowAddSheet] = useState(false);
   
   // Conditional fields
   const [selectedDay, setSelectedDay] = useState("");
@@ -1124,8 +1121,6 @@ const BusinessIncome = () => {
       />
 
       {/* Bottom Navigation */}
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

@@ -3,8 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Trash2, Search, Check, ChevronDown, Calendar, PlusCircle } from "lucide-react";
 import axios from "axios";
 import { mutate } from "swr";
-import BottomNav from "@/components/BottomNav";
-import AddActionSheet from "@/components/AddActionSheet";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
 import ReminderTimePicker from "@/components/ReminderTimePicker";
 import { ValidationMessage } from "@/components/ValidationMessage";
@@ -82,7 +80,6 @@ const SelfEmployedIncome = () => {
   const [customProfession, setCustomProfession] = useState("");
   const [entityName, setEntityName] = useState("");
   const [expectedAmount, setExpectedAmount] = useState("");
-  const [showAddSheet, setShowAddSheet] = useState(false);
   const [frequency, setFrequency] = useState("");
   
   // Profession picker state
@@ -1180,8 +1177,6 @@ const SelfEmployedIncome = () => {
         }}
       />
 
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

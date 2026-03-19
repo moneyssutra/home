@@ -6,8 +6,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { numberToWords } from "@/lib/formatters";
-import BottomNav from "@/components/BottomNav";
-import AddActionSheet from "@/components/AddActionSheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ValidationMessage } from "@/components/ValidationMessage";
@@ -22,7 +20,6 @@ import {
 const GoalForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [showAddSheet, setShowAddSheet] = useState(false);
   
   // Form fields
   const [goalName, setGoalName] = useState("");
@@ -1052,8 +1049,6 @@ const GoalForm = () => {
       </Dialog>
 
       {/* Bottom Navigation */}
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

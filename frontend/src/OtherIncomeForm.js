@@ -10,8 +10,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import BottomNav from "@/components/BottomNav";
-import AddActionSheet from "@/components/AddActionSheet";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { 
   validatePositiveAmount, 
@@ -34,7 +32,6 @@ const OtherIncomeForm = () => {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const conditionalRef = useRef(null);
-  const [showAddSheet, setShowAddSheet] = useState(false);
 
   const [formData, setFormData] = useState({
     incomeName: "",
@@ -782,8 +779,6 @@ const OtherIncomeForm = () => {
       />
 
       {/* Bottom Navigation */}
-      <BottomNav onAddClick={() => setShowAddSheet(true)} />
-      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

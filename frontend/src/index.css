@@ -4,12 +4,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* iOS Safe Area — push content below the status bar on notched devices only */
-header {
-  padding-top: env(safe-area-inset-top, 0px);
+/* iOS Safe Area — push content below the status bar on mobile only */
+@media (max-width: 768px) {
+  header {
+    padding-top: max(1.25rem, env(safe-area-inset-top, 1.25rem));
+  }
+  /* Push toast notifications below the status bar on mobile */
+  [data-sonner-toaster] {
+    top: env(safe-area-inset-top, 0px) !important;
+  }
 }
 .safe-area-bottom {
   padding-bottom: max(1rem, env(safe-area-inset-bottom, 0.5rem));
+}
+/* Form page safe area bottom — ensure save buttons aren't hidden by home indicator */
+.form-safe-bottom {
+  padding-bottom: max(2rem, env(safe-area-inset-bottom, 1rem));
 }
 
 /* Fix Recharts focus/selection outlines */
