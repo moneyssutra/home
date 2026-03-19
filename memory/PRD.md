@@ -252,3 +252,31 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 - **Fix**: Added `offset="max(16px, env(safe-area-inset-top, 16px))"` to Sonner Toaster component
 - **CSS**: Added `[data-sonner-toaster] { top: env(safe-area-inset-top) !important }` for mobile
 - **Added**: `.form-safe-bottom` CSS class for future form safe area padding needs
+
+
+## Bug Fix: Financial Health — Expand Button Overflow (Mar 19, 2026) ✅
+- **Issue**: "Smart Sort", "Reorder", "Expand" buttons overflowed the card header on narrow mobile screens
+- **Fix**: Refactored header to a two-row layout — title on first row, action buttons wrap on second row
+- **Testing**: Verified buttons fit within 390px mobile viewport
+
+## Bug Fix: Bank Account Detail — Double "Account" + Inflow Overlap (Mar 19, 2026) ✅
+- **Issue**: Title showed "BANK ACCOUNT ACCOUNT" for Bank Account types; Inflow/Outflow section overlapped with card above (-mt-3)
+- **Fix**: Added conditional check for accountType containing "Account"; changed -mt-3 to mt-4
+- **Testing**: 100% pass
+
+## Bug Fix: Financial Health — Investment Allocation Equity Classification (Mar 19, 2026) ✅
+- **Issue**: ALL mutual funds (including Gold ETF, Corporate Bond funds) were classified as equity due to "mutual fund" in equity_keywords
+- **Fix**: Removed "mutual fund"/"mf" from equity keywords. Added debt/gold exclusion keywords. Now checks fund name for actual equity indicators (nifty, sensex, flexi cap, etc.)
+- **Result**: sandeepdash24 user now shows 48.5% equity (4/6 funds) instead of 100%
+- **Improved action text**: Now explains actual percentage and what to do
+
+## Bug Fix: Financial Health — Life Insurance Score (Mar 19, 2026) ✅
+- **Issue**: Life insurance showed 1.9/7.5 when user had ₹0 coverage (status was "High Risk" → score 25)
+- **Fix**: Changed status to "Not Covered" when life_cover == 0 → score 0 → contribution 0.0/7.5
+- **Testing**: Verified API returns rawScore: 0
+
+## Enhancement: Start Date Field for Income Forms (Mar 19, 2026) ✅
+- **Added to**: JobIncome, SelfEmployedIncome, BusinessIncome, CommissionIncome, OtherIncomeForm
+- **Purpose**: Explicit start date for accurate received/pending income tracking (previously relied on selectedDate which only stored day-of-month)
+- **Backend**: Already supported `startDate` field in IncomeSource model
+- **Testing**: All 5 forms verified with start-date-input field present
