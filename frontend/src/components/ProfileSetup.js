@@ -143,25 +143,13 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
 
   // Liability state
   const [hasNoLiabilities, setHasNoLiabilities] = useState(false);
-  const [loanName, setLoanName] = useState("");
-  const [loanAmount, setLoanAmount] = useState("");
-  const [loanEmi, setLoanEmi] = useState("");
+  const [loanItems, setLoanItems] = useState([{ name: "", amount: "", emi: "", type: "Personal Loan", rate: "", tenure: "", nextDue: "" }]);
   const [showLiabilityDeep, setShowLiabilityDeep] = useState(false);
-  const [loanType, setLoanType] = useState("Personal");
-  const [loanRate, setLoanRate] = useState("");
-  const [loanTenure, setLoanTenure] = useState("");
-  const [loanNextDue, setLoanNextDue] = useState("");
 
   // Investment state
   const [hasNoInvestments, setHasNoInvestments] = useState(false);
-  const [investName, setInvestName] = useState("");
-  const [investAmount, setInvestAmount] = useState("");
-  const [investType, setInvestType] = useState("mutual-fund");
+  const [investItems, setInvestItems] = useState([{ name: "", amount: "", type: "mutual-fund", frequency: "Monthly", startDate: "", growthRate: "", linkedAccount: "" }]);
   const [showInvestDeep, setShowInvestDeep] = useState(false);
-  const [investFrequency, setInvestFrequency] = useState("Monthly");
-  const [investStartDate, setInvestStartDate] = useState("");
-  const [investGrowthRate, setInvestGrowthRate] = useState("");
-  const [investLinkedAccount, setInvestLinkedAccount] = useState("");
 
   const [accounts, setAccounts] = useState([]);
 
@@ -289,15 +277,14 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     if (hasNoLiabilities) {
       await saveStep(4, {}, true);
     } else {
-      const items = [];
-      if (loanName && parseFloat(loanAmount) > 0) {
-        items.push({
-          name: loanName, amount: loanAmount, loanType,
-          emi: loanEmi, rate: loanRate,
-          tenure: loanTenure || undefined,
-          nextDueDate: loanNextDue || undefined,
-        });
-      }
+      const items = loanItems
+        .filter(l => l.name && parseFloat(l.amount) > 0)
+        .map(l => ({
+          name: l.name, amount: l.amount, loanType: l.type,
+          emi: l.emi, rate: l.rate,
+          tenure: l.tenure || undefined,
+          nextDueDate: l.nextDue || undefined,
+        }));
       await saveStep(4, items.length > 0 ? { items } : {}, items.length === 0);
     }
     setSaving(false);
@@ -308,18 +295,17 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     if (hasNoInvestments) {
       await saveStep(5, {}, true);
     } else {
-      const items = [];
-      if (investName && parseFloat(investAmount) > 0) {
-        items.push({
-          name: investName, amount: investAmount,
-          investmentType: investType,
-          category: INVESTMENT_TYPES.find(t => t.id === investType)?.category || "Mutual Fund",
-          frequency: investFrequency,
-          startDate: investStartDate || undefined,
-          growthRate: investGrowthRate || undefined,
-          linkedAccountId: investLinkedAccount || undefined,
-        });
-      }
+      const items = investItems
+        .filter(inv => inv.name && parseFloat(inv.amount) > 0)
+        .map(inv => ({
+          name: inv.name, amount: inv.amount,
+          investmentType: inv.type,
+          category: INVESTMENT_TYPES.find(t => t.id === inv.type)?.category || "Mutual Fund",
+          frequency: inv.frequency,
+          startDate: inv.startDate || undefined,
+          growthRate: inv.growthRate || undefined,
+          linkedAccountId: inv.linkedAccount || undefined,
+        }));
       await saveStep(5, items.length > 0 ? { items } : {}, items.length === 0);
     }
     setSaving(false);
@@ -1020,15 +1006,16 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
         <div className="flex-1 flex flex-col justify-center gap-3">
           {LOAN_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
-              setLoanType(type.label);
-              if (!loanName) setLoanName(type.label);
+              const u = [...loanItems];
+              u[0] = { ...u[0], type: type.label, name: u[0].name || type.label };
+              setLoanItems(u);
               setHasNoLiabilities(false);
               setTimeout(() => setScreen("liability-details"), 300);
             }}
               className="relative w-full p-5 rounded-2xl text-left transition-all active:scale-[0.97]"
               style={{
-                backgroundColor: loanType === type.label ? type.color + "12" : "var(--bg-card)",
-                border: `2px solid ${loanType === type.label ? type.color : "var(--border-light)"}`,
+                backgroundColor: loanItems[0]?.type === type.label ? type.color + "12" : "var(--bg-card)",
+                border: `2px solid ${loanItems[0]?.type === type.label ? type.color : "var(--border-light)"}`,
               }}
               data-testid={`loan-type-card-${type.id}`}
             >
@@ -1037,7 +1024,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                   <type.icon className="h-6 w-6" style={{ color: type.color }} />
                 </div>
                 <p className="text-base font-bold flex-1" style={{ color: "var(--text-primary)" }}>{type.label}</p>
-                {loanType === type.label && (
+                {loanItems[0]?.type === type.label && (
                   <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: type.color }}>
                     <Check className="h-4 w-4 text-white" />
                   </div>
@@ -1061,53 +1048,82 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
      SCREEN: Liability Details (Step 2 of 3)
      ════════════════════════════════════════════ */
   if (screen === "liability-details") {
-    const currentLoanType = LOAN_TYPES.find(t => t.label === loanType);
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-liability-details">
-        <WizardHeader title={`${loanType || "Loan"} Details`} subtitle="Enter the key details of your loan" />
-        <div className="flex-1 overflow-y-auto space-y-4 pb-4">
-          <div className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-            {currentLoanType && (
-              <div className="flex items-center gap-2 pb-3" style={{ borderBottom: "1px solid var(--border-light)" }}>
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${currentLoanType.color}15` }}>
-                  <currentLoanType.icon className="h-4 w-4" style={{ color: currentLoanType.color }} />
+        <WizardHeader title="Loan Details" subtitle="Enter the key details of your loans" />
+        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
+          {loanItems.map((item, idx) => {
+            const currentLoanType = LOAN_TYPES.find(t => t.label === item.type);
+            return (
+              <div key={idx} className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+                {idx > 0 && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2 flex-wrap flex-1">
+                      {LOAN_TYPES.map(t => (
+                        <button key={t.id} onClick={() => {
+                          const u = [...loanItems]; u[idx] = { ...u[idx], type: t.label, name: u[idx].name || t.label }; setLoanItems(u);
+                        }}
+                          className="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
+                          style={{
+                            backgroundColor: item.type === t.label ? `${t.color}15` : "transparent",
+                            color: item.type === t.label ? t.color : "var(--text-muted)",
+                            border: `1px solid ${item.type === t.label ? t.color : "var(--border-light)"}`,
+                          }}
+                          data-testid={`loan-type-pill-${t.id}-${idx}`}
+                        >{t.label}</button>
+                      ))}
+                    </div>
+                    <button onClick={() => setLoanItems(p => p.filter((_, i) => i !== idx))} className="text-xs underline ml-2 flex-shrink-0" style={{ color: "#EF4444" }} data-testid={`remove-loan-${idx}`}>Remove</button>
+                  </div>
+                )}
+                {idx === 0 && currentLoanType && (
+                  <div className="flex items-center gap-2 pb-3" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${currentLoanType.color}15` }}>
+                      <currentLoanType.icon className="h-4 w-4" style={{ color: currentLoanType.color }} />
+                    </div>
+                    <span className="text-xs font-bold" style={{ color: currentLoanType.color }}>{currentLoanType.label}</span>
+                  </div>
+                )}
+                <div>
+                  <FieldLabel>Loan Name</FieldLabel>
+                  <FieldInput value={item.name} onChange={(e) => { const u = [...loanItems]; u[idx] = { ...u[idx], name: e.target.value }; setLoanItems(u); }} placeholder="e.g., HDFC Home Loan" testId={`loan-name-${idx}`} />
                 </div>
-                <span className="text-xs font-bold" style={{ color: currentLoanType.color }}>{currentLoanType.label}</span>
+                <div>
+                  <FieldLabel hint="Total amount you still owe">Outstanding Principal (₹)</FieldLabel>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
+                    <input type="text" inputMode="numeric" placeholder="Outstanding amount"
+                      value={item.amount} onChange={(e) => { const u = [...loanItems]; u[idx] = { ...u[idx], amount: e.target.value.replace(/[^0-9]/g, "") }; setLoanItems(u); }}
+                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm font-bold outline-none"
+                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                      data-testid={`loan-amount-${idx}`}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <FieldLabel hint="We'll track this against your income">Monthly EMI (₹)</FieldLabel>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
+                    <input type="text" inputMode="numeric" placeholder="Monthly EMI"
+                      value={item.emi} onChange={(e) => { const u = [...loanItems]; u[idx] = { ...u[idx], emi: e.target.value.replace(/[^0-9]/g, "") }; setLoanItems(u); }}
+                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                      data-testid={`loan-emi-${idx}`}
+                    />
+                  </div>
+                </div>
               </div>
-            )}
-            <div>
-              <FieldLabel>Loan Name</FieldLabel>
-              <FieldInput value={loanName} onChange={(e) => setLoanName(e.target.value)} placeholder="e.g., HDFC Home Loan" testId="loan-name-input" />
-            </div>
-            <div>
-              <FieldLabel hint="Total amount you still owe">Outstanding Principal (₹)</FieldLabel>
-              <div className="flex items-center gap-1">
-                <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
-                <input type="text" inputMode="numeric" placeholder="Outstanding amount"
-                  value={loanAmount} onChange={(e) => setLoanAmount(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm font-bold outline-none"
-                  style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                  data-testid="loan-amount-input"
-                />
-              </div>
-            </div>
-            <div>
-              <FieldLabel hint="We'll track this against your income">Monthly EMI (₹)</FieldLabel>
-              <div className="flex items-center gap-1">
-                <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
-                <input type="text" inputMode="numeric" placeholder="Monthly EMI"
-                  value={loanEmi} onChange={(e) => setLoanEmi(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                  style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                  data-testid="loan-emi-input"
-                />
-              </div>
-            </div>
-          </div>
+            );
+          })}
+          <button onClick={() => setLoanItems(p => [...p, { name: "", amount: "", emi: "", type: "Personal Loan", rate: "", tenure: "", nextDue: "" }])}
+            className="w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
+            style={{ color: "#F59E0B", border: "1px dashed var(--border-light)" }}
+            data-testid="add-loan-btn"
+          ><Plus className="h-3.5 w-3.5" /> Add another loan</button>
         </div>
         <CTAButton className="w-full"
           onClick={() => setScreen("liability-deep")}
-          disabled={!loanName || !loanAmount || parseFloat(loanAmount) <= 0}
+          disabled={!loanItems.some(l => l.name && parseFloat(l.amount) > 0)}
         >
           Continue <ArrowRight className="h-4 w-4" />
         </CTAButton>
@@ -1119,46 +1135,60 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
      SCREEN: Liability Deep Details (Step 3 of 3)
      ════════════════════════════════════════════ */
   if (screen === "liability-deep") {
+    const validLoans = loanItems.filter(l => l.name && parseFloat(l.amount) > 0);
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-liability-deep">
         <WizardHeader title="Loan Deep Details" subtitle="Helps calculate your real cost of borrowing" />
         <div className="flex-1 overflow-y-auto space-y-3 pb-4">
-          <div className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-            <div>
-              <FieldLabel hint="Helps calculate your real cost of borrowing">Interest Rate (%)</FieldLabel>
-              <input type="text" inputMode="decimal" placeholder="e.g., 8.5" value={loanRate}
-                onChange={(e) => setLoanRate(e.target.value.replace(/[^0-9.]/g, ""))}
-                className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                data-testid="loan-rate-input"
-              />
-            </div>
-            <div>
-              <FieldLabel hint="How many months left on this loan?">Tenure Remaining (months)</FieldLabel>
-              <input type="text" inputMode="numeric" placeholder="e.g., 120" value={loanTenure}
-                onChange={(e) => setLoanTenure(e.target.value.replace(/[^0-9]/g, ""))}
-                className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                data-testid="loan-tenure-input"
-              />
-            </div>
-            <div>
-              <FieldLabel hint="We'll remind you before it's due">Next EMI Due Date (day of month)</FieldLabel>
-              <div className="grid grid-cols-7 gap-1.5">
-                {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
-                  <button key={d} onClick={() => setLoanNextDue(String(d))}
-                    className="aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all active:scale-90"
-                    style={{
-                      backgroundColor: loanNextDue === String(d) ? "#F59E0B" : "var(--bg-app)",
-                      color: loanNextDue === String(d) ? "white" : "var(--text-muted)",
-                      border: `1px solid ${loanNextDue === String(d) ? "#F59E0B" : "var(--border-light)"}`,
-                    }}
-                    data-testid={`loan-due-day-${d}`}
-                  >{d}</button>
-                ))}
+          {validLoans.map((item) => {
+            const origIdx = loanItems.indexOf(item);
+            const typeInfo = LOAN_TYPES.find(t => t.label === item.type);
+            return (
+              <div key={origIdx} className="p-4 rounded-2xl space-y-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+                <div className="flex items-center gap-2">
+                  {typeInfo && <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${typeInfo.color}15` }}>
+                    <typeInfo.icon className="h-4 w-4" style={{ color: typeInfo.color }} />
+                  </div>}
+                  <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{item.name}</p>
+                  <span className="text-xs ml-auto" style={{ color: "var(--text-muted)" }}>₹{parseFloat(item.amount).toLocaleString("en-IN")}</span>
+                </div>
+                <div>
+                  <FieldLabel hint="Helps calculate your real cost of borrowing">Interest Rate (%)</FieldLabel>
+                  <input type="text" inputMode="decimal" placeholder="e.g., 8.5" value={item.rate}
+                    onChange={(e) => { const u = [...loanItems]; u[origIdx] = { ...u[origIdx], rate: e.target.value.replace(/[^0-9.]/g, "") }; setLoanItems(u); }}
+                    className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                    style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                    data-testid={`loan-rate-${origIdx}`}
+                  />
+                </div>
+                <div>
+                  <FieldLabel hint="How many months left on this loan?">Tenure Remaining (months)</FieldLabel>
+                  <input type="text" inputMode="numeric" placeholder="e.g., 120" value={item.tenure}
+                    onChange={(e) => { const u = [...loanItems]; u[origIdx] = { ...u[origIdx], tenure: e.target.value.replace(/[^0-9]/g, "") }; setLoanItems(u); }}
+                    className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                    style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                    data-testid={`loan-tenure-${origIdx}`}
+                  />
+                </div>
+                <div>
+                  <FieldLabel hint="We'll remind you before it's due">Next EMI Due Date (day of month)</FieldLabel>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                      <button key={d} onClick={() => { const u = [...loanItems]; u[origIdx] = { ...u[origIdx], nextDue: String(d) }; setLoanItems(u); }}
+                        className="aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all active:scale-90"
+                        style={{
+                          backgroundColor: item.nextDue === String(d) ? "#F59E0B" : "var(--bg-app)",
+                          color: item.nextDue === String(d) ? "white" : "var(--text-muted)",
+                          border: `1px solid ${item.nextDue === String(d) ? "#F59E0B" : "var(--border-light)"}`,
+                        }}
+                        data-testid={`loan-due-day-${d}-${origIdx}`}
+                      >{d}</button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
         <div className="flex gap-3 mt-4">
           {!isModuleMode && (
@@ -1187,15 +1217,16 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
         <div className="flex-1 flex flex-col justify-center gap-3">
           {INVESTMENT_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
-              setInvestType(type.id);
-              if (!investName) setInvestName(type.label);
+              const u = [...investItems];
+              u[0] = { ...u[0], type: type.id, name: u[0].name || type.label };
+              setInvestItems(u);
               setHasNoInvestments(false);
               setTimeout(() => setScreen("invest-details"), 300);
             }}
               className="relative w-full p-5 rounded-2xl text-left transition-all active:scale-[0.97]"
               style={{
-                backgroundColor: investType === type.id ? type.color + "12" : "var(--bg-card)",
-                border: `2px solid ${investType === type.id ? type.color : "var(--border-light)"}`,
+                backgroundColor: investItems[0]?.type === type.id ? type.color + "12" : "var(--bg-card)",
+                border: `2px solid ${investItems[0]?.type === type.id ? type.color : "var(--border-light)"}`,
               }}
               data-testid={`invest-type-card-${type.id}`}
             >
@@ -1204,7 +1235,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                   <type.icon className="h-6 w-6" style={{ color: type.color }} />
                 </div>
                 <p className="text-base font-bold flex-1" style={{ color: "var(--text-primary)" }}>{type.label}</p>
-                {investType === type.id && (
+                {investItems[0]?.type === type.id && (
                   <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: type.color }}>
                     <Check className="h-4 w-4 text-white" />
                   </div>
@@ -1228,41 +1259,70 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
      SCREEN: Investment Details (Step 2 of 3)
      ════════════════════════════════════════════ */
   if (screen === "invest-details") {
-    const currentType = INVESTMENT_TYPES.find(t => t.id === investType);
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-invest-details">
-        <WizardHeader title={`${currentType?.label || "Investment"} Details`} subtitle="Name and amount of your investment" />
-        <div className="flex-1 overflow-y-auto space-y-4 pb-4">
-          <div className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-            {currentType && (
-              <div className="flex items-center gap-2 pb-3" style={{ borderBottom: "1px solid var(--border-light)" }}>
-                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${currentType.color}15` }}>
-                  <currentType.icon className="h-4 w-4" style={{ color: currentType.color }} />
+        <WizardHeader title="Investment Details" subtitle="Name and amount of your investments" />
+        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
+          {investItems.map((item, idx) => {
+            const currentType = INVESTMENT_TYPES.find(t => t.id === item.type);
+            return (
+              <div key={idx} className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+                {idx > 0 && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-2 flex-wrap flex-1">
+                      {INVESTMENT_TYPES.map(t => (
+                        <button key={t.id} onClick={() => {
+                          const u = [...investItems]; u[idx] = { ...u[idx], type: t.id, name: u[idx].name || t.label }; setInvestItems(u);
+                        }}
+                          className="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
+                          style={{
+                            backgroundColor: item.type === t.id ? `${t.color}15` : "transparent",
+                            color: item.type === t.id ? t.color : "var(--text-muted)",
+                            border: `1px solid ${item.type === t.id ? t.color : "var(--border-light)"}`,
+                          }}
+                          data-testid={`invest-type-pill-${t.id}-${idx}`}
+                        >{t.label}</button>
+                      ))}
+                    </div>
+                    <button onClick={() => setInvestItems(p => p.filter((_, i) => i !== idx))} className="text-xs underline ml-2 flex-shrink-0" style={{ color: "#EF4444" }} data-testid={`remove-invest-${idx}`}>Remove</button>
+                  </div>
+                )}
+                {idx === 0 && currentType && (
+                  <div className="flex items-center gap-2 pb-3" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${currentType.color}15` }}>
+                      <currentType.icon className="h-4 w-4" style={{ color: currentType.color }} />
+                    </div>
+                    <span className="text-xs font-bold" style={{ color: currentType.color }}>{currentType.label}</span>
+                  </div>
+                )}
+                <div>
+                  <FieldLabel>Investment Name</FieldLabel>
+                  <FieldInput value={item.name} onChange={(e) => { const u = [...investItems]; u[idx] = { ...u[idx], name: e.target.value }; setInvestItems(u); }} placeholder="e.g., HDFC Flexi Cap, SBI FD" testId={`invest-name-${idx}`} />
                 </div>
-                <span className="text-xs font-bold" style={{ color: currentType.color }}>{currentType.label}</span>
+                <div>
+                  <FieldLabel>Monthly Amount / Current Value (₹)</FieldLabel>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
+                    <input type="text" inputMode="numeric" placeholder="Amount"
+                      value={item.amount} onChange={(e) => { const u = [...investItems]; u[idx] = { ...u[idx], amount: e.target.value.replace(/[^0-9]/g, "") }; setInvestItems(u); }}
+                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm font-bold outline-none"
+                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                      data-testid={`invest-amount-${idx}`}
+                    />
+                  </div>
+                </div>
               </div>
-            )}
-            <div>
-              <FieldLabel>Investment Name</FieldLabel>
-              <FieldInput value={investName} onChange={(e) => setInvestName(e.target.value)} placeholder="e.g., HDFC Flexi Cap, SBI FD" testId="invest-name-input" />
-            </div>
-            <div>
-              <FieldLabel>Monthly Amount / Current Value (₹)</FieldLabel>
-              <div className="flex items-center gap-1">
-                <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
-                <input type="text" inputMode="numeric" placeholder="Amount"
-                  value={investAmount} onChange={(e) => setInvestAmount(e.target.value.replace(/[^0-9]/g, ""))}
-                  className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm font-bold outline-none"
-                  style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                  data-testid="invest-amount-input"
-                />
-              </div>
-            </div>
-          </div>
+            );
+          })}
+          <button onClick={() => setInvestItems(p => [...p, { name: "", amount: "", type: "mutual-fund", frequency: "Monthly", startDate: "", growthRate: "", linkedAccount: "" }])}
+            className="w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
+            style={{ color: "#8B5CF6", border: "1px dashed var(--border-light)" }}
+            data-testid="add-invest-btn"
+          ><Plus className="h-3.5 w-3.5" /> Add another investment</button>
         </div>
         <CTAButton className="w-full"
           onClick={() => setScreen("invest-deep")}
-          disabled={!investName || !investAmount || parseFloat(investAmount) <= 0}
+          disabled={!investItems.some(inv => inv.name && parseFloat(inv.amount) > 0)}
         >
           Continue <ArrowRight className="h-4 w-4" />
         </CTAButton>
@@ -1274,59 +1334,73 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
      SCREEN: Investment Deep Details (Step 3 of 3)
      ════════════════════════════════════════════ */
   if (screen === "invest-deep") {
+    const validInvests = investItems.filter(inv => inv.name && parseFloat(inv.amount) > 0);
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-invest-deep">
         <WizardHeader title="Investment Deep Details" subtitle="Optional — improves return projections" />
         <div className="flex-1 overflow-y-auto space-y-3 pb-4">
-          <div className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-            <div>
-              <FieldLabel hint="SIP or lumpsum — affects projections">Frequency</FieldLabel>
-              <div className="grid grid-cols-3 gap-2">
-                {["Monthly", "Quarterly", "One-time"].map(f => (
-                  <button key={f} onClick={() => setInvestFrequency(f)}
-                    className="px-3 py-2.5 rounded-xl text-xs font-bold text-center transition-all"
-                    style={{
-                      backgroundColor: investFrequency === f ? "#8B5CF615" : "var(--bg-app)",
-                      color: investFrequency === f ? "#8B5CF6" : "var(--text-muted)",
-                      border: `1px solid ${investFrequency === f ? "#8B5CF6" : "var(--border-light)"}`,
-                    }}
-                    data-testid={`invest-freq-${f.toLowerCase().replace(/\s/g, '-')}`}
-                  >{f}</button>
-                ))}
+          {validInvests.map((item) => {
+            const origIdx = investItems.indexOf(item);
+            const typeInfo = INVESTMENT_TYPES.find(t => t.id === item.type);
+            return (
+              <div key={origIdx} className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+                <div className="flex items-center gap-2">
+                  {typeInfo && <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${typeInfo.color}15` }}>
+                    <typeInfo.icon className="h-4 w-4" style={{ color: typeInfo.color }} />
+                  </div>}
+                  <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{item.name}</p>
+                  <span className="text-xs ml-auto" style={{ color: "var(--text-muted)" }}>₹{parseFloat(item.amount).toLocaleString("en-IN")}</span>
+                </div>
+                <div>
+                  <FieldLabel hint="SIP or lumpsum — affects projections">Frequency</FieldLabel>
+                  <div className="grid grid-cols-3 gap-2">
+                    {["Monthly", "Quarterly", "One-time"].map(f => (
+                      <button key={f} onClick={() => { const u = [...investItems]; u[origIdx] = { ...u[origIdx], frequency: f }; setInvestItems(u); }}
+                        className="px-3 py-2.5 rounded-xl text-xs font-bold text-center transition-all"
+                        style={{
+                          backgroundColor: item.frequency === f ? "#8B5CF615" : "var(--bg-app)",
+                          color: item.frequency === f ? "#8B5CF6" : "var(--text-muted)",
+                          border: `1px solid ${item.frequency === f ? "#8B5CF6" : "var(--border-light)"}`,
+                        }}
+                        data-testid={`invest-freq-${f.toLowerCase().replace(/\s/g, '-')}-${origIdx}`}
+                      >{f}</button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <FieldLabel hint="When did you start this SIP / buy this investment?">Start / Purchase Date</FieldLabel>
+                  <input type="date" value={item.startDate}
+                    onChange={(e) => { const u = [...investItems]; u[origIdx] = { ...u[origIdx], startDate: e.target.value }; setInvestItems(u); }}
+                    className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                    style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                    data-testid={`invest-start-date-${origIdx}`}
+                  />
+                </div>
+                <div>
+                  <FieldLabel hint="12% is a conservative estimate for Indian Mutual Funds">Expected Returns (%)</FieldLabel>
+                  <input type="text" inputMode="decimal" placeholder="e.g., 12" value={item.growthRate}
+                    onChange={(e) => { const u = [...investItems]; u[origIdx] = { ...u[origIdx], growthRate: e.target.value.replace(/[^0-9.]/g, "") }; setInvestItems(u); }}
+                    className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                    style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                    data-testid={`invest-growth-rate-${origIdx}`}
+                  />
+                </div>
+                {accounts.length > 0 && (
+                  <div>
+                    <FieldLabel hint="Track deductions from this account">Linked Account</FieldLabel>
+                    <select value={item.linkedAccount} onChange={(e) => { const u = [...investItems]; u[origIdx] = { ...u[origIdx], linkedAccount: e.target.value }; setInvestItems(u); }}
+                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                      data-testid={`invest-linked-account-${origIdx}`}
+                    >
+                      <option value="">None</option>
+                      {accounts.map(a => <option key={a.id} value={a.id}>{a.accountName}</option>)}
+                    </select>
+                  </div>
+                )}
               </div>
-            </div>
-            <div>
-              <FieldLabel hint="When did you start this SIP / buy this investment?">Start / Purchase Date</FieldLabel>
-              <input type="date" value={investStartDate}
-                onChange={(e) => setInvestStartDate(e.target.value)}
-                className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                data-testid="invest-start-date"
-              />
-            </div>
-            <div>
-              <FieldLabel hint="12% is a conservative estimate for Indian Mutual Funds">Expected Returns (%)</FieldLabel>
-              <input type="text" inputMode="decimal" placeholder="e.g., 12" value={investGrowthRate}
-                onChange={(e) => setInvestGrowthRate(e.target.value.replace(/[^0-9.]/g, ""))}
-                className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                data-testid="invest-growth-rate"
-              />
-            </div>
-            {accounts.length > 0 && (
-              <div>
-                <FieldLabel hint="Track deductions from this account">Linked Account</FieldLabel>
-                <select value={investLinkedAccount} onChange={(e) => setInvestLinkedAccount(e.target.value)}
-                  className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                  style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                  data-testid="invest-linked-account"
-                >
-                  <option value="">None</option>
-                  {accounts.map(a => <option key={a.id} value={a.id}>{a.accountName}</option>)}
-                </select>
-              </div>
-            )}
-          </div>
+            );
+          })}
         </div>
         <div className="flex gap-3 mt-4">
           {!isModuleMode && (
@@ -1353,17 +1427,19 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     const expenseItems = Object.entries(expenseData).filter(([, v]) => parseFloat(v) > 0);
     const validAssets = assetItems.filter(a => a.name && parseFloat(a.amount) > 0);
     const totalAssetValue = validAssets.reduce((s, a) => s + (parseFloat(a.amount) || 0), 0);
-    const hasLoan = loanName && parseFloat(loanAmount) > 0;
-    const hasInvest = investName && parseFloat(investAmount) > 0;
+    const validLoans = loanItems.filter(l => l.name && parseFloat(l.amount) > 0);
+    const totalLoanValue = validLoans.reduce((s, l) => s + (parseFloat(l.amount) || 0), 0);
+    const validInvests = investItems.filter(inv => inv.name && parseFloat(inv.amount) > 0);
+    const totalInvestValue = validInvests.reduce((s, inv) => s + (parseFloat(inv.amount) || 0), 0);
 
     const sections = [
       { show: income > 0, color: "#10B981", icon: Wallet, label: "Income", value: `₹${income.toLocaleString("en-IN")}/mo`, detail: `${incomeName || "Monthly"} · ${selectedSource?.label || "Salary"}` },
       { show: expenseItems.length > 0, color: "#EF4444", icon: Receipt, label: "Expenses", value: `₹${totalExpenses.toLocaleString("en-IN")}/mo`, detail: `${expenseItems.length} items` },
       { show: !hasNoAssets && validAssets.length > 0, color: "#3B82F6", icon: Building2, label: "Assets", value: `₹${totalAssetValue.toLocaleString("en-IN")}`, detail: `${validAssets.length} item${validAssets.length > 1 ? "s" : ""}` },
       { show: hasNoAssets, color: "#3B82F6", icon: Building2, label: "Assets", value: "None", detail: "No assets added" },
-      { show: !hasNoLiabilities && hasLoan, color: "#F59E0B", icon: CreditCard, label: "Liabilities", value: `₹${parseFloat(loanAmount).toLocaleString("en-IN")}`, detail: loanName },
+      { show: !hasNoLiabilities && validLoans.length > 0, color: "#F59E0B", icon: CreditCard, label: "Liabilities", value: `₹${totalLoanValue.toLocaleString("en-IN")}`, detail: `${validLoans.length} loan${validLoans.length > 1 ? "s" : ""}` },
       { show: hasNoLiabilities, color: "#F59E0B", icon: CreditCard, label: "Liabilities", value: "Debt free", detail: "No outstanding debt" },
-      { show: !hasNoInvestments && hasInvest, color: "#8B5CF6", icon: TrendingUp, label: "Investments", value: `₹${parseFloat(investAmount).toLocaleString("en-IN")}`, detail: investName },
+      { show: !hasNoInvestments && validInvests.length > 0, color: "#8B5CF6", icon: TrendingUp, label: "Investments", value: `₹${totalInvestValue.toLocaleString("en-IN")}`, detail: `${validInvests.length} investment${validInvests.length > 1 ? "s" : ""}` },
       { show: hasNoInvestments, color: "#8B5CF6", icon: TrendingUp, label: "Investments", value: "None yet", detail: "No investments added" },
     ].filter(s => s.show);
 

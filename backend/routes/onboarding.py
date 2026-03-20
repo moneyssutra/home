@@ -130,50 +130,32 @@ async def save_onboarding_step(request: Request):
     # Save actual financial data based on step
     saved_count = 0
 
-    if step == 1:  # Income
+    if step == 1:  # Income — always append new entries
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
-            # Upsert: if an onboarding income source already exists for this user, update it
-            existing = await db.income_sources.find_one(
-                {"userId": user_id, "source": "onboarding"},
-                {"_id": 0, "id": 1}
-            )
-            update_fields = {
+            income_doc = {
+                "id": str(uuid.uuid4()),
+                "userId": user_id,
                 "name": item["name"],
                 "type": item.get("type", "Salary"),
                 "expectedAmount": float(item["amount"]),
                 "frequency": item.get("frequency", "Monthly"),
+                "incomeType": "fixed",
+                "sourceCategory": None,
+                "startDate": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                "createdAt": datetime.now(timezone.utc).isoformat(),
                 "updatedAt": datetime.now(timezone.utc).isoformat(),
+                "source": "onboarding",
             }
-            # Deep fields
             if item.get("selectedDate"):
-                update_fields["selectedDate"] = str(item["selectedDate"])
+                income_doc["selectedDate"] = str(item["selectedDate"])
             if item.get("accountId"):
-                update_fields["accountId"] = item["accountId"]
-
-            if existing:
-                await db.income_sources.update_one(
-                    {"userId": user_id, "source": "onboarding", "id": existing["id"]},
-                    {"$set": update_fields}
-                )
-            else:
-                income_doc = {
-                    "id": str(uuid.uuid4()),
-                    "userId": user_id,
-                    "incomeType": "fixed",
-                    "sourceCategory": None,
-                    "startDate": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-                    "createdAt": datetime.now(timezone.utc).isoformat(),
-                    "source": "onboarding",
-                    **update_fields,
-                }
-                await db.income_sources.insert_one(income_doc)
+                income_doc["accountId"] = item["accountId"]
+            await db.income_sources.insert_one(income_doc)
             saved_count += 1
 
-    elif step == 2:  # Expenses
-        # Remove old onboarding expenses first, then insert new ones
-        await db.expenses.delete_many({"userId": user_id, "source": "onboarding"})
+    elif step == 2:  # Expenses — append new entries
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
@@ -189,7 +171,6 @@ async def save_onboarding_step(request: Request):
                 "createdAt": datetime.now(timezone.utc).isoformat(),
                 "source": "onboarding",
             }
-            # Deep fields
             if item.get("dueDate"):
                 expense_doc["dueDate"] = str(item["dueDate"])
             if item.get("needOrWant"):
@@ -197,10 +178,7 @@ async def save_onboarding_step(request: Request):
             await db.expenses.insert_one(expense_doc)
             saved_count += 1
 
-    elif step == 3:  # Assets (accounts + physical assets)
-        # Remove old onboarding assets first
-        await db.accounts.delete_many({"userId": user_id, "source": "onboarding"})
-        await db.assets.delete_many({"userId": user_id, "source": "onboarding"})
+    elif step == 3:  # Assets — append new entries
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
@@ -226,7 +204,6 @@ async def save_onboarding_step(request: Request):
                     "createdAt": datetime.now(timezone.utc).isoformat(),
                     "source": "onboarding",
                 }
-                # Deep fields
                 if item.get("purchaseDate"):
                     asset_doc["purchaseDate"] = item["purchaseDate"]
                 if item.get("growthRate"):
@@ -236,10 +213,7 @@ async def save_onboarding_step(request: Request):
                 await db.assets.insert_one(asset_doc)
             saved_count += 1
 
-    elif step == 4:  # Liabilities
-        # Remove old onboarding liabilities first
-        await db.loans.delete_many({"userId": user_id, "source": "onboarding"})
-        await db.credit_cards.delete_many({"userId": user_id, "source": "onboarding"})
+    elif step == 4:  # Liabilities — append new entries
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
@@ -266,7 +240,6 @@ async def save_onboarding_step(request: Request):
                     "createdAt": datetime.now(timezone.utc).isoformat(),
                     "source": "onboarding",
                 }
-                # Deep fields
                 if item.get("tenure"):
                     loan_doc["tenureMonths"] = int(item["tenure"])
                 if item.get("nextDueDate"):
@@ -274,9 +247,7 @@ async def save_onboarding_step(request: Request):
                 await db.loans.insert_one(loan_doc)
             saved_count += 1
 
-    elif step == 5:  # Investments
-        # Remove old onboarding investments first
-        await db.investments.delete_many({"userId": user_id, "source": "onboarding"})
+    elif step == 5:  # Investments — append new entries
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
@@ -293,7 +264,6 @@ async def save_onboarding_step(request: Request):
                 "createdAt": datetime.now(timezone.utc).isoformat(),
                 "source": "onboarding",
             }
-            # Deep fields
             if item.get("growthRate"):
                 inv_doc["growthRate"] = float(item["growthRate"])
             if item.get("linkedAccountId"):
