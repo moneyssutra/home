@@ -332,7 +332,10 @@ const Dashboard = () => {
         <div className="fixed inset-0 z-[999]" style={{ backgroundColor: "var(--bg-app)", overscrollBehavior: "none" }} data-testid="onboarding-modal">
           <ProfileSetup
             onComplete={() => { setShowOnboarding(false); fetchDashboardData(); }}
-            onDismiss={() => setShowOnboarding(false)}
+            onDismiss={() => {
+              axios.post(`${backendUrl}/api/onboarding/dismiss`, {}, { withCredentials: true }).catch(() => {});
+              setShowOnboarding(false);
+            }}
           />
         </div>
       )}
