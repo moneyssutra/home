@@ -229,8 +229,10 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
 
   /* ─── Handlers ─── */
   const handleSourceSelect = (source) => {
+    const typeChanged = selectedSource?.id !== source.id;
     setSelectedSource(source);
     setIncomeName(source.defaults.type === "Salary" ? "Monthly Salary" : source.defaults.type === "Business" ? "Business Income" : "Rental Income");
+    if (typeChanged) { setIncomeAmount(""); setIncomeDate("1"); setIncomeFrequency("Monthly"); setIncomeAccount(""); }
     setTimeout(() => setScreen("income-amount"), 300);
   };
 
@@ -847,7 +849,9 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
           {ASSET_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
               const u = [...assetItems];
+              const typeChanged = u[0]?.type !== type.category;
               u[0] = { ...u[0], type: type.category, name: type.label };
+              if (typeChanged) { u[0].amount = ""; u[0].purchaseDate = ""; u[0].growthRate = ""; }
               setAssetItems(u);
               setHasNoAssets(false);
               setTimeout(() => setScreen("asset-details"), 300);
@@ -1025,7 +1029,9 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
           {LOAN_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
               const u = [...loanItems];
+              const typeChanged = u[0]?.type !== type.label;
               u[0] = { ...u[0], type: type.label, name: type.label };
+              if (typeChanged) { u[0].amount = ""; u[0].emi = ""; u[0].rate = ""; u[0].tenure = ""; u[0].nextDue = ""; }
               setLoanItems(u);
               setHasNoLiabilities(false);
               setTimeout(() => setScreen("liability-details"), 300);
@@ -1236,7 +1242,9 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
           {INVESTMENT_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
               const u = [...investItems];
+              const typeChanged = u[0]?.type !== type.id;
               u[0] = { ...u[0], type: type.id, name: type.label };
+              if (typeChanged) { u[0].amount = ""; u[0].frequency = "Monthly"; u[0].startDate = ""; u[0].growthRate = ""; u[0].linkedAccount = ""; }
               setInvestItems(u);
               setHasNoInvestments(false);
               setTimeout(() => setScreen("invest-details"), 300);
