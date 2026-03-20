@@ -2140,7 +2140,7 @@ async def delete_expense(expense_id: str, request: Request):
 
 @router.get("/{expense_id}/detail")
 async def get_expense_detail(expense_id: str, request: Request):
-    """Get comprehensive expense detail with linked entities and payment history."""
+    """Get comprehensive expense detail with linked entities, payment status, and schedule."""
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -2178,6 +2178,107 @@ async def get_expense_detail(expense_id: str, request: Request):
     yearly_equiv = round(monthly_equiv * 12, 2)
     expense_to_income = round((monthly_equiv / monthly_income * 100), 1) if monthly_income > 0 else 0
 
+    # Payment status for current month
+    import calendar
+    now = datetime.now(timezone.utc)
+    current_day = now.day
+    current_month = now.month
+    current_year = now.year
+    target_month = f"{current_year}-{current_month:02d}"
+    days_in_month = calendar.monthrange(current_year, current_month)[1]
+
+    # Determine due day
+    due_day = None
+    sd = exp.get("selectedDate")
+    if sd:
+        try:
+            due_day = int(sd)
+        except (ValueError, TypeError):
+            pass
+    due_day_name = exp.get("selectedDay", "")
+
+    # Check payment status
+    is_paid = False
+    paid_date = None
+    # Check prepaid
+    prepaid = await db.expenses.find_one({
+        "linkedPaymentId": expense_id,
+        "expenseMonth": target_month,
+        "prepaidFlag": True
+    }, {"_id": 0})
+    if prepaid:
+        is_paid = True
+        paid_date = prepaid.get("createdAt")
+    elif exp.get("isPaid") and (exp.get("lastPaidDate", "") or "")[:7] == target_month:
+        is_paid = True
+        paid_date = exp.get("lastPaidDate") or exp.get("paidDate")
+    elif due_day and due_day <= current_day:
+        is_paid = True  # Auto-marked as past due
+
+    # Build payment schedule (last 6 months + next 6 months)
+    schedule = []
+    for offset in range(-5, 7):
+        m = current_month + offset
+        y = current_year
+        while m < 1:
+            m += 12
+            y -= 1
+        while m > 12:
+            m -= 12
+            y += 1
+        month_str = f"{y}-{m:02d}"
+        dim = calendar.monthrange(y, m)[1]
+
+        # Skip if one-time and not matching
+        if freq == "One-Time":
+            otd = exp.get("oneTimeDate", "")
+            if otd:
+                try:
+                    d = datetime.fromisoformat(otd).date()
+                    if d.month != m or d.year != y:
+                        continue
+                except (ValueError, TypeError):
+                    continue
+            else:
+                continue
+
+        # Skip quarterly/yearly/half-yearly if not applicable month
+        if freq == "Quarterly":
+            sm = exp.get("selectedMonth", "")
+            q_start = {"Q1 (Jan-Mar)": 1, "Q2 (Apr-Jun)": 4, "Q3 (Jul-Sep)": 7, "Q4 (Oct-Dec)": 10}.get(sm, None)
+            if not q_start or m not in (q_start, q_start+1, q_start+2):
+                continue
+        if freq == "Yearly":
+            sm = exp.get("selectedMonth", "")
+            month_map = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,
+                         "July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
+            if month_map.get(sm) != m:
+                continue
+
+        eff_day = min(due_day, dim) if due_day else 1
+        due_date_str = f"{y}-{m:02d}-{eff_day:02d}"
+
+        if y < current_year or (y == current_year and m < current_month):
+            status = "paid"
+        elif y == current_year and m == current_month:
+            status = "paid" if is_paid else "pending"
+        else:
+            status = "upcoming"
+
+        schedule.append({
+            "dueDate": due_date_str,
+            "amount": amount,
+            "status": status,
+            "month": month_str,
+        })
+
+    # Next due date
+    next_due = None
+    for s in schedule:
+        if s["status"] in ("upcoming", "pending"):
+            next_due = s["dueDate"]
+            break
+
     return {
         **{k: v for k, v in exp.items() if k != "createdAt"},
         "createdAt": exp.get("createdAt") if isinstance(exp.get("createdAt"), str) else str(exp.get("createdAt", "")) if exp.get("createdAt") else None,
@@ -2186,6 +2287,15 @@ async def get_expense_detail(expense_id: str, request: Request):
             "yearlyEquivalent": yearly_equiv,
             "expenseToIncomePercent": expense_to_income,
         },
+        "paymentStatus": {
+            "isPaid": is_paid,
+            "paidDate": paid_date,
+            "dueDay": due_day,
+            "dueDayName": due_day_name,
+            "nextDueDate": next_due,
+            "currentMonth": target_month,
+        },
+        "schedule": schedule,
         "linkedLoan": linked_loan,
         "linkedInsurance": linked_insurance,
         "linkedInvestment": linked_investment,

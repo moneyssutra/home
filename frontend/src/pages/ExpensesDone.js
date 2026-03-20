@@ -78,7 +78,7 @@ const ExpensesDone = () => {
               key={idx}
               className="rounded-xl p-4 shadow-card flex items-center gap-3 cursor-pointer transition-all active:scale-[0.98]"
               style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-              onClick={() => item.id ? navigate(`/expense/${item.id}`) : null}
+              onClick={() => item.id ? navigate(`/wealth/expenses/${item.id}`) : null}
               data-testid={`done-item-${idx}`}
             >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: "#DC262615" }}>

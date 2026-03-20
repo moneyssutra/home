@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit3, DollarSign, Calendar, Repeat, Tag, AlertTriangle, Shield, Link2, Loader2 } from "lucide-react";
+import { ArrowLeft, Edit3, DollarSign, Calendar, Repeat, Tag, AlertTriangle, Shield, Link2, Loader2, CheckCircle2, Clock, ChevronDown, ChevronUp } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -9,6 +9,14 @@ import { toast } from "sonner";
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 const fmt = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n || 0));
 const fmtCompact = (n) => { const a = Math.abs(n || 0); if (a >= 10000000) return `${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `${(n/100000).toFixed(1)}L`; if (a >= 1000) return `${(n/1000).toFixed(0)}K`; return Math.round(n || 0).toString(); };
+const formatDate = (d) => { if (!d) return ""; try { return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }); } catch { return d; } };
+
+const getOrdinal = (n) => {
+  if (!n) return "";
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
 
 export default function ExpenseDetail() {
   const { id } = useParams();
@@ -16,6 +24,7 @@ export default function ExpenseDetail() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const [expandedSchedule, setExpandedSchedule] = useState(false);
 
   useEffect(() => { window.scrollTo(0, 0); fetchDetail(); }, [id]);
   const fetchDetail = async () => {
@@ -29,6 +38,8 @@ export default function ExpenseDetail() {
   if (!data) return <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "var(--bg-app)" }}><p style={{ color: "var(--text-muted)" }}>Expense not found</p></div>;
 
   const m = data.metrics || {};
+  const ps = data.paymentStatus || {};
+  const schedule = expandedSchedule ? (data.schedule || []) : (data.schedule || []).slice(-6);
   const typeColor = data.expenseType === "Fixed" ? "#EF4444" : "#F59E0B";
   const impactLevel = m.expenseToIncomePercent > 20 ? "high" : m.expenseToIncomePercent > 10 ? "medium" : "low";
 
@@ -53,18 +64,84 @@ export default function ExpenseDetail() {
       </header>
 
       <div className="px-5 -mt-3 space-y-4">
+        {/* Status + Key Metrics */}
         <div className="grid grid-cols-2 gap-3" data-testid="expense-metrics">
           {[
+            { label: "This Month", value: ps.isPaid ? "Paid" : "Pending", icon: ps.isPaid ? CheckCircle2 : Clock, color: ps.isPaid ? "#059669" : "#F59E0B" },
+            { label: "Due Date", value: ps.dueDay ? `${getOrdinal(ps.dueDay)} of every month` : (ps.dueDayName || "Not set"), icon: Calendar, color: "#3B82F6" },
             { label: "Monthly Cost", value: `₹${fmt(m.monthlyEquivalent)}`, icon: DollarSign, color: "#EF4444" },
             { label: "Yearly Cost", value: `₹${fmtCompact(m.yearlyEquivalent)}`, icon: Calendar, color: "#F59E0B" },
-            { label: "Category", value: data.category || "N/A", icon: Tag, color: "#8B5CF6" },
-            { label: "Type", value: data.expenseType || "N/A", icon: Repeat, color: "#3B82F6" },
           ].map((item, i) => { const I = item.icon; return (
             <div key={i} className="rounded-2xl p-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
               <I className="h-4 w-4 mb-2" style={{ color: item.color }} /><p className="text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>{item.label}</p>
-              <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{item.value}</p>
+              <p className="text-sm font-bold" style={{ color: i === 0 ? item.color : "var(--text-primary)" }}>{item.value}</p>
             </div>
           ); })}
+        </div>
+
+        {/* Next Due Date Banner */}
+        {ps.nextDueDate && (
+          <div className="rounded-2xl p-4 flex items-center gap-3" style={{ backgroundColor: "#3B82F610", border: "1px solid #3B82F630" }} data-testid="next-due-banner">
+            <Clock className="h-5 w-5 flex-shrink-0" style={{ color: "#3B82F6" }} />
+            <div>
+              <p className="text-xs font-semibold" style={{ color: "#3B82F6" }}>Next Due Date</p>
+              <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{formatDate(ps.nextDueDate)}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Schedule */}
+        {(data.schedule || []).length > 0 && (
+          <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="payment-schedule">
+            <div className="p-4 pb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Payment Schedule</h3>
+              {(data.schedule || []).length > 6 && <button onClick={() => setExpandedSchedule(!expandedSchedule)} className="text-xs font-medium flex items-center gap-1" style={{ color: "var(--brand-primary)" }}>
+                {expandedSchedule ? "Less" : "View All"} {expandedSchedule ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </button>}
+            </div>
+            <div className="max-h-[400px] overflow-y-auto">
+              {schedule.map((s, i) => {
+                const prevStatus = i > 0 ? schedule[i - 1].status : null;
+                const showDivider = prevStatus === "paid" && (s.status === "pending" || s.status === "upcoming");
+                return (
+                  <div key={i}>
+                    {showDivider && (
+                      <div className="px-4 py-1.5 flex items-center gap-2" style={{ backgroundColor: "var(--bg-app)" }}>
+                        <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
+                        <span className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>{s.status === "pending" ? "PENDING" : "UPCOMING"}</span>
+                        <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
+                      </div>
+                    )}
+                    <div className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                      <span style={{ color: "var(--text-secondary)" }}>{formatDate(s.dueDate)}</span>
+                      <div className="flex items-center gap-2">
+                        <span style={{ color: "var(--text-primary)" }}>₹{fmt(s.amount)}</span>
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold" style={{
+                          backgroundColor: s.status === "paid" ? "#05966915" : s.status === "pending" ? "#EF444415" : "#F59E0B15",
+                          color: s.status === "paid" ? "#059669" : s.status === "pending" ? "#EF4444" : "#F59E0B"
+                        }}>
+                          {s.status === "paid" ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                          {s.status === "paid" ? "Paid" : s.status === "pending" ? "Pending" : "Upcoming"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Category & Type */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl p-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <Tag className="h-4 w-4 mb-2" style={{ color: "#8B5CF6" }} /><p className="text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>Category</p>
+            <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{data.category || "N/A"}</p>
+          </div>
+          <div className="rounded-2xl p-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <Repeat className="h-4 w-4 mb-2" style={{ color: "#3B82F6" }} /><p className="text-xs mb-0.5" style={{ color: "var(--text-muted)" }}>Type</p>
+            <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{data.expenseType || "N/A"}</p>
+          </div>
         </div>
 
         {/* Income Impact */}
