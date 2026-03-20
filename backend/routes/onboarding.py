@@ -386,9 +386,26 @@ async def save_onboarding_step(request: Request):
                 "monthlyAmount": float(item["amount"]), "source": "onboarding"
             })
             if existing:
+                # Update fields if changed
+                update_fields = {"updatedAt": datetime.now(timezone.utc).isoformat()}
+                if item.get("currentValue"):
+                    update_fields["currentValue"] = float(item["currentValue"])
+                    update_fields["principal"] = float(item["currentValue"])
+                if item.get("growthRate"):
+                    update_fields["growthRate"] = float(item["growthRate"])
+                await db.investments.update_one({"_id": existing["_id"]}, {"$set": update_fields})
+                # Update linked expense if exists
+                sip_val = float(item.get("sipAmount", item["amount"]))
+                if sip_val > 0:
+                    await db.expenses.update_one(
+                        {"userId": user_id, "linkedInvestmentId": existing["id"], "source": "onboarding"},
+                        {"$set": {"expectedAmount": sip_val, "updatedAt": datetime.now(timezone.utc).isoformat()}},
+                    )
+                saved_count += 1
                 continue
+            inv_id = str(uuid.uuid4())
             inv_doc = {
-                "id": str(uuid.uuid4()),
+                "id": inv_id,
                 "userId": user_id,
                 "name": item["name"],
                 "investmentType": item.get("investmentType", "mutual-fund"),
@@ -402,15 +419,38 @@ async def save_onboarding_step(request: Request):
                 "createdAt": datetime.now(timezone.utc).isoformat(),
                 "source": "onboarding",
             }
-            if item.get("sipAmount"):
-                inv_doc["sipAmount"] = float(item["sipAmount"])
-            elif inv_doc["investmentMode"] == "SIP":
-                inv_doc["sipAmount"] = float(item["amount"])
+            sip_amount = float(item.get("sipAmount", item["amount"]))
+            if inv_doc["investmentMode"] == "SIP":
+                inv_doc["sipAmount"] = sip_amount
             if item.get("growthRate"):
                 inv_doc["growthRate"] = float(item["growthRate"])
             if item.get("linkedAccountId"):
                 inv_doc["linkedAccountId"] = item["linkedAccountId"]
             await db.investments.insert_one(inv_doc)
+
+            # Auto-create SIP expense linked to this investment
+            if inv_doc["investmentMode"] == "SIP" and sip_amount > 0:
+                sip_expense = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "expenseName": f"SIP - {item['name']}",
+                    "expenseType": "Fixed",
+                    "category": "Investments",
+                    "expectedAmount": sip_amount,
+                    "frequency": item.get("frequency", "Monthly"),
+                    "isPaid": False,
+                    "skippedMonths": [],
+                    "needOrWant": "need",
+                    "linkedInvestmentId": inv_id,
+                    "startDate": inv_doc["startDate"],
+                    "createdAt": datetime.now(timezone.utc).isoformat(),
+                    "source": "onboarding",
+                }
+                if item.get("sipDate"):
+                    sip_expense["selectedDate"] = str(item["sipDate"])
+                    sip_expense["dueDate"] = str(item["sipDate"])
+                await db.expenses.insert_one(sip_expense)
+
             saved_count += 1
 
     # Update progress

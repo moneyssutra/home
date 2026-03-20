@@ -90,6 +90,9 @@ Financial management app with profile completion/onboarding flow, income/expense
 - **Fixed: Onboarding investment save missing `investmentMode` and `principal`** — Investment list API was at risk of 500 errors because onboarding-created investments were missing required Pydantic model fields. Now saves both fields + `sipAmount`. Backfilled existing records.
 - **Fixed: Expense schedule showing fake "paid" months** — Schedule now respects `startDate` or `createdAt` — won't show "paid" entries for months before the expense existed. If no start date set, uses current month.
 - **Fixed: Admin Safety Days showing 0d for all users** — `_compute_user_metrics` was querying empty `liquid_assets` collection. Now reads from `accounts` collection (bank balances) and `loans` (EMIs); also fixed asset value field name (`currentValue` instead of `value`).
+- **Auto-creation: Loan EMI → Expense** — Onboarding step 4 now auto-creates linked EMI expense for each loan with EMI > 0. Includes dedup-update on re-save.
+- **Auto-creation: SIP Investment → Expense** — Onboarding step 5 now auto-creates linked SIP expense for recurring investments. Includes dedup-update on re-save.
+- **Backfilled all missing auto-linked expenses** — Created 1 EMI, 9 SIP, and 3 insurance premium expenses for existing users in production DB.
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
