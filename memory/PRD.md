@@ -72,6 +72,9 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Replaced ALL hardcoded 4.33 weekly multiplier with calendar-based `get_weekly_multiplier()` across expenses.py, intelligence.py, dashboard.py, family.py
 - Parallelized DB queries: profile-completion (8 queries → 1 gather), networth (5 queries → 1 gather), goals summary (2 queries → 1 gather)
 - Cleaned up all test data from production (14 test @test.com users removed)
+- Cleaned 55 auto-generated test users from prod DB + 35 from dev DB (created by previous testing agents)
+- Fixed Admin Growth Analytics: `created_at` vs `createdAt` field name mismatch in admin.py — now reads both fields
+- Backfilled `createdAt` for prod users missing the field
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration

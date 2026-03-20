@@ -185,7 +185,7 @@ async def user_growth(request: Request):
     await _require_admin(request)
     now = get_user_now(request)
 
-    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "createdAt": 1, "created_at": 1, "lastLogin": 1}).to_list(10000)
     total_users = len(all_users)
 
     today_str = now.strftime("%Y-%m-%d")
@@ -202,7 +202,7 @@ async def user_growth(request: Request):
     monthly_buckets = {}  # last 12 months
 
     for u in all_users:
-        ca = u.get("createdAt", "")
+        ca = u.get("createdAt") or u.get("created_at", "")
         if not ca:
             continue
         try:
@@ -331,7 +331,7 @@ async def user_growth(request: Request):
 
 
 def _user_created_between(user, start_str, end_str):
-    ca = user.get("createdAt", "")
+    ca = user.get("createdAt") or user.get("created_at", "")
     if not ca:
         return False
     try:
@@ -367,7 +367,7 @@ async def command_center(request: Request):
     await _require_admin(request)
     now = get_user_now(request)
 
-    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "createdAt": 1, "created_at": 1, "lastLogin": 1}).to_list(10000)
     total_users = len(all_users)
 
     # Active users (7d / 30d) from sessions
@@ -706,7 +706,7 @@ async def segmentation_lab(request: Request):
     page_size = int(params.get("page_size", 20))
 
     # Fetch all users + profiles
-    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "createdAt": 1}).to_list(10000)
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "createdAt": 1, "created_at": 1}).to_list(10000)
     all_profiles = await db.profiles.find({}, {"_id": 0}).to_list(10000)
     profile_map = {p["userId"]: p for p in all_profiles}
 
@@ -743,7 +743,7 @@ async def segmentation_lab(request: Request):
             "occupation": profile.get("occupation", ""),
             "annualIncome": float(profile.get("annualIncome", 0) or 0),
             "dependents": int(profile.get("dependents", 0) or 0),
-            "createdAt": u.get("createdAt", ""),
+            "createdAt": u.get("createdAt") or u.get("created_at", ""),
         })
 
     # Apply filters
@@ -1007,7 +1007,7 @@ async def behavioral_insights(request: Request):
     await _require_admin(request)
     now = get_user_now(request)
 
-    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
+    all_users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "createdAt": 1, "created_at": 1, "lastLogin": 1}).to_list(10000)
     all_profiles = await db.profiles.find({}, {"_id": 0}).to_list(10000)
     profile_map = {p["userId"]: p for p in all_profiles}
 
@@ -1187,7 +1187,7 @@ async def export_users_csv(request: Request):
             u.get("name", ""),
             u.get("user_id", ""),
             u.get("auth_type", "password"),
-            u.get("createdAt", ""),
+            u.get("createdAt") or u.get("created_at", ""),
             u.get("lastLogin", ""),
             u.get("profileComplete", False),
         ])
@@ -1260,7 +1260,7 @@ async def export_analytics_csv(request: Request):
     import csv, io
     from fastapi.responses import StreamingResponse
 
-    users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "createdAt": 1, "lastLogin": 1}).to_list(10000)
+    users = await db.users.find({}, {"_id": 0, "user_id": 1, "email": 1, "name": 1, "createdAt": 1, "created_at": 1, "lastLogin": 1}).to_list(10000)
 
     output = io.StringIO()
     writer = csv.writer(output)
