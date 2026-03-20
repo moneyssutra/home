@@ -106,6 +106,22 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
             "transactionCount": stat["transactionCount"],
             "lastTransaction": stat["lastTransaction"]
         }
+
+    # Fetch current month transactions for variable income override
+    import calendar
+    now = get_user_now(request)
+    days_in_month = calendar.monthrange(now.year, now.month)[1]
+    month_start = f"{now.year}-{now.month:02d}-01"
+    month_end = f"{now.year}-{now.month:02d}-{days_in_month}"
+    monthly_txn_sums = {}
+    if entity_ids:
+        monthly_pipeline = [
+            {"$match": {"entityId": {"$in": entity_ids}, "transactionDate": {"$gte": month_start, "$lte": month_end}}},
+            {"$group": {"_id": "$entityId", "totalAmount": {"$sum": "$amount"}}}
+        ]
+        async for stat in db.income_transactions.aggregate(monthly_pipeline):
+            monthly_txn_sums[stat["_id"]] = stat["totalAmount"]
+
     for source in income_sources:
         stats = transaction_stats.get(source["id"], {})
         source["totalRecorded"] = stats.get("totalRecorded", 0)
@@ -159,6 +175,13 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
                 source["monthlyReceived"] = 0
                 source["monthlyPending"] = amount
 
+        # For variable income with actual transactions, use real amounts for received
+        is_variable = source.get('incomeType', '').lower() == 'variable'
+        actual_this_month = monthly_txn_sums.get(source["id"], 0)
+        if is_variable and actual_this_month > 0:
+            source["monthlyReceived"] = actual_this_month
+            source["monthlyTotal"] = actual_this_month + source["monthlyPending"]
+
     return income_sources
 
 
@@ -181,6 +204,22 @@ async def get_income_monthly_summary(request: Request):
     incomes = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
     other_incomes = await db.other_income.find(user_filter, {"_id": 0}).to_list(1000)
 
+    # For variable income, fetch actual transactions this month
+    month_start = f"{current_year}-{current_month:02d}-01"
+    month_end = f"{current_year}-{current_month:02d}-{days_in_month}"
+    entity_ids = [inc.get('id') for inc in incomes if inc.get('id')]
+    variable_txn_sums = {}
+    if entity_ids:
+        pipeline = [
+            {"$match": {
+                "entityId": {"$in": entity_ids},
+                "transactionDate": {"$gte": month_start, "$lte": month_end}
+            }},
+            {"$group": {"_id": "$entityId", "totalAmount": {"$sum": "$amount"}}}
+        ]
+        async for stat in db.income_transactions.aggregate(pipeline):
+            variable_txn_sums[stat["_id"]] = stat["totalAmount"]
+
     month_map = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,
                  "July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
     quarter_start_map = {'Q1': 1, 'Q2': 4, 'Q3': 7, 'Q4': 10}
@@ -192,6 +231,9 @@ async def get_income_monthly_summary(request: Request):
     for inc in incomes:
         amount = inc.get('expectedAmount', 0) or 0
         freq = inc.get('frequency', 'Monthly')
+        is_variable = inc.get('incomeType', '').lower() == 'variable'
+        entity_id = inc.get('id', '')
+        actual_received = variable_txn_sums.get(entity_id, 0) if is_variable else 0
 
         # Loan repayment income: use startDate to only count valid occurrences
         if inc.get('sourceCategory') == 'loan_repayment':
@@ -328,6 +370,11 @@ async def get_income_monthly_summary(request: Request):
             else:
                 rec = 0
                 pend = month_amt
+
+        # For variable income with actual transactions, use real amounts for received
+        if is_variable and actual_received > 0:
+            rec = actual_received
+            month_amt = rec + pend
 
         total_income += month_amt
         received_income += rec

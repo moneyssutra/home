@@ -103,6 +103,7 @@ Financial management app with profile completion/onboarding flow, income/expense
 
 ## Completed (Mar 20, 2026 - Cont.)
 - **NEW: Credit Cards Experimental Page (CRED-style)** — Created `/credit-cards-experimental` route with 3 tabs (Cards/Payments/Insights). Features horizontal snap-scroll credit card widgets with bank-specific gradient backgrounds (ICICI orange), chip/network visuals, cardholder name, outstanding amounts, utilization bars, due date badges, credit utilization summary, quick actions (Pay Bill/Statements/Add Card), All Cards list with per-card refresh, sync notifications, and credit health insights with high-utilization alerts. Wired up route in App.js and RollingButtons "Cards" entry. Backend `/api/cc-overview` pulls live data from `credit_cards` and `cc_payments` collections. Fully tested (16/16 backend, all frontend tests passed).
+- **BUGFIX: Variable income transactions not reflecting** — Dashboard and MyIncome showed schedule-based expected amounts for variable income (e.g., 220000 × 3 Tuesdays = 660000) instead of actual recorded transaction amounts (529534). Fixed `/api/income/monthly-summary`, `/api/income/list/summary`, and `/api/dashboard/networth` to use real `income_transactions` sum for variable income's received portion. Fixed income → Qnet → 356400 now correctly reflects.
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
