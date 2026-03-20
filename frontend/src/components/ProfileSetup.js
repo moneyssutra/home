@@ -146,7 +146,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
 
   // Liability state
   const [hasNoLiabilities, setHasNoLiabilities] = useState(false);
-  const [loanItems, setLoanItems] = useState([{ name: "", amount: "", emi: "", type: "Personal Loan", rate: "", tenure: "", nextDue: "" }]);
+  const [loanItems, setLoanItems] = useState([{ name: "", amount: "", emi: "", type: "", rate: "", tenure: "", nextDue: "" }]);
   const [showLiabilityDeep, setShowLiabilityDeep] = useState(false);
 
   // Investment state
@@ -167,7 +167,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
       setAssetItems([{ name: "", amount: "", type: "bank_balance", purchaseDate: "", growthRate: "" }]);
       setHasNoAssets(false);
     } else if (mod === "liabilities") {
-      setLoanItems([{ name: "", amount: "", emi: "", type: "Personal Loan", rate: "", tenure: "", nextDue: "" }]);
+      setLoanItems([{ name: "", amount: "", emi: "", type: "", rate: "", tenure: "", nextDue: "" }]);
       setHasNoLiabilities(false);
     } else if (mod === "investments") {
       setInvestItems([{ name: "", amount: "", type: "mutual-fund", frequency: "Monthly", startDate: "", growthRate: "", linkedAccount: "" }]);
@@ -1151,7 +1151,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
               </div>
             );
           })}
-          <button onClick={() => setLoanItems(p => [...p, { name: "Personal Loan", amount: "", emi: "", type: "Personal Loan", rate: "", tenure: "", nextDue: "" }])}
+          <button onClick={() => setLoanItems(p => [...p, { name: "", amount: "", emi: "", type: "", rate: "", tenure: "", nextDue: "" }])}
             className="w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
             style={{ color: "#F59E0B", border: "1px dashed var(--border-light)" }}
             data-testid="add-loan-btn"
