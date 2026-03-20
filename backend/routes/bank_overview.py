@@ -10,20 +10,24 @@ router = APIRouter(prefix="/bank-overview", tags=["Bank Overview"])
 
 # Bank color schemes based on common Indian bank names
 BANK_COLORS = {
-    "icici": {"gradient": ["#FD7014", "#E85D04"], "color": "#F97316"},
-    "hdfc": {"gradient": ["#1D4ED8", "#1E40AF"], "color": "#2563EB"},
-    "sbi": {"gradient": ["#047857", "#065F46"], "color": "#059669"},
-    "kotak": {"gradient": ["#B91C1C", "#991B1B"], "color": "#DC2626"},
-    "axis": {"gradient": ["#7C3AED", "#6D28D9"], "color": "#8B5CF6"},
-    "idfc": {"gradient": ["#0891B2", "#0E7490"], "color": "#06B6D4"},
-    "yes": {"gradient": ["#1D4ED8", "#1E3A8A"], "color": "#2563EB"},
-    "bob": {"gradient": ["#EA580C", "#C2410C"], "color": "#F97316"},
-    "pnb": {"gradient": ["#7C3AED", "#5B21B6"], "color": "#8B5CF6"},
-    "canara": {"gradient": ["#047857", "#064E3B"], "color": "#059669"},
-    "union": {"gradient": ["#1D4ED8", "#1E3A8A"], "color": "#3B82F6"},
-    "indian": {"gradient": ["#1D4ED8", "#1E3A8A"], "color": "#3B82F6"},
+    "icici": {"gradient": ["#FD7014", "#E85D04"], "color": "#F97316", "network": "VISA"},
+    "hdfc": {"gradient": ["#1D4ED8", "#1E40AF"], "color": "#2563EB", "network": "Mastercard"},
+    "sbi": {"gradient": ["#047857", "#065F46"], "color": "#059669", "network": "RuPay"},
+    "kotak": {"gradient": ["#B91C1C", "#991B1B"], "color": "#DC2626", "network": "VISA"},
+    "axis": {"gradient": ["#7C3AED", "#6D28D9"], "color": "#8B5CF6", "network": "Mastercard"},
+    "idfc": {"gradient": ["#0891B2", "#0E7490"], "color": "#06B6D4", "network": "VISA"},
+    "yes": {"gradient": ["#1D4ED8", "#1E3A8A"], "color": "#2563EB", "network": "Mastercard"},
+    "bob": {"gradient": ["#EA580C", "#C2410C"], "color": "#F97316", "network": "RuPay"},
+    "pnb": {"gradient": ["#7C3AED", "#5B21B6"], "color": "#8B5CF6", "network": "RuPay"},
+    "canara": {"gradient": ["#047857", "#064E3B"], "color": "#059669", "network": "RuPay"},
+    "union": {"gradient": ["#1D4ED8", "#1E3A8A"], "color": "#3B82F6", "network": "RuPay"},
+    "indian": {"gradient": ["#1D4ED8", "#1E3A8A"], "color": "#3B82F6", "network": "RuPay"},
+    "amazon": {"gradient": ["#1A1A2E", "#16213E"], "color": "#232F3E", "network": "Mastercard"},
+    "citi": {"gradient": ["#003B70", "#002855"], "color": "#003B70", "network": "VISA"},
+    "indusind": {"gradient": ["#8B0000", "#660000"], "color": "#8B0000", "network": "VISA"},
+    "rbl": {"gradient": ["#E63946", "#C1121F"], "color": "#E63946", "network": "Mastercard"},
 }
-DEFAULT_COLORS = {"gradient": ["#334155", "#1E293B"], "color": "#475569"}
+DEFAULT_COLORS = {"gradient": ["#334155", "#1E293B"], "color": "#475569", "network": "VISA"}
 
 
 def _get_bank_style(account_name: str) -> dict:
@@ -108,20 +112,52 @@ async def get_bank_overview(request: Request):
         accounts_task, expense_tx_task, income_tx_task, expenses_task, income_task
     )
 
+    # Get cardholder name from user profile
+    user_doc = await db.users.find_one({"user_id": user_id}, {"_id": 0, "name": 1, "firstName": 1, "lastName": 1})
+    cardholder = ""
+    if user_doc:
+        if user_doc.get("firstName"):
+            cardholder = f"{user_doc.get('firstName', '')} {user_doc.get('lastName', '')}".strip().upper()
+        elif user_doc.get("name"):
+            cardholder = user_doc["name"].upper()
+
     # --- 1. ACCOUNTS ---
     accounts_data = []
     for acc in accounts:
         style = _get_bank_style(acc.get("accountName", ""))
+        # Compute due info for credit cards
+        due_info = None
+        due_date_raw = acc.get("dueDate")
+        if due_date_raw:
+            try:
+                due_dt = datetime.fromisoformat(str(due_date_raw).replace("Z", "+00:00"))
+                days_left = (due_dt.date() - now.date()).days
+                if days_left > 0:
+                    due_info = f"DUE IN {days_left} DAY{'S' if days_left != 1 else ''}"
+                elif days_left == 0:
+                    due_info = "DUE TODAY"
+                else:
+                    due_info = f"OVERDUE {abs(days_left)} DAY{'S' if abs(days_left) != 1 else ''}"
+            except (ValueError, TypeError):
+                pass
+
+        is_credit = "credit" in (acc.get("accountType") or "").lower()
         accounts_data.append({
             "id": acc.get("id", ""),
             "bank": acc.get("accountName", "Unknown Account"),
             "type": acc.get("accountType", "Savings"),
             "accountNumber": f"****{(acc.get('accountNumber') or '')[-4:]}" if acc.get("accountNumber") else "",
             "balance": float(acc.get("currentBalance", 0)),
+            "outstandingAmount": float(acc.get("outstandingAmount") or 0),
+            "creditLimit": float(acc.get("creditLimit") or 0),
             "lastUpdated": _relative_time(acc.get("updatedAt") or acc.get("createdAt", "")),
             "color": style["color"],
             "gradient": style["gradient"],
             "logo": _get_bank_logo(acc.get("accountName", "")),
+            "network": style.get("network", "VISA"),
+            "cardholder": cardholder,
+            "dueInfo": due_info,
+            "isCredit": is_credit,
         })
 
     # --- 2. TRANSACTIONS (merged expense + income) ---

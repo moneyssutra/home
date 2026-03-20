@@ -55,13 +55,43 @@ const SyncNotification = ({ message, visible }) => (
   </div>
 );
 
+// ---------- FACETED PATTERN (SVG) ----------
+const FacetedPattern = () => (
+  <svg className="absolute left-0 top-0 h-full w-[45%] opacity-[0.07]" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice">
+    <polygon points="100,10 180,80 160,180 40,180 20,80" fill="white" />
+    <polygon points="100,10 180,80 100,120" fill="white" opacity="0.5" />
+    <polygon points="100,10 20,80 100,120" fill="white" opacity="0.3" />
+    <polygon points="20,80 40,180 100,120" fill="white" opacity="0.2" />
+    <polygon points="180,80 160,180 100,120" fill="white" opacity="0.4" />
+    <polygon points="40,180 160,180 100,120" fill="white" opacity="0.15" />
+    <polygon points="60,200 140,200 120,280 80,280" fill="white" opacity="0.08" />
+  </svg>
+);
+
+// ---------- CARD NETWORK BADGE ----------
+const NetworkBadge = ({ network }) => {
+  if (network === "Mastercard") {
+    return (
+      <div className="flex items-center -space-x-1.5">
+        <div className="w-5 h-5 rounded-full" style={{ background: "#EB001B", opacity: 0.9 }} />
+        <div className="w-5 h-5 rounded-full" style={{ background: "#F79E1B", opacity: 0.9 }} />
+      </div>
+    );
+  }
+  if (network === "RuPay") {
+    return <span className="text-[10px] font-black tracking-wider text-white/80">RuPay</span>;
+  }
+  // Default VISA
+  return <span className="text-sm font-black italic tracking-wider text-white/80">VISA</span>;
+};
+
 // ---------- ACCOUNT CARD (Real Bank Card Design) ----------
 const AccountCard = ({ account, isActive, onRefresh, refreshingId }) => {
   const isRefreshing = refreshingId === account.id;
   return (
     <div
       data-testid={`bank-card-${account.id}`}
-      className="flex-shrink-0 w-[300px] snap-center rounded-2xl transition-all duration-300 text-left relative overflow-hidden"
+      className="flex-shrink-0 w-[310px] snap-center rounded-2xl transition-all duration-300 text-left relative overflow-hidden"
       style={{
         background: `linear-gradient(145deg, ${account.gradient[0]}, ${account.gradient[1]})`,
         transform: isActive ? "scale(1)" : "scale(0.93)",
@@ -72,55 +102,71 @@ const AccountCard = ({ account, isActive, onRefresh, refreshingId }) => {
         aspectRatio: "1.7/1",
       }}
     >
-      {/* Background pattern */}
-      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%)" }} />
-      <div className="absolute -bottom-12 -right-12 w-40 h-40 rounded-full" style={{ background: "rgba(255,255,255,0.04)" }} />
-      <div className="absolute top-4 right-4 w-20 h-20 rounded-full" style={{ background: "rgba(255,255,255,0.03)" }} />
+      {/* Faceted gemstone pattern */}
+      <FacetedPattern />
+      {/* Subtle radial glow */}
+      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 85% 15%, rgba(255,255,255,0.1) 0%, transparent 50%)" }} />
 
       <div className="relative z-10 h-full flex flex-col justify-between p-5">
-        {/* Top: Bank name + Refresh */}
-        <div className="flex items-center justify-between">
+        {/* Top Row: Bank Logo + Name + Refresh */}
+        <div className="flex items-start justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[9px] font-black tracking-wider" style={{ background: "rgba(255,255,255,0.15)", color: "#fff", backdropFilter: "blur(4px)" }}>
+            <div className="w-8 h-8 rounded-md flex items-center justify-center text-[8px] font-black tracking-wider" style={{ background: "rgba(255,255,255,0.15)", color: "#fff", backdropFilter: "blur(4px)" }}>
               {account.logo}
             </div>
             <div>
               <p className="text-[13px] font-bold text-white leading-tight">{account.bank}</p>
-              <p className="text-[10px] text-white/50 font-medium">{account.type}</p>
+              <p className="text-[10px] text-white/45 font-medium">{account.type}</p>
             </div>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); onRefresh(account); }}
             data-testid={`card-refresh-${account.id}`}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
-            style={{ background: "rgba(255,255,255,0.12)" }}
+            className="w-7 h-7 rounded-md flex items-center justify-center transition-all active:scale-90"
+            style={{ background: "rgba(255,255,255,0.1)" }}
           >
-            <RefreshCw size={14} className={`text-white/70 ${isRefreshing ? "animate-spin" : ""}`} />
+            <RefreshCw size={12} className={`text-white/60 ${isRefreshing ? "animate-spin" : ""}`} />
           </button>
         </div>
 
-        {/* Middle: Chip + Contactless + Account Number */}
+        {/* Middle: Chip + Network + Card Number */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-7 rounded-md" style={{ background: "linear-gradient(135deg, #D4A026, #C49B1D, #E8C84A)", boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)" }}>
-            <div className="w-full h-full grid grid-cols-3 gap-px p-[3px] rounded-md overflow-hidden">
-              {[...Array(6)].map((_, i) => <div key={i} className="rounded-[1px]" style={{ background: "rgba(180,140,20,0.5)" }} />)}
+          {/* Realistic chip */}
+          <div className="w-10 h-7 rounded-[4px] relative" style={{ background: "linear-gradient(145deg, #D4A026, #C49B1D, #E8C84A)", boxShadow: "0 1px 3px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.3)" }}>
+            <div className="absolute inset-[2px] grid grid-cols-3 grid-rows-2 gap-[1px]">
+              {[...Array(6)].map((_, i) => <div key={i} className="rounded-[1px]" style={{ background: "rgba(160,120,15,0.45)" }} />)}
             </div>
           </div>
-          <Wifi size={16} className="text-white/30 rotate-90" />
+          <Wifi size={15} className="text-white/25 rotate-90" />
           {account.accountNumber && (
-            <p className="text-xs font-mono text-white/40 tracking-[3px]">{account.accountNumber}</p>
+            <p className="text-[11px] font-mono text-white/35 tracking-[3px]">{account.accountNumber}</p>
           )}
         </div>
 
-        {/* Bottom: Balance + Last Updated */}
+        {/* Bottom: Cardholder + Balance + Network + Due */}
         <div className="flex items-end justify-between">
-          <div>
-            <p className="text-[9px] font-semibold uppercase tracking-[2px] text-white/40 mb-0.5">Balance</p>
-            <p className="text-xl font-black text-white tracking-tight">₹{fmtFull(account.balance)}</p>
+          <div className="flex-1 min-w-0">
+            {account.cardholder && (
+              <p className="text-[10px] font-bold text-white/50 tracking-[1.5px] mb-1 truncate">{account.cardholder}</p>
+            )}
+            <p className="text-[9px] font-semibold uppercase tracking-[2px] text-white/35 mb-0.5">
+              {account.isCredit ? "Outstanding" : "Balance"}
+            </p>
+            <p className="text-xl font-black text-white tracking-tight">
+              ₹{fmtFull(account.isCredit ? (account.outstandingAmount || account.balance) : account.balance)}
+            </p>
           </div>
-          <div className="flex items-center gap-1">
-            <Clock size={10} className="text-white/30" />
-            <p className="text-[9px] text-white/35 font-medium">{account.lastUpdated}</p>
+          <div className="flex flex-col items-end gap-1.5 flex-shrink-0 ml-3">
+            <NetworkBadge network={account.network || "VISA"} />
+            {account.dueInfo && (
+              <span className="text-[8px] font-bold px-2 py-0.5 rounded-full tracking-wider" style={{ background: "rgba(255,255,255,0.15)", color: "#fff" }}>
+                {account.dueInfo}
+              </span>
+            )}
+            <div className="flex items-center gap-1">
+              <Clock size={8} className="text-white/25" />
+              <p className="text-[8px] text-white/30">{account.lastUpdated}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -149,7 +195,7 @@ const AccountsTab = ({ accounts, refreshing, onRefreshAll, onRefreshOne, refresh
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const idx = Math.round(el.scrollLeft / 316);
+    const idx = Math.round(el.scrollLeft / 326);
     setActiveIdx(Math.min(idx, accounts.length - 1));
   }, [accounts.length]);
 
