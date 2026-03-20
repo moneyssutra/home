@@ -9,58 +9,53 @@ Full-stack financial management app ("MoneySutra") with React + FastAPI + MongoD
 - **Database**: MongoDB Atlas (dual: `moneyssutra_dev` / `moneyssutra_prod`)
 - **Auth**: JWT sessions + Google OAuth + MPIN + WebAuthn Biometric
 
+## Feature: Targeted Module Wizards (Mar 20, 2026) - COMPLETE
+### What Was Built
+1. **Targeted Routing**: Clicking a category card on Profile Health Grid launches a module-specific wizard via `?module=income|expenses|assets|liabilities|investments` query param
+2. **Module Isolation**: Each module shows only its own steps with a colored badge label. Income has 3 steps, others have 1 deep step each.
+3. **Auto-expanded Deep Details**: In module mode, deep data fields are visible by default (no toggle needed). In full wizard mode, they remain behind "+ Add Deep Details" toggle.
+4. **Deep Data Intake**:
+   - Income: receivedDate (day of month), frequency, linked account
+   - Expenses: dueDate (day), needOrWant (Need vs Want for Regret Flag engine)
+   - Assets: purchaseDate, growthRate (%), linkedAccountId
+   - Liabilities: interestRate, tenureRemaining (months), nextDueDate (day)
+   - Investments: frequency, startDate, growthRate (%), linkedAccountId
+5. **Contextual Tooltips**: Premium inline hints on all technical fields:
+   - Income Frequency: "We use this to project your annual income"
+   - Income Date: "We use this to notify you if your salary is delayed"
+   - Asset Growth: "12% recommended for Indian Mutual Funds"
+   - Loan Rate: "Helps calculate your real cost of borrowing"
+   - Loan Tenure: "How many months left on this loan?"
+   - Loan Due Date: "We'll remind you before it's due"
+   - Investment Returns: "12% is a conservative estimate for Indian Mutual Funds"
+6. **Exit Behavior**: Module wizards show "Save & Done" and return to Profile Health Grid (not Dashboard). Grid refreshes with updated completion %.
+7. **Backend**: All deep fields persisted to MongoDB (expenses.dueDate, loans.tenureMonths, etc.)
+
 ## Feature: Profile Setup Overhaul (Mar 20, 2026) - COMPLETE
-### What Changed
-1. **Renamed** 'Strategic Setup' -> 'Profile Setup' across the app
-2. **New Profile Health Grid** - Landing page with 5 category cards (Income, Expenses, Assets, Liabilities, Investments) showing individual completion status, progress ring, and overall %
-3. **Extended Wizard** - Now covers ALL 5 categories (previously only 2):
-   - Income: Type -> Amount -> Date (with deep details: name, frequency, account)
-   - Expenses: Bucket-based (Essentials/Growth/Lifestyle)
-   - Assets: Type selector (Bank/Property/Gold/Vehicle), multiple items, "I don't have any" option
-   - Liabilities: Loan entry with "No debt" option (deep: loan type, rate)
-   - Investments: Type selector (MF/Stocks/FD/PPF), "Not yet" option (deep: frequency)
-4. **Progressive Disclosure** - "+ Add Deep Details" toggles on Income, Assets, Liabilities, Investments
-5. **Fixed Completion Logic** - Skipped wizard steps now count as completed (was 40%, now 100% after wizard)
+- Renamed 'Strategic Setup' → 'Profile Setup'
+- Profile Health Grid with 5 category cards + progress ring
+- Extended wizard covers all 5 categories
+- Progressive Disclosure ("+ Add Deep Details" toggle)
+- Fixed completion logic (skipped steps count as completed)
 
-## Bug Fix: Duplicate Income (1.5L -> 50K) (Mar 20, 2026) - COMPLETE
-### Root Cause
-The onboarding save-step handler used `insert_one` for income sources without checking for existing entries. Running the wizard multiple times created duplicate income sources (3x ₹50K = ₹1.5L).
-### Fix Applied
-1. **Data Cleanup**: Deleted 2 duplicate "Monthly Salary" entries for moneyssutra@gmail.com, keeping 1 at ₹50K
-2. **Upsert Logic for ALL onboarding steps**:
-   - Step 1 (Income): Checks for existing onboarding source and updates instead of inserting
-   - Steps 2-5 (Expenses/Assets/Liabilities/Investments): Deletes old onboarding entries before inserting new ones
-3. **Aggregation Verified**: income.py monthly-summary pipeline is correct — it sums per-source, doesn't mix Expected/Received statuses
-
-### Architecture
-- **Component**: `/app/frontend/src/components/ProfileSetup.js` (replaces StrategicOnboarding.js)
-- **Backend**: `/app/backend/routes/onboarding.py` (upsert logic + completion logic)
-- **Entry Points**: Dashboard banner -> navigates to `/onboarding`, auto-popup for 0% users
+## Bug Fix: Duplicate Income (1.5L → 50K) (Mar 20, 2026) - COMPLETE
+- Cleaned 2 duplicate income sources for moneyssutra@gmail.com
+- Implemented upsert logic for all onboarding save-steps
 
 ## Key API Endpoints
 - `/api/onboarding/profile-completion` - Returns completion % and per-category status
-- `/api/onboarding/save-step` - Steps 1-5 with upsert logic
+- `/api/onboarding/save-step` - Steps 1-5 with upsert logic + deep fields
 - `/api/onboarding/complete` - Marks onboarding done
 - `/api/onboarding/dismiss` - Dismisses banner
 - `/api/income/monthly-summary` - Monthly income summary
 - `/api/dashboard/networth` - Dashboard data
 - `/api/financial-health` - Financial health analysis
 
-## Other Completed Features
-- Auth: Email/password, Google OAuth, MPIN, Biometric (WebAuthn)
-- Full CRUD: Income, Expenses, Loans, Assets, Accounts, Insurance, Investments, Credit Cards, Goals
-- Dashboard, Financial health, Gamification, Notifications, Reports
-- Admin panel with token-based auth
-- CRED-Style Rolling Buttons
-- Loan Given Investment Type with auto-repayment scheduler
-- Skip Payment Feature for expenses
-- Financial Health Wizard
-- Wealth Page resilient data fetching (Promise.allSettled)
-- Back button navigation loop fix
-- Investment allocation detailed breakdown
-- Reduced badges from 100 to 30
-- Start date field for all income forms
-- Mobile UI Layout fixes (BottomNav, safe areas, toasts)
+## Key Components
+- `/app/frontend/src/components/ProfileSetup.js` - Profile Health Grid + Targeted Module Wizards
+- `/app/backend/routes/onboarding.py` - Backend save-step with upsert + deep fields
+- `/app/frontend/src/Dashboard.js` - Banner → /onboarding navigation
+- `/app/frontend/src/pages/OnboardingPage.js` - Route handler
 
 ## Prioritized Backlog
 ### P1
