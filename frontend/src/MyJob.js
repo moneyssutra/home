@@ -166,18 +166,18 @@ const MyJob = () => {
         </div>
 
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="total-income-card">
-          <p className="text-white/70 text-sm font-medium mb-1">Total Expected Salary</p>
+          <p className="text-white/70 text-sm font-medium mb-1">Expected Monthly Salary</p>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalIncome)}</h2>
-          <p className="text-white/50 text-xs mt-1">{jobs.length} job sources</p>
+          <p className="text-white/50 text-xs mt-1">{jobs.length} job source{jobs.length !== 1 ? "s" : ""} · adjusted to monthly</p>
           
           <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-white/70 mb-1">Fixed Salary</p>
+              <p className="text-white/70 mb-1">Fixed (this month)</p>
               <p className="text-white font-medium"><span style={{ color: "#A7F3D0" }}>₹{formatAmount(fixedReceivedTotal)} Received</span></p>
               <p className="text-white font-medium"><span style={{ color: "#FDE68A" }}>₹{formatAmount(fixedPendingTotal)} Pending</span></p>
             </div>
             <div>
-              <p className="text-white/70 mb-1">Variable Salary</p>
+              <p className="text-white/70 mb-1">Variable (this month)</p>
               <p className="text-white font-medium"><span style={{ color: "#A7F3D0" }}>₹{formatAmount(variableReceivedTotal)} Received</span></p>
               <p className="text-white font-medium"><span style={{ color: "#FDE68A" }}>₹{formatAmount(variablePendingTotal)} Pending</span></p>
             </div>

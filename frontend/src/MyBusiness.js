@@ -22,12 +22,14 @@ const MyBusiness = () => {
   };
 
   // Memoize calculations
-  const { totalIncome, fixedBusinesses, variableBusinesses, fixedTotal, variableTotal } = useMemo(() => {
+  const { totalIncome, fixedBusinesses, variableBusinesses, fixedTotal, variableTotal, rawTotal } = useMemo(() => {
     const total = businesses.reduce((sum, biz) => sum + (biz.monthlyTotal || biz.expectedAmount || 0), 0);
+    const raw = businesses.reduce((sum, biz) => sum + (biz.expectedAmount || 0), 0);
     const fixed = businesses.filter(b => b.incomeType !== "variable");
     const variable = businesses.filter(b => b.incomeType === "variable");
     return {
       totalIncome: total,
+      rawTotal: raw,
       fixedBusinesses: fixed,
       variableBusinesses: variable,
       fixedTotal: fixed.reduce((sum, b) => sum + (b.monthlyTotal || b.expectedAmount || 0), 0),
@@ -242,13 +244,13 @@ const MyBusiness = () => {
 
         {/* Total Income Card */}
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20" data-testid="total-income-card">
-          <p className="text-white/70 text-sm font-medium mb-1">Total Expected Income</p>
+          <p className="text-white/70 text-sm font-medium mb-1">Expected Monthly Income</p>
           <h2 className="text-3xl font-bold text-white">₹ {formatAmount(totalIncome)}</h2>
-          <p className="text-white/50 text-xs mt-1">{businesses.length} business sources</p>
+          <p className="text-white/50 text-xs mt-1">{businesses.length} business source{businesses.length !== 1 ? "s" : ""} · adjusted to monthly</p>
           
           <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 text-sm">
             <div>
-              <p className="text-white/70 mb-1">Fixed Income</p>
+              <p className="text-white/70 mb-1">Fixed (this month)</p>
               <p className="text-white font-medium">
                 <span style={{ color: "#A7F3D0" }}>₹{formatAmount(fixedReceivedTotal)} Received</span>
               </p>
@@ -257,7 +259,7 @@ const MyBusiness = () => {
               </p>
             </div>
             <div>
-              <p className="text-white/70 mb-1">Variable Income</p>
+              <p className="text-white/70 mb-1">Variable (this month)</p>
               <p className="text-white font-medium">
                 <span style={{ color: "#A7F3D0" }}>₹{formatAmount(variableReceivedTotal)} Received</span>
               </p>
@@ -319,7 +321,7 @@ const MyBusiness = () => {
                 </div>
                 <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Fixed</span>
               </div>
-              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(fixedTotal)}</p>
+              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(fixedTotal)}<span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>/mo</span></p>
               <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>{fixedBusinesses.length} businesses</p>
               <div className="mt-auto space-y-1">
                 {fixedBusinesses.slice(0, 2).map(biz => (
@@ -345,7 +347,7 @@ const MyBusiness = () => {
                 </div>
                 <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Variable</span>
               </div>
-              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(variableTotal)}</p>
+              <p className="text-xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>₹ {formatAmount(variableTotal)}<span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>/mo</span></p>
               <p className="text-xs mb-2" style={{ color: "var(--text-muted)" }}>{variableBusinesses.length} businesses</p>
               <div className="mt-auto space-y-1">
                 {variableBusinesses.slice(0, 2).map(biz => (
@@ -482,7 +484,10 @@ const MyBusiness = () => {
                     <p className="font-bold" style={{ color: status === 'received' ? "var(--status-success)" : "var(--text-primary)" }}>
                       ₹ {formatAmount(business.expectedAmount)}
                     </p>
-                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>{business.frequency}</p>
+                    <p className="text-xs" style={{ color: "var(--text-muted)" }}>/{business.frequency?.toLowerCase()?.replace("monthly","mo")?.replace("weekly","wk")?.replace("daily","day")?.replace("quarterly","qtr")?.replace("yearly","yr")}</p>
+                    {business.frequency !== "Monthly" && business.monthlyTotal > 0 && (
+                      <p className="text-[10px] font-medium" style={{ color: "var(--brand-primary)" }}>≈ ₹{formatAmount(business.monthlyTotal)}/mo</p>
+                    )}
                   </div>
                   <ChevronRight className="h-5 w-5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />
                 </button>
