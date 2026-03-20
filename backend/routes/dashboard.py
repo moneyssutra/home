@@ -36,11 +36,11 @@ async def get_networth_summary(request: Request):
 
     total_assets = sum(asset.get('currentValue', 0) for asset in assets)
     total_investments = sum(inv.get('currentValue', 0) for inv in investments)
-    liquid_balance = sum(acc.get('currentBalance', 0) for acc in accounts if acc.get('accountType') != 'Credit Card')
+    liquid_balance = sum(acc.get('currentBalance', 0) or acc.get('balance', 0) for acc in accounts if acc.get('accountType') != 'Credit Card')
     credit_outstanding = sum(acc.get('outstandingAmount', 0) or 0 for acc in accounts if acc.get('accountType') == 'Credit Card')
     credit_card_outstanding = sum(card.get('outstandingAmount', 0) for card in credit_cards)
     credit_card_limit = sum(card.get('creditLimit', 0) for card in credit_cards)
-    total_liabilities = sum(loan.get('outstandingAmount', 0) for loan in loans) + credit_outstanding + credit_card_outstanding
+    total_liabilities = sum(loan.get('outstandingAmount', 0) or loan.get('principalAmount', 0) for loan in loans) + credit_outstanding + credit_card_outstanding
 
     current_month = get_user_now(request).month
     current_year = get_user_now(request).year
