@@ -126,18 +126,23 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
             source["monthlyPending"] = amount * (days_in_month - current_day)
         elif freq == 'Weekly':
             day_name = source.get('selectedDay', '')
-            if day_name:
-                past_count = count_weekday_occurrences(now.year, now.month, day_name, current_day)
-                total_count = count_weekday_occurrences(now.year, now.month, day_name)
-                source["monthlyTotal"] = amount * total_count
-                source["monthlyReceived"] = amount * past_count
-                source["monthlyPending"] = amount * (total_count - past_count)
-            else:
-                mt = amount * 4.33
-                ratio = current_day / days_in_month
-                source["monthlyTotal"] = round(mt, 2)
-                source["monthlyReceived"] = round(mt * ratio, 2)
-                source["monthlyPending"] = round(mt * (1 - ratio), 2)
+            if not day_name:
+                # Default to the weekday of createdAt, or today
+                created = source.get('createdAt', '')
+                if created:
+                    try:
+                        from datetime import datetime as dt_parse
+                        cd = dt_parse.fromisoformat(created.replace('Z', '+00:00'))
+                        day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][cd.weekday()]
+                    except Exception:
+                        day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][now.weekday()]
+                else:
+                    day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][now.weekday()]
+            past_count = count_weekday_occurrences(now.year, now.month, day_name, current_day)
+            total_count = count_weekday_occurrences(now.year, now.month, day_name)
+            source["monthlyTotal"] = amount * total_count
+            source["monthlyReceived"] = amount * past_count
+            source["monthlyPending"] = amount * (total_count - past_count)
         else:
             sd_str = source.get('selectedDate')
             applies, sd = _parse_selected_date(sd_str, now.year, now.month, days_in_month)
@@ -293,17 +298,22 @@ async def get_income_monthly_summary(request: Request):
             pend = amount * (days_in_month - current_day)
         elif freq == 'Weekly':
             day_name = inc.get('selectedDay', '')
-            if day_name:
-                past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
-                total_count = count_weekday_occurrences(current_year, current_month, day_name)
-                month_amt = amount * total_count
-                rec = amount * past_count
-                pend = amount * (total_count - past_count)
-            else:
-                month_amt = amount * 4.33
-                ratio = current_day / days_in_month
-                rec = month_amt * ratio
-                pend = month_amt * (1 - ratio)
+            if not day_name:
+                created = inc.get('createdAt', '')
+                if created:
+                    try:
+                        from datetime import datetime as dt_parse
+                        cd = dt_parse.fromisoformat(created.replace('Z', '+00:00'))
+                        day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][cd.weekday()]
+                    except Exception:
+                        day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][now.weekday()]
+                else:
+                    day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][now.weekday()]
+            past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
+            total_count = count_weekday_occurrences(current_year, current_month, day_name)
+            month_amt = amount * total_count
+            rec = amount * past_count
+            pend = amount * (total_count - past_count)
         else:
             month_amt = amount
             sd_str = inc.get('selectedDate')
@@ -548,18 +558,22 @@ async def get_income_detail(income_id: str, request: Request):
     days_in_month = cal.monthrange(current_year, current_month)[1]
     if freq == "Weekly":
         day_name = inc.get("selectedDay", "")
-        if day_name:
-            past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
-            total_count = count_weekday_occurrences(current_year, current_month, day_name)
-            monthly_received = expected * past_count
-            monthly_total = expected * total_count
-            monthly_pending = expected * (total_count - past_count)
-        else:
-            mt = expected * 4.33
-            ratio = current_day / days_in_month
-            monthly_received = round(mt * ratio, 2)
-            monthly_total = round(mt, 2)
-            monthly_pending = round(mt * (1 - ratio), 2)
+        if not day_name:
+            created = inc.get('createdAt', '')
+            if created:
+                try:
+                    from datetime import datetime as dt_parse
+                    cd = dt_parse.fromisoformat(created.replace('Z', '+00:00'))
+                    day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][cd.weekday()]
+                except Exception:
+                    day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][today.weekday()]
+            else:
+                day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][today.weekday()]
+        past_count = count_weekday_occurrences(current_year, current_month, day_name, current_day)
+        total_count = count_weekday_occurrences(current_year, current_month, day_name)
+        monthly_received = expected * past_count
+        monthly_total = expected * total_count
+        monthly_pending = expected * (total_count - past_count)
     elif freq == "Daily":
         monthly_received = expected * current_day
         monthly_total = expected * days_in_month

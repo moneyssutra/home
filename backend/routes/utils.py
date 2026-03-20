@@ -158,9 +158,20 @@ def normalize_expense_for_month(amount, frequency, year, month, expense=None):
         return amount * days_in_month
     elif frequency == 'Weekly':
         day_name = (expense or {}).get('selectedDay', '')
-        if day_name:
-            return amount * count_weekday_occurrences(year, month, day_name)
-        return amount * 4.33
+        if not day_name:
+            created = (expense or {}).get('createdAt', '')
+            if created:
+                try:
+                    from datetime import datetime as dt_parse
+                    cd = dt_parse.fromisoformat(created.replace('Z', '+00:00'))
+                    day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][cd.weekday()]
+                except Exception:
+                    pass
+            if not day_name:
+                day_name = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'][
+                    __import__('datetime').date.today().weekday()
+                ]
+        return amount * count_weekday_occurrences(year, month, day_name)
     elif frequency == 'Bi-Weekly':
         return amount * 2.17
     elif frequency == 'Monthly':

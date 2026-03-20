@@ -153,6 +153,25 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
 
   const [accounts, setAccounts] = useState([]);
 
+  // Reset form state for a specific module to prevent stale data
+  const resetModuleState = useCallback((mod) => {
+    if (mod === "income") {
+      setSelectedSource(null); setIncomeAmount(""); setIncomeName("");
+      setIncomeDate("1"); setIncomeFrequency("Monthly"); setIncomeAccount("");
+    } else if (mod === "expenses") {
+      setExpenseData({}); setExpenseDueDates({}); setExpenseNeedWant({}); setActiveBucket(0);
+    } else if (mod === "assets") {
+      setAssetItems([{ name: "", amount: "", type: "bank_balance", purchaseDate: "", growthRate: "" }]);
+      setHasNoAssets(false);
+    } else if (mod === "liabilities") {
+      setLoanItems([{ name: "", amount: "", emi: "", type: "Personal Loan", rate: "", tenure: "", nextDue: "" }]);
+      setHasNoLiabilities(false);
+    } else if (mod === "investments") {
+      setInvestItems([{ name: "", amount: "", type: "mutual-fund", frequency: "Monthly", startDate: "", growthRate: "", linkedAccount: "" }]);
+      setHasNoInvestments(false);
+    }
+  }, []);
+
   const fetchCompletionData = useCallback(async () => {
     try {
       const [compRes, accRes] = await Promise.all([
@@ -172,6 +191,8 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     if (targetModule && !loadingGrid) {
       const steps = MODULE_STEPS[targetModule];
       if (steps) {
+        // Reset state for this module to ensure clean form
+        resetModuleState(targetModule);
         // In module mode, auto-expand deep details
         if (targetModule === "income") setShowIncomeDeep(true);
         if (targetModule === "expenses") setShowExpenseDeep(true);
@@ -181,7 +202,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
         setScreen(steps[0]);
       }
     }
-  }, [targetModule, loadingGrid]);
+  }, [targetModule, loadingGrid, resetModuleState]);
 
   useEffect(() => {
     if (screen === "income-amount" && amountRef.current) {

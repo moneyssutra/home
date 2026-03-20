@@ -1,0 +1,102 @@
+{
+  "summary": "Tested two bug fixes: (1) Weekly income calculation now uses calendar-based weekday count via count_weekday_occurrences instead of fixed 4.33 multiplier, and (2) Wizard form state resets when entering a new module via resetModuleState function. All backend tests pass (10/10). Frontend labels verified: 'Expected Monthly Income', 'adjusted to monthly', 'Fixed (this month)', 'Variable (this month)', '/mo' suffix on cards.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "features_tested": {
+    "weekly_income_calendar_based_calculation": {
+      "status": "PASS",
+      "details": "Weekly income now uses count_weekday_occurrences function. For a 25K weekly income on Friday, monthlyTotal equals 25K * (number of Fridays in current month), NOT 25K * 4.33"
+    },
+    "weekly_income_received_pending_calendar_based": {
+      "status": "PASS",
+      "details": "monthlyReceived and monthlyPending use actual date-based occurrences (e.g., if 3 Fridays passed, received=75K, pending=25K)"
+    },
+    "weekly_income_no_selected_day_defaults_to_created_weekday": {
+      "status": "PASS",
+      "details": "When selectedDay is empty, backend defaults to createdAt weekday instead of using 4.33 multiplier"
+    },
+    "monthly_income_unaffected": {
+      "status": "PASS",
+      "details": "Monthly income calculation remains as-is (monthlyTotal equals expectedAmount)"
+    },
+    "no_433_multiplier_in_codebase": {
+      "status": "PASS",
+      "details": "grep -n '4.33' /app/backend/routes/income.py /app/backend/routes/utils.py returns no matches"
+    },
+    "monthly_summary_uses_calendar_weeks": {
+      "status": "PASS",
+      "details": "/api/income/monthly-summary correctly uses count_weekday_occurrences for weekly income"
+    },
+    "income_detail_uses_calendar_weeks": {
+      "status": "PASS",
+      "details": "/api/income/{id}/detail correctly uses count_weekday_occurrences for weekly income"
+    },
+    "frontend_expected_monthly_income_label": {
+      "status": "PASS",
+      "details": "MyBusiness page shows 'Expected Monthly Income' header (data-testid='total-income-card')"
+    },
+    "frontend_adjusted_to_monthly_subtitle": {
+      "status": "PASS",
+      "details": "MyBusiness page shows 'adjusted to monthly' subtitle under business count"
+    },
+    "frontend_fixed_this_month_label": {
+      "status": "PASS",
+      "details": "MyBusiness page shows 'Fixed (this month)' label in header card"
+    },
+    "frontend_variable_this_month_label": {
+      "status": "PASS",
+      "details": "MyBusiness page shows 'Variable (this month)' label in header card"
+    },
+    "frontend_mo_suffix_on_cards": {
+      "status": "PASS",
+      "details": "Fixed/Variable cards show '/mo' suffix on totals"
+    },
+    "wizard_state_reset_implemented": {
+      "status": "PASS",
+      "details": "resetModuleState function (line 157) clears all form fields when entering a new module. Called in useEffect when targetModule changes (line 195)"
+    },
+    "wizard_state_reset_assets_module": {
+      "status": "CODE_VERIFIED",
+      "details": "setAssetItems resets to [{ name: '', amount: '', type: 'bank_balance', ... }] when entering assets module"
+    },
+    "wizard_state_reset_investments_module": {
+      "status": "CODE_VERIFIED",
+      "details": "setInvestItems resets to [{ name: '', amount: '', type: 'mutual-fund', ... }] when entering investments module"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_weekly_calc_wizard_state_iter151.py",
+    "/app/test_reports/pytest/weekly_calc_wizard_state_iter151_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "count_weekday_occurrences function in routes/utils.py (line 138) correctly counts weekday occurrences in a month",
+    "Weekly income calculation in income.py uses count_weekday_occurrences at lines 141-145, 312-316, 572-575",
+    "When selectedDay is empty, code defaults to createdAt weekday (lines 129-140 in income.py)",
+    "resetModuleState in ProfileSetup.js (line 157) properly clears all module-specific state",
+    "useEffect at line 190-205 ensures resetModuleState is called when module changes",
+    "No 4.33 multiplier found anywhere in income.py or utils.py"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_weekly_calc_wizard_state_iter151.py"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 tests passed)",
+    "frontend": "100% (all labels verified via Playwright)"
+  },
+  "test_credentials": {
+    "email": "wizardtest@test.com",
+    "password": "Test1234!"
+  },
+  "seed_data_creation": "Test income entries created with TEST_ prefix and auto-cleaned after tests",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Weekly income calculation verified to use calendar-based count_weekday_occurrences. Wizard state reset verified via code review - resetModuleState function clears all form fields when entering a new module. MyBusiness page labels all correct. March 2026 has 4 Fridays (6th, 13th, 20th, 27th) so 25K weekly = 100K monthly (not 108K from 4.33)."
+}
