@@ -199,6 +199,23 @@ const ProfileSettings = () => {
 
       {/* Content */}
       <div className="px-4 py-2 space-y-6">
+        {/* Profile Setup Shortcut - Always visible */}
+        <button
+          onClick={() => navigate("/onboarding")}
+          className="w-full rounded-2xl p-4 flex items-center gap-3 active:scale-[0.98] transition-all"
+          style={{ background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }}
+          data-testid="profile-setup-shortcut"
+        >
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <Target className="h-5 w-5 text-white" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="text-white text-sm font-bold">Profile Setup</p>
+            <p className="text-white/70 text-xs">Update your financial profile &amp; data</p>
+          </div>
+          <ArrowLeft className="h-4 w-4 text-white/60 rotate-180" />
+        </button>
+
         {/* Complete Profile Banner for new Google users */}
         {isCompleteProfile && (
           <div className="rounded-2xl p-4 flex items-start gap-3" style={{ backgroundColor: "#DBEAFE", border: "1px solid #93C5FD" }} data-testid="complete-profile-banner">
