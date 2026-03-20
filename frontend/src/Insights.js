@@ -7,6 +7,7 @@ import MoneyPatternWidget from "@/components/MoneyPatternWidget";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
 import FinancialHealthWizard from "@/components/FinancialHealthWizard";
+import FinancialHealth from "@/components/FinancialHealth";
 import { useFamilyContext } from "@/context/FamilyContext";
 import { useState, useEffect } from "react";
 import { useIntelligenceData } from "@/hooks/useIntelligenceData";
@@ -1348,6 +1349,9 @@ const Insights = () => {
           <AccordionModule title="Challenges" icon={Swords} iconColor="#8B5CF6" isOpen={openModule === "challenges"} onToggle={() => handleToggle("challenges")} locked={false} unlockStage={0} stageNum={stageNum} testId="accordion-challenges" meta={challenges ? `${(challenges.completed || []).length}/${(challenges.active || []).length + (challenges.available || []).length + (challenges.completed || []).length}` : null}>
             <ChallengesWidget challenges={challenges} onJoin={joinChallenge} onLeave={leaveChallenge} />
           </AccordionModule>
+
+          {/* Financial Health Widget */}
+          <FinancialHealth />
         </div>
 
         {/* Explore Links */}
