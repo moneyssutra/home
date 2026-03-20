@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from database import db
 from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_user_now, get_weekly_multiplier
+from routes.dashboard import get_networth_summary
 
 router = APIRouter(prefix="/combined", tags=["Combined"])
 
@@ -18,9 +19,9 @@ async def get_combined_wealth(request: Request):
     now = get_user_now(request)
     month_str = f"{now.year}-{str(now.month).zfill(2)}"
 
-    # Run ALL queries in parallel
-    (assets, investments, loans, insurances, accounts,
-     credit_cards, incomes, all_expenses, networth_accounts) = await asyncio.gather(
+    # Run networth (with full received/expected logic) in parallel with collection queries
+    nw, assets, investments, loans, insurances, accounts, credit_cards, incomes, all_expenses = await asyncio.gather(
+        get_networth_summary(request),
         db.assets.find(uf, {"_id": 0}).to_list(1000),
         db.investments.find(uf, {"_id": 0}).to_list(1000),
         db.loans.find(uf, {"_id": 0}).to_list(1000),
@@ -29,70 +30,10 @@ async def get_combined_wealth(request: Request):
         db.credit_cards.find(uf, {"_id": 0}).to_list(1000),
         db.income_sources.find(uf, {"_id": 0}).to_list(1000),
         db.expenses.find(uf, {"_id": 0}).to_list(1000),
-        db.accounts.find(uf, {"_id": 0}).to_list(1000),
     )
-
-    # Compute networth summary inline
-    y, m = now.year, now.month
-    asset_breakdown = {}
-    for a in assets:
-        t = a.get('assetType', 'Other')
-        asset_breakdown[t] = asset_breakdown.get(t, 0) + a.get('currentValue', 0)
-
-    investment_breakdown = {}
-    for inv in investments:
-        c = inv.get('investmentCategory', 'Other')
-        investment_breakdown[c] = investment_breakdown.get(c, 0) + inv.get('currentValue', 0)
-
-    loan_breakdown = {}
-    for l in loans:
-        t = l.get('loanType', 'Other')
-        loan_breakdown[t] = loan_breakdown.get(t, 0) + (l.get('outstandingAmount', 0) or l.get('principalAmount', 0) or 0)
-
-    income_breakdown = {}
-    for i in incomes:
-        t = i.get('type', 'Other')
-        amt = i.get('expectedAmount', 0) or 0
-        freq = i.get('frequency', 'Monthly')
-        if freq == 'Quarterly': amt = amt / 3
-        elif freq == 'Half-Yearly': amt = amt / 6
-        elif freq == 'Yearly': amt = amt / 12
-        elif freq == 'Weekly': amt = amt * get_weekly_multiplier(y, m)
-        elif freq == 'Daily': amt = amt * 30
-        income_breakdown[t] = income_breakdown.get(t, 0) + amt
-
-    monthly_expenses = 0
-    for exp in all_expenses:
-        amount = exp.get('expectedAmount', 0) or 0
-        freq = exp.get('frequency', 'Monthly')
-        if freq == 'Daily': monthly_expenses += amount * 30
-        elif freq == 'Weekly': monthly_expenses += amount * get_weekly_multiplier(y, m)
-        elif freq == 'Quarterly': monthly_expenses += amount / 3
-        elif freq == 'Half-Yearly': monthly_expenses += amount / 6
-        elif freq == 'Yearly': monthly_expenses += amount / 12
-        else: monthly_expenses += amount
-
-    total_assets = sum(asset_breakdown.values())
-    total_investments = sum(investment_breakdown.values())
-    total_loans = sum(loan_breakdown.values())
-    monthly_income = sum(income_breakdown.values())
-    liquid = sum(a.get('currentBalance', 0) or a.get('balance', 0) or 0 for a in accounts)
-    net_worth = total_assets + total_investments + liquid - total_loans
 
     # Filter expenses for current month
     month_expenses = [e for e in all_expenses if e.get("month") == month_str or not e.get("month")]
-
-    nw = {
-        "netWorth": net_worth, "totalAssets": total_assets,
-        "totalInvestments": total_investments, "totalLoans": total_loans,
-        "liquidBalance": liquid, "monthlyIncome": round(monthly_income, 2),
-        "monthlyExpenses": round(monthly_expenses, 2),
-        "monthlySavings": round(monthly_income - monthly_expenses, 2),
-        "assetBreakdown": asset_breakdown, "investmentBreakdown": investment_breakdown,
-        "loanBreakdown": loan_breakdown, "incomeBreakdown": income_breakdown,
-        "incomeReceived": 0, "expectedIncome": round(monthly_income, 2),
-        "expensesDone": 0, "upcomingExpenses": round(monthly_expenses, 2),
-    }
 
     return {
         "nw": nw,

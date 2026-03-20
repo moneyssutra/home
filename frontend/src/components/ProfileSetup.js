@@ -245,7 +245,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     } catch {}
   };
 
-  const handleSaveIncome = async () => {
+  const handleSaveIncome = async (overrideDate) => {
     setSaving(true);
     const src = selectedSource?.defaults || { type: "Salary", category: "salary", frequency: "Monthly" };
     await saveStep(1, {
@@ -255,7 +255,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
         type: src.type,
         category: src.category,
         frequency: incomeFrequency || src.frequency,
-        selectedDate: incomeDate,
+        selectedDate: overrideDate || incomeDate,
         accountId: incomeAccount || undefined,
       }]
     });
@@ -713,7 +713,13 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
         <div className="flex-1 overflow-y-auto">
           <div className="grid grid-cols-7 gap-2">
             {days.map((d) => (
-              <button key={d} onClick={() => setIncomeDate(String(d))}
+              <button key={d} onClick={async () => {
+                setIncomeDate(String(d));
+                if (isModuleMode) {
+                  await handleSaveIncome(String(d));
+                  await handleModuleComplete(async () => {});
+                }
+              }}
                 className="aspect-square rounded-xl flex items-center justify-center text-sm font-bold transition-all active:scale-90"
                 style={{
                   backgroundColor: incomeDate === String(d) ? "#10B981" : "var(--bg-card)",

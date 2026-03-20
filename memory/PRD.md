@@ -76,11 +76,13 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Fixed Admin Growth Analytics: `created_at` vs `createdAt` field name mismatch in admin.py — now reads both fields
 - Backfilled `createdAt` for prod users missing the field
 - Created combined backend endpoints for faster page loading:
-  - `/api/dashboard/combined`: networth + profile + goals + completion + preferences in 1 call (was 6 separate calls)
-  - `/api/combined/wealth`: all wealth data in 1 call (was 9 separate calls)
+  - `/api/dashboard/combined`: Calls original get_networth_summary (with full received/expected logic) + profile + goals + completion + preferences in 1 call
+  - `/api/combined/wealth`: Calls original get_networth_summary + all collection lists in 1 call (was 9 separate calls)
   - `/api/combined/intelligence`: survival clock + control score + gamification in 1 call (was 8 separate calls)
 - Updated Dashboard.js, Wealth.js, useIntelligenceData.js to use combined endpoints
 - Updated Finvu Account Aggregator banner color to gentle blue gradient with sky-blue accents
+- Fixed income received/expected calculation: combined endpoints now use original _split_by_schedule_date logic via get_networth_summary
+- Fixed date auto-save in onboarding wizard: clicking a date on "When does it arrive?" screen auto-triggers save & complete
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
