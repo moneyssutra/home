@@ -202,7 +202,7 @@ async def get_bank_overview(request: Request):
     expected_monthly_income = 0
     for inc in incomes:
         freq = inc.get("frequency", "")
-        amt = float(inc.get("amount", 0))
+        amt = float(inc.get("expectedAmount") or inc.get("amount") or 0)
         if freq == "Monthly":
             expected_monthly_income += amt
         elif freq == "Weekly":
