@@ -139,30 +139,34 @@ async def save_onboarding_step(request: Request):
                 {"userId": user_id, "source": "onboarding"},
                 {"_id": 0, "id": 1}
             )
+            update_fields = {
+                "name": item["name"],
+                "type": item.get("type", "Salary"),
+                "expectedAmount": float(item["amount"]),
+                "frequency": item.get("frequency", "Monthly"),
+                "updatedAt": datetime.now(timezone.utc).isoformat(),
+            }
+            # Deep fields
+            if item.get("selectedDate"):
+                update_fields["selectedDate"] = str(item["selectedDate"])
+            if item.get("accountId"):
+                update_fields["accountId"] = item["accountId"]
+
             if existing:
                 await db.income_sources.update_one(
                     {"userId": user_id, "source": "onboarding", "id": existing["id"]},
-                    {"$set": {
-                        "name": item["name"],
-                        "type": item.get("type", "Salary"),
-                        "expectedAmount": float(item["amount"]),
-                        "frequency": item.get("frequency", "Monthly"),
-                        "updatedAt": datetime.now(timezone.utc).isoformat(),
-                    }}
+                    {"$set": update_fields}
                 )
             else:
                 income_doc = {
                     "id": str(uuid.uuid4()),
                     "userId": user_id,
-                    "name": item["name"],
-                    "type": item.get("type", "Salary"),
-                    "expectedAmount": float(item["amount"]),
-                    "frequency": item.get("frequency", "Monthly"),
                     "incomeType": "fixed",
                     "sourceCategory": None,
                     "startDate": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
                     "createdAt": datetime.now(timezone.utc).isoformat(),
-                    "source": "onboarding"
+                    "source": "onboarding",
+                    **update_fields,
                 }
                 await db.income_sources.insert_one(income_doc)
             saved_count += 1
@@ -183,8 +187,13 @@ async def save_onboarding_step(request: Request):
                 "isPaid": False,
                 "skippedMonths": [],
                 "createdAt": datetime.now(timezone.utc).isoformat(),
-                "source": "onboarding"
+                "source": "onboarding",
             }
+            # Deep fields
+            if item.get("dueDate"):
+                expense_doc["dueDate"] = str(item["dueDate"])
+            if item.get("needOrWant"):
+                expense_doc["needOrWant"] = item["needOrWant"]
             await db.expenses.insert_one(expense_doc)
             saved_count += 1
 
@@ -215,8 +224,15 @@ async def save_onboarding_step(request: Request):
                     "assetType": item.get("assetType", "other"),
                     "currentValue": float(item["amount"]),
                     "createdAt": datetime.now(timezone.utc).isoformat(),
-                    "source": "onboarding"
+                    "source": "onboarding",
                 }
+                # Deep fields
+                if item.get("purchaseDate"):
+                    asset_doc["purchaseDate"] = item["purchaseDate"]
+                if item.get("growthRate"):
+                    asset_doc["growthRate"] = float(item["growthRate"])
+                if item.get("linkedAccountId"):
+                    asset_doc["linkedAccountId"] = item["linkedAccountId"]
                 await db.assets.insert_one(asset_doc)
             saved_count += 1
 
@@ -248,8 +264,13 @@ async def save_onboarding_step(request: Request):
                     "emiAmount": float(item.get("emi", 0)),
                     "interestRate": float(item.get("rate", 0)),
                     "createdAt": datetime.now(timezone.utc).isoformat(),
-                    "source": "onboarding"
+                    "source": "onboarding",
                 }
+                # Deep fields
+                if item.get("tenure"):
+                    loan_doc["tenureMonths"] = int(item["tenure"])
+                if item.get("nextDueDate"):
+                    loan_doc["nextDueDate"] = str(item["nextDueDate"])
                 await db.loans.insert_one(loan_doc)
             saved_count += 1
 
@@ -268,10 +289,15 @@ async def save_onboarding_step(request: Request):
                 "monthlyAmount": float(item["amount"]),
                 "currentValue": float(item.get("currentValue", item["amount"])),
                 "frequency": item.get("frequency", "Monthly"),
-                "startDate": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                "startDate": item.get("startDate") or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
                 "createdAt": datetime.now(timezone.utc).isoformat(),
-                "source": "onboarding"
+                "source": "onboarding",
             }
+            # Deep fields
+            if item.get("growthRate"):
+                inv_doc["growthRate"] = float(item["growthRate"])
+            if item.get("linkedAccountId"):
+                inv_doc["linkedAccountId"] = item["linkedAccountId"]
             await db.investments.insert_one(inv_doc)
             saved_count += 1
 
