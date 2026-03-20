@@ -1,4 +1,5 @@
 """Goal routes - Full CRUD with progress calculation from server.py."""
+import asyncio
 from fastapi import APIRouter, HTTPException, Request
 from typing import List
 from datetime import datetime, timezone
@@ -299,9 +300,11 @@ async def get_goals_dashboard_summary(request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
     user_filter = get_user_filter(user)
     user_filter["isCompleted"] = False
-    goals = await db.goals.find(user_filter, {"_id": 0}).to_list(1000)
     cf = get_user_filter(user); cf["isCompleted"] = True
-    cc = await db.goals.count_documents(cf)
+    goals, cc = await asyncio.gather(
+        db.goals.find(user_filter, {"_id": 0}).to_list(1000),
+        db.goals.count_documents(cf),
+    )
     summary = {"totalActiveGoals": len(goals), "completedGoals": cc, "goals": []}
     for goal in goals[:5]:
         pd = await calculate_goal_progress(goal)

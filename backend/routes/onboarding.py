@@ -10,15 +10,21 @@ router = APIRouter(prefix="/onboarding", tags=["onboarding"])
 
 async def _get_profile_completion(user_id: str) -> dict:
     """Calculate profile completion from actual user data."""
+    import asyncio
     uf = {"userId": user_id}
 
-    income_count = await db.income_sources.count_documents(uf)
-    expense_count = await db.expenses.count_documents(uf)
-    account_count = await db.accounts.count_documents(uf)
-    asset_count = await db.assets.count_documents(uf)
-    investment_count = await db.investments.count_documents(uf)
-    loan_count = await db.loans.count_documents(uf)
-    credit_card_count = await db.credit_cards.count_documents(uf)
+    # Run all DB queries in parallel to reduce latency
+    (income_count, expense_count, account_count, asset_count,
+     investment_count, loan_count, credit_card_count, progress) = await asyncio.gather(
+        db.income_sources.count_documents(uf),
+        db.expenses.count_documents(uf),
+        db.accounts.count_documents(uf),
+        db.assets.count_documents(uf),
+        db.investments.count_documents(uf),
+        db.loans.count_documents(uf),
+        db.credit_cards.count_documents(uf),
+        db.onboarding_progress.find_one({"userId": user_id}, {"_id": 0}),
+    )
 
     income_added = income_count > 0
     expenses_added = expense_count > 0
@@ -26,8 +32,6 @@ async def _get_profile_completion(user_id: str) -> dict:
     liabilities_added = loan_count > 0 or credit_card_count > 0
     investments_added = investment_count > 0
 
-    # Check if user explicitly skipped or completed steps via onboarding
-    progress = await db.onboarding_progress.find_one({"userId": user_id}, {"_id": 0})
     if progress:
         if progress.get("income_completed"):
             income_added = True

@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 from typing import Optional
 from routes.auth import get_current_user
+from routes.utils import get_weekly_multiplier
 from database import db
 
 router = APIRouter(prefix="/family", tags=["family"])
@@ -364,7 +365,7 @@ async def get_combined_family_summary(request: Request):
     health_insurance_coverage = sum(i.get("coverageAmount", 0) for i in insurances if i.get("insuranceType", "").lower() in health_ins_types)
 
     def to_monthly(amount, frequency):
-        freq_map = {"daily": 30, "weekly": 4.33, "biweekly": 2.17, "monthly": 1,
+        freq_map = {"daily": 30, "weekly": get_weekly_multiplier(), "biweekly": 2.17, "monthly": 1,
                      "quarterly": 1/3, "half-yearly": 1/6, "yearly": 1/12, "annually": 1/12}
         return (amount or 0) * freq_map.get(frequency, 1)
 

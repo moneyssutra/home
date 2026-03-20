@@ -68,8 +68,10 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Fixed back button on Profile Health page — uses onDismiss when in modal mode, fallback to navigate(-1) or /home
 - Fixed back buttons app-wide (MyInvestments, MyAssets, JobIncome, SelfEmployedIncome) with proper fallbacks
 - Added BottomNav to Profile Health grid screen — in modal mode, clicking any nav item dismisses modal first via onClickCapture
-- Replaced hardcoded 4.33 weekly multiplier with calendar-based `get_weekly_multiplier()` in expenses.py and intelligence.py
-- Added `get_weekly_multiplier(year, month)` utility to utils.py (returns days_in_month/7)
+- Fixed Profile Health modal loop — dismiss now persists to server via /api/onboarding/dismiss
+- Replaced ALL hardcoded 4.33 weekly multiplier with calendar-based `get_weekly_multiplier()` across expenses.py, intelligence.py, dashboard.py, family.py
+- Parallelized DB queries: profile-completion (8 queries → 1 gather), networth (5 queries → 1 gather), goals summary (2 queries → 1 gather)
+- Cleaned up all test data from production (14 test @test.com users removed)
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
@@ -85,6 +87,5 @@ Financial management app with profile completion/onboarding flow, income/expense
 
 ## Test Credentials
 - Google Login: kumaramarendra10@gmail.com, chandrashekhar.iter@gmail.com
-- JWT (Test): testuser99@test.com / Test1234!
-- JWT (Fresh User): freshuser@test.com / Test1234!
 - Admin: admin@moneyssutra.com / admin123
+- NOTE: All @test.com users have been cleaned from production

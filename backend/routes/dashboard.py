@@ -5,7 +5,7 @@ import asyncio
 
 from database import db
 from routes.auth import get_current_user
-from routes.utils import get_user_filter, get_user_now, count_weekday_occurrences
+from routes.utils import get_user_filter, get_user_now, count_weekday_occurrences, get_weekly_multiplier
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -106,25 +106,30 @@ async def get_breakdown(request: Request):
     current_month = f"{now.year}-{now.month:02d}"
     y, m = now.year, now.month
 
-    assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
+    # Run all DB queries in parallel
+    assets, investments, loans, incomes, all_expenses = await asyncio.gather(
+        db.assets.find(user_filter, {"_id": 0}).to_list(1000),
+        db.investments.find(user_filter, {"_id": 0}).to_list(1000),
+        db.loans.find(user_filter, {"_id": 0}).to_list(1000),
+        db.income_sources.find(user_filter, {"_id": 0}).to_list(1000),
+        db.expenses.find(user_filter, {"_id": 0}).to_list(1000),
+    )
+
     asset_breakdown = {}
     for a in assets:
         t = a.get('assetType', 'Other')
         asset_breakdown[t] = asset_breakdown.get(t, 0) + a.get('currentValue', 0)
 
-    investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
     investment_breakdown = {}
     for inv in investments:
         c = inv.get('investmentCategory', 'Other')
         investment_breakdown[c] = investment_breakdown.get(c, 0) + inv.get('currentValue', 0)
 
-    loans = await db.loans.find(user_filter, {"_id": 0}).to_list(1000)
     loan_breakdown = {}
     for l in loans:
         t = l.get('loanType', 'Other')
         loan_breakdown[t] = loan_breakdown.get(t, 0) + (l.get('outstandingAmount', 0) or l.get('principalAmount', 0) or 0)
 
-    incomes = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
     income_breakdown = {}
     for i in incomes:
         t = i.get('type', 'Other')
@@ -134,11 +139,9 @@ async def get_breakdown(request: Request):
         if freq == 'Quarterly': amt = amt / 3
         elif freq == 'Half-Yearly': amt = amt / 6
         elif freq == 'Yearly': amt = amt / 12
-        elif freq == 'Weekly': amt = amt * 4.33
+        elif freq == 'Weekly': amt = amt * get_weekly_multiplier()
         elif freq == 'Daily': amt = amt * 30
         income_breakdown[t] = income_breakdown.get(t, 0) + amt
-
-    all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
     expense_breakdown = {}
     total_fixed = 0
     total_variable = 0
@@ -165,7 +168,7 @@ async def get_breakdown(request: Request):
             amt = amt * mr(y, m)[1]
         elif freq in ('Weekly', 'Bi-Weekly'):
             applies = True
-            amt = amt * (4.33 if freq == 'Weekly' else 2.17)
+            amt = amt * (get_weekly_multiplier(y, m) if freq == 'Weekly' else 2.17)
         elif freq == 'Monthly':
             applies = True
         elif freq == 'Quarterly':
@@ -230,7 +233,7 @@ def _calc_monthly_income(incomes, other_incomes, current_month, current_year):
             if day_name:
                 monthly_income += amount * count_weekday_occurrences(current_year, current_month, day_name)
             else:
-                monthly_income += amount * 4.33
+                monthly_income += amount * get_weekly_multiplier(current_year, current_month)
         elif freq == 'Monthly': monthly_income += amount
         elif freq == 'Quarterly':
             sq = income.get('selectedQuarter', '')
@@ -439,7 +442,7 @@ def _calc_monthly_expenses(expenses, current_month, current_year):
             if day_name:
                 monthly_expenses += amount * count_weekday_occurrences(current_year, current_month, day_name)
             else:
-                monthly_expenses += amount * 4.33
+                monthly_expenses += amount * get_weekly_multiplier(current_year, current_month)
         elif freq == 'Monthly': monthly_expenses += amount
         elif freq == 'Quarterly': monthly_expenses += amount / 3
         elif freq == 'Half-Yearly': monthly_expenses += amount / 6
