@@ -99,6 +99,7 @@ Financial management app with profile completion/onboarding flow, income/expense
 - **Fixed: Expense sorting** — Expenses now sorted by due day ascending within each status group (pending → skipped → paid).
 - **Fixed: Gamification data not loading on Health page** — Combined endpoint was fetching from wrong collection (`gamification_profiles` vs `user_gamification_profile`). Now calls `get_gamification_profile()` directly for proper allAchievements and badges data.
 - **Added: Shared `parse_due_day()` utility** — Backend utility in routes/utils.py handles all selectedDate formats consistently across expenses.py, dashboard.py.
+- **NEW: Bank Accounts Experimental Page (CRED-style)** — Created `/bank-accounts-experimental` route with 4 tabs (Accounts/Transactions/Recurring/Cashflow). Features horizontal snap-scroll cards with gradient backgrounds (ICICI/HDFC/SBI/Kotak), dot indicators, quick actions, refresh interaction, transaction history, cashflow summary, and Finvu coming-soon banner. Home rolling button "Savings" replaced with "Banks" linking to new page. All mock data, no backend changes. Existing features untouched.
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration

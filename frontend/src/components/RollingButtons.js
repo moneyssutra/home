@@ -41,8 +41,8 @@ const BUTTON_GROUPS = [
     id: "plan",
     items: [
       { label: "Goals", icon: Target, route: "/my-goals", color: "#F59E0B" },
-      { label: "Savings", icon: PiggyBank, route: "/my-accounts", color: "#10B981" },
-      { label: "Debts", icon: Landmark, route: "/my-liabilities", color: "#EF4444" },
+      { label: "Banks", icon: Landmark, route: "/bank-accounts-experimental", color: "#3B82F6" },
+      { label: "Debts", icon: HandCoins, route: "/my-liabilities", color: "#EF4444" },
     ],
     interval: 3600,
     shimmerDelay: "2.6s",

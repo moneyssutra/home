@@ -127,6 +127,9 @@ import ExpensesDone from "@/pages/ExpensesDone";
 import UpcomingExpenses from "@/pages/UpcomingExpenses";
 import AddIncome from "@/pages/AddIncome";
 
+// Experimental Pages
+import BankAccountsExperimental from "@/pages/BankAccountsExperimental";
+
 // App Router with session_id detection
 function AppRouter() {
   const location = useLocation();
@@ -260,6 +263,9 @@ function AppRouter() {
       <Route path="/goal/:id" element={<ProtectedRoute><GoalDetail /></ProtectedRoute>} />
       <Route path="/goal/:id/edit" element={<ProtectedRoute><GoalForm /></ProtectedRoute>} />
       <Route path="/goal-achievements" element={<ProtectedRoute><GoalAchievements /></ProtectedRoute>} />
+
+      {/* Experimental */}
+      <Route path="/bank-accounts-experimental" element={<ProtectedRoute><BankAccountsExperimental /></ProtectedRoute>} />
       
       {/* Other Income */}
       <Route path="/my-other-income" element={<ProtectedRoute><MyOtherIncome /></ProtectedRoute>} />
