@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
   Briefcase, Store, Home, ArrowRight, ArrowLeft, Check, X,
@@ -112,8 +112,10 @@ const FieldHint = ({ text }) => (
 
 export default function ProfileSetup({ onComplete, onDismiss }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const targetModule = searchParams.get("module");
+  const isStandalonePage = location.pathname === "/onboarding";
 
   const [screen, setScreen] = useState("grid");
   const [saving, setSaving] = useState(false);
@@ -465,7 +467,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="profile-health-grid">
         <div className="flex items-center justify-between mb-6">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="grid-back-btn">
+          <button onClick={() => window.history.length > 2 ? navigate(-1) : navigate("/home")} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="grid-back-btn">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 ml-2">
@@ -546,7 +548,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
             </button>
           </div>
         )}
-        <BottomNav />
+        {isStandalonePage && <BottomNav />}
       </div>
     );
   }

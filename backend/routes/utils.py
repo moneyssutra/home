@@ -150,6 +150,16 @@ def count_weekday_occurrences(year: int, month: int, day_name: str, up_to_day: i
     return count
 
 
+def get_weekly_multiplier(year: int = None, month: int = None) -> float:
+    """Get accurate weekly-to-monthly multiplier based on actual days in the month.
+    Returns days_in_month / 7, which is more accurate than the hardcoded 4.33."""
+    import calendar
+    if year is None or month is None:
+        now = datetime.now(timezone.utc)
+        year, month = now.year, now.month
+    return calendar.monthrange(year, month)[1] / 7
+
+
 def normalize_expense_for_month(amount, frequency, year, month, expense=None):
     """Normalize an expense amount to its total for a specific month. Canonical logic used everywhere."""
     import calendar

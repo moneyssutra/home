@@ -98,7 +98,7 @@ const MyInvestments = () => {
           <button
             type="button"
             className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
-            onClick={() => navigate(-1)}
+            onClick={() => window.history.length > 2 ? navigate(-1) : navigate("/wealth")}
             data-testid="back-button"
           >
             <ChevronLeft className="h-5 w-5" />

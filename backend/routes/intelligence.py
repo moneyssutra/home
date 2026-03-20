@@ -13,11 +13,13 @@ router = APIRouter(prefix="/intelligence", tags=["Financial Intelligence"])
 logger = logging.getLogger(__name__)
 
 
+from routes.utils import get_weekly_multiplier
+
 def _normalize_monthly(amount, frequency):
     """Normalize any frequency amount to monthly."""
     freq_map = {
         "Monthly": 1, "Yearly": 1/12, "Quarterly": 1/3,
-        "Half-Yearly": 1/6, "Weekly": 4.33, "Daily": 30
+        "Half-Yearly": 1/6, "Weekly": get_weekly_multiplier(), "Daily": 30
     }
     return amount * freq_map.get(frequency, 1)
 
@@ -747,7 +749,7 @@ async def get_behavior_alerts(request: Request):
             })
 
     # 3. EMI Stress - can't cover next week's EMI
-    weekly_emi = total_emi / 4.33
+    weekly_emi = total_emi / get_weekly_multiplier()
     if effective_funds < weekly_emi and weekly_emi > 0:
         alerts.append({
             "type": "EMI_STRESS", "severity": "HIGH",

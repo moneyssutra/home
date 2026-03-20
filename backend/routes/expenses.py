@@ -7,7 +7,7 @@ from calendar import monthrange
 from database import db
 from server_models import Expense, ExpenseCreate
 from routes.auth import get_current_user
-from routes.utils import get_user_filter, get_user_now
+from routes.utils import get_user_filter, get_user_now, get_weekly_multiplier, count_weekday_occurrences
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
@@ -389,7 +389,7 @@ async def get_monthly_summary(request: Request, last: int = 6):
             if freq == "Daily":
                 total += amt * 30
             elif freq == "Weekly":
-                total += amt * 4.33
+                total += amt * get_weekly_multiplier()
             elif freq == "Monthly":
                 total += amt
             elif freq == "Quarterly":
@@ -438,10 +438,9 @@ async def get_monthly_summary(request: Request, last: int = 6):
                 applies = True
                 day_name = exp.get('selectedDay', '')
                 if day_name and freq == 'Weekly':
-                    from routes.utils import count_weekday_occurrences
                     amt = amt * count_weekday_occurrences(y, m, day_name)
                 else:
-                    amt = amt * (4.33 if freq == 'Weekly' else 2.17)
+                    amt = amt * (get_weekly_multiplier(y, m) if freq == 'Weekly' else 2.17)
             elif freq == 'Monthly':
                 applies = True
             elif freq == 'Quarterly':
@@ -517,14 +516,13 @@ async def get_monthly_summary(request: Request, last: int = 6):
                     # Weekly: count actual weekday occurrences
                     day_name = exp.get('selectedDay', '')
                     if day_name and freq == 'Weekly':
-                        from routes.utils import count_weekday_occurrences
                         past_count = count_weekday_occurrences(y, m, day_name, current_day)
                         total_count = count_weekday_occurrences(y, m, day_name)
                         done_amt += amt_raw * past_count
                         upcoming_amt += amt_raw * (total_count - past_count)
                     else:
                         # Fallback: proportional split
-                        monthly_amt = amt_raw * (4.33 if freq == 'Weekly' else 2.17)
+                        monthly_amt = amt_raw * (get_weekly_multiplier(y, m) if freq == 'Weekly' else 2.17)
                         ratio = current_day / days_in_m
                         done_amt += monthly_amt * ratio
                         upcoming_amt += monthly_amt * (1 - ratio)
@@ -697,7 +695,7 @@ async def get_behavior_insights(request: Request):
                 due_day_name = exp.get('selectedDay', 'Monday')
                 day_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}
                 target_wd = day_map.get(due_day_name, 0)
-                multiplier = 4.33 if freq == 'Weekly' else 2.17
+                multiplier = get_weekly_multiplier(y, m) if freq == 'Weekly' else 2.17
                 if target_wd >= 5:
                     weekend_total += amt * multiplier
                 else:
@@ -909,7 +907,7 @@ async def get_behavior_insights(request: Request):
         if freq == "Daily":
             monthly_income += amt * 30
         elif freq == "Weekly":
-            monthly_income += amt * 4.33
+            monthly_income += amt * get_weekly_multiplier()
         elif freq == "Monthly":
             monthly_income += amt
         elif freq == "Quarterly":
@@ -1835,7 +1833,7 @@ async def get_overspend_analysis(request: Request):
         if freq == "Daily":
             monthly_amt = amt * 30
         elif freq == "Weekly":
-            monthly_amt = amt * 4.33
+            monthly_amt = amt * get_weekly_multiplier()
         elif freq == "Quarterly":
             monthly_amt = amt / 3
         elif freq == "Half-Yearly":
@@ -1876,7 +1874,7 @@ async def get_overspend_analysis(request: Request):
         elif ifreq == "Yearly":
             monthly_income += iamt / 12
         elif ifreq == "Weekly":
-            monthly_income += iamt * 4.33
+            monthly_income += iamt * get_weekly_multiplier()
         elif ifreq == "Daily":
             monthly_income += iamt * 30
         elif ifreq == "Quarterly":
@@ -2175,7 +2173,7 @@ async def get_expense_detail(expense_id: str, request: Request):
     monthly_income = sum(i.get("expectedAmount", 0) for i in incomes)
 
     # Annualize expense
-    freq_mult = {"Daily": 30, "Weekly": 4.33, "Monthly": 1, "Quarterly": 1/3, "Half-Yearly": 1/6, "Yearly": 1/12, "One-Time": 0}.get(freq, 1)
+    freq_mult = {"Daily": 30, "Weekly": get_weekly_multiplier(), "Monthly": 1, "Quarterly": 1/3, "Half-Yearly": 1/6, "Yearly": 1/12, "One-Time": 0}.get(freq, 1)
     monthly_equiv = round(amount * freq_mult, 2)
     yearly_equiv = round(monthly_equiv * 12, 2)
     expense_to_income = round((monthly_equiv / monthly_income * 100), 1) if monthly_income > 0 else 0

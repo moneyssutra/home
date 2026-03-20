@@ -470,7 +470,7 @@ const SelfEmployedIncome = () => {
         <button
           type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
-          onClick={() => navigate(-1)}
+          onClick={() => window.history.length > 2 ? navigate(-1) : navigate("/my-income")}
           aria-label="Go back"
           data-testid="back-button"
         >
