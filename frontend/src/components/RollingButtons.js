@@ -18,10 +18,8 @@ const BUTTON_GROUPS = [
   {
     id: "track",
     items: [
-      { label: "Expenses", icon: Receipt, route: "/my-expenses", color: "#EF4444" },
-      { label: "Income", icon: BadgeDollarSign, route: "/my-income", color: "#10B981" },
-      { label: "Accounts", icon: Wallet, route: "/my-accounts", color: "#3B82F6" },
       { label: "Cards", icon: CreditCard, route: "/credit-cards-experimental", color: "#8B5CF6" },
+      { label: "Credit Cards", icon: CreditCard, route: "/credit-cards-experimental", color: "#8B5CF6" },
     ],
     interval: 2800,
     shimmerDelay: "0s",
