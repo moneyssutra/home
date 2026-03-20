@@ -129,6 +129,7 @@ import AddIncome from "@/pages/AddIncome";
 
 // Experimental Pages
 import BankAccountsExperimental from "@/pages/BankAccountsExperimental";
+import CreditCardsExperimental from "@/pages/CreditCardsExperimental";
 
 // App Router with session_id detection
 function AppRouter() {
@@ -266,6 +267,7 @@ function AppRouter() {
 
       {/* Experimental */}
       <Route path="/bank-accounts-experimental" element={<ProtectedRoute><BankAccountsExperimental /></ProtectedRoute>} />
+      <Route path="/credit-cards-experimental" element={<ProtectedRoute><CreditCardsExperimental /></ProtectedRoute>} />
       
       {/* Other Income */}
       <Route path="/my-other-income" element={<ProtectedRoute><MyOtherIncome /></ProtectedRoute>} />
