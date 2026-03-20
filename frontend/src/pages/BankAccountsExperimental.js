@@ -81,14 +81,14 @@ const AccountCard = ({ account, isActive }) => (
 );
 
 // ---------- EMPTY STATE ----------
-const EmptyState = ({ icon: Icon, title, subtitle, action }) => (
+const EmptyState = ({ icon: Icon, title, subtitle, action, onAction }) => (
   <div className="px-5 flex flex-col items-center justify-center py-16 animate-fadeIn">
     <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-5" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
       <Icon size={32} style={{ color: "var(--text-muted)" }} />
     </div>
     <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>{title}</p>
     <p className="text-sm mt-2 text-center max-w-[260px]" style={{ color: "var(--text-muted)" }}>{subtitle}</p>
-    {action && <div className="mt-5 px-5 py-2.5 rounded-full text-sm font-bold" style={{ backgroundColor: "var(--brand-primary)", color: "#fff" }}>{action}</div>}
+    {action && <button onClick={onAction} className="mt-5 px-5 py-2.5 rounded-full text-sm font-bold active:scale-95 transition-transform" style={{ backgroundColor: "var(--brand-primary)", color: "#fff" }}>{action}</button>}
   </div>
 );
 
@@ -112,6 +112,7 @@ const AccountsTab = ({ accounts, refreshing, onRefresh, navigate }) => {
         title="No bank accounts yet"
         subtitle="Add your bank accounts to track balances and transactions in one place."
         action="Add Account"
+        onAction={() => navigate("/account")}
       />
     );
   }
