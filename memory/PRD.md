@@ -17,7 +17,11 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Liability management (Home/Car/Personal/Education Loans, Credit Cards)
 - Investment tracking (Mutual Funds, Stocks, FD, PPF, Gold/SGB, Crypto)
 - Profile Health Grid with per-module completion tracking
-- **Multi-step Interactive Wizards** for all 5 modules (Income, Expenses, Assets, Liabilities, Investments)
+- **Multi-step Interactive Wizards** for all 5 modules
+- **Multi-entry support** (append, not overwrite) for all categories
+- **Backend deduplication** prevents duplicate entries (name+amount match)
+- **ReadOnly name fields** auto-filled from type selection
+- **Back button** replaces X dismiss on Profile Health Grid
 - Gamified Insights page
 - Admin panel
 
@@ -29,14 +33,17 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Liabilities: liability-type → liability-details → liability-deep
 - Investments: invest-type → invest-details → invest-deep
 
+### Data Model
+- All categories are **list-based** (multiple entries per user)
+- Backend uses `insert_one` with **dedup check** (no `delete_many` or upsert)
+- Dedup keys: userId + name + amount + source="onboarding"
+- Frontend uses array state: `assetItems[]`, `loanItems[]`, `investItems[]`
+- "Add another" button appends new items to the array
+
 ### Module Mode
 - Accessed via `/onboarding?module=<name>` (e.g., `?module=assets`)
 - Auto-starts at first step of that module
 - "Save & Done" returns to Profile Health Grid
-
-### Full Wizard Mode
-- Accessed via `/onboarding` (no module param)
-- Sequential flow: Income → Expenses → Assets → Liabilities → Investments → Review → Complete
 
 ## Key Routes
 - `/` - Dashboard
@@ -47,10 +54,10 @@ Financial management app with profile completion/onboarding flow, income/expense
 - `/health` - Gamified Insights
 
 ## API Endpoints
-- `POST /api/onboarding/save-step` - Save wizard step data (steps 1-5)
+- `POST /api/onboarding/save-step` - Append entries with dedup (steps 1-5)
 - `GET /api/onboarding/profile-completion` - Get completion status
 - `POST /api/onboarding/complete` - Mark onboarding as complete
-- `GET /api/dashboard/breakdown` - Expense breakdown (filtered by user)
+- `GET /api/dashboard/breakdown` - Expense breakdown
 - `GET /api/expenses/monthly-summary` - Monthly expense summary
 
 ## Pending / Upcoming Tasks
@@ -59,7 +66,7 @@ Financial management app with profile completion/onboarding flow, income/expense
 
 ### P2 - Backlog
 - Monthly financial summary email/notification
-- Profile Health Score (combining completion % and data freshness)
+- Profile Health Score (combining completion % + data freshness)
 - Monthly Financial Report PDF generation
 
 ## Known Mocks
