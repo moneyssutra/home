@@ -8,7 +8,7 @@ import random
 import string
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://onboarding-v2-2.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://onboard-deep.preview.emergentagent.com')
 
 def generate_alpha_string(length=8):
     """Generate random alphabetic string"""
