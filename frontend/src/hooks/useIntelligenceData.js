@@ -194,30 +194,25 @@ export function useIntelligenceData() {
     setLoading(true);
     setError(null);
     try {
-      // Phase 1: Critical data (shown above the fold) — load first
-      const [survivalRes, scoreRes, profileRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/intelligence/survival-clock`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/intelligence/control-score`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/gamification/profile`, { withCredentials: true }),
-      ]);
-      setSurvivalClock(survivalRes.data);
-      setControlScore(scoreRes.data);
-      setGamification(profileRes.data);
+      // Phase 1: Use combined endpoint for critical data (shown above the fold)
+      const combinedRes = await axios.get(`${backendUrl}/api/combined/intelligence?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
+      const cd = combinedRes.data;
+      setSurvivalClock(cd.survivalClock);
+      setControlScore(cd.controlScore);
+      setGamification(cd.gamification);
+      setChallenges(cd.challenges);
+      setPersonalityHistory(cd.personalityHistory);
       setLoading(false);
 
       // Phase 2: Secondary data — load in background after UI renders
-      const [alertsRes, challengesRes, patternRes, futureRes, historyRes] = await Promise.all([
+      const [alertsRes, patternRes, futureRes] = await Promise.all([
         axios.get(`${backendUrl}/api/intelligence/behavior-alerts`, { withCredentials: true }).catch(() => ({ data: null })),
-        axios.get(`${backendUrl}/api/gamification/challenges`, { withCredentials: true }).catch(() => ({ data: null })),
         axios.get(`${backendUrl}/api/intelligence/money-pattern`, { withCredentials: true }).catch(() => ({ data: null })),
         axios.get(`${backendUrl}/api/intelligence/future-you`, { withCredentials: true }).catch(() => ({ data: null })),
-        axios.get(`${backendUrl}/api/intelligence/personality-history`, { withCredentials: true }).catch(() => ({ data: null })),
       ]);
       setBehaviorAlerts(alertsRes.data);
-      setChallenges(challengesRes.data);
       setMoneyPattern(patternRes.data);
       setFutureYou(futureRes.data);
-      setPersonalityHistory(historyRes.data);
 
       // Phase 3: Auto-process gamification to award any new badges
       try {

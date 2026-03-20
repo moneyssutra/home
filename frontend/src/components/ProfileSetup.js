@@ -532,22 +532,22 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
 
         {overallPct < 100 && (
           <div className="mt-6 space-y-3">
-            <button className="w-full p-4 rounded-2xl text-left opacity-50 cursor-not-allowed"
-              style={{ background: "linear-gradient(135deg, #1E293B 0%, #334155 100%)" }}
+            <button className="w-full p-4 rounded-2xl text-left opacity-75 cursor-not-allowed"
+              style={{ background: "linear-gradient(135deg, #1E3A5F 0%, #2D5A87 100%)" }}
               disabled data-testid="finvu-connect-btn"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                  <Landmark className="h-5 w-5 text-white/70" />
+                <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+                  <Landmark className="h-5 w-5 text-sky-300" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-white font-bold text-xs">Auto-fetch via Account Aggregator</p>
+                  <p className="text-white/90 font-bold text-xs">Auto-fetch via Account Aggregator</p>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <Shield className="h-3 w-3 text-white/30" />
-                    <span className="text-[10px] text-white/30">RBI regulated</span>
+                    <Shield className="h-3 w-3 text-sky-300/60" />
+                    <span className="text-[10px] text-white/50">RBI regulated</span>
                   </div>
                 </div>
-                <span className="text-[10px] px-2 py-1 rounded-full bg-white/10 text-white/60 font-medium">Soon</span>
+                <span className="text-[10px] px-2 py-1 rounded-full bg-sky-400/20 text-sky-200 font-medium">Soon</span>
               </div>
             </button>
           </div>

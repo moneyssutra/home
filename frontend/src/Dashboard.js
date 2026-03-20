@@ -83,28 +83,21 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setFamilyData(null);
-      const [networthRes, profileRes, goalsRes, completionRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/profile/basic`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/goals/summary/dashboard`, { withCredentials: true }).catch(() => ({ data: null })),
-        axios.get(`${backendUrl}/api/onboarding/profile-completion`, { withCredentials: true }).catch(() => ({ data: null })),
-      ]);
-      setData(networthRes.data);
-      setProfileCompletion(completionRes.data);
-      setProfile(profileRes.data);
-      setGoalsSummary(goalsRes.data);
+      const res = await axios.get(`${backendUrl}/api/dashboard/combined?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
+      const d = res.data;
+      setData(d.networth);
+      setProfileCompletion(d.completion);
+      setProfile(d.profile);
+      setGoalsSummary(d.goals);
+      setIsPremium(d.preferences?.is_premium || false);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
-      // Lazy-load opportunities and premium status after main content
-      Promise.all([
-        axios.get(`${backendUrl}/api/opportunities/eligible?limit=20&skip_shown_filter=true&skip_dismiss_filter=true`, { withCredentials: true }),
-        axios.get(`${backendUrl}/api/settings/preferences`, { withCredentials: true }),
-      ]).then(([oppRes, prefRes]) => {
-        setOpportunities(oppRes.data.opportunities || []);
-        setIsPremium(prefRes.data?.is_premium || false);
-      }).catch(() => {});
+      // Lazy-load opportunities after main content
+      axios.get(`${backendUrl}/api/opportunities/eligible?limit=20&skip_shown_filter=true&skip_dismiss_filter=true`, { withCredentials: true })
+        .then(res => setOpportunities(res.data.opportunities || []))
+        .catch(() => {});
     }
   };
 

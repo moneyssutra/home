@@ -715,3 +715,164 @@ def _split_other_income(other_incomes, current_day, current_month, current_year)
             received.append(entry)
 
     return received, expected
+
+
+
+@router.get("/combined")
+async def get_combined_dashboard(request: Request):
+    """Single endpoint that returns all data needed by the Dashboard page."""
+    user = await get_current_user(request)
+    user_filter = get_user_filter(user)
+
+    from routes.onboarding import _get_profile_completion
+    from routes.goals import calculate_goal_progress
+
+    # Run all independent queries in parallel
+    (
+        assets, investments, loans, incomes, all_expenses,
+        accounts, profile_doc, goals, completed_goals_count,
+        progress_doc, income_count, expense_count, asset_count,
+        investment_count, loan_count, credit_card_count,
+        preferences_doc,
+    ) = await asyncio.gather(
+        db.assets.find(user_filter, {"_id": 0}).to_list(1000),
+        db.investments.find(user_filter, {"_id": 0}).to_list(1000),
+        db.loans.find(user_filter, {"_id": 0}).to_list(1000),
+        db.income_sources.find(user_filter, {"_id": 0}).to_list(1000),
+        db.expenses.find(user_filter, {"_id": 0}).to_list(1000),
+        db.accounts.find(user_filter, {"_id": 0}).to_list(1000),
+        db.profiles.find_one({"userId": user["user_id"]}, {"_id": 0}),
+        db.goals.find({**user_filter, "isCompleted": False}, {"_id": 0}).to_list(1000),
+        db.goals.count_documents({**user_filter, "isCompleted": True}),
+        db.onboarding_progress.find_one({"userId": user["user_id"]}, {"_id": 0}),
+        db.income_sources.count_documents({"userId": user["user_id"]}),
+        db.expenses.count_documents({"userId": user["user_id"]}),
+        db.assets.count_documents({"userId": user["user_id"]}),
+        db.investments.count_documents({"userId": user["user_id"]}),
+        db.loans.count_documents({"userId": user["user_id"]}),
+        db.credit_cards.count_documents({"userId": user["user_id"]}),
+        db.user_settings.find_one({"userId": user["user_id"]}, {"_id": 0}),
+    )
+
+    # --- Networth calculation (reuse logic from get_networth_summary) ---
+    now = get_user_now(request)
+    current_year, current_month, current_day = now.year, now.month, now.day
+
+    asset_breakdown = {}
+    for a in assets:
+        t = a.get('assetType', 'Other')
+        asset_breakdown[t] = asset_breakdown.get(t, 0) + a.get('currentValue', 0)
+
+    investment_breakdown = {}
+    for inv in investments:
+        c = inv.get('investmentCategory', 'Other')
+        investment_breakdown[c] = investment_breakdown.get(c, 0) + inv.get('currentValue', 0)
+
+    loan_breakdown = {}
+    for l in loans:
+        t = l.get('loanType', 'Other')
+        loan_breakdown[t] = loan_breakdown.get(t, 0) + (l.get('outstandingAmount', 0) or l.get('principalAmount', 0) or 0)
+
+    income_breakdown = {}
+    for i in incomes:
+        t = i.get('type', 'Other')
+        amt = i.get('expectedAmount', 0) or 0
+        freq = i.get('frequency', 'Monthly')
+        if freq == 'Quarterly': amt = amt / 3
+        elif freq == 'Half-Yearly': amt = amt / 6
+        elif freq == 'Yearly': amt = amt / 12
+        elif freq == 'Weekly': amt = amt * get_weekly_multiplier()
+        elif freq == 'Daily': amt = amt * 30
+        income_breakdown[t] = income_breakdown.get(t, 0) + amt
+
+    expense_breakdown = {}
+    monthly_expenses = 0
+    for exp in all_expenses:
+        cat = exp.get('category', 'Other')
+        amount = exp.get('expectedAmount', 0) or 0
+        freq = exp.get('frequency', 'Monthly')
+        if freq == 'Daily': monthly_expenses += amount * 30
+        elif freq == 'Weekly': monthly_expenses += amount * get_weekly_multiplier(current_year, current_month)
+        elif freq == 'Quarterly': monthly_expenses += amount / 3
+        elif freq == 'Half-Yearly': monthly_expenses += amount / 6
+        elif freq == 'Yearly': monthly_expenses += amount / 12
+        else: monthly_expenses += amount
+        expense_breakdown[cat] = expense_breakdown.get(cat, 0) + amount
+
+    total_assets = sum(asset_breakdown.values())
+    total_investments = sum(investment_breakdown.values())
+    total_loans = sum(loan_breakdown.values())
+    monthly_income = sum(income_breakdown.values())
+    liquid_balance = sum(a.get('currentBalance', 0) or a.get('balance', 0) or 0 for a in accounts)
+    net_worth = total_assets + total_investments + liquid_balance - total_loans
+
+    networth_data = {
+        "netWorth": net_worth,
+        "totalAssets": total_assets,
+        "totalInvestments": total_investments,
+        "totalLoans": total_loans,
+        "liquidBalance": liquid_balance,
+        "monthlyIncome": round(monthly_income, 2),
+        "monthlyExpenses": round(monthly_expenses, 2),
+        "monthlySavings": round(monthly_income - monthly_expenses, 2),
+        "assetBreakdown": asset_breakdown,
+        "investmentBreakdown": investment_breakdown,
+        "loanBreakdown": loan_breakdown,
+        "incomeBreakdown": income_breakdown,
+    }
+
+    # --- Profile data ---
+    profile_data = profile_doc or {}
+
+    # --- Goals summary ---
+    goals_summary = {"totalActiveGoals": len(goals), "completedGoals": completed_goals_count, "goals": []}
+    for g in goals[:5]:
+        progress = await calculate_goal_progress(g, user)
+        goals_summary["goals"].append({
+            "id": g.get("id"), "name": g.get("name"), "type": g.get("type"),
+            "targetAmount": g.get("targetAmount", 0), "currentAmount": progress.get("currentAmount", 0),
+            "progressPercent": progress.get("progressPercent", 0), "targetDate": g.get("targetDate"),
+        })
+
+    # --- Profile completion ---
+    income_added = income_count > 0
+    expenses_added = expense_count > 0
+    assets_added = (accounts is not None and len(accounts) > 0) or asset_count > 0
+    liabilities_added = loan_count > 0 or credit_card_count > 0
+    investments_added = investment_count > 0
+
+    if progress_doc:
+        for step_key in ["income", "expenses", "assets", "liabilities", "investments"]:
+            if progress_doc.get(step_key) == "skipped" or progress_doc.get(step_key) == "completed":
+                if step_key == "income": income_added = True
+                elif step_key == "expenses": expenses_added = True
+                elif step_key == "assets": assets_added = True
+                elif step_key == "liabilities": liabilities_added = True
+                elif step_key == "investments": investments_added = True
+
+    steps = [income_added, expenses_added, assets_added, liabilities_added, investments_added]
+    pct = round(sum(steps) / len(steps) * 100)
+    dismissed = progress_doc.get("dismissed", False) if progress_doc else False
+
+    completion_data = {
+        "profileCompletion": pct,
+        "dismissed": dismissed,
+        "categories": {
+            "income": {"completed": income_added, "count": income_count},
+            "expenses": {"completed": expenses_added, "count": expense_count},
+            "assets": {"completed": assets_added, "count": asset_count + len(accounts)},
+            "liabilities": {"completed": liabilities_added, "count": loan_count + credit_card_count},
+            "investments": {"completed": investments_added, "count": investment_count},
+        },
+    }
+
+    # --- Preferences ---
+    prefs = preferences_doc or {}
+
+    return {
+        "networth": networth_data,
+        "profile": profile_data,
+        "goals": goals_summary,
+        "completion": completion_data,
+        "preferences": {"is_premium": prefs.get("is_premium", False)},
+    }

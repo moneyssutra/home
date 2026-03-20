@@ -25,6 +25,7 @@ from routes.credit_cards import router as credit_cards_router
 from routes.insurance import router as insurance_router
 from routes.goals import router as goals_router
 from routes.dashboard import router as dashboard_router
+from routes.combined import router as combined_router
 from routes.profile import router as profile_router
 from routes.ai_insights import router as ai_insights_router
 from routes.analytics import router as analytics_router
@@ -226,6 +227,7 @@ app.include_router(credit_cards_router, prefix="/api")
 app.include_router(insurance_router, prefix="/api")
 app.include_router(goals_router, prefix="/api")
 app.include_router(dashboard_router, prefix="/api")
+app.include_router(combined_router, prefix="/api")
 app.include_router(profile_router, prefix="/api")
 app.include_router(ai_insights_router, prefix="/api")
 app.include_router(analytics_router, prefix="/api")

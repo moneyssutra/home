@@ -48,33 +48,20 @@ const Wealth = () => {
   const fetchAll = async () => {
     try {
       setLoading(true);
-      const results = await Promise.allSettled([
-        axios.get(`${API}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
-        axios.get(`${API}/api/assets`, { withCredentials: true }),
-        axios.get(`${API}/api/investments`, { withCredentials: true }),
-        axios.get(`${API}/api/loans`, { withCredentials: true }),
-        axios.get(`${API}/api/insurances`, { withCredentials: true }),
-        axios.get(`${API}/api/accounts`, { withCredentials: true }),
-        axios.get(`${API}/api/credit-cards`, { withCredentials: true }),
-        axios.get(`${API}/api/income`, { withCredentials: true }),
-        axios.get(`${API}/api/expenses/by-month?month=${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`, { withCredentials: true }),
-      ]);
-      const getVal = (idx, fallback = {}) => results[idx].status === "fulfilled" ? results[idx].value.data : fallback;
-      const nw = getVal(0, {});
-      const expenses = Array.isArray(getVal(8, [])) ? getVal(8, []) : [];
-      const incomes = Array.isArray(getVal(7, [])) ? getVal(7, []) : [];
+      const res = await axios.get(`${API}/api/combined/wealth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
+      const d = res.data;
       setData({
-        nw,
-        assets: getVal(1, []) || [],
-        investments: getVal(2, []) || [],
-        loans: getVal(3, []) || [],
-        insurances: getVal(4, []) || [],
-        accounts: getVal(5, []) || [],
-        creditCards: getVal(6, []) || [],
-        incomes,
-        expenses,
-        totalIncome: (nw.incomeReceived || 0) + (nw.expectedIncome || 0),
-        totalExpenses: (nw.expensesDone || 0) + (nw.upcomingExpenses || 0),
+        nw: d.nw,
+        assets: d.assets || [],
+        investments: d.investments || [],
+        loans: d.loans || [],
+        insurances: d.insurances || [],
+        accounts: d.accounts || [],
+        creditCards: d.creditCards || [],
+        incomes: d.incomes || [],
+        expenses: d.expenses || [],
+        totalIncome: (d.nw.incomeReceived || 0) + (d.nw.expectedIncome || 0),
+        totalExpenses: (d.nw.expensesDone || 0) + (d.nw.upcomingExpenses || 0),
       });
     } catch (e) {
       console.error(e);

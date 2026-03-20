@@ -75,6 +75,12 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Cleaned 55 auto-generated test users from prod DB + 35 from dev DB (created by previous testing agents)
 - Fixed Admin Growth Analytics: `created_at` vs `createdAt` field name mismatch in admin.py — now reads both fields
 - Backfilled `createdAt` for prod users missing the field
+- Created combined backend endpoints for faster page loading:
+  - `/api/dashboard/combined`: networth + profile + goals + completion + preferences in 1 call (was 6 separate calls)
+  - `/api/combined/wealth`: all wealth data in 1 call (was 9 separate calls)
+  - `/api/combined/intelligence`: survival clock + control score + gamification in 1 call (was 8 separate calls)
+- Updated Dashboard.js, Wealth.js, useIntelligenceData.js to use combined endpoints
+- Updated Finvu Account Aggregator banner color to gentle blue gradient with sky-blue accents
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
