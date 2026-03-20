@@ -467,7 +467,11 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="profile-health-grid">
         <div className="flex items-center justify-between mb-6">
-          <button onClick={() => window.history.length > 2 ? navigate(-1) : navigate("/home")} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="grid-back-btn">
+          <button onClick={() => {
+            if (onDismiss && !isStandalonePage) onDismiss();
+            else if (window.history.length > 2) navigate(-1);
+            else navigate("/home");
+          }} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="grid-back-btn">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 ml-2">
@@ -548,7 +552,13 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
             </button>
           </div>
         )}
-        {isStandalonePage && <BottomNav />}
+        {isStandalonePage ? (
+          <BottomNav />
+        ) : onDismiss ? (
+          <div onClickCapture={() => onDismiss()}>
+            <BottomNav />
+          </div>
+        ) : null}
       </div>
     );
   }
