@@ -87,6 +87,9 @@ Financial management app with profile completion/onboarding flow, income/expense
 - **Fixed: Onboarding expense missing `expenseType` and `selectedDate`** — Expenses saved from onboarding wizard were missing `expenseType` (Fixed/Variable) causing 500 Internal Server Error on `/api/expenses`, and missing `selectedDate` field (expense scheduling date). Fixed onboarding save + patched existing records. Also added dedup-update logic for expense date changes (matching income behavior).
 - **Added: Expense Detail payment status, due date, and payment schedule** — Expense detail page now shows: This Month paid/pending status, due date (e.g., "1st of every month"), next due date banner, and a 12-month payment schedule with Paid/Pending/Upcoming status. Matches income detail page experience.
 - **Fixed: Navigation from Expenses Done/Upcoming to Expense Detail** — Clicking an expense from the "Spent" or "Upcoming Expenses" dashboard sections now correctly navigates to the detail page (`/wealth/expenses/{id}`) instead of the edit page (`/expense/{id}`).
+- **Fixed: Onboarding investment save missing `investmentMode` and `principal`** — Investment list API was at risk of 500 errors because onboarding-created investments were missing required Pydantic model fields. Now saves both fields + `sipAmount`. Backfilled existing records.
+- **Fixed: Expense schedule showing fake "paid" months** — Schedule now respects `startDate` or `createdAt` — won't show "paid" entries for months before the expense existed. If no start date set, uses current month.
+- **Fixed: Admin Safety Days showing 0d for all users** — `_compute_user_metrics` was querying empty `liquid_assets` collection. Now reads from `accounts` collection (bank balances) and `loans` (EMIs); also fixed asset value field name (`currentValue` instead of `value`).
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
