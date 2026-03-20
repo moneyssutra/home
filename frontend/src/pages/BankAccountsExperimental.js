@@ -360,7 +360,7 @@ const BankAccountsExperimental = () => {
       {/* Header */}
       <div className="sticky top-0 z-30 px-5 pt-3 pb-2" style={{ backgroundColor: "var(--bg-app)", borderBottom: "1px solid var(--border-light)" }}>
         <div className="flex items-center justify-between mb-3">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-lg flex items-center justify-center active:scale-90 transition-transform" style={{ backgroundColor: "var(--bg-subtle)" }} data-testid="bank-accounts-back-btn">
+          <button onClick={() => { if (window.history.length > 1) navigate(-1); else navigate("/home"); }} className="w-9 h-9 rounded-lg flex items-center justify-center active:scale-90 transition-transform" style={{ backgroundColor: "var(--bg-subtle)" }} data-testid="bank-accounts-back-btn">
             <ArrowLeft size={18} style={{ color: "var(--text-primary)" }} />
           </button>
           <div className="flex items-center gap-2">
