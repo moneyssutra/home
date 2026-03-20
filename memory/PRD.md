@@ -282,6 +282,23 @@ Category → Amount Lent/Loaned → Loan Label → **Loan Details Box** → Inve
 - **Testing**: All 5 forms verified with start-date-input field present
 
 
+## Feature: Strategic Onboarding Redesign (Mar 20, 2026) ✅
+- **Replaced** OnboardingWizard.js with new StrategicOnboarding.js component
+- **Phase 1 - Financial Identity**: Full-screen tappable cards (Job/Business/Rental) with pulse ring animations
+- **Phase 2 - Sutra Flow**: Progressive single-question screens:
+  - 2a: Large centered income amount input with Quick Details toggle
+  - 2b: Day-of-month picker grid (1-28) with Set Later skip option
+  - Smart defaults: Job → "Monthly Salary", Salary category, Monthly frequency
+- **Phase 3 - Expense Bucketing**: Three pillars (Essentials/Growth/Lifestyle) with tabbed interface
+  - Essentials: Rent, EMI, Utilities, Transport, Phone
+  - Growth: Learning, Fitness, Savings/SIP
+  - Lifestyle: Dining, Shopping, Entertainment
+- **Live Projected Grade**: Floating pill shows grade (A+ to C) and savings rate as user enters data
+- **Review Screen**: Projected Wealth Grade card, Income/Expense summaries, Monthly Surplus calculation
+- **System Calibrated Animation**: Checkmark pulse animation → auto-redirect to dashboard after 3s
+- **Testing**: 100% backend, 95% frontend (minor grade pill z-index fixed)
+
+
 ## Bug Fix: Back Button Infinite Loop (Mar 19, 2026) ✅
 - **Issue**: Back button on pages using `forceNavigate={true}` pushed new history entries, creating infinite navigation loops
 - **Fix**: Changed `navigate(fallbackPath)` to `navigate(fallbackPath, { replace: true })` in BackButton.js

@@ -580,7 +580,7 @@ export default function StrategicOnboarding({ onComplete, onDismiss, isModal = f
 
         {renderGradePill()}
 
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-3 mt-4 relative z-50">
           <button
             onClick={async () => { await saveExpenseData(); setScreen(6); }}
             disabled={saving}
