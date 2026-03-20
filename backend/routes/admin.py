@@ -89,38 +89,57 @@ def _classify(cat):
 
 
 async def _compute_user_metrics(user_id: str, now: datetime, user_name: str = ""):
-    """Compute financial metrics for a single user."""
+    """Compute financial metrics for a single user — matches actual endpoint logic."""
     import asyncio
+    from routes.utils import get_weekly_multiplier
     # Parallel DB queries
-    exp_q, inc_q, goal_q, asset_q, loan_q, account_q = await asyncio.gather(
+    exp_q, inc_q, goal_q, asset_q, loan_q, account_q, inv_q = await asyncio.gather(
         db.expenses.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1, "category": 1, "frequency": 1}).to_list(5000),
-        db.income_sources.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1}).to_list(500),
+        db.income_sources.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1, "frequency": 1}).to_list(500),
         db.goals.find({"userId": user_id}, {"_id": 0, "targetAmount": 1, "currentAmount": 1}).to_list(100),
         db.assets.find({"userId": user_id}, {"_id": 0, "currentValue": 1}).to_list(500),
         db.loans.find({"userId": user_id}, {"_id": 0, "emiAmount": 1}).to_list(100),
         db.accounts.find({"userId": user_id}, {"_id": 0, "currentBalance": 1, "balance": 1}).to_list(100),
+        db.investments.find({"userId": user_id}, {"_id": 0, "currentValue": 1, "investmentCategory": 1}).to_list(500),
     )
-    total_income = sum(float(i.get("expectedAmount", 0)) for i in inc_q)
-    total_emi = sum(float(l.get("emiAmount", 0)) for l in loan_q)
-    total_assets_val = sum(float(a.get("currentValue", 0)) for a in asset_q)
 
-    # Current month spend by group
+    weekly_mult = get_weekly_multiplier()
+    freq_map = {"Daily": 30, "Weekly": weekly_mult, "Monthly": 1, "Quarterly": 1/3, "Half-Yearly": 1/6, "Yearly": 1/12, "One-Time": 0}
+
+    # Monthly income with frequency conversion
+    total_income = 0
+    for src in inc_q:
+        amt = float(src.get("expectedAmount", 0) or 0)
+        mult = freq_map.get(src.get("frequency", "Monthly"), 1)
+        total_income += amt * mult
+
+    total_emi = sum(float(l.get("emiAmount", 0) or 0) for l in loan_q)
+    total_assets_val = sum(float(a.get("currentValue", 0) or 0) for a in asset_q)
+
+    # Monthly expenses by group with frequency conversion
     essential = lifestyle = wealth = 0
     for exp in exp_q:
-        amt = float(exp.get("expectedAmount", 0))
+        amt = float(exp.get("expectedAmount", 0) or 0)
+        mult = freq_map.get(exp.get("frequency", "Monthly"), 1)
+        monthly_amt = amt * mult
         cat = exp.get("category", "Other")
         g = _classify(cat)
-        if g == "essential": essential += amt
-        elif g == "lifestyle": lifestyle += amt
-        elif g == "wealth": wealth += amt
+        if g == "essential": essential += monthly_amt
+        elif g == "lifestyle": lifestyle += monthly_amt
+        elif g == "wealth": wealth += monthly_amt
 
     total_spend = essential + lifestyle + wealth
     base = total_income if total_income > 0 else max(total_spend, 1)
 
-    # Safety days — use accounts (bank balances) as liquid balance
-    daily_essential = essential / 30 if essential > 0 else 1
-    liquid_balance = sum(float(a.get("currentBalance", a.get("balance", 0))) for a in account_q)
-    safety_days = round(liquid_balance / daily_essential) if daily_essential > 0 else 0
+    # Effective funds = liquid (100%) + semi-liquid (60%) — matches survival-clock
+    liquid_balance = sum(float(a.get("currentBalance", a.get("balance", 0)) or 0) for a in account_q)
+    semi_liquid_cats = {"Mutual Fund", "Stocks", "ETF", "Gold / SGB", "US Stocks", "Crypto"}
+    semi_liquid = sum(float(i.get("currentValue", 0) or 0) for i in inv_q if i.get("investmentCategory") in semi_liquid_cats)
+    effective_funds = liquid_balance + (semi_liquid * 0.6)
+
+    # Safety days — matches survival-clock (effective_funds / daily_burn)
+    daily_burn = (essential + total_emi) / 30 if (essential + total_emi) > 0 else 1
+    safety_days = round(effective_funds / daily_burn) if daily_burn > 0 else 0
 
     # Percentages
     essential_pct = round(essential / base * 100, 1) if base > 0 else 0
@@ -128,12 +147,19 @@ async def _compute_user_metrics(user_id: str, now: datetime, user_name: str = ""
     wealth_pct = round(wealth / base * 100, 1) if base > 0 else 0
     emi_pct = round(total_emi / base * 100, 1) if base > 0 else 0
 
-    # Health score (0-100)
-    health_score = max(0, min(100,
-        (min(safety_days, 90) / 90 * 40) +  # Safety component (40%)
-        (min(wealth_pct, 30) / 30 * 30) +    # Wealth component (30%)
-        (max(0, 50 - essential_pct) / 50 * 30)  # Efficiency component (30%)
-    ))
+    # Health score — matches control-score algorithm
+    savings_rate = ((total_income - total_spend) / total_income * 100) if total_income > 0 else 0
+    emi_ratio = (total_emi / total_income * 100) if total_income > 0 else 0
+    emergency_months = effective_funds / (essential + total_emi) if (essential + total_emi) > 0 else 0
+    inv_total = sum(float(i.get("currentValue", 0) or 0) for i in inv_q)
+    inv_ratio = (inv_total / (total_income * 12) * 100) if total_income > 0 else 0
+
+    health_score = min(100, max(0, round(
+        min(max(savings_rate, 0), 30) / 30 * 25 +
+        max(0, (50 - emi_ratio)) / 50 * 25 +
+        min(emergency_months, 6) / 6 * 25 +
+        min(inv_ratio, 100) / 100 * 25
+    )))
 
     # Risk level
     if safety_days < 15: risk = "critical"
