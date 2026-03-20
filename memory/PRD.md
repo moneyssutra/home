@@ -62,9 +62,19 @@ Financial management app with profile completion/onboarding flow, income/expense
 - `GET /api/dashboard/breakdown` - Expense breakdown
 - `GET /api/expenses/monthly-summary` - Monthly expense summary
 
+## Completed (Mar 20, 2026)
+- Fixed wizard type-selection layout (justify-center → justify-start pt-4) for all 4 wizards
+- Removed "Quick Setup — All Categories" button from Profile Health page
+- Fixed back button on Profile Health page (navigate(-1) for proper history navigation)
+- Added BottomNav (Home, Wealth, +, Health, Goals) to Profile Health grid screen
+- Consistent weekly calculation: replaced 4.33 multiplier with calendar-based logic in expenses.py and intelligence.py (pending)
+
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
 - Integrate Finvu Account Aggregator SDK (awaiting credentials)
+
+### P1 - Consistent Weekly Calculation
+- Replace hardcoded 4.33 multiplier in expenses.py and intelligence.py with calendar-based utility
 
 ### P2 - Backlog
 - Monthly financial summary email/notification
@@ -76,5 +86,5 @@ Financial management app with profile completion/onboarding flow, income/expense
 
 ## Test Credentials
 - Google Login: kumaramarendra10@gmail.com, chandrashekhar.iter@gmail.com
-- JWT (Test): wizardtest@test.com / Test1234!
+- JWT (Test): testuser99@test.com / Test1234!
 - Admin: admin@moneyssutra.com / admin123
