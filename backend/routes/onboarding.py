@@ -29,7 +29,12 @@ async def _get_profile_completion(user_id: str) -> dict:
     # Check if user explicitly skipped or completed steps via onboarding
     progress = await db.onboarding_progress.find_one({"userId": user_id}, {"_id": 0})
     if progress:
-        # If user completed onboarding but has no liabilities, still mark as done
+        if progress.get("income_completed"):
+            income_added = True
+        if progress.get("expenses_completed"):
+            expenses_added = True
+        if progress.get("assets_completed"):
+            assets_added = True
         if progress.get("liabilities_completed"):
             liabilities_added = True
         if progress.get("investments_completed"):
@@ -109,11 +114,12 @@ async def save_onboarding_step(request: Request):
     await _track_event(user_id, "step_completed", {"step": step, "stepName": step_name, "skipped": skipped})
 
     if skipped:
-        # Mark step as skipped, don't save data
+        # Mark step as skipped AND completed (user acknowledged "none" for this category)
         await db.onboarding_progress.update_one(
             {"userId": user_id},
             {"$set": {
                 f"step_{step}_skipped": True,
+                f"{step_name}_completed": True,
                 "currentStep": step,
                 "updatedAt": datetime.now(timezone.utc).isoformat(),
             }},

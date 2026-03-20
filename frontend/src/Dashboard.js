@@ -32,7 +32,7 @@ import FinancialHealth from "@/components/FinancialHealth";
 import { OpportunityCard } from "@/components/OpportunityCard";
 import { useAuth } from "@/context/AuthContext";
 import { useFamilyContext } from "@/context/FamilyContext";
-import StrategicOnboarding from "@/components/StrategicOnboarding";
+import ProfileSetup from "@/components/ProfileSetup";
 import RollingButtons from "@/components/RollingButtons";
 
 const Dashboard = () => {
@@ -315,8 +315,8 @@ const Dashboard = () => {
       {profileCompletion && profileCompletion.profileCompletion < 100 && isPersonalView && !showOnboarding && (
         <div className="mx-5 mt-4 rounded-2xl p-4 shadow-card" style={{ background: "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)" }} data-testid="profile-completion-banner">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-white text-sm font-bold">Profile Completion: {profileCompletion.profileCompletion}%</p>
-            <button onClick={() => setShowOnboarding(true)} className="text-xs px-3 py-1.5 rounded-full bg-white/20 text-white font-bold active:scale-95 transition-all" data-testid="complete-profile-btn">
+            <p className="text-white text-sm font-bold">Profile Setup: {profileCompletion.profileCompletion}%</p>
+            <button onClick={() => navigate("/onboarding")} className="text-xs px-3 py-1.5 rounded-full bg-white/20 text-white font-bold active:scale-95 transition-all" data-testid="complete-profile-btn">
               Complete Now
             </button>
           </div>
@@ -327,10 +327,10 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Profile Setup Modal */}
+      {/* Profile Setup Modal (first-time only) */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[999]" style={{ backgroundColor: "var(--bg-app)", overscrollBehavior: "none" }} data-testid="onboarding-modal">
-          <StrategicOnboarding
+          <ProfileSetup
             onComplete={() => { setShowOnboarding(false); fetchDashboardData(); }}
             onDismiss={() => setShowOnboarding(false)}
           />
