@@ -1,0 +1,90 @@
+{
+  "summary": "Backend API testing for 3 bug fixes: Admin Safety Days, Expense Schedule startDate, Investment onboarding fields. All 15 tests passed (100%). Verified: 1) Admin command-center now reads from 'accounts' collection (avgSafetyDays=16.4, 3 users with non-zero safety days), 2) Expense detail schedule starts from creation month (March 2026), no fake 'paid' entries for Jan/Feb 2026, 3) Investments API returns valid list with investmentMode and principal fields.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "features_tested": {
+    "admin_command_center_safety_days": {
+      "status": "PASS",
+      "tests": [
+        "Admin login returns token",
+        "GET /api/admin/command-center returns 200",
+        "Response includes avgSafetyDays field (16.4)",
+        "3/5 users have safetyDays > 0 (17, 10, 55 days)",
+        "Safety days calculated from 'accounts' collection (total balance ₹159,500)"
+      ],
+      "bug_fix_verified": "Now reads from 'accounts' collection instead of empty 'liquid_assets' collection"
+    },
+    "expense_detail_schedule": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/expenses returns 200",
+        "GET /api/expenses/{id}/detail returns 200",
+        "Response includes schedule array (7 entries)",
+        "Schedule starts from 2026-03 (expense creation month)",
+        "No entries for Jan/Feb 2026 (before creation)",
+        "March 2026 entry is 'paid', April onwards is 'upcoming'"
+      ],
+      "bug_fix_verified": "Schedule respects startDate/createdAt - no fake 'paid' entries before expense creation"
+    },
+    "investments_onboarding_fields": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/investments returns 200",
+        "Response is valid list (9 investments)",
+        "All investments have investmentMode field",
+        "All investments have principal field"
+      ],
+      "bug_fix_verified": "Onboarding step 5 now saves investmentMode and principal fields"
+    },
+    "accounts_api": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/accounts returns 200",
+        "Accounts have balance/currentBalance fields",
+        "Total balance: ₹159,500 (6 accounts)"
+      ]
+    },
+    "expenses_onboarding_fields": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/expenses returns 200",
+        "Expenses have expenseType field (Fixed/Variable)"
+      ]
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration154_bugfixes.py",
+    "/app/test_reports/pytest/iteration154_bugfixes_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "admin.py _compute_user_metrics: Now queries 'accounts' and 'loans' collections (line 101) instead of 'liquid_assets'",
+    "admin.py line 122: Uses 'currentBalance' or 'balance' from accounts for liquid_balance calculation",
+    "expenses.py get_expense_detail: Schedule now skips months before startDate/createdAt",
+    "onboarding.py step 5 (line 352-354): Now saves investmentMode and principal fields for onboarding investments"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration154_bugfixes.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 tests passed)"
+  },
+  "test_credentials": {
+    "admin_email": "admin@moneyssutra.com",
+    "admin_password": "admin123",
+    "user_session_moneyssutra": "425f27a1-242e-4119-b67d-5bfd50d3f579",
+    "user_session_chandrashekhar": "9ec37623-73ff-43a1-908e-056a333e0bac",
+    "expense_id_march2026": "b2a34ccc-1158-4437-be91-574e348169e7"
+  },
+  "seed_data_creation": "None - used existing data",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 3 bug fixes verified working: 1) Admin safety days reads from 'accounts' collection (avgSafetyDays=16.4), 2) Expense schedule starts from creation date (March 2026), 3) Investments have investmentMode and principal fields. Test file at /app/backend/tests/test_iteration154_bugfixes.py can be reused."
+}

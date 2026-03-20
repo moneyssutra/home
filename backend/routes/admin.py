@@ -92,17 +92,17 @@ async def _compute_user_metrics(user_id: str, now: datetime, user_name: str = ""
     """Compute financial metrics for a single user."""
     import asyncio
     # Parallel DB queries
-    exp_q, inc_q, goal_q, asset_q, loan_q, liquid_q = await asyncio.gather(
+    exp_q, inc_q, goal_q, asset_q, loan_q, account_q = await asyncio.gather(
         db.expenses.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1, "category": 1, "frequency": 1}).to_list(5000),
         db.income_sources.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1}).to_list(500),
         db.goals.find({"userId": user_id}, {"_id": 0, "targetAmount": 1, "currentAmount": 1}).to_list(100),
-        db.assets.find({"userId": user_id}, {"_id": 0, "value": 1}).to_list(500),
-        db.liquid_assets.find({"userId": user_id, "type": {"$regex": "Loan", "$options": "i"}}, {"_id": 0, "emiAmount": 1}).to_list(100),
-        db.liquid_assets.find({"userId": user_id, "type": {"$nin": ["Personal Loan", "Home Loan", "Car Loan", "Education Loan", "Other Loan"]}}, {"_id": 0, "balance": 1, "amount": 1}).to_list(100),
+        db.assets.find({"userId": user_id}, {"_id": 0, "currentValue": 1}).to_list(500),
+        db.loans.find({"userId": user_id}, {"_id": 0, "emiAmount": 1}).to_list(100),
+        db.accounts.find({"userId": user_id}, {"_id": 0, "currentBalance": 1, "balance": 1}).to_list(100),
     )
     total_income = sum(float(i.get("expectedAmount", 0)) for i in inc_q)
     total_emi = sum(float(l.get("emiAmount", 0)) for l in loan_q)
-    total_assets_val = sum(float(a.get("value", 0)) for a in asset_q)
+    total_assets_val = sum(float(a.get("currentValue", 0)) for a in asset_q)
 
     # Current month spend by group
     essential = lifestyle = wealth = 0
@@ -117,9 +117,9 @@ async def _compute_user_metrics(user_id: str, now: datetime, user_name: str = ""
     total_spend = essential + lifestyle + wealth
     base = total_income if total_income > 0 else max(total_spend, 1)
 
-    # Safety days
+    # Safety days — use accounts (bank balances) as liquid balance
     daily_essential = essential / 30 if essential > 0 else 1
-    liquid_balance = sum(float(a.get("balance", a.get("amount", 0))) for a in liquid_q)
+    liquid_balance = sum(float(a.get("currentBalance", a.get("balance", 0))) for a in account_q)
     safety_days = round(liquid_balance / daily_essential) if daily_essential > 0 else 0
 
     # Percentages

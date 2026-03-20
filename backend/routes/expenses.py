@@ -2215,7 +2215,27 @@ async def get_expense_detail(expense_id: str, request: Request):
     elif due_day and due_day <= current_day:
         is_paid = True  # Auto-marked as past due
 
-    # Build payment schedule (last 6 months + next 6 months)
+    # Build payment schedule
+    # Determine start date: use startDate if set, otherwise createdAt month
+    start_month = current_month
+    start_year = current_year
+    created_at = exp.get("createdAt")
+    start_date_str = exp.get("startDate")
+    if start_date_str:
+        try:
+            sd_parsed = datetime.fromisoformat(str(start_date_str))
+            start_month = sd_parsed.month
+            start_year = sd_parsed.year
+        except (ValueError, TypeError):
+            pass
+    elif created_at:
+        try:
+            ca = datetime.fromisoformat(str(created_at)) if isinstance(created_at, str) else created_at
+            start_month = ca.month
+            start_year = ca.year
+        except (ValueError, TypeError):
+            pass
+
     schedule = []
     for offset in range(-5, 7):
         m = current_month + offset
@@ -2226,6 +2246,11 @@ async def get_expense_detail(expense_id: str, request: Request):
         while m > 12:
             m -= 12
             y += 1
+
+        # Skip months before the expense start date
+        if (y < start_year) or (y == start_year and m < start_month):
+            continue
+
         month_str = f"{y}-{m:02d}"
         dim = calendar.monthrange(y, m)[1]
 

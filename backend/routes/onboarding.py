@@ -228,6 +228,7 @@ async def save_onboarding_step(request: Request):
                 "isPaid": False,
                 "skippedMonths": [],
                 "needOrWant": need_or_want,
+                "startDate": item.get("startDate") or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
                 "createdAt": datetime.now(timezone.utc).isoformat(),
                 "source": "onboarding",
             }
@@ -348,6 +349,8 @@ async def save_onboarding_step(request: Request):
                 "name": item["name"],
                 "investmentType": item.get("investmentType", "mutual-fund"),
                 "investmentCategory": item.get("category", "Mutual Fund"),
+                "investmentMode": item.get("investmentMode", "SIP"),
+                "principal": float(item.get("currentValue", item["amount"])),
                 "monthlyAmount": float(item["amount"]),
                 "currentValue": float(item.get("currentValue", item["amount"])),
                 "frequency": item.get("frequency", "Monthly"),
@@ -355,6 +358,10 @@ async def save_onboarding_step(request: Request):
                 "createdAt": datetime.now(timezone.utc).isoformat(),
                 "source": "onboarding",
             }
+            if item.get("sipAmount"):
+                inv_doc["sipAmount"] = float(item["sipAmount"])
+            elif inv_doc["investmentMode"] == "SIP":
+                inv_doc["sipAmount"] = float(item["amount"])
             if item.get("growthRate"):
                 inv_doc["growthRate"] = float(item["growthRate"])
             if item.get("linkedAccountId"):
