@@ -30,7 +30,7 @@ Before creating triggers, set up environment variables:
 | Name | Type | Value |
 |------|------|-------|
 | `DB_NAME` | Value | `moneyssutra` (or your database name) |
-| `BACKEND_URL` | Value | `https://mobile-layout-debug-3.preview.emergentagent.com` |
+| `BACKEND_URL` | Value | `https://onboarding-v2-2.preview.emergentagent.com` |
 | `INTERNAL_API_KEY` | Secret | (Generate a secure key for internal API calls) |
 
 ---

@@ -262,7 +262,7 @@ export default function StrategicOnboarding({ onComplete, onDismiss, isModal = f
             </div>
           </button>
 
-          {/* Strategic Onboarding */}
+          {/* Profile Setup */}
           <button
             onClick={() => setScreen(1)}
             className="w-full p-5 rounded-2xl text-left transition-all active:scale-[0.98]"
@@ -274,7 +274,7 @@ export default function StrategicOnboarding({ onComplete, onDismiss, isModal = f
                 <Sparkles className="h-6 w-6" style={{ color: "#10B981" }} />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Strategic Setup</p>
+                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Profile Setup</p>
                 <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>3 quick steps, smart defaults</p>
               </div>
               <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />

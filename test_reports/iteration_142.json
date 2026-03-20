@@ -54,7 +54,7 @@
     }
   },
   "test_credentials": {
-    "user_session": "session_token=4bf40bb8-b8bb-4bda-bb96-ec262a903a1d (sandeepdash24 user)"
+    "user_session": "session_token=onboarding-v2-2 (sandeepdash24 user)"
   },
   "retest_needed": false,
   "should_main_agent_self_test": false,

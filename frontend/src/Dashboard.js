@@ -327,7 +327,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Strategic Onboarding Modal */}
+      {/* Profile Setup Modal */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[999]" style={{ backgroundColor: "var(--bg-app)", overscrollBehavior: "none" }} data-testid="onboarding-modal">
           <StrategicOnboarding

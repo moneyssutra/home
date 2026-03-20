@@ -66,8 +66,8 @@
     }
   },
   "test_credentials": {
-    "moneyssutra_session": "session_token=61ab1fc5-1116-411d-b097-d1406b50c9e2",
-    "sandeepdash_session": "session_token=4bf40bb8-b8bb-4bda-bb96-ec262a903a1d"
+    "moneyssutra_session": "session_token=onboarding-v2-2",
+    "sandeepdash_session": "session_token=onboarding-v2-2"
   },
   "retest_needed": false,
   "should_main_agent_self_test": false,

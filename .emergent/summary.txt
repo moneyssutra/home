@@ -1,102 +1,79 @@
-<analysis>**original_problem_statement**: The user initially built a financial management app, MoneySutra, but a critical issue arose where a new deployment pointed to an empty database, making all real user data inaccessible. The primary goal became to diagnose this, migrate the data, and establish a stable development-production environment. After successfully migrating the data and setting up a dual-database system, the focus has shifted to fixing a series of UI/UX bugs and implementing new features. The current major task is the implementation and refinement of a new Loan Given investment type, which has involved multiple iterations of feature development, bug fixing, and UX adjustments based on user feedback. The user is now focused on automating loan repayment tracking and ensuring data integrity when loans are deleted.
+<analysis>**original_problem_statement**: The user initially built a financial management app, MoneySutra, but a critical issue arose where a new deployment pointed to an empty database, making all real user data inaccessible. The primary goal became to diagnose this, migrate the data, and establish a stable development-production environment. After successfully migrating the data and setting up a dual-database system, the focus has shifted to fixing a series of UI/UX bugs and implementing new features. The current major task is a complete overhaul of the profile completion and onboarding experience.
 
 PRODUCT REQUIREMENTS:
-The user has been providing rapid-fire feedback via screenshots and videos, leading to a dynamic list of requirements focused on bug fixes and feature enhancements.
-1.  **Onboarding Module**: A comprehensive onboarding flow for new users, with two paths: manual data entry and Finvu SDK integration. The manual flow involves a 5-step wizard (Income, Expenses, Assets, Liabilities, Investments).
-2.  **Profile Completion Engine**: A backend system to track a user's profile completion percentage based on whether they have added data for the five core categories.
-3.  **Dashboard Integration**: A banner on the dashboard to prompt users to complete their profile, which launches the onboarding wizard. This should also trigger for new users on their first login.
-4.  **UI/UX Enhancement**: Replicate a rolling button animation effect from a video provided by the user (from the CRED app).
-5.  **Data Integrity & UX Fixes**: A continuous stream of requests to fix data discrepancies, calculation errors, mobile UI layout issues, and application crashes.
+The user has provided a detailed blueprint for overhauling the onboarding/profile completion flow. The key requirements are:
+1.  **Rename 'Strategic Setup' to 'Profile Setup'**: A global rename across the application.
+2.  **Fix Profile Completion Logic**: The current logic only grants 40-60% completion after the wizard. The user wants the initial wizard completion to result in at least an 80% score.
+3.  **Create a 'Profile Health' Dashboard**: Instead of starting the wizard directly, clicking Complete Now should lead to a status page. This page must display five cards (Income, Expenses, Assets, Liabilities, Investments) showing their individual completion status and allow users to click into any specific module to add details.
+4.  **Implement 'Progressive Disclosure' in Forms**: The wizard steps should be updated to a Quick vs. Deep pattern. An expandable + Add Deep Details button should reveal advanced fields like , , and  without navigating away.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI app connected to a MongoDB database. It includes features for tracking income, expenses, assets, liabilities, and investments. It also has a gamified Insights page with a financial health score.
+The application is a full-stack React/FastAPI app using MongoDB. It features modules for income, expenses, assets, liabilities, investments, goals, and a gamified Insights page.
 
-The last session was highly productive, completing a large number of bug fixes and features:
--   **Critical Crash Fix**: Resolved a JavaScript crash on the Insights page.
--   **Data Mismatch Fix**: Synchronized the calculation logic between the Dashboard and My Expenses pages to ensure consistent data display.
--   **UI/UX Fixes**: Corrected mobile header overlap issues with a global CSS safe area fix and fixed an invisible text bug.
--   **Data Integrity**: Cleaned up test data from the production database and tightened the logic for awarding gamification badges.
--   **Core Feature Implementations**:
-    -   Enhanced Remember Me to create 30-day persistent sessions.
-    -   Added a data export feature to the Admin Panel.
-    -   Fixed the notification preferences settings.
-    -   Implemented loan repayment reminders via the scheduler.
-    -   Added a Skipped Expense History view.
-    -   Fixed the income receipt schedule to show past payments.
--   **New Onboarding Module**: A complete, multi-step manual onboarding wizard has been built (backend and frontend) and integrated into the dashboard. The Finvu integration part is stubbed out, pending credentials.
+In the last session, the agent completed a major redesign of the onboarding flow, creating a new three-phase Strategic Onboarding component. Additionally, the agent fixed two large batches of bugs reported by the user, including:
+- A critical bug where the Wealth page would show all data as ₹0 due to a single failing API call. This was fixed by making the data fetching resilient with  and making backend Loan model fields optional.
+- A navigation loop caused by incorrect usage of 's history API.
+- Data calculation errors in the Financial Health module for Investment Allocation and Debt-to-Asset ratios.
+- A reduction of gamification badges from 100 to a more focused set of 30.
+- Multiple other UI/UX fixes.
+- All previous critical UI layout bugs (safe area, BottomNav) were also resolved.
 
 **Last working item**:
--   Last item agent was working: The agent just completed the implementation of a comprehensive Financial Profile Onboarding Module based on a detailed PRD provided by the user. This included creating backend endpoints to track completion status, a multi-step manual entry wizard on the frontend, and integrating it into the dashboard as a banner and a first-login modal.
--   Status: USER VERIFICATION PENDING
--   Agent Testing Done: Y
--   Which testing method agent to use? The feature is large. The next agent should confirm with the user if they have tested it. If not, or if there are issues, use the  to run a full E2E test of the new onboarding flow.
--   User Testing Done: N
+-   Last item agent was working: The agent had just finished implementing a brand-new, three-phase Strategic Onboarding flow, replacing the old wizard. This was fully implemented and tested. However, the user's very next message was a request to completely overhaul this new flow again with a different design and logic.
+-   Status: NOT STARTED (on the new overhaul request)
+-   Agent Testing Done: Y (for the just-completed Strategic Onboarding v1)
+-   Which testing method agent to use?  after the new feature is complete.
+-   User Testing Done: N (User immediately provided feedback for a complete redesign)
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Implement Rolling Buttons UI Animation (P0)**
--   **Issue 2: User Verification for Onboarding Module (P1)**
+-   **Issue 1: Profile Completion Stuck at 40-60% (P0)**
 
 **Issues Detail**:
--   **Issue 1: Implement Rolling Buttons UI Animation**
-    -   **Attempted fixes**: None. This is a new request from the user, inspired by a video of the CRED app's UI.
+-   **Issue 1: Profile Completion Stuck at 40-60%**
+    -   **Attempted fixes**: None. This is part of a new feature request. The agent identified that the current backend logic in  gives weightings to 5 categories (Income, Expense, Assets, Investments, Liabilities). The recently built onboarding wizard only collects Income and Expense data, resulting in a score of ~60%, which doesn't meet the user's new requirement of >= 80%.
     -   **Next debug checklist**:
-        1.  Re-analyze the video provided by the user ().
-        2.  Identify a suitable page in the MoneySutra app to implement this as a proof-of-concept (e.g., the Money Matters section on the Dashboard or the category selection in the Onboarding wizard).
-        3.  Develop the CSS/JavaScript (likely using React state and CSS transitions/animations) to create the rolling effect where buttons cycle through a list of text options on an interval.
-        4.  Integrate the new animated component into the chosen page.
-        5.  Present the result to the user for feedback.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a direct user request to enhance the app's visual appeal and interactivity, making the UI feel more dynamic and modern.
+        1.  Analyze the  function in  to understand the current weighting system.
+        2.  Decide whether to modify the backend weights or expand the new Profile Setup wizard to collect more data (e.g., a primary asset or investment) to reach the 80% threshold.
+        3.  Implement the chosen solution as part of the larger onboarding overhaul task.
+    -   **Why fix this issue and what will be achieved with the fix?**: The user feels the profile completion feedback is not rewarding. Fixing this is a core part of making the new Profile Setup flow feel progressive and complete.
     -   **Status**: NOT STARTED
     -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: frontend
-    -   **Blocked on other issue**: None
-
--   **Issue 2: User Verification for Onboarding Module**
-    -   **Attempted fixes**: The module was fully implemented and tested by the agent via API calls and screenshots.
-    -   **Next debug checklist**:
-        1.  Ask the user to test the onboarding flow for a new user and an existing user.
-        2.  Specifically, check:
-            -   Does the modal appear for a newly registered user?
-            -   Does the banner appear on the dashboard for a user with incomplete data?
-            -   Does the 5-step manual wizard save data correctly?
-            -   Does the profile completion percentage update on the dashboard?
-    -   **Why fix this issue and what will be achieved with the fix?**: This is a major new feature that needs user sign-off before moving on to other tasks.
-    -   **Status**: USER VERIFICATION PENDING
-    -   **Is recurring issue?**: N
     -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on other issue**: None
+    -   **Blocked on other issue**: This is part of the Onboarding Overhaul task.
 
 **In progress Task List**:
 (None)
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P2) Finvu SDK Integration**: Integrate the Finvu Account Aggregator SDK into the onboarding flow once the user provides the necessary credentials. This is the second path for user onboarding.
+    -   **(P0) Complete Onboarding Overhaul**: This is the highest priority task, encompassing all 4 product requirements from the latest user message.
+        1.  **Rename**: Globally replace 'Strategic Setup' with 'Profile Setup'.
+        2.  **Build 'Profile Health' Page**: Create a new component that acts as a landing page, showing completion status for the 5 core financial categories.
+        3.  **Implement 'Deep Entry'**: Update the onboarding forms to use a Quick vs. Deep details pattern with an expandable section.
+        4.  **Fix Completion Logic**: Ensure completing the wizard yields at least an 80% score.
+
 -   **Future Tasks**:
+    -   **(P1) Finvu SDK Integration**: Integrate the Finvu Account Aggregator SDK into the onboarding flow once the user provides credentials.
     -   Monthly financial summary email/notification.
     -   Profile Health Score (combining completion % and data freshness).
     -   Monthly Financial Report PDF generation.
 
 **Completed work in this session**
--   **Onboarding Module (Manual Flow)**: Implemented a full 5-step wizard for new users to input their financial data, with backend logic to track completion (, ).
--   **Remember Me Enhancement**: Extended session duration to 30 days for all login methods (Password, MPIN, Biometric, Google) when Remember Me is checked.
--   **Admin Data Export**: Added endpoints and a UI in the admin panel to export user, analytics, and financial data as CSV files (, ).
--   **Notification Settings Fix**: Corrected backend logic to properly save and retrieve user notification preferences ().
--   **Loan Repayment Reminders**: Integrated a job into the background scheduler to send in-app notifications for upcoming loan repayments ().
--   **Skipped Expense History**: Created a backend endpoint and a new Skipped tab in My Expenses to view all skipped payments (, ).
--   **Income Receipt Schedule Fix**: Modified the income detail endpoint to show both past (Received) and future (Upcoming) payments in the schedule ().
--   **Data Mismatch Fix**: Refactored the dashboard's expense calculation to use the same payment status logic as the My Expenses page, ensuring data consistency.
--   **Production DB Cleanup**: Removed test users and reset inflated gamification badges from the production database.
--   **Mobile UI Safe Area Fix**: Implemented a global CSS rule to add top padding to all headers, preventing overlap with the mobile status bar.
--   **Critical Bug Fixes**: Resolved an application crash on the Insights page and fixed multiple UI text visibility issues.
+-   **Strategic Onboarding Redesign (v1)**: A full 3-phase premium onboarding experience was built with a progressive UI and live Projected Grade feedback. It was fully tested ().
+-   **Wealth Page Data Resilience Fix**: Fixed a critical bug where the page showed all ₹0 values. The fix involved making the  model more robust to missing data and using  on the frontend for resilient data fetching.
+-   **Back Button Navigation Loop Fix**: Resolved an infinite loop in navigation by correcting the usage of 's history API in .
+-   **Financial Health Module Fixes**: Corrected the backend logic for Investment Allocation (to better classify mutual funds) and Debt-to-Asset ratio calculations in . The frontend was updated to display this richer data.
+-   **Gamification Badge Reduction**: The number of achievements was reduced from 100 to a more focused list of 30 in .
+-   **Start Date Income Enhancement**: Added a  field to all 5 income creation forms for more accurate tracking.
+-   **Mobile UI Layout Bug Fixes**: Resolved the critical P0 issues from the previous session by removing the  component from all form pages and ensuring the Toaster component respected mobile safe areas.
 
 **Earlier issues found/mentioned but not fixed**
 (None)
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork**: Insights page crash.
+-   **Issue recurrence in previous fork**: Mobile UI Safe Area Overlap.
 -   **Recurrence count**: 1
 -   **Status**: RESOLVED
 
@@ -104,86 +81,84 @@ The last session was highly productive, completing a large number of bug fixes a
 
 
 **Key Technical Concepts**
--   **Multi-Step Wizard Component**: Built a stateful React component () that manages a 5-step flow with progress tracking, skip logic, and a final review.
--   **Profile Completion Tracking**: Implemented a backend service that calculates a user's profile completeness based on the existence of data across five key financial categories.
--   **Conditional UI Rendering**: Used profile completion status to conditionally render a CTA banner and a first-login modal on the dashboard.
--   **Background Scheduler (APScheduler)**: Added a new daily job to an existing scheduler to check for and create loan repayment reminders.
--   **Global CSS for Mobile Safe Area**: Applied a global CSS rule using  to fix UI overlap issues across all pages, which was later hardened with a  fallback.
--   **Data Aggregation and Transformation**: Created backend endpoints that aggregate data from multiple collections (e.g.,  from ) and transform it into a historical summary view for the frontend.
+-   **Resilient Frontend Data Fetching**: Migrated from  to  in  to prevent a single API failure from crashing the entire page load, a critical fix for app stability.
+-   **Robust Backend Modeling (Pydantic)**: Resolved a cascading 500 error by making fields (, ) in the  model optional. This allows the system to handle partially complete data records gracefully.
+-   **React Router History Management**: Debugged and fixed a critical navigation loop by changing  props to use , preventing the creation of infinite back-button cycles.
+-   **Progressive Disclosure UI**: The new onboarding flow introduced a pattern of asking one primary question per screen, with advanced options hidden behind toggles to reduce user friction.
+-   **Component-Based Architecture**: The entire onboarding flow was encapsulated into a new  component, which will now be evolved into a  component with a  sub-component.
 
 **key DB schema**
--   **user_sessions**:  field is now dynamically set to 7 or 30 days based on the  flag.
--   **onboarding_progress**: New collection to store user's onboarding status: .
+-   No direct schema changes. Pydantic models for  were updated to allow optional fields, making the application layer more resilient to incomplete documents in the database.
 
 **changes in tech stack**
 (None)
 
 **All files of reference**
--    (New)
--    (New)
--    (Heavily modified)
--    (Modified for export)
--    (New)
--    (Modified for reminders)
--    (Modified for history)
--    (Modified for history tab)
--    (Modified for Remember Me)
--    (Modified for Remember Me)
--    (Modified to always use production DB in preview)
--    (Modified for global safe area)
+-    (To be renamed and overhauled)
+-    (Contains the profile completion logic to be fixed)
+-    (Triggers the onboarding flow)
+-   
+-   
+-   
+-   
+-   
 
 **Areas that need refactoring**:
-(None)
+-   The newly created  will be immediately refactored and renamed to  as per the user's latest request.
+-   The user has suggested a layout-based routing system to handle pages with/without the , which remains a valid future refactoring task.
 
 **key api endpoints**
--   : Saves progress for a single step in the manual onboarding wizard.
--   : Retrieves the current profile completion status for the logged-in user.
--   : Exports all user data as a CSV file.
--   : Exports platform analytics as a CSV.
--   : Exports all financial data for a specific user as a CSV.
--   : Retrieves a summary of all skipped expenses, grouped by month.
--   : Updates user notification preferences.
+-   : The core endpoint for the completion logic that needs to be updated.
+-   : This endpoint was crashing due to model validation errors. It is now fixed and stable.
+-   : The data source for the  page, which now fetches data correctly.
+-   : This was heavily modified to provide more accurate and detailed financial analysis.
 
 **Critical Info for New Agent**
--   The preview environment is now hardcoded to use the **** database to ensure data visibility during development. Be mindful of making destructive changes.
--   The user's latest request is for a UI/UX enhancement (rolling buttons) based on a video. This is the new highest priority. The agent should analyze the video, propose an implementation plan, and build a proof-of-concept.
--   The large onboarding feature has been implemented but is pending user verification. Be prepared to receive feedback or bug reports on it.
--   The Finvu (Account Aggregator) integration is the next logical step for the onboarding feature but is blocked pending user-provided credentials.
+-   **Top Priority is the Onboarding Overhaul**: The user has provided a very detailed, multi-part specification for redesigning the profile completion flow. You must follow these new instructions precisely. The previous Strategic Onboarding implementation should be considered a temporary step.
+-   **Resilience is Key**: A major bug was fixed by making a frontend page () resilient to backend API failures using . This is a good pattern to follow for complex pages that fetch data from multiple sources.
+-   **Model Mismatches**: Be aware that Pydantic models exist in multiple places (e.g.,  and ). A previous bug was caused by these being out of sync. When changing a model, ensure all related definitions are updated.
 
 **documents and test reports created in this job**
--    (Continuously updated)
+-    (Updated multiple times with completed features and new requirements)
+-   
+-   
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Asks to implement a rolling button UI animation seen in a video. (NEW TASK)
-2.  **User**: Confirms to proceed with the Onboarding feature plan. (COMPLETED)
-3.  **User**: Asks to remove the Complete your financial profile tab from the Health/Insights page. (COMPLETED)
-4.  **User**: Provides a detailed PRD for a new Setup Your Financial Profile onboarding module. (COMPLETED)
-5.  **User**: Reports that the Fixed Income section shows ₹0 and that the receipt schedule is missing past payments. (COMPLETED)
-6.  **User**: Asks to implement Repayment reminders for Loan Given and Skipped expense history view. (COMPLETED)
-7.  **User**: Confirms to proceed with the plan to implement Remember Me, Admin Export, and Notification Preferences. (COMPLETED)
-8.  **User**: Asks to implement three backlog items: Enhanced Remember Me, Admin data export, and User notification preferences. (COMPLETED)
-9.  **User**: Confirms that all three verification items (Data Matching, Badge Count, Mobile Safe Area) are addressed. (COMPLETED)
-10. **User**: Reports a data mismatch between the Dashboard and My Expenses pages. (COMPLETED)
+10. **User**: Requests a complete overhaul of the newly-built onboarding flow with a 4-point plan (rename, fix completion %, new status page, deep entry forms). (PENDING)
+9.  **Agent**: Acknowledges user question about code download and provides instructions via support agent. (Completed)
+8.  **User**: Asks how to get the entire app's code. (Completed)
+7.  **Agent**: Confirms that a Compare Months feature already exists in the Analytics page. (Completed)
+6.  **User**: Asks if the agent's suggestion for a Compare Months feature is new or already exists. (Completed)
+5.  **Agent**: Finishes implementing the Strategic Onboarding overhaul (v1). (Completed)
+4.  **User**: Provides detailed feedback and instructions for 6 new issues, including the back button loop, Wealth page data error, and gamification badge reduction. (Completed)
+3.  **Agent**: Finishes implementing a batch of 6 UI/data bugs. (Completed)
+2.  **User**: Reports 5 new UI/data bugs via screenshots and asks for an enhancement. (Completed)
+1.  **Agent**: Finishes fixing the initial set of P0 mobile layout bugs. (Completed)
 
 **Project Health Check:**
--   **Broken**: None
--   **Mocked**: Finvu SDK integration is present in the UI but the  function is a placeholder.
+-   **Broken**:
+    -   The profile completion percentage logic does not meet user expectations (provides ~60% instead of the desired >=80% after wizard).
+-   **Mocked**:
+    -   Finvu SDK integration in the onboarding flow.
 
 **3rd Party Integrations**
 -   MongoDB Atlas (User-provided cluster)
 -   Emergent-managed Google Auth
 -   WebAuthn (for Biometric Authentication)
+-    (for toasts)
 
 **Testing status**
--   **Testing agent used after significant changes**: NO
+-   **Testing agent used after significant changes**: YES (used for all major bug fix batches and the v1 onboarding redesign).
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: []
--   **Known regressions**: None
+-   **Known regressions**: None.
 
 **Credentials to test flow:**
--   **Email**:  (Login via Continue with Google)
--   **Email**:  (Login via Continue with Google - user with significant production data)
--   **Admin Email**: , **Password**: 
+-   **Google Login**: , 
+-   **JWT Login (Prod Data)**:  / 
+-   **Admin Login**:  / 
 
 **What agent forgot to execute**
-The agent has been very thorough in this session, addressing a long list of features and bugs without missing any explicit user requests. All planned items from  prompts were executed.</analysis>
+The agent has successfully kept up with a very high velocity of user requests and has not forgotten to execute any tasks. The current pending work is a direct result of the user's latest message, which introduces a new set of requirements for a feature that was just completed.</analysis>
