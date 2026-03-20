@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import OnboardingWizard from "@/components/OnboardingWizard";
+import StrategicOnboarding from "@/components/StrategicOnboarding";
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
@@ -12,7 +12,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="h-screen" style={{ backgroundColor: "var(--bg-app)", overscrollBehavior: "none", overflow: "hidden" }}>
-      <OnboardingWizard
+      <StrategicOnboarding
         onComplete={() => navigate("/home")}
         onDismiss={() => navigate("/home")}
       />

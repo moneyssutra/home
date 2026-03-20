@@ -32,7 +32,7 @@ import FinancialHealth from "@/components/FinancialHealth";
 import { OpportunityCard } from "@/components/OpportunityCard";
 import { useAuth } from "@/context/AuthContext";
 import { useFamilyContext } from "@/context/FamilyContext";
-import OnboardingWizard from "@/components/OnboardingWizard";
+import StrategicOnboarding from "@/components/StrategicOnboarding";
 import RollingButtons from "@/components/RollingButtons";
 
 const Dashboard = () => {
@@ -327,10 +327,10 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Onboarding Wizard Modal */}
+      {/* Strategic Onboarding Modal */}
       {showOnboarding && (
         <div className="fixed inset-0 z-[999]" style={{ backgroundColor: "var(--bg-app)", overscrollBehavior: "none" }} data-testid="onboarding-modal">
-          <OnboardingWizard
+          <StrategicOnboarding
             onComplete={() => { setShowOnboarding(false); fetchDashboardData(); }}
             onDismiss={() => setShowOnboarding(false)}
           />
