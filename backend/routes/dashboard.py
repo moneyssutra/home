@@ -52,20 +52,22 @@ async def get_networth_summary(request: Request):
     import calendar
     days_in_month = calendar.monthrange(current_year, current_month)[1]
 
-    # Fetch actual variable income transactions for current month
+    # Fetch actual variable income transactions for current month (sum + count)
     variable_txn_sums = {}
+    variable_txn_counts = {}
     entity_ids = [inc.get('id') for inc in incomes if inc.get('id')]
     if entity_ids:
         month_start = f"{current_year}-{current_month:02d}-01"
         month_end = f"{current_year}-{current_month:02d}-{days_in_month}"
         pipeline = [
             {"$match": {"entityId": {"$in": entity_ids}, "transactionDate": {"$gte": month_start, "$lte": month_end}}},
-            {"$group": {"_id": "$entityId", "totalAmount": {"$sum": "$amount"}}}
+            {"$group": {"_id": "$entityId", "totalAmount": {"$sum": "$amount"}, "count": {"$sum": 1}}}
         ]
         async for stat in db.income_transactions.aggregate(pipeline):
             variable_txn_sums[stat["_id"]] = stat["totalAmount"]
+            variable_txn_counts[stat["_id"]] = stat["count"]
 
-    income_received_list, income_expected_list = _split_by_schedule_date(incomes, current_day, current_month, current_year, is_income=True, variable_txn_sums=variable_txn_sums)
+    income_received_list, income_expected_list = _split_by_schedule_date(incomes, current_day, current_month, current_year, is_income=True, variable_txn_sums=variable_txn_sums, variable_txn_counts=variable_txn_counts)
 
     # For expenses, use payment-status-aware splitting to match My Expenses page
     expense_done_list, expense_upcoming_list = await _split_expenses_by_status(
@@ -533,9 +535,9 @@ def _get_schedule_day(item, is_income=True):
     return 0  # 0 = unknown, will be treated conservatively
 
 
-def _split_by_schedule_date(items, current_day, current_month, current_year, is_income=True, variable_txn_sums=None):
+def _split_by_schedule_date(items, current_day, current_month, current_year, is_income=True, variable_txn_sums=None, variable_txn_counts=None):
     """Split items into received/done vs expected/upcoming based on schedule date.
-    For variable income with actual transactions, uses real amounts for received."""
+    For variable income: uses actual transactions + expectedAmount for unrecorded past occurrences."""
     import calendar
     received = []
     expected = []
@@ -543,6 +545,8 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
     days_in_month = calendar.monthrange(current_year, current_month)[1]
     if variable_txn_sums is None:
         variable_txn_sums = {}
+    if variable_txn_counts is None:
+        variable_txn_counts = {}
 
     for item in items:
         # Skip linked expenses to avoid double-counting (consistent with monthly-summary)
@@ -642,11 +646,13 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
         if freq == 'Daily':
             entry_received = {**entry, "amount": round(amount * current_day, 2)}
             entry_expected = {**entry, "amount": round(amount * (days_in_month - current_day), 2)}
-            # Variable income override: use actual transactions for received
+            # Variable income hybrid: actual + expectedAmount for unrecorded past days
             if is_income and item.get('incomeType', '').lower() == 'variable':
                 actual = variable_txn_sums.get(item.get('id', ''), 0)
                 if actual > 0:
-                    entry_received = {**entry, "amount": round(actual, 2)}
+                    txn_count = variable_txn_counts.get(item.get('id', ''), 0)
+                    unrecorded = max(0, current_day - txn_count)
+                    entry_received = {**entry, "amount": round(actual + (unrecorded * amount), 2)}
             if entry_received["amount"] > 0:
                 received.append(entry_received)
             if entry_expected["amount"] > 0:
@@ -664,11 +670,13 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
                 future_count = max(0, 4 - past_count)
             entry_received = {**entry, "amount": round(amount * past_count, 2)}
             entry_expected = {**entry, "amount": round(amount * future_count, 2)}
-            # Variable income override: use actual transactions for received
+            # Variable income hybrid: actual + expectedAmount for unrecorded past weeks
             if is_income and item.get('incomeType', '').lower() == 'variable':
                 actual = variable_txn_sums.get(item.get('id', ''), 0)
                 if actual > 0:
-                    entry_received = {**entry, "amount": round(actual, 2)}
+                    txn_count = variable_txn_counts.get(item.get('id', ''), 0)
+                    unrecorded = max(0, past_count - txn_count)
+                    entry_received = {**entry, "amount": round(actual + (unrecorded * amount), 2)}
             if entry_received["amount"] > 0:
                 received.append(entry_received)
             if entry_expected["amount"] > 0:

@@ -114,13 +114,15 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
     month_start = f"{now.year}-{now.month:02d}-01"
     month_end = f"{now.year}-{now.month:02d}-{days_in_month}"
     monthly_txn_sums = {}
+    monthly_txn_counts = {}
     if entity_ids:
         monthly_pipeline = [
             {"$match": {"entityId": {"$in": entity_ids}, "transactionDate": {"$gte": month_start, "$lte": month_end}}},
-            {"$group": {"_id": "$entityId", "totalAmount": {"$sum": "$amount"}}}
+            {"$group": {"_id": "$entityId", "totalAmount": {"$sum": "$amount"}, "count": {"$sum": 1}}}
         ]
         async for stat in db.income_transactions.aggregate(monthly_pipeline):
             monthly_txn_sums[stat["_id"]] = stat["totalAmount"]
+            monthly_txn_counts[stat["_id"]] = stat["count"]
 
     for source in income_sources:
         stats = transaction_stats.get(source["id"], {})
@@ -175,12 +177,23 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
                 source["monthlyReceived"] = 0
                 source["monthlyPending"] = amount
 
-        # For variable income with actual transactions, use real amounts for received
+        # For variable income: hybrid approach
+        # actual transactions + expectedAmount for unrecorded past occurrences
         is_variable = source.get('incomeType', '').lower() == 'variable'
         actual_this_month = monthly_txn_sums.get(source["id"], 0)
         if is_variable and actual_this_month > 0:
-            source["monthlyReceived"] = actual_this_month
-            source["monthlyTotal"] = actual_this_month + source["monthlyPending"]
+            txn_count = monthly_txn_counts.get(source["id"], 0)
+            # Calculate past scheduled occurrences
+            if freq == 'Daily':
+                past_scheduled = now.day
+            elif freq == 'Weekly':
+                day_name = source.get('selectedDay', '')
+                past_scheduled = count_weekday_occurrences(now.year, now.month, day_name, now.day) if day_name else 0
+            else:
+                past_scheduled = 1 if source["monthlyReceived"] > 0 else 0
+            unrecorded = max(0, past_scheduled - txn_count)
+            source["monthlyReceived"] = actual_this_month + (unrecorded * amount)
+            source["monthlyTotal"] = source["monthlyReceived"] + source["monthlyPending"]
 
     return income_sources
 
@@ -204,21 +217,23 @@ async def get_income_monthly_summary(request: Request):
     incomes = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
     other_incomes = await db.other_income.find(user_filter, {"_id": 0}).to_list(1000)
 
-    # For variable income, fetch actual transactions this month
+    # For variable income, fetch actual transactions this month (sum + count)
     month_start = f"{current_year}-{current_month:02d}-01"
     month_end = f"{current_year}-{current_month:02d}-{days_in_month}"
     entity_ids = [inc.get('id') for inc in incomes if inc.get('id')]
     variable_txn_sums = {}
+    variable_txn_counts = {}
     if entity_ids:
         pipeline = [
             {"$match": {
                 "entityId": {"$in": entity_ids},
                 "transactionDate": {"$gte": month_start, "$lte": month_end}
             }},
-            {"$group": {"_id": "$entityId", "totalAmount": {"$sum": "$amount"}}}
+            {"$group": {"_id": "$entityId", "totalAmount": {"$sum": "$amount"}, "count": {"$sum": 1}}}
         ]
         async for stat in db.income_transactions.aggregate(pipeline):
             variable_txn_sums[stat["_id"]] = stat["totalAmount"]
+            variable_txn_counts[stat["_id"]] = stat["count"]
 
     month_map = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,
                  "July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
@@ -371,9 +386,19 @@ async def get_income_monthly_summary(request: Request):
                 rec = 0
                 pend = month_amt
 
-        # For variable income with actual transactions, use real amounts for received
+        # For variable income: hybrid approach
+        # actual transactions + expectedAmount for unrecorded past occurrences
         if is_variable and actual_received > 0:
-            rec = actual_received
+            txn_count = variable_txn_counts.get(entity_id, 0)
+            # Calculate how many past occurrences were scheduled
+            if freq == 'Daily':
+                past_scheduled = current_day
+            elif freq == 'Weekly':
+                past_scheduled = count_weekday_occurrences(current_year, current_month, inc.get('selectedDay', ''), current_day)
+            else:
+                past_scheduled = 1 if rec > 0 else 0
+            unrecorded = max(0, past_scheduled - txn_count)
+            rec = actual_received + (unrecorded * amount)
             month_amt = rec + pend
 
         total_income += month_amt
