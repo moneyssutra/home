@@ -340,10 +340,9 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
   // Module-specific save: save the module data and return to grid
   const handleModuleComplete = async (saveFn) => {
     await saveFn();
-    // Refresh completion data and return to grid
     await fetchCompletionData();
-    setSearchParams({});
     setScreen("grid");
+    navigate(-1);
   };
 
   const handleFullComplete = async () => {
@@ -360,8 +359,8 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
   const handleDismiss = async () => {
     try { await axios.post(`${API}/api/onboarding/dismiss`, {}, { withCredentials: true }); } catch {}
     if (targetModule) {
-      setSearchParams({});
       setScreen("grid");
+      navigate(-1);
     } else if (onDismiss) {
       onDismiss();
     }
@@ -373,8 +372,14 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     const idx = steps.indexOf(screen);
     if (idx > 0) setScreen(steps[idx - 1]);
     else {
-      setSearchParams({});
-      setScreen("grid");
+      // Use navigate(-1) to pop the history entry instead of pushing a new one
+      // This prevents the back-button infinite loop between grid and module
+      if (targetModule) {
+        setScreen("grid");
+        navigate(-1);
+      } else {
+        setScreen("grid");
+      }
     }
   };
 
