@@ -40,9 +40,8 @@ const BUTTON_GROUPS = [
   {
     id: "plan",
     items: [
-      { label: "Goals", icon: Target, route: "/my-goals", color: "#F59E0B" },
-      { label: "Banks", icon: Landmark, route: "/bank-accounts-experimental", color: "#3B82F6" },
-      { label: "Debts", icon: HandCoins, route: "/my-liabilities", color: "#EF4444" },
+      { label: "Bank Balance", icon: Landmark, route: "/bank-accounts-experimental", color: "#3B82F6" },
+      { label: "Check your balance", icon: Landmark, route: "/bank-accounts-experimental", color: "#3B82F6" },
     ],
     interval: 3600,
     shimmerDelay: "2.6s",
