@@ -1,0 +1,69 @@
+{
+  "summary": "Bug fix verified: Combined intelligence endpoint now returns full structured survivalClock and controlScore data. All 13 backend tests passed (100%). Frontend Health/Insights page shows non-zero values for chandrashekhar user including: 81 days survival, Financial Score 85 Grade A, Income ₹10.5L, Expenses ₹4.4L, EMI ₹1.9L, Accessible Funds ₹11.8L, Daily Burn ₹15K/day.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "features_tested": {
+    "combined_intelligence_endpoint": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/combined/intelligence returns 200",
+        "survivalClock.effectiveFunds = 1,177,455 (> 0)",
+        "survivalClock.monthlyMandatoryExpense = 435,644 (> 0)",
+        "survivalClock.dailyBurnRate = 14,521 (> 0)",
+        "survivalClock.survivalDays = 81 (> 0)",
+        "survivalClock.fundBreakdown.liquidBuffer = 159,500 (> 0)",
+        "survivalClock.fundBreakdown has liquid, semiLiquid, illiquid breakdown",
+        "controlScore.finalScore = 85 (> 0)",
+        "controlScore.grade = A",
+        "controlScore.breakdown.savingsRate.score = 25",
+        "controlScore.breakdown.emiLoad.score = 25",
+        "controlScore.metrics.monthlyIncome = 1,049,285 (> 0)",
+        "controlScore.metrics.monthlyExpenses = 437,044 (> 0)"
+      ],
+      "bug_fix_verified": "combined.py now calls get_survival_clock(), get_control_score(), get_financial_health() functions instead of building flat data"
+    },
+    "frontend_health_page": {
+      "status": "PASS",
+      "tests": [
+        "Hero shows 81 DAYS OF SAFETY (non-zero)",
+        "Stage 8: Grounded label displays",
+        "Financial Score widget: 85 Grade A with all breakdown bars",
+        "Income ₹10.5L, Expenses ₹4.4L, Total EMI ₹1.9L, Liq Buffer ₹11.8L",
+        "Emergency Runway: Accessible Funds ₹11.8L, Monthly Essential ₹4.4L, Daily Burn ₹15K/day",
+        "3-buffer display: Liquid ₹1.6L, Extended ₹11.8L, Net Worth ₹33.7L",
+        "Financial Health score 44 with Savings Rate, EMI Ratio breakdowns"
+      ]
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_combined_intelligence_structure.py",
+    "/app/test_reports/pytest/combined_intelligence_structure_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "combined.py line 55-66: Now imports and calls actual endpoint functions (get_survival_clock, get_control_score, get_financial_health) instead of building simplified flat data",
+    "useIntelligenceData.js line 200-201: Correctly sets survivalClock and controlScore from combined endpoint response",
+    "Insights.js line 79-83: hasRealData() helper checks clockData.monthlyMandatoryExpense, clockData.effectiveFunds, scoreData.metrics.monthlyIncome"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_combined_intelligence_structure.py"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (all values non-zero)"
+  },
+  "test_credentials": {
+    "user_session_chandrashekhar": "9ec37623-73ff-43a1-908e-056a333e0bac"
+  },
+  "seed_data_creation": "None - used existing chandrashekhar user data",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Combined intelligence endpoint fix verified working. Test file at /app/backend/tests/test_combined_intelligence_structure.py covers all structure validations. Health page shows non-zero values: survivalDays=81, finalScore=85, income=₹10.5L, expenses=₹4.4L, effectiveFunds=₹11.8L."
+}
