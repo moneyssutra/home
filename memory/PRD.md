@@ -64,7 +64,7 @@ Financial management app with profile completion/onboarding flow, income/expense
 - `GET /api/combined/wealth` - Combined wealth page data
 - `GET /api/combined/intelligence` - Combined insights page data
 
-## Completed (Mar 20, 2026)
+## Completed (Mar 20-21, 2026)
 - Fixed wizard type-selection layout (justify-center → justify-start pt-4) for all 4 wizards
 - Removed "Quick Setup — All Categories" button from Profile Health page
 - Fixed back button on Profile Health page — uses onDismiss when in modal mode, fallback to navigate(-1) or /home
@@ -93,6 +93,12 @@ Financial management app with profile completion/onboarding flow, income/expense
 - **Auto-creation: Loan EMI → Expense** — Onboarding step 4 now auto-creates linked EMI expense for each loan with EMI > 0. Includes dedup-update on re-save.
 - **Auto-creation: SIP Investment → Expense** — Onboarding step 5 now auto-creates linked SIP expense for recurring investments. Includes dedup-update on re-save.
 - **Backfilled all missing auto-linked expenses** — Created 1 EMI, 9 SIP, and 3 insurance premium expenses for existing users in production DB.
+- **Fixed: Investment "00" rendering bug** — React `{0 && <JSX>}` renders `0` as text. Two such patterns in investment card produced "00" when principal was 0. Fixed with `principal > 0` checks.
+- **Fixed: Expense due date inconsistency** — Added `parseDueDay()` to handle both "28" and "2024-01-28" selectedDate formats. Added `formatOrdinal()` for proper suffix (1st, 2nd, 3rd, 28th). Missing selectedDate now enriched from dueDate/startDate on backend.
+- **Fixed: Expense card alignment on mobile** — Changed flex alignment from `items-center` to `items-start` for consistent vertical positioning regardless of content height.
+- **Fixed: Expense sorting** — Expenses now sorted by due day ascending within each status group (pending → skipped → paid).
+- **Fixed: Gamification data not loading on Health page** — Combined endpoint was fetching from wrong collection (`gamification_profiles` vs `user_gamification_profile`). Now calls `get_gamification_profile()` directly for proper allAchievements and badges data.
+- **Added: Shared `parse_due_day()` utility** — Backend utility in routes/utils.py handles all selectedDate formats consistently across expenses.py, dashboard.py.
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
