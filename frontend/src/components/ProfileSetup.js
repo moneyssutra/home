@@ -24,12 +24,12 @@ const CATEGORIES = [
 const MODULE_STEPS = {
   income: ["income-type", "income-amount", "income-date"],
   expenses: ["expenses"],
-  assets: ["assets"],
-  liabilities: ["liabilities"],
-  investments: ["investments"],
+  assets: ["asset-type", "asset-details", "asset-deep"],
+  liabilities: ["liability-type", "liability-details", "liability-deep"],
+  investments: ["invest-type", "invest-details", "invest-deep"],
 };
 
-const ALL_WIZARD_STEPS = ["income-type", "income-amount", "income-date", "expenses", "assets", "liabilities", "investments", "review", "complete"];
+const ALL_WIZARD_STEPS = ["income-type", "income-amount", "income-date", "expenses", "asset-type", "asset-details", "asset-deep", "liability-type", "liability-details", "liability-deep", "invest-type", "invest-details", "invest-deep", "review", "complete"];
 
 const INCOME_SOURCES = [
   { id: "job", label: "Job / Salary", icon: Briefcase, color: "#3B82F6", defaults: { type: "Salary", category: "salary", frequency: "Monthly" } },
@@ -64,17 +64,30 @@ const EXPENSE_BUCKETS = [
 ];
 
 const ASSET_TYPES = [
-  { id: "bank", label: "Bank Balance", icon: Landmark, category: "bank_balance" },
-  { id: "property", label: "Property / Land", icon: Building2, category: "property" },
-  { id: "gold", label: "Gold / Jewellery", icon: CircleDollarSign, category: "gold" },
-  { id: "vehicle", label: "Vehicle", icon: Car, category: "vehicle" },
+  { id: "bank", label: "Bank Balance", icon: Landmark, category: "bank_balance", color: "#10B981" },
+  { id: "property", label: "Property / Land", icon: Building2, category: "property", color: "#3B82F6" },
+  { id: "gold", label: "Gold / Jewellery", icon: CircleDollarSign, category: "gold", color: "#EAB308" },
+  { id: "vehicle", label: "Vehicle", icon: Car, category: "vehicle", color: "#F59E0B" },
+  { id: "equipment", label: "Equipment", icon: Briefcase, category: "equipment", color: "#8B5CF6" },
+  { id: "other", label: "Other Asset", icon: Shield, category: "other", color: "#6B7280" },
+];
+
+const LOAN_TYPES = [
+  { id: "home", label: "Home Loan", icon: Home, color: "#3B82F6" },
+  { id: "car", label: "Car Loan", icon: Car, color: "#F59E0B" },
+  { id: "personal", label: "Personal Loan", icon: Wallet, color: "#8B5CF6" },
+  { id: "education", label: "Education Loan", icon: BookOpen, color: "#10B981" },
+  { id: "credit-card", label: "Credit Card Debt", icon: CreditCard, color: "#EF4444" },
+  { id: "other", label: "Other Loan", icon: Receipt, color: "#6B7280" },
 ];
 
 const INVESTMENT_TYPES = [
-  { id: "mutual-fund", label: "Mutual Funds / SIP", icon: BarChart3, category: "Mutual Fund" },
-  { id: "stocks", label: "Stocks", icon: TrendingUp, category: "Stocks" },
-  { id: "fd", label: "Fixed Deposit", icon: Shield, category: "Fixed Deposit" },
-  { id: "ppf", label: "PPF / NPS", icon: PiggyBank, category: "PPF" },
+  { id: "mutual-fund", label: "Mutual Funds / SIP", icon: BarChart3, category: "Mutual Fund", color: "#8B5CF6" },
+  { id: "stocks", label: "Stocks", icon: TrendingUp, category: "Stocks", color: "#3B82F6" },
+  { id: "fd", label: "Fixed Deposit", icon: Shield, category: "Fixed Deposit", color: "#10B981" },
+  { id: "ppf", label: "PPF / NPS", icon: PiggyBank, category: "PPF", color: "#F59E0B" },
+  { id: "gold-sgb", label: "Gold / SGB", icon: CircleDollarSign, category: "Digital Gold", color: "#EAB308" },
+  { id: "crypto", label: "Crypto", icon: Zap, category: "Crypto", color: "#EF4444" },
 ];
 
 const getProjectedGrade = (income, expenses) => {
@@ -804,13 +817,13 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
         )}
         <div className="flex gap-3">
           {!isModuleMode && (
-            <CTAButton className="flex-1" secondary onClick={async () => { await handleSaveExpenses(); goNext("assets"); }}>
+            <CTAButton className="flex-1" secondary onClick={async () => { await handleSaveExpenses(); goNext("asset-type"); }}>
               <SkipForward className="h-4 w-4" /> Skip
             </CTAButton>
           )}
           <CTAButton className="flex-1" onClick={async () => {
             if (isModuleMode) { await handleModuleComplete(handleSaveExpenses); }
-            else { await handleSaveExpenses(); goNext("assets"); }
+            else { await handleSaveExpenses(); goNext("asset-type"); }
           }}>
             {isModuleMode ? "Save & Done" : "Continue"} <ArrowRight className="h-4 w-4" />
           </CTAButton>
@@ -820,94 +833,175 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
   }
 
   /* ════════════════════════════════════════════
-     SCREEN: Assets
+     SCREEN: Asset Type Selection (Step 1 of 3)
      ════════════════════════════════════════════ */
-  if (screen === "assets") {
-    const deepVisible = showAssetDeep || isDeepExpanded;
+  if (screen === "asset-type") {
     return (
-      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-assets">
-        <WizardHeader title="Your Assets" subtitle="Bank balances, property, gold — anything you own" />
+      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-asset-type">
+        <WizardHeader title="What do you own?" subtitle="Select the type of asset to add" />
+        <div className="flex-1 flex flex-col justify-center gap-3">
+          {ASSET_TYPES.map((type) => (
+            <button key={type.id} onClick={() => {
+              const u = [...assetItems];
+              u[0] = { ...u[0], type: type.category, name: u[0].name || type.label };
+              setAssetItems(u);
+              setHasNoAssets(false);
+              setTimeout(() => setScreen("asset-details"), 300);
+            }}
+              className="relative w-full p-5 rounded-2xl text-left transition-all active:scale-[0.97]"
+              style={{
+                backgroundColor: assetItems[0]?.type === type.category ? type.color + "12" : "var(--bg-card)",
+                border: `2px solid ${assetItems[0]?.type === type.category ? type.color : "var(--border-light)"}`,
+              }}
+              data-testid={`asset-type-card-${type.id}`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${type.color}15` }}>
+                  <type.icon className="h-6 w-6" style={{ color: type.color }} />
+                </div>
+                <p className="text-base font-bold flex-1" style={{ color: "var(--text-primary)" }}>{type.label}</p>
+                {assetItems[0]?.type === type.category && (
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: type.color }}>
+                    <Check className="h-4 w-4 text-white" />
+                  </div>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+        <CTAButton className="w-full mt-4" secondary onClick={async () => {
+          setHasNoAssets(true);
+          if (isModuleMode) { await handleModuleComplete(handleSaveAssets); }
+          else goNext("liability-type");
+        }}>
+          I don't have any assets
+        </CTAButton>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════
+     SCREEN: Asset Details (Step 2 of 3)
+     ════════════════════════════════════════════ */
+  if (screen === "asset-details") {
+    const currentType = ASSET_TYPES.find(t => t.category === assetItems[0]?.type);
+    return (
+      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-asset-details">
+        <WizardHeader title={`Add ${currentType?.label || "Asset"}`} subtitle="Enter the name and current value" />
         <div className="flex-1 overflow-y-auto space-y-3 pb-4">
-          {hasNoAssets ? (
-            <div className="p-6 rounded-2xl text-center" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-              <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>No assets to add right now</p>
-              <button onClick={() => setHasNoAssets(false)} className="text-xs mt-2 underline" style={{ color: "#3B82F6" }}>Actually, I do have some</button>
-            </div>
-          ) : (
-            <>
-              {assetItems.map((item, idx) => (
-                <div key={idx} className="p-4 rounded-2xl space-y-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-                  <div className="flex gap-2 flex-wrap">
+          {assetItems.map((item, idx) => (
+            <div key={idx} className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+              {idx > 0 && (
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-2 flex-wrap flex-1">
                     {ASSET_TYPES.map(t => (
                       <button key={t.id} onClick={() => {
                         const u = [...assetItems]; u[idx] = { ...u[idx], type: t.category, name: u[idx].name || t.label }; setAssetItems(u);
                       }}
-                        className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                        className="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
                         style={{
-                          backgroundColor: item.type === t.category ? "#3B82F615" : "transparent",
-                          color: item.type === t.category ? "#3B82F6" : "var(--text-muted)",
-                          border: `1px solid ${item.type === t.category ? "#3B82F6" : "var(--border-light)"}`,
+                          backgroundColor: item.type === t.category ? `${t.color}15` : "transparent",
+                          color: item.type === t.category ? t.color : "var(--text-muted)",
+                          border: `1px solid ${item.type === t.category ? t.color : "var(--border-light)"}`,
                         }}
-                        data-testid={`asset-type-${t.id}-${idx}`}
+                        data-testid={`asset-type-pill-${t.id}-${idx}`}
                       >{t.label}</button>
                     ))}
                   </div>
-                  <FieldInput value={item.name} placeholder="Name (e.g., HDFC Savings)" testId={`asset-name-${idx}`}
-                    onChange={(e) => { const u = [...assetItems]; u[idx] = { ...u[idx], name: e.target.value }; setAssetItems(u); }}
+                  <button onClick={() => setAssetItems(p => p.filter((_, i) => i !== idx))} className="text-xs underline ml-2 flex-shrink-0" style={{ color: "#EF4444" }} data-testid={`remove-asset-${idx}`}>Remove</button>
+                </div>
+              )}
+              <div>
+                <FieldLabel>Asset Name</FieldLabel>
+                <FieldInput value={item.name} placeholder="e.g., HDFC Savings, Green Villa" testId={`asset-name-${idx}`}
+                  onChange={(e) => { const u = [...assetItems]; u[idx] = { ...u[idx], name: e.target.value }; setAssetItems(u); }}
+                />
+              </div>
+              <div>
+                <FieldLabel>Current Value (₹)</FieldLabel>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
+                  <input type="text" inputMode="numeric" placeholder="Current Value"
+                    value={item.amount}
+                    onChange={(e) => { const u = [...assetItems]; u[idx] = { ...u[idx], amount: e.target.value.replace(/[^0-9]/g, "") }; setAssetItems(u); }}
+                    className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm font-bold outline-none"
+                    style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                    data-testid={`asset-amount-${idx}`}
                   />
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
-                    <input type="text" inputMode="numeric" placeholder="Current Value"
-                      value={item.amount}
-                      onChange={(e) => { const u = [...assetItems]; u[idx] = { ...u[idx], amount: e.target.value.replace(/[^0-9]/g, "") }; setAssetItems(u); }}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm font-bold outline-none"
+                </div>
+              </div>
+            </div>
+          ))}
+          <button onClick={() => setAssetItems(p => [...p, { name: "", amount: "", type: "bank_balance", purchaseDate: "", growthRate: "" }])}
+            className="w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
+            style={{ color: "#3B82F6", border: "1px dashed var(--border-light)" }}
+            data-testid="add-asset-btn"
+          ><Plus className="h-3.5 w-3.5" /> Add another asset</button>
+        </div>
+        <CTAButton className="w-full"
+          onClick={() => setScreen("asset-deep")}
+          disabled={!assetItems.some(a => a.name && parseFloat(a.amount) > 0)}
+        >
+          Continue <ArrowRight className="h-4 w-4" />
+        </CTAButton>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════
+     SCREEN: Asset Deep Details (Step 3 of 3)
+     ════════════════════════════════════════════ */
+  if (screen === "asset-deep") {
+    const validAssets = assetItems.filter(a => a.name && parseFloat(a.amount) > 0);
+    return (
+      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-asset-deep">
+        <WizardHeader title="Asset Deep Details" subtitle="Optional — helps with accurate Net Worth projections" />
+        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
+          {validAssets.map((item) => {
+            const origIdx = assetItems.indexOf(item);
+            const typeInfo = ASSET_TYPES.find(t => t.category === item.type);
+            return (
+              <div key={origIdx} className="p-4 rounded-2xl space-y-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+                <div className="flex items-center gap-2">
+                  {typeInfo && <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${typeInfo.color}15` }}>
+                    <typeInfo.icon className="h-4 w-4" style={{ color: typeInfo.color }} />
+                  </div>}
+                  <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{item.name}</p>
+                  <span className="text-xs ml-auto" style={{ color: "var(--text-muted)" }}>₹{parseFloat(item.amount).toLocaleString("en-IN")}</span>
+                </div>
+                <div>
+                  <FieldLabel hint="For calculating appreciation over time">Purchase Date</FieldLabel>
+                  <input type="date" value={item.purchaseDate || ""}
+                    onChange={(e) => { const u = [...assetItems]; u[origIdx] = { ...u[origIdx], purchaseDate: e.target.value }; setAssetItems(u); }}
+                    className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                    style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                    data-testid={`asset-date-${origIdx}`}
+                  />
+                </div>
+                {item.type !== "bank_balance" && (
+                  <div>
+                    <FieldLabel hint="12% recommended for Indian Mutual Funds">Expected Growth Rate (%)</FieldLabel>
+                    <input type="text" inputMode="decimal" placeholder="e.g., 8" value={item.growthRate || ""}
+                      onChange={(e) => { const u = [...assetItems]; u[origIdx] = { ...u[origIdx], growthRate: e.target.value.replace(/[^0-9.]/g, "") }; setAssetItems(u); }}
+                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
                       style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid={`asset-amount-${idx}`}
+                      data-testid={`asset-growth-${origIdx}`}
                     />
                   </div>
-                  {/* Deep fields */}
-                  {deepVisible && (
-                    <div className="space-y-3 pt-2" style={{ borderTop: "1px solid var(--border-light)" }}>
-                      <div>
-                        <FieldLabel hint="For calculating appreciation">Purchase Date</FieldLabel>
-                        <input type="date" value={item.purchaseDate || ""}
-                          onChange={(e) => { const u = [...assetItems]; u[idx] = { ...u[idx], purchaseDate: e.target.value }; setAssetItems(u); }}
-                          className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                          style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                          data-testid={`asset-date-${idx}`}
-                        />
-                      </div>
-                      {item.type !== "bank_balance" && (
-                        <div>
-                          <FieldLabel hint="12% recommended for Indian Mutual Funds">Expected Growth Rate (%)</FieldLabel>
-                          <input type="text" inputMode="decimal" placeholder="e.g., 8" value={item.growthRate || ""}
-                            onChange={(e) => { const u = [...assetItems]; u[idx] = { ...u[idx], growthRate: e.target.value.replace(/[^0-9.]/g, "") }; setAssetItems(u); }}
-                            className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                            style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                            data-testid={`asset-growth-${idx}`}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-              <button onClick={() => setAssetItems(p => [...p, { name: "", amount: "", type: "bank_balance", purchaseDate: "", growthRate: "" }])}
-                className="w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
-                style={{ color: "#3B82F6", border: "1px dashed var(--border-light)" }}
-                data-testid="add-asset-btn"
-              ><Plus className="h-3.5 w-3.5" /> Add another asset</button>
-              {!isDeepExpanded && <DeepToggle show={showAssetDeep} onToggle={() => setShowAssetDeep(!showAssetDeep)} />}
-            </>
-          )}
+                )}
+              </div>
+            );
+          })}
         </div>
         <div className="flex gap-3 mt-4">
-          {!hasNoAssets && (
-            <CTAButton className="flex-1" secondary onClick={() => setHasNoAssets(true)}>I don't have any</CTAButton>
+          {!isModuleMode && (
+            <CTAButton className="flex-1" secondary onClick={async () => { await handleSaveAssets(); goNext("liability-type"); }}>
+              <SkipForward className="h-4 w-4" /> Skip details
+            </CTAButton>
           )}
           <CTAButton className="flex-1" onClick={async () => {
             if (isModuleMode) { await handleModuleComplete(handleSaveAssets); }
-            else { await handleSaveAssets(); goNext("liabilities"); }
+            else { await handleSaveAssets(); goNext("liability-type"); }
           }}>
             {isModuleMode ? "Save & Done" : "Continue"} <ArrowRight className="h-4 w-4" />
           </CTAButton>
@@ -917,116 +1011,164 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
   }
 
   /* ════════════════════════════════════════════
-     SCREEN: Liabilities
+     SCREEN: Liability Type Selection (Step 1 of 3)
      ════════════════════════════════════════════ */
-  if (screen === "liabilities") {
-    const deepVisible = showLiabilityDeep || isDeepExpanded;
+  if (screen === "liability-type") {
     return (
-      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-liabilities">
-        <WizardHeader title="Any Loans or Debt?" subtitle="Home loan, car loan, credit card — any outstanding debt" />
-        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
-          {hasNoLiabilities ? (
-            <div className="p-6 rounded-2xl text-center" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-              <div className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center" style={{ backgroundColor: "#10B98115" }}>
-                <Check className="h-7 w-7" style={{ color: "#10B981" }} />
-              </div>
-              <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>Debt free!</p>
-              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>That's a great position to be in</p>
-              <button onClick={() => setHasNoLiabilities(false)} className="text-xs mt-3 underline" style={{ color: "#F59E0B" }}>Actually, I do have some</button>
-            </div>
-          ) : (
-            <>
-              <div className="p-4 rounded-2xl space-y-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-                <div>
-                  <FieldLabel>Loan Name</FieldLabel>
-                  <FieldInput value={loanName} onChange={(e) => setLoanName(e.target.value)} placeholder="e.g., Home Loan" testId="loan-name-input" />
+      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-liability-type">
+        <WizardHeader title="Any Loans or Debt?" subtitle="Select the type of liability" />
+        <div className="flex-1 flex flex-col justify-center gap-3">
+          {LOAN_TYPES.map((type) => (
+            <button key={type.id} onClick={() => {
+              setLoanType(type.label);
+              if (!loanName) setLoanName(type.label);
+              setHasNoLiabilities(false);
+              setTimeout(() => setScreen("liability-details"), 300);
+            }}
+              className="relative w-full p-5 rounded-2xl text-left transition-all active:scale-[0.97]"
+              style={{
+                backgroundColor: loanType === type.label ? type.color + "12" : "var(--bg-card)",
+                border: `2px solid ${loanType === type.label ? type.color : "var(--border-light)"}`,
+              }}
+              data-testid={`loan-type-card-${type.id}`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${type.color}15` }}>
+                  <type.icon className="h-6 w-6" style={{ color: type.color }} />
                 </div>
-                <div>
-                  <FieldLabel hint="Total amount you still owe">Outstanding Principal (₹)</FieldLabel>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
-                    <input type="text" inputMode="numeric" placeholder="Outstanding amount"
-                      value={loanAmount} onChange={(e) => setLoanAmount(e.target.value.replace(/[^0-9]/g, ""))}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm font-bold outline-none"
-                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid="loan-amount-input"
-                    />
+                <p className="text-base font-bold flex-1" style={{ color: "var(--text-primary)" }}>{type.label}</p>
+                {loanType === type.label && (
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: type.color }}>
+                    <Check className="h-4 w-4 text-white" />
                   </div>
-                </div>
-                <div>
-                  <FieldLabel hint="We'll track this against your income">Monthly EMI (₹)</FieldLabel>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
-                    <input type="text" inputMode="numeric" placeholder="Monthly EMI"
-                      value={loanEmi} onChange={(e) => setLoanEmi(e.target.value.replace(/[^0-9]/g, ""))}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid="loan-emi-input"
-                    />
-                  </div>
-                </div>
+                )}
               </div>
+            </button>
+          ))}
+        </div>
+        <CTAButton className="w-full mt-4" secondary onClick={async () => {
+          setHasNoLiabilities(true);
+          if (isModuleMode) { await handleModuleComplete(handleSaveLiabilities); }
+          else goNext("invest-type");
+        }}>
+          <Check className="h-4 w-4" /> I'm debt free!
+        </CTAButton>
+      </div>
+    );
+  }
 
-              {/* Deep details — always visible in module mode */}
-              {!isDeepExpanded && <DeepToggle show={showLiabilityDeep} onToggle={() => setShowLiabilityDeep(!showLiabilityDeep)} />}
-              {deepVisible && (
-                <div className="p-4 rounded-2xl space-y-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-                  <div>
-                    <FieldLabel>Loan Type</FieldLabel>
-                    <select value={loanType} onChange={(e) => setLoanType(e.target.value)}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid="loan-type-select"
-                    >
-                      <option value="Personal">Personal</option>
-                      <option value="Home">Home Loan</option>
-                      <option value="Car">Car Loan</option>
-                      <option value="Education">Education</option>
-                      <option value="Credit Card">Credit Card</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <FieldLabel hint="Helps calculate your real cost of borrowing">Interest Rate (%)</FieldLabel>
-                    <input type="text" inputMode="decimal" placeholder="e.g., 8.5" value={loanRate}
-                      onChange={(e) => setLoanRate(e.target.value.replace(/[^0-9.]/g, ""))}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid="loan-rate-input"
-                    />
-                  </div>
-                  <div>
-                    <FieldLabel hint="How many months left on this loan?">Tenure Remaining (months)</FieldLabel>
-                    <input type="text" inputMode="numeric" placeholder="e.g., 120" value={loanTenure}
-                      onChange={(e) => setLoanTenure(e.target.value.replace(/[^0-9]/g, ""))}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid="loan-tenure-input"
-                    />
-                  </div>
-                  <div>
-                    <FieldLabel hint="We'll remind you before it's due">Next EMI Due Date (day)</FieldLabel>
-                    <select value={loanNextDue} onChange={(e) => setLoanNextDue(e.target.value)}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid="loan-next-due-select"
-                    >
-                      <option value="">Select day</option>
-                      {Array.from({ length: 28 }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}
-                    </select>
-                  </div>
+  /* ════════════════════════════════════════════
+     SCREEN: Liability Details (Step 2 of 3)
+     ════════════════════════════════════════════ */
+  if (screen === "liability-details") {
+    const currentLoanType = LOAN_TYPES.find(t => t.label === loanType);
+    return (
+      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-liability-details">
+        <WizardHeader title={`${loanType || "Loan"} Details`} subtitle="Enter the key details of your loan" />
+        <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+          <div className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            {currentLoanType && (
+              <div className="flex items-center gap-2 pb-3" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${currentLoanType.color}15` }}>
+                  <currentLoanType.icon className="h-4 w-4" style={{ color: currentLoanType.color }} />
                 </div>
-              )}
-            </>
-          )}
+                <span className="text-xs font-bold" style={{ color: currentLoanType.color }}>{currentLoanType.label}</span>
+              </div>
+            )}
+            <div>
+              <FieldLabel>Loan Name</FieldLabel>
+              <FieldInput value={loanName} onChange={(e) => setLoanName(e.target.value)} placeholder="e.g., HDFC Home Loan" testId="loan-name-input" />
+            </div>
+            <div>
+              <FieldLabel hint="Total amount you still owe">Outstanding Principal (₹)</FieldLabel>
+              <div className="flex items-center gap-1">
+                <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
+                <input type="text" inputMode="numeric" placeholder="Outstanding amount"
+                  value={loanAmount} onChange={(e) => setLoanAmount(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm font-bold outline-none"
+                  style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                  data-testid="loan-amount-input"
+                />
+              </div>
+            </div>
+            <div>
+              <FieldLabel hint="We'll track this against your income">Monthly EMI (₹)</FieldLabel>
+              <div className="flex items-center gap-1">
+                <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
+                <input type="text" inputMode="numeric" placeholder="Monthly EMI"
+                  value={loanEmi} onChange={(e) => setLoanEmi(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                  style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                  data-testid="loan-emi-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <CTAButton className="w-full"
+          onClick={() => setScreen("liability-deep")}
+          disabled={!loanName || !loanAmount || parseFloat(loanAmount) <= 0}
+        >
+          Continue <ArrowRight className="h-4 w-4" />
+        </CTAButton>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════
+     SCREEN: Liability Deep Details (Step 3 of 3)
+     ════════════════════════════════════════════ */
+  if (screen === "liability-deep") {
+    return (
+      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-liability-deep">
+        <WizardHeader title="Loan Deep Details" subtitle="Helps calculate your real cost of borrowing" />
+        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
+          <div className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <div>
+              <FieldLabel hint="Helps calculate your real cost of borrowing">Interest Rate (%)</FieldLabel>
+              <input type="text" inputMode="decimal" placeholder="e.g., 8.5" value={loanRate}
+                onChange={(e) => setLoanRate(e.target.value.replace(/[^0-9.]/g, ""))}
+                className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                data-testid="loan-rate-input"
+              />
+            </div>
+            <div>
+              <FieldLabel hint="How many months left on this loan?">Tenure Remaining (months)</FieldLabel>
+              <input type="text" inputMode="numeric" placeholder="e.g., 120" value={loanTenure}
+                onChange={(e) => setLoanTenure(e.target.value.replace(/[^0-9]/g, ""))}
+                className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                data-testid="loan-tenure-input"
+              />
+            </div>
+            <div>
+              <FieldLabel hint="We'll remind you before it's due">Next EMI Due Date (day of month)</FieldLabel>
+              <div className="grid grid-cols-7 gap-1.5">
+                {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                  <button key={d} onClick={() => setLoanNextDue(String(d))}
+                    className="aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all active:scale-90"
+                    style={{
+                      backgroundColor: loanNextDue === String(d) ? "#F59E0B" : "var(--bg-app)",
+                      color: loanNextDue === String(d) ? "white" : "var(--text-muted)",
+                      border: `1px solid ${loanNextDue === String(d) ? "#F59E0B" : "var(--border-light)"}`,
+                    }}
+                    data-testid={`loan-due-day-${d}`}
+                  >{d}</button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
         <div className="flex gap-3 mt-4">
-          {!hasNoLiabilities && (
-            <CTAButton className="flex-1" secondary onClick={() => setHasNoLiabilities(true)}>No debt</CTAButton>
+          {!isModuleMode && (
+            <CTAButton className="flex-1" secondary onClick={async () => { await handleSaveLiabilities(); goNext("invest-type"); }}>
+              <SkipForward className="h-4 w-4" /> Skip details
+            </CTAButton>
           )}
           <CTAButton className="flex-1" onClick={async () => {
             if (isModuleMode) { await handleModuleComplete(handleSaveLiabilities); }
-            else { await handleSaveLiabilities(); goNext("investments"); }
+            else { await handleSaveLiabilities(); goNext("invest-type"); }
           }}>
             {isModuleMode ? "Save & Done" : "Continue"} <ArrowRight className="h-4 w-4" />
           </CTAButton>
@@ -1036,110 +1178,161 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
   }
 
   /* ════════════════════════════════════════════
-     SCREEN: Investments
+     SCREEN: Investment Type Selection (Step 1 of 3)
      ════════════════════════════════════════════ */
-  if (screen === "investments") {
-    const deepVisible = showInvestDeep || isDeepExpanded;
+  if (screen === "invest-type") {
     return (
-      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-investments">
-        <WizardHeader title="Do you invest?" subtitle="SIPs, stocks, FDs, PPF — any active investments" />
-        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
-          {hasNoInvestments ? (
-            <div className="p-6 rounded-2xl text-center" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-              <p className="text-sm font-medium" style={{ color: "var(--text-muted)" }}>No investments yet — that's okay!</p>
-              <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>We'll help you get started with insights</p>
-              <button onClick={() => setHasNoInvestments(false)} className="text-xs mt-3 underline" style={{ color: "#8B5CF6" }}>I do have some</button>
+      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-invest-type">
+        <WizardHeader title="Do you invest?" subtitle="Select your investment type" />
+        <div className="flex-1 flex flex-col justify-center gap-3">
+          {INVESTMENT_TYPES.map((type) => (
+            <button key={type.id} onClick={() => {
+              setInvestType(type.id);
+              if (!investName) setInvestName(type.label);
+              setHasNoInvestments(false);
+              setTimeout(() => setScreen("invest-details"), 300);
+            }}
+              className="relative w-full p-5 rounded-2xl text-left transition-all active:scale-[0.97]"
+              style={{
+                backgroundColor: investType === type.id ? type.color + "12" : "var(--bg-card)",
+                border: `2px solid ${investType === type.id ? type.color : "var(--border-light)"}`,
+              }}
+              data-testid={`invest-type-card-${type.id}`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${type.color}15` }}>
+                  <type.icon className="h-6 w-6" style={{ color: type.color }} />
+                </div>
+                <p className="text-base font-bold flex-1" style={{ color: "var(--text-primary)" }}>{type.label}</p>
+                {investType === type.id && (
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: type.color }}>
+                    <Check className="h-4 w-4 text-white" />
+                  </div>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+        <CTAButton className="w-full mt-4" secondary onClick={async () => {
+          setHasNoInvestments(true);
+          if (isModuleMode) { await handleModuleComplete(handleSaveInvestments); }
+          else goNext("review");
+        }}>
+          Not yet — I'll start soon
+        </CTAButton>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════
+     SCREEN: Investment Details (Step 2 of 3)
+     ════════════════════════════════════════════ */
+  if (screen === "invest-details") {
+    const currentType = INVESTMENT_TYPES.find(t => t.id === investType);
+    return (
+      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-invest-details">
+        <WizardHeader title={`${currentType?.label || "Investment"} Details`} subtitle="Name and amount of your investment" />
+        <div className="flex-1 overflow-y-auto space-y-4 pb-4">
+          <div className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            {currentType && (
+              <div className="flex items-center gap-2 pb-3" style={{ borderBottom: "1px solid var(--border-light)" }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${currentType.color}15` }}>
+                  <currentType.icon className="h-4 w-4" style={{ color: currentType.color }} />
+                </div>
+                <span className="text-xs font-bold" style={{ color: currentType.color }}>{currentType.label}</span>
+              </div>
+            )}
+            <div>
+              <FieldLabel>Investment Name</FieldLabel>
+              <FieldInput value={investName} onChange={(e) => setInvestName(e.target.value)} placeholder="e.g., HDFC Flexi Cap, SBI FD" testId="invest-name-input" />
             </div>
-          ) : (
-            <>
-              <div className="flex gap-2 flex-wrap mb-2">
-                {INVESTMENT_TYPES.map(t => (
-                  <button key={t.id} onClick={() => { setInvestType(t.id); if (!investName) setInvestName(t.label); }}
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+            <div>
+              <FieldLabel>Monthly Amount / Current Value (₹)</FieldLabel>
+              <div className="flex items-center gap-1">
+                <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
+                <input type="text" inputMode="numeric" placeholder="Amount"
+                  value={investAmount} onChange={(e) => setInvestAmount(e.target.value.replace(/[^0-9]/g, ""))}
+                  className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm font-bold outline-none"
+                  style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                  data-testid="invest-amount-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <CTAButton className="w-full"
+          onClick={() => setScreen("invest-deep")}
+          disabled={!investName || !investAmount || parseFloat(investAmount) <= 0}
+        >
+          Continue <ArrowRight className="h-4 w-4" />
+        </CTAButton>
+      </div>
+    );
+  }
+
+  /* ════════════════════════════════════════════
+     SCREEN: Investment Deep Details (Step 3 of 3)
+     ════════════════════════════════════════════ */
+  if (screen === "invest-deep") {
+    return (
+      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-invest-deep">
+        <WizardHeader title="Investment Deep Details" subtitle="Optional — improves return projections" />
+        <div className="flex-1 overflow-y-auto space-y-3 pb-4">
+          <div className="p-4 rounded-2xl space-y-4" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+            <div>
+              <FieldLabel hint="SIP or lumpsum — affects projections">Frequency</FieldLabel>
+              <div className="grid grid-cols-3 gap-2">
+                {["Monthly", "Quarterly", "One-time"].map(f => (
+                  <button key={f} onClick={() => setInvestFrequency(f)}
+                    className="px-3 py-2.5 rounded-xl text-xs font-bold text-center transition-all"
                     style={{
-                      backgroundColor: investType === t.id ? "#8B5CF615" : "transparent",
-                      color: investType === t.id ? "#8B5CF6" : "var(--text-muted)",
-                      border: `1px solid ${investType === t.id ? "#8B5CF6" : "var(--border-light)"}`,
+                      backgroundColor: investFrequency === f ? "#8B5CF615" : "var(--bg-app)",
+                      color: investFrequency === f ? "#8B5CF6" : "var(--text-muted)",
+                      border: `1px solid ${investFrequency === f ? "#8B5CF6" : "var(--border-light)"}`,
                     }}
-                    data-testid={`invest-type-${t.id}`}
-                  >{t.label}</button>
+                    data-testid={`invest-freq-${f.toLowerCase().replace(/\s/g, '-')}`}
+                  >{f}</button>
                 ))}
               </div>
-              <div className="p-4 rounded-2xl space-y-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-                <div>
-                  <FieldLabel>Investment Name</FieldLabel>
-                  <FieldInput value={investName} onChange={(e) => setInvestName(e.target.value)} placeholder="e.g., HDFC Flexi Cap" testId="invest-name-input" />
-                </div>
-                <div>
-                  <FieldLabel>Monthly Amount / Current Value (₹)</FieldLabel>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>₹</span>
-                    <input type="text" inputMode="numeric" placeholder="Amount"
-                      value={investAmount} onChange={(e) => setInvestAmount(e.target.value.replace(/[^0-9]/g, ""))}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm font-bold outline-none"
-                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid="invest-amount-input"
-                    />
-                  </div>
-                </div>
+            </div>
+            <div>
+              <FieldLabel hint="When did you start this SIP / buy this investment?">Start / Purchase Date</FieldLabel>
+              <input type="date" value={investStartDate}
+                onChange={(e) => setInvestStartDate(e.target.value)}
+                className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                data-testid="invest-start-date"
+              />
+            </div>
+            <div>
+              <FieldLabel hint="12% is a conservative estimate for Indian Mutual Funds">Expected Returns (%)</FieldLabel>
+              <input type="text" inputMode="decimal" placeholder="e.g., 12" value={investGrowthRate}
+                onChange={(e) => setInvestGrowthRate(e.target.value.replace(/[^0-9.]/g, ""))}
+                className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                data-testid="invest-growth-rate"
+              />
+            </div>
+            {accounts.length > 0 && (
+              <div>
+                <FieldLabel hint="Track deductions from this account">Linked Account</FieldLabel>
+                <select value={investLinkedAccount} onChange={(e) => setInvestLinkedAccount(e.target.value)}
+                  className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
+                  style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+                  data-testid="invest-linked-account"
+                >
+                  <option value="">None</option>
+                  {accounts.map(a => <option key={a.id} value={a.id}>{a.accountName}</option>)}
+                </select>
               </div>
-
-              {!isDeepExpanded && <DeepToggle show={showInvestDeep} onToggle={() => setShowInvestDeep(!showInvestDeep)} />}
-              {deepVisible && (
-                <div className="p-4 rounded-2xl space-y-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-                  <div>
-                    <FieldLabel hint="SIP or lumpsum — affects projections">Frequency</FieldLabel>
-                    <select value={investFrequency} onChange={(e) => setInvestFrequency(e.target.value)}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid="invest-frequency-select"
-                    >
-                      <option value="Monthly">Monthly</option>
-                      <option value="Weekly">Weekly</option>
-                      <option value="Quarterly">Quarterly</option>
-                      <option value="Yearly">Yearly</option>
-                      <option value="One-time">One-time</option>
-                    </select>
-                  </div>
-                  <div>
-                    <FieldLabel hint="When did you start this SIP / buy this investment?">Start / Purchase Date</FieldLabel>
-                    <input type="date" value={investStartDate}
-                      onChange={(e) => setInvestStartDate(e.target.value)}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid="invest-start-date"
-                    />
-                  </div>
-                  <div>
-                    <FieldLabel hint="12% is a conservative estimate for Indian Mutual Funds">Expected Returns (%)</FieldLabel>
-                    <input type="text" inputMode="decimal" placeholder="e.g., 12" value={investGrowthRate}
-                      onChange={(e) => setInvestGrowthRate(e.target.value.replace(/[^0-9.]/g, ""))}
-                      className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                      data-testid="invest-growth-rate"
-                    />
-                  </div>
-                  {accounts.length > 0 && (
-                    <div>
-                      <FieldLabel hint="Track deductions from this account">Linked Account</FieldLabel>
-                      <select value={investLinkedAccount} onChange={(e) => setInvestLinkedAccount(e.target.value)}
-                        className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-                        style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
-                        data-testid="invest-linked-account"
-                      >
-                        <option value="">None</option>
-                        {accounts.map(a => <option key={a.id} value={a.id}>{a.accountName}</option>)}
-                      </select>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
+            )}
+          </div>
         </div>
         <div className="flex gap-3 mt-4">
-          {!hasNoInvestments && (
-            <CTAButton className="flex-1" secondary onClick={() => setHasNoInvestments(true)}>Not yet</CTAButton>
+          {!isModuleMode && (
+            <CTAButton className="flex-1" secondary onClick={async () => { await handleSaveInvestments(); goNext("review"); }}>
+              <SkipForward className="h-4 w-4" /> Skip details
+            </CTAButton>
           )}
           <CTAButton className="flex-1" onClick={async () => {
             if (isModuleMode) { await handleModuleComplete(handleSaveInvestments); }
