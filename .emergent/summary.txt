@@ -1,102 +1,99 @@
 <analysis>**original_problem_statement**: The user initially built a financial management app, MoneySutra, but a critical issue arose where a new deployment pointed to an empty database, making all real user data inaccessible. The primary goal became to diagnose this, migrate the data, and establish a stable development-production environment. After successfully migrating the data and setting up a dual-database system, the focus has shifted to fixing a series of UI/UX bugs and implementing new features. The current major task is a complete overhaul of the profile completion and onboarding experience.
 
 PRODUCT REQUIREMENTS:
-The user has provided a detailed blueprint for overhauling the onboarding/profile completion flow. The key requirements are:
-1.  **Rename 'Strategic Setup' to 'Profile Setup'**: A global rename across the application.
-2.  **Fix Profile Completion Logic**: The current logic only grants 40-60% completion after the wizard. The user wants the initial wizard completion to result in at least an 80% score.
-3.  **Create a 'Profile Health' Dashboard**: Instead of starting the wizard directly, clicking Complete Now should lead to a status page. This page must display five cards (Income, Expenses, Assets, Liabilities, Investments) showing their individual completion status and allow users to click into any specific module to add details.
-4.  **Implement 'Progressive Disclosure' in Forms**: The wizard steps should be updated to a Quick vs. Deep pattern. An expandable + Add Deep Details button should reveal advanced fields like , , and  without navigating away.
+The user has provided a detailed blueprint for overhauling the onboarding/profile completion flow. The key requirements were:
+1.  **Implement Granular Module Wizards**: Convert the static Asset, Liability, and Investment forms within the Profile Setup into interactive, multi-step wizards, similar to the existing Income and Expense modules. (Completed)
+2.  **Targeted Routing**: Clicking a category card (e.g., Assets) on the Profile Health page should launch a specific wizard for that domain only (e.g., ). (Completed)
+3.  **Deep Data Intake**: The new wizards must capture detailed fields required for Net Worth calculations. (Completed)
+4.  **Premium UX**: Use large, selectable visual cards for options and implement Progressive Reveal. (Completed)
+5.  **Data Persistence & Multi-Entry**: The wizards must use the main backend endpoints and support adding multiple entries per category instead of overwriting them. (Completed)
+6.  **Fix calculation logic and UI inconsistencies**: Multiple bugs were reported related to incorrect calculations (weekly income, net worth) and confusing UI displays, all of which needed to be addressed. (Completed)
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI app using MongoDB. It features modules for income, expenses, assets, liabilities, investments, goals, and a gamified Insights page.
+The application is a full-stack React/FastAPI app with a MongoDB database. The core features for tracking income, expenses, assets, liabilities, and investments are in place.
 
-In the last session, the agent completed a major redesign of the onboarding flow, creating a new three-phase Strategic Onboarding component. Additionally, the agent fixed two large batches of bugs reported by the user, including:
-- A critical bug where the Wealth page would show all data as ₹0 due to a single failing API call. This was fixed by making the data fetching resilient with  and making backend Loan model fields optional.
-- A navigation loop caused by incorrect usage of 's history API.
-- Data calculation errors in the Financial Health module for Investment Allocation and Debt-to-Asset ratios.
-- A reduction of gamification badges from 100 to a more focused set of 30.
-- Multiple other UI/UX fixes.
-- All previous critical UI layout bugs (safe area, BottomNav) were also resolved.
+In this session, a significant number of bugs and UI/UX issues were resolved. The onboarding wizards were made more robust by fixing data overwrite issues and implementing backend deduplication. Critical calculation logic for weekly income was improved from a rough approximation to a precise calendar-based method. The Net Worth calculation was also fixed by correcting field name mismatches between modules and migrating existing data. Several UI layout and state management bugs within the wizards were also fixed.
 
 **Last working item**:
--   Last item agent was working: The agent had just finished implementing a brand-new, three-phase Strategic Onboarding flow, replacing the old wizard. This was fully implemented and tested. However, the user's very next message was a request to completely overhaul this new flow again with a different design and logic.
--   Status: NOT STARTED (on the new overhaul request)
--   Agent Testing Done: Y (for the just-completed Strategic Onboarding v1)
--   Which testing method agent to use?  after the new feature is complete.
--   User Testing Done: N (User immediately provided feedback for a complete redesign)
+-   Last item agent was working: Fixing a UI layout issue in the wizard's type-selection screens (). The user reported excessive empty space above the selection cards, caused by a  CSS property. The agent identified the four code locations to fix.
+-   Status: IN PROGRESS
+-   Agent Testing Done: N
+-   Which testing method agent to use? screenshot tool
+-   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Profile Completion Stuck at 40-60% (P0)**
-
-**Issues Detail**:
--   **Issue 1: Profile Completion Stuck at 40-60%**
-    -   **Attempted fixes**: None. This is part of a new feature request. The agent identified that the current backend logic in  gives weightings to 5 categories (Income, Expense, Assets, Investments, Liabilities). The recently built onboarding wizard only collects Income and Expense data, resulting in a score of ~60%, which doesn't meet the user's new requirement of >= 80%.
+-   **Issue 1: (P0) Fix wizard type-selection screen layout**
+    -   **Description**: The type-selection screens in the onboarding wizard (e.g., for Income, Assets) have a large empty space at the top, which is visually unappealing. This is caused by a  flex property.
+    -   **Attempted fixes**: The agent correctly identified the problematic CSS class and the four files/lines where it is used but did not yet apply the fix.
     -   **Next debug checklist**:
-        1.  Analyze the  function in  to understand the current weighting system.
-        2.  Decide whether to modify the backend weights or expand the new Profile Setup wizard to collect more data (e.g., a primary asset or investment) to reach the 80% threshold.
-        3.  Implement the chosen solution as part of the larger onboarding overhaul task.
-    -   **Why fix this issue and what will be achieved with the fix?**: The user feels the profile completion feedback is not rewarding. Fixing this is a core part of making the new Profile Setup flow feel progressive and complete.
-    -   **Status**: NOT STARTED
+        1.  In , find all four instances of the class .
+        2.  Replace  with  and add a top padding class like  or . For example: .
+        3.  Verify the fix by taking a screenshot of the income source selection screen at .
+    -   **Why fix this issue and what will be achieved with the fix?**: This will fix the UI layout issue reported by the user, improving the visual presentation of the onboarding flow.
+    -   **Status**: IN PROGRESS
     -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: both
-    -   **Blocked on other issue**: This is part of the Onboarding Overhaul task.
+    -   **Should Test frontend/backend/both after fix?**: frontend
+    -   **Blocked on other issue**: None
 
 **In progress Task List**:
 (None)
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks**:
-    -   **(P0) Complete Onboarding Overhaul**: This is the highest priority task, encompassing all 4 product requirements from the latest user message.
-        1.  **Rename**: Globally replace 'Strategic Setup' with 'Profile Setup'.
-        2.  **Build 'Profile Health' Page**: Create a new component that acts as a landing page, showing completion status for the 5 core financial categories.
-        3.  **Implement 'Deep Entry'**: Update the onboarding forms to use a Quick vs. Deep details pattern with an expandable section.
-        4.  **Fix Completion Logic**: Ensure completing the wizard yields at least an 80% score.
-
--   **Future Tasks**:
     -   **(P1) Finvu SDK Integration**: Integrate the Finvu Account Aggregator SDK into the onboarding flow once the user provides credentials.
-    -   Monthly financial summary email/notification.
-    -   Profile Health Score (combining completion % and data freshness).
-    -   Monthly Financial Report PDF generation.
+-   **Future Tasks**:
+    -   **(P2)** Monthly financial summary email/notification.
+    -   **(P2)** Profile Health Score (combining completion % and data freshness).
+    -   **(P2)** Monthly Financial Report PDF generation.
 
 **Completed work in this session**
--   **Strategic Onboarding Redesign (v1)**: A full 3-phase premium onboarding experience was built with a progressive UI and live Projected Grade feedback. It was fully tested ().
--   **Wealth Page Data Resilience Fix**: Fixed a critical bug where the page showed all ₹0 values. The fix involved making the  model more robust to missing data and using  on the frontend for resilient data fetching.
--   **Back Button Navigation Loop Fix**: Resolved an infinite loop in navigation by correcting the usage of 's history API in .
--   **Financial Health Module Fixes**: Corrected the backend logic for Investment Allocation (to better classify mutual funds) and Debt-to-Asset ratio calculations in . The frontend was updated to display this richer data.
--   **Gamification Badge Reduction**: The number of achievements was reduced from 100 to a more focused list of 30 in .
--   **Start Date Income Enhancement**: Added a  field to all 5 income creation forms for more accurate tracking.
--   **Mobile UI Layout Bug Fixes**: Resolved the critical P0 issues from the previous session by removing the  component from all form pages and ensuring the Toaster component respected mobile safe areas.
+-   **Multi-Step Wizard Refactoring**: Completed the conversion of Asset, Liability, and Investment forms into interactive 3-step wizards in .
+-   **Append vs. Overwrite Bug Fix**: Fixed a critical bug where new entries were overwriting old ones. Modified  to correctly append data and added backend deduplication checks.
+-   **Income Calculation Logic Fix**: Replaced the hardcoded  multiplier for weekly income with an accurate, calendar-based calculation in .
+-   **Net Worth Calculation Fix**: Resolved an issue where Net Worth was showing ₹0. The fix involved correcting field name mismatches between onboarding and the dashboard ( vs ) and running a migration script to fix existing data.
+-   **Wizard State Persistence Bug Fix**: Fixed bugs where form data (like the amount) would incorrectly carry over when a user changed the category type within the same wizard.
+-   **UI/UX Improvements**:
+    -   Replaced the 'X' dismiss button with a 'Back' arrow on the Profile Health Grid.
+    -   Made category name fields (e.g., Home Loan) read-only and auto-filled.
+    -   Improved UI clarity on income pages (, ) to show how weekly/daily amounts are normalized to monthly totals.
+    -   Relocated the Financial Health widget from the Dashboard to the Insights page.
+-   **User-Requested Changes**:
+    -   Added a permanent Complete your profile shortcut to the Profile Settings page.
+    -   Cleared all financial data for the user  as requested.
 
 **Earlier issues found/mentioned but not fixed**
-(None)
+-   **Issue 1: Inconsistent Weekly Calculation Logic**
+    -   **Debug checklist**: The  multiplier for weekly calculations was fixed for income but still exists in other files like  and . These should be updated to use the calendar-based  utility for consistency.
+    -   **Why to solve this issue and what will be achieved with this?**: To ensure all financial calculations across the application are accurate and consistent, preventing future bugs related to mismatched logic.
+    -   **Should Test frontend/backend/both after fix**: backend
+    -   **Is recurring issue?**: N
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork**: Mobile UI Safe Area Overlap.
--   **Recurrence count**: 1
--   **Status**: RESOLVED
+(None)
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Resilient Frontend Data Fetching**: Migrated from  to  in  to prevent a single API failure from crashing the entire page load, a critical fix for app stability.
--   **Robust Backend Modeling (Pydantic)**: Resolved a cascading 500 error by making fields (, ) in the  model optional. This allows the system to handle partially complete data records gracefully.
--   **React Router History Management**: Debugged and fixed a critical navigation loop by changing  props to use , preventing the creation of infinite back-button cycles.
--   **Progressive Disclosure UI**: The new onboarding flow introduced a pattern of asking one primary question per screen, with advanced options hidden behind toggles to reduce user friction.
--   **Component-Based Architecture**: The entire onboarding flow was encapsulated into a new  component, which will now be evolved into a  component with a  sub-component.
+-   **Backend Deduplication**: Using  to check for existing documents before inserting new ones to prevent duplicate data entries.
+-   **Calendar-based Financial Calculations**: Replacing rough approximations (like  for weeks in a month) with precise calendar logic (, ) for accuracy.
+-   **Robust State Management**: The session highlighted the need for explicit state-clearing functions in complex components () to prevent data from one user flow leaking into another.
+-   **Data Migration & Cleanup**: A pattern of creating and executing small, targeted Python scripts was used to clean up duplicate data and fix inconsistent field names in the database.
+-   **UI for Data Normalization**: When the backend converts data (e.g., weekly to monthly income), the UI must be updated to clearly explain this conversion to avoid user confusion.
 
 **key DB schema**
--   No direct schema changes. Pydantic models for  were updated to allow optional fields, making the application layer more resilient to incomplete documents in the database.
+-   No schema changes, but document field name inconsistencies were fixed. The dashboard now correctly reads  and  by checking for older field names (, ) as fallbacks.
 
 **changes in tech stack**
 (None)
 
 **All files of reference**
--    (To be renamed and overhauled)
--    (Contains the profile completion logic to be fixed)
--    (Triggers the onboarding flow)
+-   
+-   
+-   
+-   
 -   
 -   
 -   
@@ -104,44 +101,42 @@ In the last session, the agent completed a major redesign of the onboarding flow
 -   
 
 **Areas that need refactoring**:
--   The newly created  will be immediately refactored and renamed to  as per the user's latest request.
--   The user has suggested a layout-based routing system to handle pages with/without the , which remains a valid future refactoring task.
+-   The hardcoded  multiplier for weekly-to-monthly conversions should be removed from all remaining files (e.g., , ) and replaced with the calendar-based utility function for consistency and accuracy.
 
 **key api endpoints**
--   : The core endpoint for the completion logic that needs to be updated.
--   : This endpoint was crashing due to model validation errors. It is now fixed and stable.
--   : The data source for the  page, which now fetches data correctly.
--   : This was heavily modified to provide more accurate and detailed financial analysis.
+-   : Heavily modified to handle appending data, deduplication, and saving correct field names for net worth.
+-   : Logic modified to use calendar-based calculations.
+-   : Logic modified to use calendar-based calculations.
+-   : Modified to include fallbacks for different field names to ensure all data is counted.
 
 **Critical Info for New Agent**
--   **Top Priority is the Onboarding Overhaul**: The user has provided a very detailed, multi-part specification for redesigning the profile completion flow. You must follow these new instructions precisely. The previous Strategic Onboarding implementation should be considered a temporary step.
--   **Resilience is Key**: A major bug was fixed by making a frontend page () resilient to backend API failures using . This is a good pattern to follow for complex pages that fetch data from multiple sources.
--   **Model Mismatches**: Be aware that Pydantic models exist in multiple places (e.g.,  and ). A previous bug was caused by these being out of sync. When changing a model, ensure all related definitions are updated.
+-   Your immediate task is to fix the UI layout bug in the  wizard screens, as detailed in the Pending/In progress Issue list.
+-   The codebase now uses a more accurate calendar-based logic for weekly income calculations. This pattern should be extended to other modules like expenses to maintain consistency.
+-   Be cautious when modifying . It is a large, stateful component, and changes can easily introduce regressions related to state persistence.
 
 **documents and test reports created in this job**
--    (Updated multiple times with completed features and new requirements)
+-    (Updated)
 -   
 -   
 -   
 -   
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **User**: Requests a complete overhaul of the newly-built onboarding flow with a 4-point plan (rename, fix completion %, new status page, deep entry forms). (PENDING)
-9.  **Agent**: Acknowledges user question about code download and provides instructions via support agent. (Completed)
-8.  **User**: Asks how to get the entire app's code. (Completed)
-7.  **Agent**: Confirms that a Compare Months feature already exists in the Analytics page. (Completed)
-6.  **User**: Asks if the agent's suggestion for a Compare Months feature is new or already exists. (Completed)
-5.  **Agent**: Finishes implementing the Strategic Onboarding overhaul (v1). (Completed)
-4.  **User**: Provides detailed feedback and instructions for 6 new issues, including the back button loop, Wealth page data error, and gamification badge reduction. (Completed)
-3.  **Agent**: Finishes implementing a batch of 6 UI/data bugs. (Completed)
-2.  **User**: Reports 5 new UI/data bugs via screenshots and asks for an enhancement. (Completed)
-1.  **Agent**: Finishes fixing the initial set of P0 mobile layout bugs. (Completed)
+1.  **User**: Added profile setup shortcut and cleared data for . (COMPLETED)
+2.  **User**: Reported too much empty space on the income source selection screen. (IN PROGRESS)
+3.  **User**: Moved the Financial Health widget from the home page to the Health page. (COMPLETED)
+4.  **User**: Reported a bug via video where form values persisted incorrectly when changing asset types. (COMPLETED)
+5.  **User**: Reported that Net Worth was showing as 0. (COMPLETED)
+6.  **User**: Requested a fix for the calendar-based weekly income calculation and the state persistence issue. (COMPLETED)
+7.  **User**: Asked for clarification on the income calculation logic. (COMPLETED)
+8.  **User**: Reported duplicate business income entries causing incorrect totals. (COMPLETED)
+9.  **User**: Requested a fix for the back button on the Profile Health page. (COMPLETED)
+10. **User**: Reported multiple UI issues in the new wizards (wrong names, editable fields). (COMPLETED)
 
 **Project Health Check:**
--   **Broken**:
-    -   The profile completion percentage logic does not meet user expectations (provides ~60% instead of the desired >=80% after wizard).
+-   **Broken**: None
 -   **Mocked**:
-    -   Finvu SDK integration in the onboarding flow.
+    -   Finvu SDK integration is represented by a disabled Coming Soon button.
 
 **3rd Party Integrations**
 -   MongoDB Atlas (User-provided cluster)
@@ -150,10 +145,10 @@ In the last session, the agent completed a major redesign of the onboarding flow
 -    (for toasts)
 
 **Testing status**
--   **Testing agent used after significant changes**: YES (used for all major bug fix batches and the v1 onboarding redesign).
+-   **Testing agent used after significant changes**: YES
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: []
--   **Known regressions**: None.
+-   **Known regressions**: None
 
 **Credentials to test flow:**
 -   **Google Login**: , 
@@ -161,4 +156,5 @@ In the last session, the agent completed a major redesign of the onboarding flow
 -   **Admin Login**:  / 
 
 **What agent forgot to execute**
-The agent has successfully kept up with a very high velocity of user requests and has not forgotten to execute any tasks. The current pending work is a direct result of the user's latest message, which introduces a new set of requirements for a feature that was just completed.</analysis>
+-   The agent identified the fix for the UI layout issue (empty space in wizards) but did not execute the  command to implement it. This is the current P0 task.
+-   The agent fixed the  approximation for weekly income calculations but did not extend this fix to other modules like expenses, where the same approximation is still used. This is noted under Areas that need refactoring.</analysis>

@@ -9,6 +9,7 @@ import {
   PiggyBank, Utensils, Wifi, TrendingUp, CreditCard,
   Building2, CircleDollarSign, BarChart3, Plus, Calendar, Percent
 } from "lucide-react";
+import BottomNav from "./BottomNav";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -462,9 +463,9 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     }
 
     return (
-      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="profile-health-grid">
+      <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="profile-health-grid">
         <div className="flex items-center justify-between mb-6">
-          <button onClick={() => navigate("/home")} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="grid-back-btn">
+          <button onClick={() => navigate(-1)} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="grid-back-btn">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div className="flex-1 ml-2">
@@ -543,16 +544,9 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                 <span className="text-[10px] px-2 py-1 rounded-full bg-white/10 text-white/60 font-medium">Soon</span>
               </div>
             </button>
-            <button
-              onClick={() => setScreen("income-type")}
-              className="w-full py-4 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-              style={{ background: "linear-gradient(135deg, #10B981 0%, #059669 100%)" }}
-              data-testid="quick-setup-btn"
-            >
-              <Sparkles className="h-4 w-4" /> Quick Setup — All Categories
-            </button>
           </div>
         )}
+        <BottomNav />
       </div>
     );
   }
@@ -588,7 +582,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-income-type">
         <WizardHeader title="What's your primary income?" subtitle="Select your main source of earnings" />
-        <div className="flex-1 flex flex-col justify-center gap-3">
+        <div className="flex-1 flex flex-col justify-start pt-4 gap-3">
           {INCOME_SOURCES.map((source) => (
             <button key={source.id} onClick={() => handleSourceSelect(source)}
               className="relative w-full p-5 rounded-2xl text-left transition-all active:scale-[0.97]"
@@ -845,7 +839,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-asset-type">
         <WizardHeader title="What do you own?" subtitle="Select the type of asset to add" />
-        <div className="flex-1 flex flex-col justify-center gap-3">
+        <div className="flex-1 flex flex-col justify-start pt-4 gap-3 overflow-y-auto">
           {ASSET_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
               const u = [...assetItems];
@@ -1025,7 +1019,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-liability-type">
         <WizardHeader title="Any Loans or Debt?" subtitle="Select the type of liability" />
-        <div className="flex-1 flex flex-col justify-center gap-3">
+        <div className="flex-1 flex flex-col justify-start pt-4 gap-3 overflow-y-auto">
           {LOAN_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
               const u = [...loanItems];
@@ -1238,7 +1232,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-invest-type">
         <WizardHeader title="Do you invest?" subtitle="Select your investment type" />
-        <div className="flex-1 flex flex-col justify-center gap-3">
+        <div className="flex-1 flex flex-col justify-start pt-4 gap-3 overflow-y-auto">
           {INVESTMENT_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
               const u = [...investItems];
