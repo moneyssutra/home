@@ -85,6 +85,8 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Fixed startDate construction from user's selected day
 - **Fixed P0: Income module showing "Complete" with 0 items** — Changed `_get_profile_completion` to only override module completion to `True` when user explicitly skipped (`step_X_skipped`), not when `{name}_completed` is set (which was true even with 0 items)
 - **Fixed: Onboarding expense missing `expenseType` and `selectedDate`** — Expenses saved from onboarding wizard were missing `expenseType` (Fixed/Variable) causing 500 Internal Server Error on `/api/expenses`, and missing `selectedDate` field (expense scheduling date). Fixed onboarding save + patched existing records. Also added dedup-update logic for expense date changes (matching income behavior).
+- **Added: Expense Detail payment status, due date, and payment schedule** — Expense detail page now shows: This Month paid/pending status, due date (e.g., "1st of every month"), next due date banner, and a 12-month payment schedule with Paid/Pending/Upcoming status. Matches income detail page experience.
+- **Fixed: Navigation from Expenses Done/Upcoming to Expense Detail** — Clicking an expense from the "Spent" or "Upcoming Expenses" dashboard sections now correctly navigates to the detail page (`/wealth/expenses/{id}`) instead of the edit page (`/expense/{id}`).
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
