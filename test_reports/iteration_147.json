@@ -1,0 +1,85 @@
+{
+  "summary": "Verified expense breakdown consistency fix. All 13 backend tests passed. The fix correctly addresses: 1) User isolation in /api/dashboard/breakdown, 2) Em-dash normalization in quarterly expense parsing, 3) Skipped expenses excluded from totals, 4) Non-applicable quarterly expenses excluded.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "features_tested": {
+    "breakdown_auth_required": {
+      "status": "PASS",
+      "details": "/api/dashboard/breakdown returns 401 without authentication"
+    },
+    "breakdown_user_isolation": {
+      "status": "PASS",
+      "details": "Different users see only their own expense data, not all users' data"
+    },
+    "breakdown_fixed_variable_split": {
+      "status": "PASS",
+      "details": "Response includes totalFixed and totalVariable fields"
+    },
+    "skipped_expenses_excluded": {
+      "status": "PASS",
+      "details": "Expenses with current month in skippedMonths array are correctly excluded from breakdown total"
+    },
+    "em_dash_quarterly_parsing": {
+      "status": "PASS",
+      "details": "Quarterly expenses with em-dash (U+2013) like 'Q2 (Apr–Jun)' are correctly parsed via _parse_quarter_start_db which normalizes unicode dashes"
+    },
+    "non_applicable_quarterly_excluded": {
+      "status": "PASS",
+      "details": "Quarterly expenses that don't apply to current month (e.g., Q2 expense in March when (3-4)%3≠0) are correctly excluded"
+    },
+    "breakdown_monthly_summary_match": {
+      "status": "PASS",
+      "details": "Breakdown total matches monthly-summary total for the same month within 1% tolerance"
+    },
+    "linked_payment_excluded": {
+      "status": "PASS",
+      "details": "Expenses with linkedPaymentId are excluded from breakdown to avoid double-counting"
+    },
+    "by_month_em_dash": {
+      "status": "PASS",
+      "details": "/api/expenses/by-month correctly handles em-dash in selectedQuarter field"
+    },
+    "half_yearly_em_dash": {
+      "status": "PASS",
+      "details": "Half-yearly expenses with em-dash in selectedHalf are parsed correctly"
+    }
+  },
+  "code_review_verified": {
+    "dashboard_py_line_103": "get_user_filter(user) correctly filters by userId",
+    "dashboard_py_lines_149_151": "Skipped months check excludes expenses with current_month in skippedMonths",
+    "dashboard_py_lines_146_147": "linkedPaymentId expenses are skipped",
+    "dashboard_py_lines_200_206": "_parse_quarter_start_db normalizes em-dash and en-dash to hyphen",
+    "expenses_py_lines_329_332": "_parse_quarter_start normalizes unicode dashes for consistent matching",
+    "frontend_expensebreakdown_lines_31_36": "Frontend also excludes skipped, linkedPayment, and normalizes em-dash"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_expense_breakdown_consistency_iter147.py",
+    "/app/test_reports/pytest/expense_breakdown_consistency_iter147_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_expense_breakdown_consistency_iter147.py"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "N/A (backend-only testing as requested)"
+  },
+  "seed_data_creation": "Test users created with pattern: TEST_expense_breakdown_*, TEST_emdash_*, TEST_user1_*, TEST_user2_*, TEST_verify_fix_*, TEST_emdash_parse_*",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Expense breakdown consistency fix verified. Key fixes: 1) /api/dashboard/breakdown now uses get_user_filter(user) for user isolation, 2) _parse_quarter_start_db and _parse_half_start_db normalize U+2013 (em-dash) and U+2014 (en-dash) to standard hyphen before mapping lookup, 3) Both backend and frontend exclude skippedMonths and linkedPaymentId expenses, 4) Quarterly expenses only included when (current_month - quarter_start) % 3 == 0.",
+  "rca_of_the_issue": {
+    "root_cause_1": "/api/dashboard/breakdown had no user filter - queried ALL users' expenses instead of current user only",
+    "root_cause_2": "Quarterly expense 'Maintenance Vipul Greens' stored with em-dash U+2013 ('Q2 (Apr–Jun)') but parser expected hyphen ('Q2 (Apr-Jun)'), causing mapping lookup failure and mismatched quarter detection",
+    "root_cause_3": "Frontend ExpenseBreakdown.js included skipped expenses and non-applicable quarterly expenses in totals",
+    "fix_applied": "Added user filter, em-dash normalization, and proper month/skip/frequency filtering in both backend and frontend"
+  }
+}

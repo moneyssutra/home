@@ -96,42 +96,125 @@ async def get_networth_summary(request: Request):
 
 
 @router.get("/breakdown")
-async def get_breakdown():
-    assets = await db.assets.find({}, {"_id": 0}).to_list(1000)
+async def get_breakdown(request: Request):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+
+    now = get_user_now(request)
+    current_month = f"{now.year}-{now.month:02d}"
+    y, m = now.year, now.month
+
+    assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
     asset_breakdown = {}
     for a in assets:
         t = a.get('assetType', 'Other')
         asset_breakdown[t] = asset_breakdown.get(t, 0) + a.get('currentValue', 0)
 
-    investments = await db.investments.find({}, {"_id": 0}).to_list(1000)
+    investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
     investment_breakdown = {}
     for inv in investments:
         c = inv.get('investmentCategory', 'Other')
         investment_breakdown[c] = investment_breakdown.get(c, 0) + inv.get('currentValue', 0)
 
-    loans = await db.loans.find({}, {"_id": 0}).to_list(1000)
+    loans = await db.loans.find(user_filter, {"_id": 0}).to_list(1000)
     loan_breakdown = {}
     for l in loans:
         t = l.get('loanType', 'Other')
-        loan_breakdown[t] = loan_breakdown.get(t, 0) + l.get('outstandingAmount', 0)
+        loan_breakdown[t] = loan_breakdown.get(t, 0) + (l.get('outstandingAmount', 0) or l.get('principalAmount', 0) or 0)
 
-    incomes = await db.income_sources.find({}, {"_id": 0}).to_list(1000)
+    incomes = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
     income_breakdown = {}
     for i in incomes:
         t = i.get('type', 'Other')
-        income_breakdown[t] = income_breakdown.get(t, 0) + i.get('expectedAmount', 0)
+        amt = i.get('expectedAmount', 0) or 0
+        freq = i.get('frequency', 'Monthly')
+        # Normalize to monthly
+        if freq == 'Quarterly': amt = amt / 3
+        elif freq == 'Half-Yearly': amt = amt / 6
+        elif freq == 'Yearly': amt = amt / 12
+        elif freq == 'Weekly': amt = amt * 4.33
+        elif freq == 'Daily': amt = amt * 30
+        income_breakdown[t] = income_breakdown.get(t, 0) + amt
 
-    expenses = await db.expenses.find({}, {"_id": 0}).to_list(1000)
+    all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
     expense_breakdown = {}
-    for e in expenses:
-        c = e.get('category', 'Other')
-        expense_breakdown[c] = expense_breakdown.get(c, 0) + e.get('expectedAmount', 0)
+    total_fixed = 0
+    total_variable = 0
+    for e in all_expenses:
+        if e.get('linkedPaymentId'):
+            continue
+        # Skip expenses that were skipped for this month
+        skipped_months = e.get('skippedMonths', [])
+        if current_month in skipped_months:
+            continue
+        cat = e.get('category', 'Other')
+        amt = e.get('expectedAmount', 0) or 0
+        freq = e.get('frequency', 'Monthly')
+
+        # Check if this expense applies to current month
+        applies = False
+        if freq == 'One-Time':
+            ot = e.get('oneTimeDate', '')
+            if ot and ot[:7] == current_month:
+                applies = True
+        elif freq in ('Daily',):
+            applies = True
+            from calendar import monthrange as mr
+            amt = amt * mr(y, m)[1]
+        elif freq in ('Weekly', 'Bi-Weekly'):
+            applies = True
+            amt = amt * (4.33 if freq == 'Weekly' else 2.17)
+        elif freq == 'Monthly':
+            applies = True
+        elif freq == 'Quarterly':
+            start = _parse_quarter_start_db(e.get('selectedQuarter'))
+            if start and (m - start) % 3 == 0:
+                applies = True
+        elif freq == 'Half-Yearly':
+            start = _parse_half_start_db(e.get('selectedHalf'))
+            if start and (m - start) % 6 == 0:
+                applies = True
+        elif freq == 'Yearly':
+            sm = _parse_month_num_db(e.get('selectedMonth'))
+            if sm == m:
+                applies = True
+
+        if applies:
+            expense_breakdown[cat] = expense_breakdown.get(cat, 0) + amt
+            if freq in ('Monthly', 'Quarterly', 'Half-Yearly', 'Yearly'):
+                total_fixed += amt
+            else:
+                total_variable += amt
 
     return {
         "assetBreakdown": asset_breakdown, "investmentBreakdown": investment_breakdown,
         "loanBreakdown": loan_breakdown, "incomeBreakdown": income_breakdown,
-        "expenseBreakdown": expense_breakdown
+        "expenseBreakdown": expense_breakdown,
+        "totalFixed": round(total_fixed, 2),
+        "totalVariable": round(total_variable, 2),
     }
+
+
+def _parse_quarter_start_db(q):
+    if not q:
+        return None
+    q = q.replace("\u2013", "-").replace("\u2014", "-")
+    mapping = {"Q1 (Jan-Mar)": 1, "Q2 (Apr-Jun)": 4, "Q3 (Jul-Sep)": 7, "Q4 (Oct-Dec)": 10}
+    return mapping.get(q)
+
+def _parse_half_start_db(h):
+    if not h:
+        return None
+    h = h.replace("\u2013", "-").replace("\u2014", "-")
+    mapping = {"H1 (Jan-Jun)": 1, "H2 (Jul-Dec)": 7}
+    return mapping.get(h)
+
+def _parse_month_num_db(m):
+    months = {"January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6,
+              "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12}
+    return months.get(m)
 
 
 def _calc_monthly_income(incomes, other_incomes, current_month, current_year):

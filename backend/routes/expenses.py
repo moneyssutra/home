@@ -138,7 +138,9 @@ async def get_expense_list_summary(request: Request, category: Optional[str] = N
     projection = {
         "_id": 0, "id": 1, "expenseName": 1, "expenseType": 1, "category": 1,
         "expectedAmount": 1, "frequency": 1, "selectedDay": 1, "selectedDate": 1,
-        "linkedLoanId": 1, "linkedInsuranceId": 1, "linkedInvestmentId": 1
+        "linkedLoanId": 1, "linkedInsuranceId": 1, "linkedInvestmentId": 1,
+        "skippedMonths": 1, "selectedQuarter": 1, "selectedHalf": 1, "selectedMonth": 1,
+        "linkedPaymentId": 1, "oneTimeDate": 1
     }
     expenses = await db.expenses.find(user_filter, projection).to_list(1000)
     entity_ids = [e["id"] for e in expenses]
@@ -322,12 +324,19 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
 
 
 def _parse_quarter_start(q):
+    if not q:
+        return None
+    # Normalize dashes (em-dash, en-dash → hyphen) for consistent matching
+    q_normalized = q.replace("\u2013", "-").replace("\u2014", "-")
     mapping = {"Q1 (Jan-Mar)": 1, "Q2 (Apr-Jun)": 4, "Q3 (Jul-Sep)": 7, "Q4 (Oct-Dec)": 10}
-    return mapping.get(q)
+    return mapping.get(q_normalized) or mapping.get(q)
 
 def _parse_half_start(h):
+    if not h:
+        return None
+    h_normalized = h.replace("\u2013", "-").replace("\u2014", "-")
     mapping = {"H1 (Jan-Jun)": 1, "H2 (Jul-Dec)": 7}
-    return mapping.get(h)
+    return mapping.get(h_normalized) or mapping.get(h)
 
 def _parse_month_num(m):
     months = {"January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6,

@@ -19,13 +19,49 @@ const ExpenseBreakdown = () => {
     return new Intl.NumberFormat("en-IN").format(amount);
   };
 
-  // Calculate totals and categorize expenses
+  // Calculate totals and categorize expenses — filtered for current month
   const { totalExpenses, expenseByCategory, fixedTotal, variableTotal } = useMemo(() => {
-    const total = expenses.reduce((sum, exp) => sum + normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || 'Monthly'), 0);
-    const fixed = expenses.filter(e => e.expenseType === "Fixed");
-    const variable = expenses.filter(e => e.expenseType === "Variable");
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const currentMonthNum = now.getMonth() + 1;
+
+    // Filter expenses applicable to the current month
+    const filtered = expenses.filter(exp => {
+      // Exclude skipped expenses for current month
+      if (exp.skippedMonths?.includes(currentMonth)) return false;
+      // Exclude linked payment duplicates
+      if (exp.linkedPaymentId) return false;
+
+      const freq = exp.frequency || 'Monthly';
+      const normalize = (s) => (s || '').replace(/\u2013/g, '-').replace(/\u2014/g, '-');
+
+      if (freq === 'One-Time') {
+        return exp.oneTimeDate?.startsWith(currentMonth);
+      }
+      if (freq === 'Quarterly') {
+        const qMap = { 'Q1 (Jan-Mar)': 1, 'Q2 (Apr-Jun)': 4, 'Q3 (Jul-Sep)': 7, 'Q4 (Oct-Dec)': 10 };
+        const start = qMap[normalize(exp.selectedQuarter)];
+        if (!start) return false;
+        return (currentMonthNum - start) % 3 === 0;
+      }
+      if (freq === 'Half-Yearly') {
+        const hMap = { 'H1 (Jan-Jun)': 1, 'H2 (Jul-Dec)': 7 };
+        const start = hMap[normalize(exp.selectedHalf)];
+        if (!start) return false;
+        return (currentMonthNum - start) % 6 === 0;
+      }
+      if (freq === 'Yearly') {
+        const mMap = { 'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6, 'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12 };
+        return mMap[exp.selectedMonth] === currentMonthNum;
+      }
+      return true; // Monthly, Daily, Weekly, Bi-Weekly always apply
+    });
+
+    const total = filtered.reduce((sum, exp) => sum + normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || 'Monthly'), 0);
+    const fixed = filtered.filter(e => e.expenseType === "Fixed");
+    const variable = filtered.filter(e => e.expenseType === "Variable");
     
-    const byCategory = expenses.reduce((acc, exp) => {
+    const byCategory = filtered.reduce((acc, exp) => {
       const cat = exp.category || "Other";
       if (!acc[cat]) acc[cat] = { total: 0, count: 0, expenses: [] };
       acc[cat].total += normalizeToMonthly(exp.expectedAmount || 0, exp.frequency || 'Monthly');
