@@ -441,13 +441,13 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="profile-health-grid">
         <div className="flex items-center justify-between mb-6">
-          <div>
+          <button onClick={() => navigate("/home")} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="grid-back-btn">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div className="flex-1 ml-2">
             <h1 className="text-2xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>Profile Health</h1>
             <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Your financial profile at a glance</p>
           </div>
-          <button onClick={() => navigate(-1)} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="grid-back-btn">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
         </div>
 
         <div className="flex items-center gap-4 p-4 rounded-2xl mb-6" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="overall-progress">
