@@ -130,9 +130,16 @@ async def save_onboarding_step(request: Request):
     # Save actual financial data based on step
     saved_count = 0
 
-    if step == 1:  # Income — always append new entries
+    if step == 1:  # Income — append with dedup
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
+                continue
+            # Dedup: skip if exact same entry exists
+            existing = await db.income_sources.find_one({
+                "userId": user_id, "name": item["name"],
+                "expectedAmount": float(item["amount"]), "source": "onboarding"
+            })
+            if existing:
                 continue
             income_doc = {
                 "id": str(uuid.uuid4()),
@@ -155,9 +162,15 @@ async def save_onboarding_step(request: Request):
             await db.income_sources.insert_one(income_doc)
             saved_count += 1
 
-    elif step == 2:  # Expenses — append new entries
+    elif step == 2:  # Expenses — append with dedup
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
+                continue
+            existing = await db.expenses.find_one({
+                "userId": user_id, "expenseName": item["name"],
+                "expectedAmount": float(item["amount"]), "source": "onboarding"
+            })
+            if existing:
                 continue
             expense_doc = {
                 "id": str(uuid.uuid4()),
@@ -178,11 +191,17 @@ async def save_onboarding_step(request: Request):
             await db.expenses.insert_one(expense_doc)
             saved_count += 1
 
-    elif step == 3:  # Assets — append new entries
+    elif step == 3:  # Assets — append with dedup
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
             if item.get("assetType") in ("bank_balance", "savings", "checking"):
+                existing = await db.accounts.find_one({
+                    "userId": user_id, "accountName": item["name"],
+                    "balance": float(item["amount"]), "source": "onboarding"
+                })
+                if existing:
+                    continue
                 account_doc = {
                     "id": str(uuid.uuid4()),
                     "userId": user_id,
@@ -195,6 +214,12 @@ async def save_onboarding_step(request: Request):
                 }
                 await db.accounts.insert_one(account_doc)
             else:
+                existing = await db.assets.find_one({
+                    "userId": user_id, "assetName": item["name"],
+                    "currentValue": float(item["amount"]), "source": "onboarding"
+                })
+                if existing:
+                    continue
                 asset_doc = {
                     "id": str(uuid.uuid4()),
                     "userId": user_id,
@@ -213,11 +238,17 @@ async def save_onboarding_step(request: Request):
                 await db.assets.insert_one(asset_doc)
             saved_count += 1
 
-    elif step == 4:  # Liabilities — append new entries
+    elif step == 4:  # Liabilities — append with dedup
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
             if item.get("liabilityType") == "credit_card":
+                existing = await db.credit_cards.find_one({
+                    "userId": user_id, "cardName": item["name"],
+                    "outstandingBalance": float(item["amount"]), "source": "onboarding"
+                })
+                if existing:
+                    continue
                 cc_doc = {
                     "id": str(uuid.uuid4()),
                     "userId": user_id,
@@ -229,6 +260,12 @@ async def save_onboarding_step(request: Request):
                 }
                 await db.credit_cards.insert_one(cc_doc)
             else:
+                existing = await db.loans.find_one({
+                    "userId": user_id, "loanName": item["name"],
+                    "principalAmount": float(item["amount"]), "source": "onboarding"
+                })
+                if existing:
+                    continue
                 loan_doc = {
                     "id": str(uuid.uuid4()),
                     "userId": user_id,
@@ -247,9 +284,15 @@ async def save_onboarding_step(request: Request):
                 await db.loans.insert_one(loan_doc)
             saved_count += 1
 
-    elif step == 5:  # Investments — append new entries
+    elif step == 5:  # Investments — append with dedup
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
+                continue
+            existing = await db.investments.find_one({
+                "userId": user_id, "name": item["name"],
+                "monthlyAmount": float(item["amount"]), "source": "onboarding"
+            })
+            if existing:
                 continue
             inv_doc = {
                 "id": str(uuid.uuid4()),

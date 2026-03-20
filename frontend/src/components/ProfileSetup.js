@@ -381,9 +381,6 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
             {targetModule}
           </span>
         )}
-        <button onClick={handleDismiss} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="wizard-dismiss-btn">
-          <X className="h-4 w-4" />
-        </button>
       </div>
       <h2 className="text-xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>{title}</h2>
       {subtitle && <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>{subtitle}</p>}
@@ -401,7 +398,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
   );
 
   const CTAButton = ({ onClick, disabled, children, secondary, className = "" }) => (
-    <button onClick={onClick} disabled={disabled}
+    <button onClick={onClick} disabled={disabled || saving}
       className={`py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-40 ${secondary ? "" : "text-white"} ${className}`}
       style={secondary
         ? { backgroundColor: "var(--bg-card)", color: "var(--text-muted)", border: "1px solid var(--border-light)" }
@@ -420,11 +417,11 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
     </label>
   );
 
-  const FieldInput = ({ value, onChange, placeholder, type = "text", inputMode, testId }) => (
+  const FieldInput = ({ value, onChange, placeholder, type = "text", inputMode, testId, readOnly }) => (
     <input type={type} inputMode={inputMode} placeholder={placeholder} value={value}
-      onChange={onChange}
+      onChange={onChange} readOnly={readOnly}
       className="w-full bg-transparent rounded-xl px-3 py-2.5 text-sm outline-none"
-      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)" }}
+      style={{ color: "var(--text-primary)", border: "1px solid var(--border-light)", opacity: readOnly ? 0.7 : 1 }}
       data-testid={testId}
     />
   );
@@ -448,8 +445,8 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
             <h1 className="text-2xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>Profile Health</h1>
             <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Your financial profile at a glance</p>
           </div>
-          <button onClick={() => { if (onDismiss) onDismiss(); else navigate("/home"); }} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="grid-dismiss-btn">
-            <X className="h-5 w-5" />
+          <button onClick={() => navigate(-1)} className="p-2 rounded-xl" style={{ color: "var(--text-muted)" }} data-testid="grid-back-btn">
+            <ArrowLeft className="h-5 w-5" />
           </button>
         </div>
 
@@ -626,7 +623,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
             <div className="w-full mt-4 p-4 rounded-2xl space-y-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
               <div>
                 <FieldLabel>Income Name</FieldLabel>
-                <FieldInput value={incomeName} onChange={(e) => setIncomeName(e.target.value)} testId="income-name-input" />
+                <FieldInput value={incomeName} onChange={() => {}} testId="income-name-input" readOnly />
               </div>
               <div>
                 <FieldLabel hint="We use this to project your annual income">Frequency</FieldLabel>
@@ -829,7 +826,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
           {ASSET_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
               const u = [...assetItems];
-              u[0] = { ...u[0], type: type.category, name: u[0].name || type.label };
+              u[0] = { ...u[0], type: type.category, name: type.label };
               setAssetItems(u);
               setHasNoAssets(false);
               setTimeout(() => setScreen("asset-details"), 300);
@@ -882,7 +879,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                   <div className="flex gap-2 flex-wrap flex-1">
                     {ASSET_TYPES.map(t => (
                       <button key={t.id} onClick={() => {
-                        const u = [...assetItems]; u[idx] = { ...u[idx], type: t.category, name: u[idx].name || t.label }; setAssetItems(u);
+                        const u = [...assetItems]; u[idx] = { ...u[idx], type: t.category, name: t.label }; setAssetItems(u);
                       }}
                         className="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
                         style={{
@@ -899,8 +896,8 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
               )}
               <div>
                 <FieldLabel>Asset Name</FieldLabel>
-                <FieldInput value={item.name} placeholder="e.g., HDFC Savings, Green Villa" testId={`asset-name-${idx}`}
-                  onChange={(e) => { const u = [...assetItems]; u[idx] = { ...u[idx], name: e.target.value }; setAssetItems(u); }}
+                <FieldInput value={item.name} placeholder="e.g., HDFC Savings, Green Villa" testId={`asset-name-${idx}`} readOnly
+                  onChange={() => {}}
                 />
               </div>
               <div>
@@ -918,7 +915,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
               </div>
             </div>
           ))}
-          <button onClick={() => setAssetItems(p => [...p, { name: "", amount: "", type: "bank_balance", purchaseDate: "", growthRate: "" }])}
+          <button onClick={() => setAssetItems(p => [...p, { name: "Bank Balance", amount: "", type: "bank_balance", purchaseDate: "", growthRate: "" }])}
             className="w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
             style={{ color: "#3B82F6", border: "1px dashed var(--border-light)" }}
             data-testid="add-asset-btn"
@@ -1007,7 +1004,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
           {LOAN_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
               const u = [...loanItems];
-              u[0] = { ...u[0], type: type.label, name: u[0].name || type.label };
+              u[0] = { ...u[0], type: type.label, name: type.label };
               setLoanItems(u);
               setHasNoLiabilities(false);
               setTimeout(() => setScreen("liability-details"), 300);
@@ -1061,7 +1058,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                     <div className="flex gap-2 flex-wrap flex-1">
                       {LOAN_TYPES.map(t => (
                         <button key={t.id} onClick={() => {
-                          const u = [...loanItems]; u[idx] = { ...u[idx], type: t.label, name: u[idx].name || t.label }; setLoanItems(u);
+                          const u = [...loanItems]; u[idx] = { ...u[idx], type: t.label, name: t.label }; setLoanItems(u);
                         }}
                           className="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
                           style={{
@@ -1086,7 +1083,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                 )}
                 <div>
                   <FieldLabel>Loan Name</FieldLabel>
-                  <FieldInput value={item.name} onChange={(e) => { const u = [...loanItems]; u[idx] = { ...u[idx], name: e.target.value }; setLoanItems(u); }} placeholder="e.g., HDFC Home Loan" testId={`loan-name-${idx}`} />
+                  <FieldInput value={item.name} onChange={() => {}} placeholder="e.g., HDFC Home Loan" testId={`loan-name-${idx}`} readOnly />
                 </div>
                 <div>
                   <FieldLabel hint="Total amount you still owe">Outstanding Principal (₹)</FieldLabel>
@@ -1115,7 +1112,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
               </div>
             );
           })}
-          <button onClick={() => setLoanItems(p => [...p, { name: "", amount: "", emi: "", type: "Personal Loan", rate: "", tenure: "", nextDue: "" }])}
+          <button onClick={() => setLoanItems(p => [...p, { name: "Personal Loan", amount: "", emi: "", type: "Personal Loan", rate: "", tenure: "", nextDue: "" }])}
             className="w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
             style={{ color: "#F59E0B", border: "1px dashed var(--border-light)" }}
             data-testid="add-loan-btn"
@@ -1218,7 +1215,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
           {INVESTMENT_TYPES.map((type) => (
             <button key={type.id} onClick={() => {
               const u = [...investItems];
-              u[0] = { ...u[0], type: type.id, name: u[0].name || type.label };
+              u[0] = { ...u[0], type: type.id, name: type.label };
               setInvestItems(u);
               setHasNoInvestments(false);
               setTimeout(() => setScreen("invest-details"), 300);
@@ -1272,7 +1269,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                     <div className="flex gap-2 flex-wrap flex-1">
                       {INVESTMENT_TYPES.map(t => (
                         <button key={t.id} onClick={() => {
-                          const u = [...investItems]; u[idx] = { ...u[idx], type: t.id, name: u[idx].name || t.label }; setInvestItems(u);
+                          const u = [...investItems]; u[idx] = { ...u[idx], type: t.id, name: t.label }; setInvestItems(u);
                         }}
                           className="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all"
                           style={{
@@ -1297,7 +1294,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                 )}
                 <div>
                   <FieldLabel>Investment Name</FieldLabel>
-                  <FieldInput value={item.name} onChange={(e) => { const u = [...investItems]; u[idx] = { ...u[idx], name: e.target.value }; setInvestItems(u); }} placeholder="e.g., HDFC Flexi Cap, SBI FD" testId={`invest-name-${idx}`} />
+                  <FieldInput value={item.name} onChange={() => {}} placeholder="e.g., HDFC Flexi Cap, SBI FD" testId={`invest-name-${idx}`} readOnly />
                 </div>
                 <div>
                   <FieldLabel>Monthly Amount / Current Value (₹)</FieldLabel>
@@ -1314,7 +1311,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
               </div>
             );
           })}
-          <button onClick={() => setInvestItems(p => [...p, { name: "", amount: "", type: "mutual-fund", frequency: "Monthly", startDate: "", growthRate: "", linkedAccount: "" }])}
+          <button onClick={() => setInvestItems(p => [...p, { name: "Mutual Funds / SIP", amount: "", type: "mutual-fund", frequency: "Monthly", startDate: "", growthRate: "", linkedAccount: "" }])}
             className="w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5"
             style={{ color: "#8B5CF6", border: "1px dashed var(--border-light)" }}
             data-testid="add-invest-btn"

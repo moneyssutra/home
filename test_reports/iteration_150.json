@@ -1,0 +1,116 @@
+{
+  "summary": "Tested UI/UX fixes for MoneySutra onboarding wizard. All 16 features verified. Profile Health Grid shows Back arrow instead of X, wizard header has no dismiss button, name fields are correctly auto-filled from type selection and are readOnly, backend deduplication logic works correctly for all 5 steps, 'Add another' buttons set proper default names.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "features_tested": {
+    "grid_back_btn": {
+      "status": "PASS",
+      "details": "Profile Health Grid shows Back arrow (ArrowLeft icon) with data-testid='grid-back-btn'. Navigates back correctly."
+    },
+    "grid_dismiss_btn_removed": {
+      "status": "PASS",
+      "details": "data-testid='grid-dismiss-btn' does NOT exist on Profile Health Grid page"
+    },
+    "wizard_dismiss_btn_removed": {
+      "status": "PASS",
+      "details": "data-testid='wizard-dismiss-btn' does NOT exist in wizard header"
+    },
+    "wizard_back_btn": {
+      "status": "PASS",
+      "details": "wizard-back-btn exists with ArrowLeft icon in all wizard steps"
+    },
+    "asset_type_name_autofill": {
+      "status": "PASS",
+      "details": "Clicking 'Gold / Jewellery' sets name field to 'Gold / Jewellery'"
+    },
+    "asset_name_readonly": {
+      "status": "PASS",
+      "details": "Asset name field is readOnly (Playwright reports 'element is not editable')"
+    },
+    "loan_type_name_autofill": {
+      "status": "PASS",
+      "details": "Clicking 'Home Loan' sets name field to 'Home Loan'"
+    },
+    "loan_name_readonly": {
+      "status": "PASS",
+      "details": "Loan name field is readOnly (cannot type in it)"
+    },
+    "investment_type_name_autofill": {
+      "status": "PASS",
+      "details": "Clicking 'Stocks' sets name field to 'Stocks'"
+    },
+    "income_name_readonly": {
+      "status": "PASS",
+      "details": "Income name field in deep details shows 'Monthly Salary' and is readOnly"
+    },
+    "add_another_asset_default": {
+      "status": "PASS",
+      "details": "'Add another asset' button defaults name to 'Bank Balance'"
+    },
+    "add_another_loan_default": {
+      "status": "PASS",
+      "details": "'Add another loan' button defaults name to 'Personal Loan'"
+    },
+    "add_another_investment_default": {
+      "status": "PASS",
+      "details": "'Add another investment' button defaults name to 'Mutual Funds / SIP'"
+    },
+    "backend_income_dedup": {
+      "status": "PASS",
+      "details": "POST same income twice (same name+amount) returns savedCount: 0 on second call"
+    },
+    "backend_loan_dedup": {
+      "status": "PASS",
+      "details": "POST same loan twice returns savedCount: 0 on second call"
+    },
+    "backend_asset_dedup": {
+      "status": "PASS",
+      "details": "POST same asset twice returns savedCount: 0 on second call"
+    },
+    "backend_investment_dedup": {
+      "status": "PASS",
+      "details": "POST same investment twice returns savedCount: 0 on second call"
+    },
+    "backend_expense_dedup": {
+      "status": "PASS",
+      "details": "POST same expense twice returns savedCount: 0 on second call"
+    },
+    "cta_button_disabled_during_save": {
+      "status": "PASS",
+      "details": "CTAButton component has disabled={disabled || saving} at line 401"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_onboarding_dedup_iter150.py",
+    "/app/test_reports/pytest/onboarding_dedup_iter150_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "All data-testid attributes are correctly set for Back arrow buttons",
+    "FieldInput component properly implements readOnly attribute with opacity reduction (0.7)",
+    "Backend deduplication checks source='onboarding' to avoid conflicts with other data sources",
+    "CTAButton correctly disables during save operations to prevent double-submit"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_onboarding_dedup_iter150.py"
+  ],
+  "success_rate": {
+    "backend": "100% (7/7 tests passed)",
+    "frontend": "100% (all 16 features verified via Playwright)"
+  },
+  "test_credentials": {
+    "email": "wizardtest@test.com",
+    "password": "Test1234!"
+  },
+  "seed_data_creation": "Test data created with unique UUIDs during pytest runs (auto-cleaned by dedup tests)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All UI/UX fixes verified. Key test IDs: grid-back-btn (ArrowLeft), wizard-back-btn (ArrowLeft), asset-name-{idx} (readOnly), loan-name-{idx} (readOnly), invest-name-{idx} (readOnly), income-name-input (readOnly). Backend dedup logic tested for all 5 steps (income, expenses, assets, liabilities, investments)."
+}
