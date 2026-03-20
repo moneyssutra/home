@@ -101,6 +101,9 @@ Financial management app with profile completion/onboarding flow, income/expense
 - **Added: Shared `parse_due_day()` utility** — Backend utility in routes/utils.py handles all selectedDate formats consistently across expenses.py, dashboard.py.
 - **NEW: Bank Accounts Experimental Page (CRED-style)** — Created `/bank-accounts-experimental` route with 4 tabs (Accounts/Transactions/Recurring/Cashflow). Features horizontal snap-scroll cards with gradient backgrounds (ICICI/HDFC/SBI/Kotak), dot indicators, quick actions, refresh interaction, transaction history, cashflow summary, and Finvu coming-soon banner. Home rolling button "Savings" replaced with "Banks" linking to new page. All mock data, no backend changes. Existing features untouched.
 
+## Completed (Mar 20, 2026 - Cont.)
+- **NEW: Credit Cards Experimental Page (CRED-style)** — Created `/credit-cards-experimental` route with 3 tabs (Cards/Payments/Insights). Features horizontal snap-scroll credit card widgets with bank-specific gradient backgrounds (ICICI orange), chip/network visuals, cardholder name, outstanding amounts, utilization bars, due date badges, credit utilization summary, quick actions (Pay Bill/Statements/Add Card), All Cards list with per-card refresh, sync notifications, and credit health insights with high-utilization alerts. Wired up route in App.js and RollingButtons "Cards" entry. Backend `/api/cc-overview` pulls live data from `credit_cards` and `cc_payments` collections. Fully tested (16/16 backend, all frontend tests passed).
+
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
 - Integrate Finvu Account Aggregator SDK (awaiting credentials)
