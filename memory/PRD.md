@@ -22,6 +22,8 @@ Financial management app with profile completion/onboarding flow, income/expense
 - **Backend deduplication** prevents duplicate entries (name+amount match)
 - **ReadOnly name fields** auto-filled from type selection
 - **Back button** replaces X dismiss on Profile Health Grid
+- **Calendar-based weekly income** (replaced 4.33 multiplier with actual weekday counts)
+- **Form state reset** on category/module change (prevents stale data carry-over)
 - Gamified Insights page
 - Admin panel
 
