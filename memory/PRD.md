@@ -84,6 +84,7 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Fixed income selectedDate not saving (dedup logic now updates date fields)
 - Fixed startDate construction from user's selected day
 - **Fixed P0: Income module showing "Complete" with 0 items** — Changed `_get_profile_completion` to only override module completion to `True` when user explicitly skipped (`step_X_skipped`), not when `{name}_completed` is set (which was true even with 0 items)
+- **Fixed: Onboarding expense missing `expenseType` and `selectedDate`** — Expenses saved from onboarding wizard were missing `expenseType` (Fixed/Variable) causing 500 Internal Server Error on `/api/expenses`, and missing `selectedDate` field (expense scheduling date). Fixed onboarding save + patched existing records. Also added dedup-update logic for expense date changes (matching income behavior).
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration

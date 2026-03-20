@@ -205,23 +205,35 @@ async def save_onboarding_step(request: Request):
                 "expectedAmount": float(item["amount"]), "source": "onboarding"
             })
             if existing:
+                # Update fields if user changed them
+                update_fields = {"updatedAt": datetime.now(timezone.utc).isoformat()}
+                if item.get("dueDate"):
+                    update_fields["selectedDate"] = str(item["dueDate"])
+                    update_fields["dueDate"] = str(item["dueDate"])
+                if item.get("needOrWant"):
+                    update_fields["needOrWant"] = item["needOrWant"]
+                    update_fields["expenseType"] = "Fixed" if item["needOrWant"] == "need" else "Variable"
+                await db.expenses.update_one({"_id": existing["_id"]}, {"$set": update_fields})
+                saved_count += 1
                 continue
+            need_or_want = item.get("needOrWant", "need")
             expense_doc = {
                 "id": str(uuid.uuid4()),
                 "userId": user_id,
                 "expenseName": item["name"],
+                "expenseType": "Fixed" if need_or_want == "need" else "Variable",
                 "category": item.get("category", "Other"),
                 "expectedAmount": float(item["amount"]),
                 "frequency": item.get("frequency", "Monthly"),
                 "isPaid": False,
                 "skippedMonths": [],
+                "needOrWant": need_or_want,
                 "createdAt": datetime.now(timezone.utc).isoformat(),
                 "source": "onboarding",
             }
             if item.get("dueDate"):
                 expense_doc["dueDate"] = str(item["dueDate"])
-            if item.get("needOrWant"):
-                expense_doc["needOrWant"] = item["needOrWant"]
+                expense_doc["selectedDate"] = str(item["dueDate"])
             await db.expenses.insert_one(expense_doc)
             saved_count += 1
 
