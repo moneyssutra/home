@@ -22,21 +22,29 @@ Full-stack financial management app ("MoneySutra") with React + FastAPI + MongoD
 4. **Progressive Disclosure** - "+ Add Deep Details" toggles on Income, Assets, Liabilities, Investments
 5. **Fixed Completion Logic** - Skipped wizard steps now count as completed (was 40%, now 100% after wizard)
 
+## Bug Fix: Duplicate Income (1.5L -> 50K) (Mar 20, 2026) - COMPLETE
+### Root Cause
+The onboarding save-step handler used `insert_one` for income sources without checking for existing entries. Running the wizard multiple times created duplicate income sources (3x ₹50K = ₹1.5L).
+### Fix Applied
+1. **Data Cleanup**: Deleted 2 duplicate "Monthly Salary" entries for moneyssutra@gmail.com, keeping 1 at ₹50K
+2. **Upsert Logic for ALL onboarding steps**:
+   - Step 1 (Income): Checks for existing onboarding source and updates instead of inserting
+   - Steps 2-5 (Expenses/Assets/Liabilities/Investments): Deletes old onboarding entries before inserting new ones
+3. **Aggregation Verified**: income.py monthly-summary pipeline is correct — it sums per-source, doesn't mix Expected/Received statuses
+
 ### Architecture
 - **Component**: `/app/frontend/src/components/ProfileSetup.js` (replaces StrategicOnboarding.js)
-- **Backend**: `/app/backend/routes/onboarding.py` (updated skip handler + completion logic)
+- **Backend**: `/app/backend/routes/onboarding.py` (upsert logic + completion logic)
 - **Entry Points**: Dashboard banner -> navigates to `/onboarding`, auto-popup for 0% users
-- **Testing**: 100% backend (23/23), 100% frontend (all screens verified)
 
 ## Key API Endpoints
 - `/api/onboarding/profile-completion` - Returns completion % and per-category status
-- `/api/onboarding/save-step` - Steps 1-5 (income/expenses/assets/liabilities/investments)
+- `/api/onboarding/save-step` - Steps 1-5 with upsert logic
 - `/api/onboarding/complete` - Marks onboarding done
 - `/api/onboarding/dismiss` - Dismisses banner
+- `/api/income/monthly-summary` - Monthly income summary
 - `/api/dashboard/networth` - Dashboard data
 - `/api/financial-health` - Financial health analysis
-- `/api/loans` - Loans CRUD
-- `/api/investments` - Investments CRUD
 
 ## Other Completed Features
 - Auth: Email/password, Google OAuth, MPIN, Biometric (WebAuthn)
@@ -47,7 +55,6 @@ Full-stack financial management app ("MoneySutra") with React + FastAPI + MongoD
 - Loan Given Investment Type with auto-repayment scheduler
 - Skip Payment Feature for expenses
 - Financial Health Wizard
-- Strategic Onboarding v1 (now replaced by Profile Setup)
 - Wealth Page resilient data fetching (Promise.allSettled)
 - Back button navigation loop fix
 - Investment allocation detailed breakdown

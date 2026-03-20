@@ -134,23 +134,42 @@ async def save_onboarding_step(request: Request):
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
-            income_doc = {
-                "id": str(uuid.uuid4()),
-                "userId": user_id,
-                "name": item["name"],
-                "type": item.get("type", "Salary"),
-                "expectedAmount": float(item["amount"]),
-                "frequency": item.get("frequency", "Monthly"),
-                "incomeType": "fixed",
-                "sourceCategory": None,
-                "startDate": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-                "createdAt": datetime.now(timezone.utc).isoformat(),
-                "source": "onboarding"
-            }
-            await db.income_sources.insert_one(income_doc)
+            # Upsert: if an onboarding income source already exists for this user, update it
+            existing = await db.income_sources.find_one(
+                {"userId": user_id, "source": "onboarding"},
+                {"_id": 0, "id": 1}
+            )
+            if existing:
+                await db.income_sources.update_one(
+                    {"userId": user_id, "source": "onboarding", "id": existing["id"]},
+                    {"$set": {
+                        "name": item["name"],
+                        "type": item.get("type", "Salary"),
+                        "expectedAmount": float(item["amount"]),
+                        "frequency": item.get("frequency", "Monthly"),
+                        "updatedAt": datetime.now(timezone.utc).isoformat(),
+                    }}
+                )
+            else:
+                income_doc = {
+                    "id": str(uuid.uuid4()),
+                    "userId": user_id,
+                    "name": item["name"],
+                    "type": item.get("type", "Salary"),
+                    "expectedAmount": float(item["amount"]),
+                    "frequency": item.get("frequency", "Monthly"),
+                    "incomeType": "fixed",
+                    "sourceCategory": None,
+                    "startDate": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                    "createdAt": datetime.now(timezone.utc).isoformat(),
+                    "source": "onboarding"
+                }
+                await db.income_sources.insert_one(income_doc)
             saved_count += 1
 
     elif step == 2:  # Expenses
+        # Remove old onboarding expenses first, then insert new ones
+        await db.expenses.delete_many({"userId": user_id, "source": "onboarding"})
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
@@ -170,6 +189,9 @@ async def save_onboarding_step(request: Request):
             saved_count += 1
 
     elif step == 3:  # Assets (accounts + physical assets)
+        # Remove old onboarding assets first
+        await db.accounts.delete_many({"userId": user_id, "source": "onboarding"})
+        await db.assets.delete_many({"userId": user_id, "source": "onboarding"})
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
@@ -199,6 +221,9 @@ async def save_onboarding_step(request: Request):
             saved_count += 1
 
     elif step == 4:  # Liabilities
+        # Remove old onboarding liabilities first
+        await db.loans.delete_many({"userId": user_id, "source": "onboarding"})
+        await db.credit_cards.delete_many({"userId": user_id, "source": "onboarding"})
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
@@ -229,6 +254,8 @@ async def save_onboarding_step(request: Request):
             saved_count += 1
 
     elif step == 5:  # Investments
+        # Remove old onboarding investments first
+        await db.investments.delete_many({"userId": user_id, "source": "onboarding"})
         for item in step_data.get("items", []):
             if not item.get("name") or not item.get("amount"):
                 continue
