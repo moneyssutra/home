@@ -514,10 +514,17 @@ async def get_income_detail(income_id: str, request: Request):
     freq = inc.get("frequency", "Monthly")
     start_str = inc.get("startDate")
 
-    # Fetch income transactions
+    # Fetch income transactions (entityId is the field in DB, not incomeSourceId)
     transactions = await db.income_transactions.find(
-        {"userId": user_id, "incomeSourceId": income_id}, {"_id": 0}
-    ).sort("date", -1).to_list(500)
+        {"userId": user_id, "entityId": income_id}, {"_id": 0}
+    ).sort("transactionDate", -1).to_list(500)
+
+    # Build a lookup of actual transaction amounts by date
+    txn_by_date = {}
+    for txn in transactions:
+        tdate = txn.get("transactionDate", "")
+        if tdate:
+            txn_by_date[tdate] = txn_by_date.get(tdate, 0) + txn.get("amount", 0)
 
     # Generate receipt schedule
     today = datetime.now()
@@ -557,8 +564,9 @@ async def get_income_detail(income_id: str, request: Request):
 
         cursor = first_occurrence
         while cursor <= today + timedelta(weeks=12):
-            status = "received" if cursor.strftime("%Y-%m-%d") <= today_str else "upcoming"
-            schedule.append({"dueDate": cursor.strftime("%Y-%m-%d"), "amount": expected, "status": status})
+            date_str = cursor.strftime("%Y-%m-%d")
+            status = "received" if date_str <= today_str else "upcoming"
+            schedule.append({"dueDate": date_str, "amount": expected, "status": status})
             cursor += timedelta(weeks=1)
 
     elif freq == "Daily":
@@ -572,8 +580,9 @@ async def get_income_detail(income_id: str, request: Request):
             start = today - timedelta(days=30)
         cursor = start
         while cursor <= today + timedelta(days=30):
-            status = "received" if cursor.strftime("%Y-%m-%d") <= today_str else "upcoming"
-            schedule.append({"dueDate": cursor.strftime("%Y-%m-%d"), "amount": expected, "status": status})
+            date_str = cursor.strftime("%Y-%m-%d")
+            status = "received" if date_str <= today_str else "upcoming"
+            schedule.append({"dueDate": date_str, "amount": expected, "status": status})
             cursor += timedelta(days=1)
 
     elif period_months > 0:
@@ -618,16 +627,77 @@ async def get_income_detail(income_id: str, request: Request):
             due = start + relativedelta(months=period_months * i)
             if due > today + relativedelta(months=3):
                 break
-            status = "received" if due.strftime("%Y-%m-%d") <= today_str else "upcoming"
-            schedule.append({"dueDate": due.strftime("%Y-%m-%d"), "amount": expected, "status": status})
+            date_str = due.strftime("%Y-%m-%d")
+            status = "received" if date_str <= today_str else "upcoming"
+            schedule.append({"dueDate": date_str, "amount": expected, "status": status})
 
     received_count = sum(1 for s in schedule if s["status"] == "received")
-    total_received = received_count * expected
+    
+    # Match actual transactions to schedule entries by nearest window
+    # For weekly: each schedule entry covers the period from that date to the next schedule date
+    # For daily: exact date match
+    # For monthly+: ±7 day window around schedule date
+    unmatched_txn_dates = set(txn_by_date.keys())
+    
+    if freq == "Weekly" and len(schedule) > 0:
+        for i, entry in enumerate(schedule):
+            entry_date = entry["dueDate"]
+            # Window: from this entry date to next entry date (exclusive), or +6 days if last
+            next_date = schedule[i + 1]["dueDate"] if i + 1 < len(schedule) else (datetime.strptime(entry_date, "%Y-%m-%d") + timedelta(days=7)).strftime("%Y-%m-%d")
+            # Sum transactions in this window
+            matched_amount = 0
+            for tdate, tamount in txn_by_date.items():
+                if entry_date <= tdate < next_date:
+                    matched_amount += tamount
+                    unmatched_txn_dates.discard(tdate)
+            if matched_amount > 0:
+                entry["amount"] = matched_amount
+                entry["isActual"] = True
+            else:
+                entry["isActual"] = False
+    elif freq == "Daily":
+        for entry in schedule:
+            actual = txn_by_date.get(entry["dueDate"])
+            if actual is not None:
+                entry["amount"] = actual
+                entry["isActual"] = True
+                unmatched_txn_dates.discard(entry["dueDate"])
+            else:
+                entry["isActual"] = False
+    else:
+        # Monthly/Quarterly: ±7 day window
+        for entry in schedule:
+            entry_dt = datetime.strptime(entry["dueDate"], "%Y-%m-%d")
+            matched_amount = 0
+            for tdate, tamount in txn_by_date.items():
+                try:
+                    t_dt = datetime.strptime(tdate, "%Y-%m-%d")
+                    if abs((t_dt - entry_dt).days) <= 7:
+                        matched_amount += tamount
+                        unmatched_txn_dates.discard(tdate)
+                except ValueError:
+                    pass
+            if matched_amount > 0:
+                entry["amount"] = matched_amount
+                entry["isActual"] = True
+            else:
+                entry["isActual"] = False
 
-    # Calculate current month's received/pending (same logic as monthly-summary for consistency)
+    total_received = sum(s["amount"] for s in schedule if s["status"] == "received")
+    total_received = sum(s["amount"] for s in schedule if s["status"] == "received")
+
+    # Calculate current month's received/pending with hybrid logic for variable income
     import calendar as cal
     current_year, current_month, current_day = today.year, today.month, today.day
     days_in_month = cal.monthrange(current_year, current_month)[1]
+    is_variable = inc.get('incomeType', '').lower() == 'variable'
+
+    # Get actual transactions for current month
+    month_start = f"{current_year}-{current_month:02d}-01"
+    month_end = f"{current_year}-{current_month:02d}-{days_in_month}"
+    current_month_txns = [t for t in transactions if month_start <= t.get('transactionDate', '') <= month_end]
+    actual_received_this_month = sum(t.get('amount', 0) for t in current_month_txns)
+    txn_count_this_month = len(current_month_txns)
     if freq == "Weekly":
         day_name = inc.get("selectedDay", "")
         if not day_name:
@@ -646,10 +716,20 @@ async def get_income_detail(income_id: str, request: Request):
         monthly_received = expected * past_count
         monthly_total = expected * total_count
         monthly_pending = expected * (total_count - past_count)
+        # Hybrid: use actual transactions + expected for unrecorded past weeks
+        if is_variable and actual_received_this_month > 0:
+            unrecorded = max(0, past_count - txn_count_this_month)
+            monthly_received = actual_received_this_month + (unrecorded * expected)
+            monthly_total = monthly_received + monthly_pending
     elif freq == "Daily":
         monthly_received = expected * current_day
         monthly_total = expected * days_in_month
         monthly_pending = expected * (days_in_month - current_day)
+        # Hybrid: use actual transactions + expected for unrecorded past days
+        if is_variable and actual_received_this_month > 0:
+            unrecorded = max(0, current_day - txn_count_this_month)
+            monthly_received = actual_received_this_month + (unrecorded * expected)
+            monthly_total = monthly_received + monthly_pending
     else:
         sd_str = inc.get("selectedDate")
         applies, sd_int = _parse_selected_date(sd_str, current_year, current_month, days_in_month)
