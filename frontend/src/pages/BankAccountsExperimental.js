@@ -17,6 +17,9 @@ import {
   Loader2,
   Wallet,
   CalendarDays,
+  CreditCard,
+  CheckCircle2,
+  Wifi,
 } from "lucide-react";
 
 import BottomNav from "@/components/BottomNav";
@@ -39,48 +42,91 @@ const formatOrdinal = (day) => {
   return day + (s[(v - 20) % 10] || s[v] || s[0]);
 };
 
-// ---------- ACCOUNT CARD ----------
-const AccountCard = ({ account, isActive }) => (
+// ---------- SYNC NOTIFICATION ----------
+const SyncNotification = ({ message, visible }) => (
   <div
-    data-testid={`bank-card-${account.id}`}
-    className="flex-shrink-0 w-[280px] snap-center rounded-2xl p-5 transition-all duration-300 text-left relative overflow-hidden"
-    style={{
-      background: `linear-gradient(135deg, ${account.gradient[0]}, ${account.gradient[1]})`,
-      transform: isActive ? "scale(1)" : "scale(0.93)",
-      opacity: isActive ? 1 : 0.7,
-      boxShadow: isActive
-        ? `0 20px 40px -12px ${account.color}40, 0 8px 16px -4px rgba(0,0,0,0.12)`
-        : "0 4px 12px rgba(0,0,0,0.08)",
-    }}
+    className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none"
+    style={{ transition: "transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease", transform: visible ? "translateY(0)" : "translateY(-100%)", opacity: visible ? 1 : 0 }}
   >
-    <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ background: "rgba(255,255,255,0.06)" }} />
-    <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full" style={{ background: "rgba(255,255,255,0.04)" }} />
-
-    <div className="relative z-10">
-      <div className="flex items-center gap-2.5 mb-6">
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[10px] font-black tracking-wider" style={{ background: "rgba(255,255,255,0.18)", color: "#fff" }}>
-          {account.logo}
-        </div>
-        <div>
-          <p className="text-sm font-bold text-white">{account.bank}</p>
-          <p className="text-[11px] text-white/60">{account.type} {account.accountNumber}</p>
-        </div>
-      </div>
-
-      <div className="mb-4">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-white/50 mb-1">Available Balance</p>
-        <p className="text-2xl font-black text-white tracking-tight">₹{fmtFull(account.balance)}</p>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Clock size={11} className="text-white/40" />
-          <p className="text-[10px] text-white/50">Updated {account.lastUpdated}</p>
-        </div>
-      </div>
+    <div className="mt-3 mx-4 px-4 py-3 rounded-2xl flex items-center gap-3 shadow-lg max-w-sm w-full" style={{ background: "linear-gradient(135deg, #065F46, #047857)", border: "1px solid rgba(255,255,255,0.1)" }}>
+      <CheckCircle2 size={18} className="text-emerald-300 flex-shrink-0" />
+      <p className="text-sm font-semibold text-white flex-1">{message}</p>
     </div>
   </div>
 );
+
+// ---------- ACCOUNT CARD (Real Bank Card Design) ----------
+const AccountCard = ({ account, isActive, onRefresh, refreshingId }) => {
+  const isRefreshing = refreshingId === account.id;
+  return (
+    <div
+      data-testid={`bank-card-${account.id}`}
+      className="flex-shrink-0 w-[300px] snap-center rounded-2xl transition-all duration-300 text-left relative overflow-hidden"
+      style={{
+        background: `linear-gradient(145deg, ${account.gradient[0]}, ${account.gradient[1]})`,
+        transform: isActive ? "scale(1)" : "scale(0.93)",
+        opacity: isActive ? 1 : 0.7,
+        boxShadow: isActive
+          ? `0 20px 40px -12px ${account.color}50, 0 8px 16px -4px rgba(0,0,0,0.15)`
+          : "0 4px 12px rgba(0,0,0,0.08)",
+        aspectRatio: "1.7/1",
+      }}
+    >
+      {/* Background pattern */}
+      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.08) 0%, transparent 50%)" }} />
+      <div className="absolute -bottom-12 -right-12 w-40 h-40 rounded-full" style={{ background: "rgba(255,255,255,0.04)" }} />
+      <div className="absolute top-4 right-4 w-20 h-20 rounded-full" style={{ background: "rgba(255,255,255,0.03)" }} />
+
+      <div className="relative z-10 h-full flex flex-col justify-between p-5">
+        {/* Top: Bank name + Refresh */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center text-[9px] font-black tracking-wider" style={{ background: "rgba(255,255,255,0.15)", color: "#fff", backdropFilter: "blur(4px)" }}>
+              {account.logo}
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-white leading-tight">{account.bank}</p>
+              <p className="text-[10px] text-white/50 font-medium">{account.type}</p>
+            </div>
+          </div>
+          <button
+            onClick={(e) => { e.stopPropagation(); onRefresh(account); }}
+            data-testid={`card-refresh-${account.id}`}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+            style={{ background: "rgba(255,255,255,0.12)" }}
+          >
+            <RefreshCw size={14} className={`text-white/70 ${isRefreshing ? "animate-spin" : ""}`} />
+          </button>
+        </div>
+
+        {/* Middle: Chip + Contactless + Account Number */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-7 rounded-md" style={{ background: "linear-gradient(135deg, #D4A026, #C49B1D, #E8C84A)", boxShadow: "inset 0 1px 2px rgba(255,255,255,0.3)" }}>
+            <div className="w-full h-full grid grid-cols-3 gap-px p-[3px] rounded-md overflow-hidden">
+              {[...Array(6)].map((_, i) => <div key={i} className="rounded-[1px]" style={{ background: "rgba(180,140,20,0.5)" }} />)}
+            </div>
+          </div>
+          <Wifi size={16} className="text-white/30 rotate-90" />
+          {account.accountNumber && (
+            <p className="text-xs font-mono text-white/40 tracking-[3px]">{account.accountNumber}</p>
+          )}
+        </div>
+
+        {/* Bottom: Balance + Last Updated */}
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-[9px] font-semibold uppercase tracking-[2px] text-white/40 mb-0.5">Balance</p>
+            <p className="text-xl font-black text-white tracking-tight">₹{fmtFull(account.balance)}</p>
+          </div>
+          <div className="flex items-center gap-1">
+            <Clock size={10} className="text-white/30" />
+            <p className="text-[9px] text-white/35 font-medium">{account.lastUpdated}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ---------- EMPTY STATE ----------
 const EmptyState = ({ icon: Icon, title, subtitle, action, onAction }) => (
@@ -95,7 +141,7 @@ const EmptyState = ({ icon: Icon, title, subtitle, action, onAction }) => (
 );
 
 // ---------- ACCOUNTS TAB ----------
-const AccountsTab = ({ accounts, refreshing, onRefresh, navigate }) => {
+const AccountsTab = ({ accounts, refreshing, onRefreshAll, onRefreshOne, refreshingId, navigate }) => {
   const scrollRef = useRef(null);
   const [activeIdx, setActiveIdx] = useState(0);
   const totalBalance = accounts.reduce((s, a) => s + a.balance, 0);
@@ -103,7 +149,7 @@ const AccountsTab = ({ accounts, refreshing, onRefresh, navigate }) => {
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const idx = Math.round(el.scrollLeft / 296);
+    const idx = Math.round(el.scrollLeft / 316);
     setActiveIdx(Math.min(idx, accounts.length - 1));
   }, [accounts.length]);
 
@@ -127,14 +173,14 @@ const AccountsTab = ({ accounts, refreshing, onRefresh, navigate }) => {
           <p className="text-3xl font-black tracking-tight mt-1" style={{ color: "var(--text-primary)" }}>₹{fmtFull(totalBalance)}</p>
           <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>across {accounts.length} account{accounts.length !== 1 ? "s" : ""}</p>
         </div>
-        <button onClick={onRefresh} data-testid="refresh-accounts-btn" className="w-11 h-11 rounded-xl flex items-center justify-center transition-all active:scale-90" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+        <button onClick={onRefreshAll} data-testid="refresh-accounts-btn" className="w-11 h-11 rounded-xl flex items-center justify-center transition-all active:scale-90" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
           <RefreshCw size={18} style={{ color: "var(--brand-primary)" }} className={refreshing ? "animate-spin" : ""} />
         </button>
       </div>
 
       <div ref={scrollRef} onScroll={handleScroll} className="flex gap-4 overflow-x-auto px-5 pb-2 snap-x snap-mandatory scrollbar-hide" style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }} data-testid="accounts-card-scroll">
         {accounts.map((acc, i) => (
-          <AccountCard key={acc.id} account={acc} isActive={i === activeIdx} />
+          <AccountCard key={acc.id} account={acc} isActive={i === activeIdx} onRefresh={onRefreshOne} refreshingId={refreshingId} />
         ))}
       </div>
 
@@ -174,9 +220,19 @@ const AccountsTab = ({ accounts, refreshing, onRefresh, navigate }) => {
                 <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{acc.type} {acc.accountNumber && `· ${acc.accountNumber}`}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>₹{fmtFull(acc.balance)}</p>
-              <ChevronRight size={16} style={{ color: "var(--text-muted)" }} />
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>₹{fmtFull(acc.balance)}</p>
+                <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>{acc.lastUpdated}</p>
+              </div>
+              <button
+                onClick={() => onRefreshOne(acc)}
+                data-testid={`row-refresh-${acc.id}`}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all active:scale-90"
+                style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}
+              >
+                <RefreshCw size={13} className={refreshingId === acc.id ? "animate-spin" : ""} style={{ color: "var(--brand-primary)" }} />
+              </button>
             </div>
           </div>
         ))}
@@ -326,8 +382,17 @@ const BankAccountsExperimental = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [refreshingId, setRefreshingId] = useState(null);
+  const [syncNotif, setSyncNotif] = useState({ visible: false, message: "" });
   const [data, setData] = useState({ accounts: [], transactions: [], recurring: [], cashflow: {} });
   const tabBarRef = useRef(null);
+  const notifTimer = useRef(null);
+
+  const showSyncNotif = useCallback((msg) => {
+    if (notifTimer.current) clearTimeout(notifTimer.current);
+    setSyncNotif({ visible: true, message: msg });
+    notifTimer.current = setTimeout(() => setSyncNotif((p) => ({ ...p, visible: false })), 3000);
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -345,10 +410,27 @@ const BankAccountsExperimental = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleRefresh = useCallback(() => {
+  const handleRefreshAll = useCallback(() => {
     setRefreshing(true);
-    fetchData().finally(() => setTimeout(() => setRefreshing(false), 800));
-  }, [fetchData]);
+    fetchData().finally(() => {
+      setTimeout(() => {
+        setRefreshing(false);
+        showSyncNotif("All accounts refreshed · Data Synced");
+      }, 800);
+    });
+  }, [fetchData, showSyncNotif]);
+
+  const handleRefreshOne = useCallback((account) => {
+    setRefreshingId(account.id);
+    // Simulate per-account refresh (future: Finvu per-account fetch)
+    fetchData().finally(() => {
+      setTimeout(() => {
+        setRefreshingId(null);
+        const label = account.bank + (account.accountNumber ? ` ${account.accountNumber}` : "");
+        showSyncNotif(`${label} refreshed · Data Synced`);
+      }, 1200);
+    });
+  }, [fetchData, showSyncNotif]);
 
   useEffect(() => {
     const el = tabBarRef.current;
@@ -359,6 +441,8 @@ const BankAccountsExperimental = () => {
 
   return (
     <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="bank-accounts-experimental">
+      {/* Sync Notification */}
+      <SyncNotification message={syncNotif.message} visible={syncNotif.visible} />
       {/* Header */}
       <div className="sticky top-0 z-30 px-5 pt-3 pb-2" style={{ backgroundColor: "var(--bg-app)", borderBottom: "1px solid var(--border-light)" }}>
         <div className="flex items-center justify-between mb-3">
@@ -389,7 +473,7 @@ const BankAccountsExperimental = () => {
           </div>
         ) : (
           <>
-            {activeTab === 0 && <AccountsTab accounts={data.accounts} refreshing={refreshing} onRefresh={handleRefresh} navigate={navigate} />}
+            {activeTab === 0 && <AccountsTab accounts={data.accounts} refreshing={refreshing} onRefreshAll={handleRefreshAll} onRefreshOne={handleRefreshOne} refreshingId={refreshingId} navigate={navigate} />}
             {activeTab === 1 && <TransactionsTab transactions={data.transactions} />}
             {activeTab === 2 && <RecurringTab recurring={data.recurring} />}
             {activeTab === 3 && <CashflowTab cashflow={data.cashflow} />}
