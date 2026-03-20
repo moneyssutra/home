@@ -19,6 +19,8 @@ import {
   CalendarDays,
 } from "lucide-react";
 
+import BottomNav from "@/components/BottomNav";
+
 const API = process.env.REACT_APP_BACKEND_URL;
 
 const fmt = (n) => {
@@ -417,6 +419,8 @@ const BankAccountsExperimental = () => {
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeIn 0.35s ease-out; }
       `}</style>
+
+      <BottomNav />
     </div>
   );
 };
