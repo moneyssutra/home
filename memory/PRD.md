@@ -83,6 +83,9 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Updated Finvu Account Aggregator banner color to gentle blue gradient with sky-blue accents
 - Fixed income received/expected calculation: combined endpoints now use original _split_by_schedule_date logic via get_networth_summary
 - Fixed date auto-save in onboarding wizard: clicking a date on "When does it arrive?" screen auto-triggers save & complete
+- Fixed income selectedDate not saving: onboarding dedup logic now UPDATES date fields on existing records instead of skipping them entirely
+- Fixed startDate always being today's date: now constructs startDate from the user's selected day (e.g., day 3 → "2026-03-03")
+- Fixed existing production income records: corrected startDate for all income sources based on their selectedDate
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration

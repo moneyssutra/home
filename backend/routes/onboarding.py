@@ -144,6 +144,22 @@ async def save_onboarding_step(request: Request):
                 "expectedAmount": float(item["amount"]), "source": "onboarding"
             })
             if existing:
+                # Update the date fields if the user changed them
+                update_fields = {"updatedAt": datetime.now(timezone.utc).isoformat()}
+                sel_day = item.get("selectedDate")
+                if sel_day:
+                    update_fields["selectedDate"] = str(sel_day)
+                    now = datetime.now(timezone.utc)
+                    try:
+                        day_num = int(str(sel_day).split('-')[-1])
+                        day_num = min(day_num, 28)
+                        update_fields["startDate"] = f"{now.year}-{str(now.month).zfill(2)}-{str(day_num).zfill(2)}"
+                    except (ValueError, TypeError):
+                        pass
+                if item.get("frequency"):
+                    update_fields["frequency"] = item["frequency"]
+                await db.income_sources.update_one({"_id": existing["_id"]}, {"$set": update_fields})
+                saved_count += 1
                 continue
             income_doc = {
                 "id": str(uuid.uuid4()),
@@ -154,13 +170,24 @@ async def save_onboarding_step(request: Request):
                 "frequency": item.get("frequency", "Monthly"),
                 "incomeType": "fixed",
                 "sourceCategory": None,
-                "startDate": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
                 "createdAt": datetime.now(timezone.utc).isoformat(),
                 "updatedAt": datetime.now(timezone.utc).isoformat(),
                 "source": "onboarding",
             }
-            if item.get("selectedDate"):
-                income_doc["selectedDate"] = str(item["selectedDate"])
+            # Set startDate and selectedDate from the user's chosen credit day
+            sel_day = item.get("selectedDate")
+            if sel_day:
+                income_doc["selectedDate"] = str(sel_day)
+                # Build startDate using the selected day in the current month
+                now = datetime.now(timezone.utc)
+                try:
+                    day_num = int(str(sel_day).split('-')[-1])
+                    day_num = min(day_num, 28)  # Clamp to 28 for safety
+                    income_doc["startDate"] = f"{now.year}-{str(now.month).zfill(2)}-{str(day_num).zfill(2)}"
+                except (ValueError, TypeError):
+                    income_doc["startDate"] = now.strftime("%Y-%m-%d")
+            else:
+                income_doc["startDate"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             if item.get("accountId"):
                 income_doc["accountId"] = item["accountId"]
             await db.income_sources.insert_one(income_doc)
