@@ -707,7 +707,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
      SCREEN: Income Date
      ════════════════════════════════════════════ */
   if (screen === "income-date") {
-    const days = Array.from({ length: 28 }, (_, i) => i + 1);
+    const days = Array.from({ length: 31 }, (_, i) => i + 1);
     const isLastModuleStep = isModuleMode && getModuleNextStep() === "done";
     return (
       <div className="h-full min-h-screen flex flex-col px-5 pt-14 pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="wizard-income-date">
@@ -735,6 +735,11 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
               >{d}</button>
             ))}
           </div>
+          {parseInt(incomeDate) > 28 && (
+            <p className="text-[10px] mt-2" style={{ color: "var(--text-muted)" }}>
+              For months with fewer days, the last day of that month will be used automatically.
+            </p>
+          )}
         </div>
         <div className="flex gap-3 mt-6">
           {!isModuleMode && (
@@ -811,7 +816,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                       data-testid={`expense-due-${item.name.replace(/\s/g, '-').toLowerCase()}`}
                     >
                       <option value="">-</option>
-                      {Array.from({ length: 28 }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}
+                      {Array.from({ length: 31 }, (_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}
                     </select>
                   </div>
                   <div className="flex-1">
@@ -1214,7 +1219,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                 <div>
                   <FieldLabel hint="We'll remind you before it's due">Next EMI Due Date (day of month)</FieldLabel>
                   <div className="grid grid-cols-7 gap-1.5">
-                    {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                       <button key={d} onClick={() => { const u = [...loanItems]; u[origIdx] = { ...u[origIdx], nextDue: String(d) }; setLoanItems(u); }}
                         className="aspect-square rounded-lg flex items-center justify-center text-xs font-bold transition-all active:scale-90"
                         style={{
@@ -1226,6 +1231,11 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
                       >{d}</button>
                     ))}
                   </div>
+                  {parseInt(item.nextDue) > 28 && (
+                    <p className="text-[10px] mt-1.5" style={{ color: "var(--text-muted)" }}>
+                      For months with fewer days, the last day of that month will be used automatically.
+                    </p>
+                  )}
                 </div>
               </div>
             );
