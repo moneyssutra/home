@@ -33,15 +33,18 @@ async def _get_profile_completion(user_id: str) -> dict:
     investments_added = investment_count > 0
 
     if progress:
-        if progress.get("income_completed"):
+        # Only override to True if the user explicitly SKIPPED the module
+        # (acknowledged "I have none"). If they went through the wizard but
+        # added 0 items, completion should reflect the actual count.
+        if progress.get("step_1_skipped"):
             income_added = True
-        if progress.get("expenses_completed"):
+        if progress.get("step_2_skipped"):
             expenses_added = True
-        if progress.get("assets_completed"):
+        if progress.get("step_3_skipped"):
             assets_added = True
-        if progress.get("liabilities_completed"):
+        if progress.get("step_4_skipped"):
             liabilities_added = True
-        if progress.get("investments_completed"):
+        if progress.get("step_5_skipped"):
             investments_added = True
 
     completion = (

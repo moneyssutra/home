@@ -7,6 +7,8 @@ Financial management app with profile completion/onboarding flow, income/expense
 - **Frontend**: React (Vite) + Tailwind CSS + Shadcn/UI
 - **Backend**: FastAPI + MongoDB Atlas
 - **Auth**: Emergent-managed Google Auth + JWT + WebAuthn (Biometric) + MPIN
+- **Database**: MongoDB Atlas (Prod: `moneyssutra_prod`, Dev: `moneyssutra_dev`)
+- **DB Connection**: Uses `CUSTOM_MONGO_URL` + `CUSTOM_DB_PROD` env vars in `database.py`
 
 ## Key Features Implemented
 - User registration/login (Google, Password, Biometric, MPIN)
@@ -21,9 +23,8 @@ Financial management app with profile completion/onboarding flow, income/expense
 - **Multi-entry support** (append, not overwrite) for all categories
 - **Backend deduplication** prevents duplicate entries (name+amount match)
 - **ReadOnly name fields** auto-filled from type selection
-- **Back button** replaces X dismiss on Profile Health Grid
 - **Calendar-based weekly income** (replaced 4.33 multiplier with actual weekday counts)
-- **Form state reset** on category/module change (prevents stale data carry-over)
+- **Combined API Endpoints** for Dashboard, Wealth, Intelligence pages (6-9 calls → 1)
 - Gamified Insights page
 - Admin panel
 
@@ -59,8 +60,9 @@ Financial management app with profile completion/onboarding flow, income/expense
 - `POST /api/onboarding/save-step` - Append entries with dedup (steps 1-5)
 - `GET /api/onboarding/profile-completion` - Get completion status
 - `POST /api/onboarding/complete` - Mark onboarding as complete
-- `GET /api/dashboard/breakdown` - Expense breakdown
-- `GET /api/expenses/monthly-summary` - Monthly expense summary
+- `GET /api/dashboard/combined` - Combined dashboard data
+- `GET /api/combined/wealth` - Combined wealth page data
+- `GET /api/combined/intelligence` - Combined insights page data
 
 ## Completed (Mar 20, 2026)
 - Fixed wizard type-selection layout (justify-center → justify-start pt-4) for all 4 wizards
@@ -72,20 +74,16 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Replaced ALL hardcoded 4.33 weekly multiplier with calendar-based `get_weekly_multiplier()` across expenses.py, intelligence.py, dashboard.py, family.py
 - Parallelized DB queries: profile-completion (8 queries → 1 gather), networth (5 queries → 1 gather), goals summary (2 queries → 1 gather)
 - Cleaned up all test data from production (14 test @test.com users removed)
-- Cleaned 55 auto-generated test users from prod DB + 35 from dev DB (created by previous testing agents)
-- Fixed Admin Growth Analytics: `created_at` vs `createdAt` field name mismatch in admin.py — now reads both fields
-- Backfilled `createdAt` for prod users missing the field
-- Created combined backend endpoints for faster page loading:
-  - `/api/dashboard/combined`: Calls original get_networth_summary (with full received/expected logic) + profile + goals + completion + preferences in 1 call
-  - `/api/combined/wealth`: Calls original get_networth_summary + all collection lists in 1 call (was 9 separate calls)
-  - `/api/combined/intelligence`: survival clock + control score + gamification in 1 call (was 8 separate calls)
+- Cleaned 55 auto-generated test users from prod DB + 35 from dev DB
+- Fixed Admin Growth Analytics: `created_at` vs `createdAt` field name mismatch
+- Created combined backend endpoints for faster page loading
 - Updated Dashboard.js, Wealth.js, useIntelligenceData.js to use combined endpoints
-- Updated Finvu Account Aggregator banner color to gentle blue gradient with sky-blue accents
-- Fixed income received/expected calculation: combined endpoints now use original _split_by_schedule_date logic via get_networth_summary
-- Fixed date auto-save in onboarding wizard: clicking a date on "When does it arrive?" screen auto-triggers save & complete
-- Fixed income selectedDate not saving: onboarding dedup logic now UPDATES date fields on existing records instead of skipping them entirely
-- Fixed startDate always being today's date: now constructs startDate from the user's selected day (e.g., day 3 → "2026-03-03")
-- Fixed existing production income records: corrected startDate for all income sources based on their selectedDate
+- Updated Finvu Account Aggregator banner color to gentle blue gradient
+- Fixed income received/expected calculation in combined endpoints
+- Fixed date auto-save in onboarding wizard
+- Fixed income selectedDate not saving (dedup logic now updates date fields)
+- Fixed startDate construction from user's selected day
+- **Fixed P0: Income module showing "Complete" with 0 items** — Changed `_get_profile_completion` to only override module completion to `True` when user explicitly skipped (`step_X_skipped`), not when `{name}_completed` is set (which was true even with 0 items)
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
@@ -103,3 +101,8 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Google Login: kumaramarendra10@gmail.com, chandrashekhar.iter@gmail.com
 - Admin: admin@moneyssutra.com / admin123
 - NOTE: All @test.com users have been cleaned from production
+
+## Critical Notes
+- **DO NOT create auto-generated test users** without cleaning them up
+- **Combined Endpoints**: Dashboard, Wealth, Health pages use single combined endpoints
+- **DB Connection**: App uses `CUSTOM_MONGO_URL` + `CUSTOM_DB_PROD` (not `MONGO_URL` / `DB_NAME`)

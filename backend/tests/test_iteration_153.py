@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 import calendar
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://ux-polish-12.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://onboarding-patch.preview.emergentagent.com')
 
 # Test credentials
 TEST_EMAIL = "testuser99@test.com"
