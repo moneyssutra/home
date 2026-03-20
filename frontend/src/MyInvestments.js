@@ -306,7 +306,7 @@ const MyInvestments = () => {
                               ₹ {formatAmount(investment.currentValue || 0)}
                             </p>
                           </div>
-                          {investment.principal && (
+                          {investment.principal > 0 && (
                             <div>
                               <span className="text-sm" style={{ color: "var(--text-muted)" }}>Invested</span>
                               <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
@@ -314,7 +314,7 @@ const MyInvestments = () => {
                               </p>
                             </div>
                           )}
-                          {investment.principal && (
+                          {investment.principal > 0 && (
                             <div>
                               <span className="text-sm" style={{ color: "var(--text-muted)" }}>Gain/Loss</span>
                               <p className="text-sm font-semibold" style={{ color: invGain >= 0 ? "var(--finance-gain)" : "var(--finance-loss)" }}>

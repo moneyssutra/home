@@ -94,13 +94,13 @@ async def _compute_user_metrics(user_id: str, now: datetime, user_name: str = ""
     from routes.utils import get_weekly_multiplier
     # Parallel DB queries
     exp_q, inc_q, goal_q, asset_q, loan_q, account_q, inv_q = await asyncio.gather(
-        db.expenses.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1, "category": 1, "frequency": 1}).to_list(5000),
+        db.expenses.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1, "category": 1, "frequency": 1, "expenseType": 1}).to_list(5000),
         db.income_sources.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1, "frequency": 1}).to_list(500),
         db.goals.find({"userId": user_id}, {"_id": 0, "targetAmount": 1, "currentAmount": 1}).to_list(100),
         db.assets.find({"userId": user_id}, {"_id": 0, "currentValue": 1}).to_list(500),
         db.loans.find({"userId": user_id}, {"_id": 0, "emiAmount": 1}).to_list(100),
         db.accounts.find({"userId": user_id}, {"_id": 0, "currentBalance": 1, "balance": 1}).to_list(100),
-        db.investments.find({"userId": user_id}, {"_id": 0, "currentValue": 1, "investmentCategory": 1}).to_list(500),
+        db.investments.find({"userId": user_id}, {"_id": 0, "currentValue": 1, "investmentCategory": 1, "name": 1}).to_list(500),
     )
 
     weekly_mult = get_weekly_multiplier()
@@ -133,12 +133,45 @@ async def _compute_user_metrics(user_id: str, now: datetime, user_name: str = ""
 
     # Effective funds = liquid (100%) + semi-liquid (60%) — matches survival-clock
     liquid_balance = sum(float(a.get("currentBalance", a.get("balance", 0)) or 0) for a in account_q)
-    semi_liquid_cats = {"Mutual Fund", "Stocks", "ETF", "Gold / SGB", "US Stocks", "Crypto"}
-    semi_liquid = sum(float(i.get("currentValue", 0) or 0) for i in inv_q if i.get("investmentCategory") in semi_liquid_cats)
+    # Semi-liquid: use EXACT same regex as survival-clock (intelligence.py) on investment name
+    import re
+    semi_liquid = 0
+    for inv in inv_q:
+        val = float(inv.get("currentValue", 0) or 0)
+        if val <= 0:
+            continue
+        nl = (inv.get("name") or "").lower()
+        if inv.get("isLiquidAsset"):
+            liquid_balance += val
+        elif re.search(r'\bfd\b|fixed deposit', nl):
+            semi_liquid += val
+        elif re.search(r'\brd\b|recurring deposit', nl):
+            semi_liquid += val
+        elif re.search(r'mutual fund|fund|mf|sip', nl) and not re.search(r'elss', nl):
+            semi_liquid += val
+        elif re.search(r'stock|shares|equity|demat', nl):
+            semi_liquid += val
+        elif re.search(r'etf|gold etf|index etf|bond etf', nl):
+            semi_liquid += val
+        elif re.search(r'digital gold|gold', nl) and not re.search(r'jewel', nl):
+            semi_liquid += val
+        elif re.search(r'esop', nl):
+            semi_liquid += val
+        elif re.search(r'nps tier 2', nl):
+            semi_liquid += val
+        # else: illiquid (PPF, EPF, NPS Tier 1, ELSS, ULIPs, etc.)
     effective_funds = liquid_balance + (semi_liquid * 0.6)
 
-    # Safety days — matches survival-clock (effective_funds / daily_burn)
-    daily_burn = (essential + total_emi) / 30 if (essential + total_emi) > 0 else 1
+    # Safety days — use Fixed expenses as mandatory burn (matches survival-clock exactly)
+    # DO NOT add total_emi separately — EMI expenses are already in the expense list as Fixed expenses
+    monthly_mandatory = 0
+    for exp in exp_q:
+        # Match survival-clock: only count Fixed (expenseType) expenses
+        if exp.get("expenseType") == "Fixed":
+            amt = float(exp.get("expectedAmount", 0) or 0)
+            mult = freq_map.get(exp.get("frequency", "Monthly"), 1)
+            monthly_mandatory += amt * mult
+    daily_burn = monthly_mandatory / 30 if monthly_mandatory > 0 else 1
     safety_days = round(effective_funds / daily_burn) if daily_burn > 0 else 0
 
     # Percentages
@@ -150,7 +183,7 @@ async def _compute_user_metrics(user_id: str, now: datetime, user_name: str = ""
     # Health score — matches control-score algorithm
     savings_rate = ((total_income - total_spend) / total_income * 100) if total_income > 0 else 0
     emi_ratio = (total_emi / total_income * 100) if total_income > 0 else 0
-    emergency_months = effective_funds / (essential + total_emi) if (essential + total_emi) > 0 else 0
+    emergency_months = effective_funds / monthly_mandatory if monthly_mandatory > 0 else 0
     inv_total = sum(float(i.get("currentValue", 0) or 0) for i in inv_q)
     inv_ratio = (inv_total / (total_income * 12) * 100) if total_income > 0 else 0
 

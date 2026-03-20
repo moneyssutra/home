@@ -1,0 +1,111 @@
+{
+  "summary": "Bug fix verification complete: All 5 reported bugs verified fixed. 22/22 backend tests passed (100%). Frontend visual testing confirmed: 1) No '00' text on investment cards with principal=0, 2) Expense due dates show 'Due: Xth' format with ordinal suffixes (21st, 25th, 26th, 28th), 3) No yyyy-mm-dd format in expense labels, 4) Expenses sorted by due day within status groups, 5) Card alignment uses items-start.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "features_tested": {
+    "investment_cards_00_fix": {
+      "status": "PASS",
+      "tests": [
+        "MyInvestments.js uses 'investment.principal > 0' check (lines 309, 317)",
+        "No standalone '00' text appearing on investment cards",
+        "Cards with principal=0 don't show 'Invested' or 'Gain/Loss' sections",
+        "Visual verification: 18 investment cards checked, all display correctly"
+      ],
+      "bug_fix_verified": "Changed from 'investment.principal &&' to 'investment.principal > 0 &&'"
+    },
+    "expense_due_date_format": {
+      "status": "PASS",
+      "tests": [
+        "MyExpenses.js has parseDueDay() helper function",
+        "MyExpenses.js has formatOrdinal() helper function",
+        "Due dates display as 'Due: 21st', 'Due: 25th', 'Due: 26th', 'Due: 28th'",
+        "No yyyy-mm-dd format dates found on expenses page"
+      ],
+      "bug_fix_verified": "parseDueDay handles both '28' and '2024-01-28' formats, formatOrdinal adds proper suffix"
+    },
+    "expense_sorting": {
+      "status": "PASS",
+      "tests": [
+        "MyExpenses.js sorts by status (pending first, then skipped, then paid)",
+        "Within each status group, sorts by due day ascending",
+        "sortedExpenses useMemo uses parseDueDay for sorting"
+      ],
+      "bug_fix_verified": "Sorting logic: statusDiff first, then dayA - dayB"
+    },
+    "expense_card_alignment": {
+      "status": "PASS",
+      "tests": [
+        "MyExpenses.js uses 'items-start' for card alignment",
+        "Visual verification: labels aligned consistently"
+      ],
+      "bug_fix_verified": "Changed from items-center to items-start"
+    },
+    "backend_parse_due_day_utility": {
+      "status": "PASS",
+      "tests": [
+        "parse_due_day('28') returns 28",
+        "parse_due_day('2024-01-28') returns 28",
+        "parse_due_day('') returns 0",
+        "parse_due_day(None) returns 0",
+        "parse_due_day('abc') returns 0",
+        "parse_due_day(' 28 ') returns 28 (handles whitespace)"
+      ],
+      "bug_fix_verified": "Shared utility in routes/utils.py handles all date formats"
+    },
+    "combined_intelligence_endpoint": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/combined/intelligence returns 200",
+        "Response includes gamification with allAchievements array",
+        "Response includes survivalClock with survivalDays, effectiveFunds",
+        "Response includes controlScore with finalScore, grade",
+        "Response includes challenges data"
+      ],
+      "bug_fix_verified": "combined.py calls get_gamification_profile() instead of raw DB fetch"
+    },
+    "expenses_by_month_enrichment": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/expenses/by-month returns 200",
+        "Response is a list of expenses",
+        "Expenses have _displayStatus field",
+        "Missing selectedDate enriched from dueDate or startDate"
+      ],
+      "bug_fix_verified": "by-month endpoint enriches selectedDate from fallback fields"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iteration156_bugfixes.py",
+    "/app/test_reports/pytest/iteration156_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "MyInvestments.js lines 309, 317: Correctly uses 'investment.principal > 0' to prevent '00' display",
+    "MyExpenses.js lines 31-52: parseDueDay and formatOrdinal helpers properly implemented",
+    "MyExpenses.js line 145-147: Sorting uses parseDueDay for due day comparison within status groups",
+    "routes/utils.py lines 136-157: parse_due_day utility handles all edge cases",
+    "routes/expenses.py: Uses parse_due_day from utils for selectedDate parsing",
+    "routes/combined.py line 69: Calls get_gamification_profile() for proper data structure"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration156_bugfixes.py"
+  ],
+  "success_rate": {
+    "backend": "100% (22/22 tests passed)",
+    "frontend": "100% (all visual checks passed)"
+  },
+  "test_credentials": {
+    "user_session_chandrashekhar": "9ec37623-73ff-43a1-908e-056a333e0bac"
+  },
+  "seed_data_creation": "None - used existing chandrashekhar user data",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 5 bug fixes verified working: 1) Investment '00' fix uses principal > 0 check, 2) Expense due dates show ordinal format (21st, 25th, etc.), 3) No yyyy-mm-dd format in UI, 4) Expenses sorted by due day within status groups, 5) Card alignment uses items-start. Test file at /app/backend/tests/test_iteration156_bugfixes.py covers all validations."
+}

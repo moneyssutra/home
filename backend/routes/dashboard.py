@@ -5,7 +5,7 @@ import asyncio
 
 from database import db
 from routes.auth import get_current_user
-from routes.utils import get_user_filter, get_user_now, count_weekday_occurrences, get_weekly_multiplier
+from routes.utils import get_user_filter, get_user_now, count_weekday_occurrences, get_weekly_multiplier, parse_due_day
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -394,7 +394,7 @@ async def _split_expenses_by_status(expenses, current_day, current_month, curren
                 upcoming.append({"id": exp_id, "name": name, "amount": upcoming_amt, "frequency": freq, "scheduleDay": 1, "type": exp.get('category', '')})
             continue
 
-        entry = {"id": exp_id, "name": name, "amount": amount, "frequency": freq, "scheduleDay": 1, "type": exp.get('category', '')}
+        entry = {"id": exp_id, "name": name, "amount": amount, "frequency": freq, "scheduleDay": parse_due_day(exp.get('selectedDate')) or 1, "type": exp.get('category', '')}
 
         # Determine paid/pending using same logic as My Expenses
         is_paid = False
@@ -404,13 +404,7 @@ async def _split_expenses_by_status(expenses, current_day, current_month, curren
             is_paid = True
         else:
             # Auto-mark as paid if due date has passed
-            due_day = None
-            sd = exp.get('selectedDate')
-            if sd:
-                try:
-                    due_day = int(sd)
-                except (ValueError, TypeError):
-                    pass
+            due_day = parse_due_day(exp.get('selectedDate'))
             if due_day and due_day <= current_day:
                 is_paid = True
 
@@ -513,29 +507,14 @@ def _is_due_this_month(freq, item, current_month, current_year, is_income=True):
 
 def _get_schedule_day(item, is_income=True):
     """Get the day of month when this item is due. Returns 0 if unknown (not deterministic)."""
-    sd = item.get('selectedDate')
-    if sd:
-        try:
-            return int(sd)
-        except (ValueError, TypeError):
-            pass
-        # Try parsing ISO date string like "2026-02-27"
-        try:
-            return datetime.fromisoformat(str(sd)).day
-        except (ValueError, TypeError):
-            pass
+    day = parse_due_day(item.get('selectedDate'))
+    if day:
+        return day
     # For expenses, also check 'dueDate' field
     if not is_income:
-        dd = item.get('dueDate') or item.get('dueDay')
-        if dd:
-            try:
-                return int(dd)
-            except (ValueError, TypeError):
-                pass
-            try:
-                return datetime.fromisoformat(str(dd)).day
-            except (ValueError, TypeError):
-                pass
+        day = parse_due_day(item.get('dueDate') or item.get('dueDay'))
+        if day:
+            return day
     return 0  # 0 = unknown, will be treated conservatively
 
 

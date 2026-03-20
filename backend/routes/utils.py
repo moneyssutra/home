@@ -133,6 +133,30 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def parse_due_day(selected_date) -> int:
+    """Parse selectedDate field into a day-of-month integer.
+    Handles: '28', '2024-01-28', '5', etc. Returns 0 if unparseable."""
+    if not selected_date:
+        return 0
+    s = str(selected_date).strip()
+    # Just a number like "28" or "5"
+    try:
+        val = int(s)
+        if 1 <= val <= 31:
+            return val
+    except (ValueError, TypeError):
+        pass
+    # Full date like "2024-01-28"
+    if '-' in s:
+        try:
+            day = int(s.split('-')[-1])
+            if 1 <= day <= 31:
+                return day
+        except (ValueError, TypeError):
+            pass
+    return 0
+
+
 # ─── Shared Financial Normalization Helpers ───
 
 def count_weekday_occurrences(year: int, month: int, day_name: str, up_to_day: int = None) -> int:

@@ -27,6 +27,30 @@ function getMonthLabel(monthKey) {
   return `${MONTH_NAMES[m - 1]} ${y}`;
 }
 
+// Extract due day number from selectedDate (handles "15", "2024-01-15", "28th", etc.)
+const parseDueDay = (selectedDate) => {
+  if (!selectedDate) return null;
+  const str = String(selectedDate).trim();
+  // If it's just a number like "15" or "28"
+  if (/^\d{1,2}$/.test(str)) return parseInt(str, 10);
+  // If it's a full date like "2024-01-15" or "2026-03-28"
+  if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+    const day = parseInt(str.split("-")[2], 10);
+    return isNaN(day) ? null : day;
+  }
+  // Try extracting any number
+  const match = str.match(/(\d{1,2})/);
+  return match ? parseInt(match[1], 10) : null;
+};
+
+// Format day with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
+const formatOrdinal = (day) => {
+  if (!day) return "";
+  const s = ["th", "st", "nd", "rd"];
+  const v = day % 100;
+  return day + (s[(v - 20) % 10] || s[v] || s[0]);
+};
+
 const MyExpenses = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -112,10 +136,16 @@ const MyExpenses = () => {
     };
   }, [monthExpenses]);
 
-  // Sort: pending first, then skipped, then paid/prepaid
+  // Sort: pending first, then skipped, then paid/prepaid — within each group, sort by due day ascending
   const sortedExpenses = useMemo(() => {
     const order = { pending: 0, skipped: 1, paid: 2, prepaid: 3 };
-    return [...monthExpenses].sort((a, b) => (order[a._displayStatus] ?? 0) - (order[b._displayStatus] ?? 0));
+    return [...monthExpenses].sort((a, b) => {
+      const statusDiff = (order[a._displayStatus] ?? 0) - (order[b._displayStatus] ?? 0);
+      if (statusDiff !== 0) return statusDiff;
+      const dayA = parseDueDay(a.selectedDate) || 32;
+      const dayB = parseDueDay(b.selectedDate) || 32;
+      return dayA - dayB;
+    });
   }, [monthExpenses]);
 
   const handleMarkPaid = useCallback(async (expenseId, expenseName) => {
@@ -593,10 +623,10 @@ const MyExpenses = () => {
                       else if (expense.linkedInvestmentId) navigate(`/wealth/investments/${expense.linkedInvestmentId}`, { state: { fromExpenses: currentPath } });
                       else navigate(`/wealth/expenses/${expense.id}`);
                     }}
-                    className="w-full flex items-center gap-3 p-4 transition-all"
+                    className="w-full flex items-start gap-3 p-4 transition-all"
                     style={{ opacity: status === "paid" || status === "prepaid" ? 0.7 : status === "skipped" ? 0.5 : 1 }}
                   >
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: catColor.bg }}>
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: catColor.bg }}>
                       <Icon className="h-6 w-6" style={{ color: catColor.text }} />
                     </div>
                     <div className="flex-1 text-left min-w-0">
@@ -610,24 +640,27 @@ const MyExpenses = () => {
                           {badge.label}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs flex-wrap" style={{ color: "var(--text-muted)" }}>
+                      <div className="flex items-center gap-1.5 text-xs flex-wrap" style={{ color: "var(--text-muted)" }}>
                         <span className="truncate max-w-[80px]">{expense.category}</span>
                         <span>·</span>
                         <span className="whitespace-nowrap">{expense.frequency}</span>
-                        {expense.selectedDate && (
-                          <>
-                            <span>·</span>
-                            <span className="whitespace-nowrap">Due: {expense.selectedDate}th</span>
-                          </>
-                        )}
+                        {(() => {
+                          const dueDay = parseDueDay(expense.selectedDate);
+                          return dueDay ? (
+                            <>
+                              <span>·</span>
+                              <span className="whitespace-nowrap">Due: {formatOrdinal(dueDay)}</span>
+                            </>
+                          ) : null;
+                        })()}
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0 ml-2">
+                    <div className="text-right flex-shrink-0 ml-2 pt-1">
                       <p className="font-bold" style={{ color: status === "paid" || status === "prepaid" ? "var(--status-success)" : status === "skipped" ? "#D97706" : "var(--text-primary)", textDecoration: status === "skipped" ? "line-through" : "none" }}>
                         ₹ {formatAmount(expense.expectedAmount)}
                       </p>
                     </div>
-                    {!isPrepaidChild && <ChevronRight className="h-5 w-5 flex-shrink-0" style={{ color: "var(--text-muted)" }} />}
+                    {!isPrepaidChild && <ChevronRight className="h-5 w-5 flex-shrink-0 mt-1.5" style={{ color: "var(--text-muted)" }} />}
                   </button>
 
                   {/* Action buttons for pending expenses */}

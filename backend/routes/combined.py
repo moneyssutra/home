@@ -54,21 +54,20 @@ async def get_combined_intelligence(request: Request):
     Calls the actual endpoint functions to ensure data structure matches exactly."""
     from routes.intelligence import get_survival_clock, get_control_score
     from routes.financial_health import get_financial_health
+    from routes.gamification import get_challenges, get_gamification_profile
 
     user = await get_current_user(request)
     user_id = user["user_id"]
 
-    # Run the actual endpoint functions + extra queries in parallel
-    survival_clock, control_score, financial_health, gam_profile, challenges, personality_history = await asyncio.gather(
+    # Run the actual endpoint functions in parallel
+    survival_clock, control_score, financial_health, challenges, personality_history, gam = await asyncio.gather(
         get_survival_clock(request),
         get_control_score(request),
         get_financial_health(request),
-        db.gamification_profiles.find_one({"userId": user_id}, {"_id": 0}),
-        db.challenges.find({}, {"_id": 0}).to_list(100),
+        get_challenges(request),
         db.personality_history.find({"userId": user_id}, {"_id": 0}).sort("date", -1).to_list(30),
+        get_gamification_profile(request),
     )
-
-    gam = gam_profile or {"level": 1, "xp": 0, "streak": 0, "badges": []}
 
     return {
         "survivalClock": survival_clock,

@@ -7,7 +7,7 @@ from calendar import monthrange
 from database import db
 from server_models import Expense, ExpenseCreate
 from routes.auth import get_current_user
-from routes.utils import get_user_filter, get_user_now, get_weekly_multiplier, count_weekday_occurrences
+from routes.utils import get_user_filter, get_user_now, get_weekly_multiplier, count_weekday_occurrences, parse_due_day
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
@@ -29,10 +29,9 @@ def calculate_next_deduction_date(expense: dict) -> Optional[str]:
             days_ahead += 7
         return (today + timedelta(days=days_ahead)).isoformat()
     elif frequency == "Monthly":
-        selected_date = expense.get('selectedDate', '')
-        if not selected_date:
+        day = parse_due_day(expense.get('selectedDate'))
+        if not day:
             return None
-        day = int(selected_date)
         _, max_day = monthrange(today.year, today.month)
         day = min(day, max_day)
         if today.day < day:
@@ -45,10 +44,9 @@ def calculate_next_deduction_date(expense: dict) -> Optional[str]:
                 return today.replace(month=today.month + 1, day=min(day, max_next_day)).isoformat()
     elif frequency == "Quarterly":
         selected_quarter = expense.get('selectedQuarter', '')
-        selected_date = expense.get('selectedDate', '')
-        if not selected_date:
+        day = parse_due_day(expense.get('selectedDate'))
+        if not day:
             return None
-        day = int(selected_date)
         quarter_starts = {"Q1 (Jan\u2013Mar)": 1, "Q2 (Apr\u2013Jun)": 4, "Q3 (Jul\u2013Sep)": 7, "Q4 (Oct\u2013Dec)": 10}
         for q_name, start_month in quarter_starts.items():
             if selected_quarter and q_name.startswith(selected_quarter[:2]):
@@ -63,10 +61,9 @@ def calculate_next_deduction_date(expense: dict) -> Optional[str]:
         return None
     elif frequency == "Half-Yearly":
         selected_half = expense.get('selectedHalf', '')
-        selected_date = expense.get('selectedDate', '')
-        if not selected_date:
+        day = parse_due_day(expense.get('selectedDate'))
+        if not day:
             return None
-        day = int(selected_date)
         months = [1, 7] if "Jan" in selected_half else [7, 1]
         for m in months:
             year = today.year if m >= today.month else today.year + 1
@@ -78,13 +75,12 @@ def calculate_next_deduction_date(expense: dict) -> Optional[str]:
         return None
     elif frequency == "Yearly":
         selected_month = expense.get('selectedMonth', '')
-        selected_date = expense.get('selectedDate', '')
-        if not selected_month or not selected_date:
+        day = parse_due_day(expense.get('selectedDate'))
+        if not selected_month or not day:
             return None
         month_mapping = {"January": 1, "February": 2, "March": 3, "April": 4, "May": 5, "June": 6,
                          "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12}
         month = month_mapping.get(selected_month, 1)
-        day = int(selected_date)
         year = today.year
         _, max_day = monthrange(year, month)
         target_day = min(day, max_day)
@@ -295,6 +291,20 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
     today_day = now.day
 
     for exp in result:
+        # Enrich missing selectedDate from dueDate or startDate
+        if not exp.get('selectedDate'):
+            fallback_day = parse_due_day(exp.get('dueDate'))
+            if not fallback_day:
+                # Try startDate
+                sd = exp.get('startDate', '')
+                if sd and '-' in str(sd):
+                    try:
+                        fallback_day = int(str(sd).split('-')[-1])
+                    except (ValueError, TypeError):
+                        pass
+            if fallback_day and 1 <= fallback_day <= 31:
+                exp['selectedDate'] = str(fallback_day)
+
         if not exp.get('_displayStatus'):
             exp_id = exp.get('id')
             skipped = exp.get('skippedMonths', [])
@@ -306,13 +316,7 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
                 exp['_displayStatus'] = 'paid'
             elif is_current_month:
                 # Auto-mark as paid if due date has passed in the current month
-                due_day = None
-                sd = exp.get('selectedDate')
-                if sd:
-                    try:
-                        due_day = int(sd)
-                    except (ValueError, TypeError):
-                        pass
+                due_day = parse_due_day(exp.get('selectedDate'))
                 if due_day and due_day <= today_day:
                     exp['_displayStatus'] = 'paid'
                 else:
@@ -662,10 +666,7 @@ async def get_behavior_insights(request: Request):
                         due_day = 15
             elif freq == 'Monthly':
                 applies = True
-                try:
-                    due_day = int(exp.get('selectedDate', '1'))
-                except (ValueError, TypeError):
-                    due_day = 1
+                due_day = parse_due_day(exp.get('selectedDate')) or 1
             elif freq == 'Daily':
                 applies = True
                 # Spread across all days
@@ -710,26 +711,17 @@ async def get_behavior_insights(request: Request):
                 start = _parse_quarter_start(exp.get('selectedQuarter'))
                 if start and (m - start) % 3 == 0:
                     applies = True
-                    try:
-                        due_day = int(exp.get('selectedDate', '1'))
-                    except (ValueError, TypeError):
-                        due_day = 1
+                    due_day = parse_due_day(exp.get('selectedDate')) or 1
             elif freq == 'Half-Yearly':
                 start = _parse_half_start(exp.get('selectedHalf'))
                 if start and (m - start) % 6 == 0:
                     applies = True
-                    try:
-                        due_day = int(exp.get('selectedDate', '1'))
-                    except (ValueError, TypeError):
-                        due_day = 1
+                    due_day = parse_due_day(exp.get('selectedDate')) or 1
             elif freq == 'Yearly':
                 sm = _parse_month_num(exp.get('selectedMonth'))
                 if sm == m:
                     applies = True
-                    try:
-                        due_day = int(exp.get('selectedDate', '1'))
-                    except (ValueError, TypeError):
-                        due_day = 1
+                    due_day = parse_due_day(exp.get('selectedDate')) or 1
 
             if applies and due_day:
                 from datetime import date as dt_date
@@ -2188,13 +2180,7 @@ async def get_expense_detail(expense_id: str, request: Request):
     days_in_month = calendar.monthrange(current_year, current_month)[1]
 
     # Determine due day
-    due_day = None
-    sd = exp.get("selectedDate")
-    if sd:
-        try:
-            due_day = int(sd)
-        except (ValueError, TypeError):
-            pass
+    due_day = parse_due_day(exp.get("selectedDate"))
     due_day_name = exp.get("selectedDay", "")
 
     # Check payment status
