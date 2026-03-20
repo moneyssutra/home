@@ -313,9 +313,29 @@ async def save_onboarding_step(request: Request):
                     "principalAmount": float(item["amount"]), "source": "onboarding"
                 })
                 if existing:
+                    # Update EMI/rate/tenure/dueDate if changed
+                    update_fields = {"updatedAt": datetime.now(timezone.utc).isoformat()}
+                    if item.get("emi"):
+                        update_fields["emiAmount"] = float(item["emi"])
+                    if item.get("rate"):
+                        update_fields["interestRate"] = float(item["rate"])
+                    if item.get("tenure"):
+                        update_fields["tenureMonths"] = int(item["tenure"])
+                    if item.get("nextDueDate"):
+                        update_fields["nextDueDate"] = str(item["nextDueDate"])
+                    await db.loans.update_one({"_id": existing["_id"]}, {"$set": update_fields})
+                    # Also update linked expense if exists
+                    emi_val = float(item.get("emi", 0))
+                    if emi_val > 0:
+                        await db.expenses.update_one(
+                            {"userId": user_id, "linkedLoanId": existing["id"], "source": "onboarding"},
+                            {"$set": {"expectedAmount": emi_val, "updatedAt": datetime.now(timezone.utc).isoformat()}},
+                        )
+                    saved_count += 1
                     continue
+                loan_id = str(uuid.uuid4())
                 loan_doc = {
-                    "id": str(uuid.uuid4()),
+                    "id": loan_id,
                     "userId": user_id,
                     "loanName": item["name"],
                     "loanType": item.get("loanType", "Personal"),
@@ -331,6 +351,30 @@ async def save_onboarding_step(request: Request):
                 if item.get("nextDueDate"):
                     loan_doc["nextDueDate"] = str(item["nextDueDate"])
                 await db.loans.insert_one(loan_doc)
+
+                # Auto-create EMI expense linked to this loan
+                emi_amount = float(item.get("emi", 0))
+                if emi_amount > 0:
+                    emi_expense = {
+                        "id": str(uuid.uuid4()),
+                        "userId": user_id,
+                        "expenseName": f"{item['name']} EMI",
+                        "expenseType": "Fixed",
+                        "category": "EMI",
+                        "expectedAmount": emi_amount,
+                        "frequency": "Monthly",
+                        "isPaid": False,
+                        "skippedMonths": [],
+                        "needOrWant": "need",
+                        "linkedLoanId": loan_id,
+                        "startDate": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                        "createdAt": datetime.now(timezone.utc).isoformat(),
+                        "source": "onboarding",
+                    }
+                    if item.get("nextDueDate"):
+                        emi_expense["selectedDate"] = str(item["nextDueDate"])
+                        emi_expense["dueDate"] = str(item["nextDueDate"])
+                    await db.expenses.insert_one(emi_expense)
             saved_count += 1
 
     elif step == 5:  # Investments — append with dedup
