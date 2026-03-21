@@ -45,6 +45,18 @@ Comprehensive financial management app with precise data intake, complex financi
 - **Frontend**: MyLoans, MyExpenses, MyInsurance, MyIncome, MyLiabilities all import `useFamilyContext` and pass `memberId` to API calls when a specific family member is selected
 - `useExpenseList` hook updated to support `memberId` filter parameter
 
+### Comprehensive Family Data Isolation - Phase 2 (Mar 2026)
+- **Backend**: Updated dashboard/networth, dashboard/breakdown, dashboard/combined, bank-overview, cc-overview, expenses/with-next-date, expenses/weekly-summary, expenses/behavior-insights — all now accept `?memberId=` via `get_effective_user_filter`
+- **Frontend**: Updated 18+ pages to pass `memberId` when viewing a family member:
+  - Dashboard (fetchMemberDashboard now uses networth API for proper counts/amounts)
+  - Wealth page (fetchMemberWealth uses networth counts, not empty arrays)
+  - MyAccounts, MyCreditCards, Portfolio
+  - IncomeReceived, ExpectedIncome, ExpensesDone, UpcomingExpenses
+  - BankAccountsExperimental, CreditCardsExperimental
+  - FixedExpenses, VariableExpenses
+  - ExpenseCalendar, ExpenseMonthly, ExpenseWeekly
+- **FamilyToggle** added to Wealth page + Health/Insights page headers (was only on Dashboard before)
+
 ### Goal Form Wizard (Mar 2026)
 - Restructured GoalForm from single long form to 5-step wizard: Type -> Name -> Image -> Amount/Date/Priority -> Link Sources/Notes
 - Step indicator with checkmarks for completed steps, clickable to go back
@@ -86,5 +98,6 @@ Comprehensive financial management app with precise data intake, complex financi
 - iteration_162: Family invite system (13/13 PASS)
 - iteration_163: Category picker pages (12/12 PASS)
 - iteration_164: Health page + shared loans (9/9 PASS)
-- iteration_165: Family member data isolation - backend 18/18 PASS, frontend 100%
+- iteration_165: Family member data isolation Phase 1 - backend 18/18 PASS, frontend 100%
 - iteration_166: GoalForm wizard - frontend 100% PASS (all 5 steps verified)
+- iteration_167: Comprehensive family data isolation Phase 2 - backend 23/23 PASS, frontend 100% (18+ pages)
