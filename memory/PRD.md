@@ -98,6 +98,7 @@ Comprehensive financial management app with precise data intake, complex financi
 - Fixed GoalForm wizard keystroke refresh: converted Step arrow functions to plain JSX variables to prevent React remounting (Mar 2026)
 - Deleted old pages: MyAccounts.js, MyCreditCards.js, MyGoals.js — all routes redirect to new experimental pages (Mar 2026)
 - Wired AddActionSheet to BottomNav on all remaining pages: FamilyPage, DataImport, ProfileSetup (Mar 2026)
+- Job Income form converted to 3-step wizard: Step 1 "Who pays you?" (Company + Type), Step 2 "How much & how often?" (Amount + Frequency grid), Step 3 "When to expect?" (Schedule + Save). Edit mode shows all fields at once. (Mar 2026)
 
 ## Key Credentials
 - Google Login: `kumaramarendra10@gmail.com`, `chandrashekhar.iter@gmail.com`
@@ -132,3 +133,4 @@ Comprehensive financial management app with precise data intake, complex financi
 - iteration_171: 4 UI fixes - frontend 100% (6/6 PASS: Biometric prompt options, Add button on experimental pages, Goals nav to /dream-goals, Edit Goal starts at step 4)
 - iteration_172: 8 fixes - 100% (Edit Goal single form, page redirects, Add Account type picker, insurance coverage field, 30 badges, Analytics for members, Reports for members)
 - iteration_173: 3 fixes - 100% (GoalForm keystroke fix, Profile Health + button, old pages deleted, Add button on all pages)
+- iteration_174: Job Income wizard - 100% (9/9: 3-step wizard, step indicator, conditional fields, save flow, edit mode, no keystroke refresh)
