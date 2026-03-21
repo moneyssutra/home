@@ -3,6 +3,7 @@ from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Request, HTTPException, Response
 import bcrypt
 import uuid
+import hashlib
 import logging
 
 from database import db
@@ -120,3 +121,127 @@ async def remove_mpin(request: Request):
         {"$unset": {"mpin_hash": "", "mpin_set_at": ""}}
     )
     return {"success": True, "message": "MPIN removed"}
+
+
+@router.post("/change")
+async def change_mpin(request: Request):
+    """Change MPIN by verifying the current MPIN first."""
+    user = await _get_user_or_401(request)
+    body = await request.json()
+    current_mpin = body.get("current_mpin", "")
+    new_mpin = body.get("new_mpin", "")
+
+    if not current_mpin or not new_mpin:
+        raise HTTPException(status_code=400, detail="Current MPIN and new MPIN are required")
+    if len(new_mpin) != 4 or not new_mpin.isdigit():
+        raise HTTPException(status_code=400, detail="New MPIN must be exactly 4 digits")
+
+    user_doc = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "mpin_hash": 1})
+    if not user_doc or not user_doc.get("mpin_hash"):
+        raise HTTPException(status_code=400, detail="MPIN not set. Use setup instead.")
+
+    if not bcrypt.checkpw(current_mpin.encode(), user_doc["mpin_hash"].encode()):
+        raise HTTPException(status_code=401, detail="Current MPIN is incorrect")
+
+    hashed = bcrypt.hashpw(new_mpin.encode(), bcrypt.gensalt()).decode()
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"mpin_hash": hashed, "mpin_set_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"success": True, "message": "MPIN changed successfully"}
+
+
+@router.post("/send-change-otp")
+async def send_mpin_change_otp(request: Request):
+    """Send OTP to authenticated user's email for MPIN change (forgot current MPIN)."""
+    user = await _get_user_or_401(request)
+    user_doc = await db.users.find_one(
+        {"user_id": user["user_id"]},
+        {"_id": 0, "email": 1}
+    )
+    if not user_doc or not user_doc.get("email"):
+        raise HTTPException(status_code=400, detail="No email found for this account")
+
+    email = user_doc["email"]
+
+    # Rate limit: 30s cooldown
+    recent = await db.login_otp_tokens.find_one(
+        {"email": email, "purpose": "mpin_change", "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()}},
+        {"_id": 0}
+    )
+    if recent:
+        raise HTTPException(status_code=429, detail="Please wait before requesting another OTP")
+
+    import random
+    otp = str(random.randint(100000, 999999))
+    otp_hash = hashlib.sha256(otp.encode()).hexdigest()
+
+    await db.login_otp_tokens.insert_one({
+        "otp_id": str(uuid.uuid4()),
+        "email": email,
+        "user_id": user["user_id"],
+        "otp_hash": otp_hash,
+        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
+        "used": False,
+        "attempts": 0,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "purpose": "mpin_change",
+    })
+
+    from email_service import send_otp_email
+    await send_otp_email(email, otp)
+    # Mask email for display
+    parts = email.split("@")
+    masked = parts[0][:2] + "***@" + parts[1] if len(parts) == 2 else email
+    return {"success": True, "message": "OTP sent to your email", "masked_email": masked}
+
+
+@router.post("/change-with-otp")
+async def change_mpin_with_otp(request: Request):
+    """Change MPIN after verifying OTP (for authenticated users who forgot current MPIN)."""
+    user = await _get_user_or_401(request)
+    body = await request.json()
+    otp = (body.get("otp") or "").strip()
+    new_mpin = body.get("new_mpin", "")
+
+    if not otp or not new_mpin:
+        raise HTTPException(status_code=400, detail="OTP and new MPIN are required")
+    if len(new_mpin) != 4 or not new_mpin.isdigit():
+        raise HTTPException(status_code=400, detail="MPIN must be exactly 4 digits")
+
+    user_doc = await db.users.find_one({"user_id": user["user_id"]}, {"_id": 0, "email": 1})
+    email = user_doc.get("email", "") if user_doc else ""
+
+    record = await db.login_otp_tokens.find_one(
+        {"email": email, "purpose": "mpin_change", "used": False},
+        {"_id": 0},
+        sort=[("created_at", -1)]
+    )
+    if not record:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+
+    if record.get("attempts", 0) >= 3:
+        await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+        raise HTTPException(status_code=400, detail="Too many attempts. Request a new OTP.")
+
+    await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$inc": {"attempts": 1}})
+
+    expires_at = datetime.fromisoformat(record["expires_at"])
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="OTP has expired. Request a new one.")
+
+    otp_hash = hashlib.sha256(otp.encode()).hexdigest()
+    if otp_hash != record["otp_hash"]:
+        remaining = 3 - record.get("attempts", 0) - 1
+        raise HTTPException(status_code=400, detail=f"Invalid code. ({max(remaining, 0)} attempt(s) left)")
+
+    await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+
+    hashed = bcrypt.hashpw(new_mpin.encode(), bcrypt.gensalt()).decode()
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"mpin_hash": hashed, "mpin_set_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"success": True, "message": "MPIN changed successfully"}

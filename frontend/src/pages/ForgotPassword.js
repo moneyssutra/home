@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Wallet, Mail, AlertCircle, CheckCircle, ArrowLeft, Send, Loader2, Lock, Eye, EyeOff, KeyRound, LinkIcon } from "lucide-react";
+import { Mail, AlertCircle, CheckCircle, ArrowLeft, Send, Loader2, Lock, Eye, EyeOff, KeyRound, LinkIcon } from "lucide-react";
 import axios from "axios";
+import { LogoFull } from "@/components/Logo";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -143,10 +144,7 @@ const ForgotPassword = () => {
       </div>
       <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 shadow-lg border border-white/30">
-            <Wallet className="h-10 w-10 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-1">MoneySSutra</h1>
+          <LogoFull height={120} className="mb-3" />
           <p className="text-white/70 text-sm">Password Recovery</p>
         </div>
         {children}

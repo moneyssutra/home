@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { Wallet, Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 import axios from "axios";
+import { LogoFull } from "@/components/Logo";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -88,10 +89,7 @@ const ResetPassword = () => {
         <div className="flex-1 flex flex-col items-center justify-center px-6">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 shadow-lg border border-white/30">
-              <Wallet className="h-10 w-10 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-white mb-2">MoneySSutra</h1>
+            <LogoFull height={120} className="mb-3" />
           </div>
 
           {/* Error Card */}
@@ -133,10 +131,7 @@ const ResetPassword = () => {
         <div className="flex-1 flex flex-col items-center justify-center px-6">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 shadow-lg border border-white/30">
-              <Wallet className="h-10 w-10 text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-white mb-2">MoneySSutra</h1>
+            <LogoFull height={120} className="mb-3" />
           </div>
 
           {/* Success Card */}
@@ -175,11 +170,8 @@ const ResetPassword = () => {
       <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 shadow-lg border border-white/30">
-            <Wallet className="h-10 w-10 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Moneyssutra</h1>
-          <p className="text-white/70 text-sm">Your Personal Finance Tracker</p>
+          <LogoFull height={120} className="mb-3" />
+          <p className="text-white/70 text-sm">Create New Password</p>
         </div>
 
         {/* Reset Form Card */}

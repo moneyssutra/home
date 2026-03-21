@@ -170,6 +170,13 @@ const Dashboard = () => {
         expectedIncome: cs.expectedIncome || 0,
         expensesDone: cs.expensesDone || 0,
         upcomingExpenses: cs.upcomingExpenses || 0,
+        assetCount: cs.assetCount || 0,
+        investmentCount: cs.investmentCount || 0,
+        accountCount: cs.accountCount || 0,
+        loanCount: cs.loanCount || 0,
+        creditCardCount: cs.creditCardCount || 0,
+        creditCardOutstanding: cs.totalCCOutstanding || 0,
+        creditCardLimit: cs.totalCCLimit || 0,
       });
       const family = membersRes.data.family || membersRes.data;
       setFamilyData({

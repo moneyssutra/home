@@ -46,10 +46,21 @@ const SecuritySettings = () => {
   const [showMpinSetup, setShowMpinSetup] = useState(false);
   const [mpinDigits, setMpinDigits] = useState(["", "", "", ""]);
   const [mpinConfirm, setMpinConfirm] = useState(["", "", "", ""]);
-  const [mpinStep, setMpinStep] = useState(1);
+  const [mpinStep, setMpinStep] = useState(1); // 1=enter current, 2=enter new, 3=confirm new
   const [mpinSaving, setMpinSaving] = useState(false);
+  const [mpinMode, setMpinMode] = useState("setup"); // "setup" | "change" | "otp"
+  const [mpinCurrentDigits, setMpinCurrentDigits] = useState(["", "", "", ""]);
+  const [mpinError, setMpinError] = useState("");
+  // OTP for MPIN change
+  const [mpinOtp, setMpinOtp] = useState(["", "", "", "", "", ""]);
+  const [mpinOtpSent, setMpinOtpSent] = useState(false);
+  const [mpinOtpSending, setMpinOtpSending] = useState(false);
+  const [mpinMaskedEmail, setMpinMaskedEmail] = useState("");
+  const [mpinOtpResendTimer, setMpinOtpResendTimer] = useState(0);
   const mpinInputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
   const mpinConfirmRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const mpinCurrentRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
+  const mpinOtpRefs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)];
   // Biometric state
   const [hasBiometric, setHasBiometric] = useState(false);
   const [biometricCreds, setBiometricCreds] = useState([]);
@@ -65,6 +76,13 @@ const SecuritySettings = () => {
     fetchMpinStatus();
     fetchBiometricStatus();
   }, []);
+
+  // MPIN OTP resend timer
+  useEffect(() => {
+    if (mpinOtpResendTimer <= 0) return;
+    const t = setTimeout(() => setMpinOtpResendTimer(mpinOtpResendTimer - 1), 1000);
+    return () => clearTimeout(t);
+  }, [mpinOtpResendTimer]);
 
   const fetch2FAStatus = async () => {
     try {
@@ -105,7 +123,7 @@ const SecuritySettings = () => {
     const updated = [...digits];
     updated[index] = value;
     setDigits(updated);
-    if (value && index < 3) refs[index + 1].current?.focus();
+    if (value && index < refs.length - 1) refs[index + 1].current?.focus();
   };
 
   const handleMpinDigitKeyDown = (refs, digits, index, e) => {
@@ -114,33 +132,160 @@ const SecuritySettings = () => {
     }
   };
 
+  const handleOtpPaste = (e) => {
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (paste.length === 6) {
+      setMpinOtp(paste.split(""));
+      mpinOtpRefs[5].current?.focus();
+    }
+  };
+
+  const resetMpinState = () => {
+    setShowMpinSetup(false);
+    setMpinStep(1);
+    setMpinMode("setup");
+    setMpinDigits(["", "", "", ""]);
+    setMpinConfirm(["", "", "", ""]);
+    setMpinCurrentDigits(["", "", "", ""]);
+    setMpinOtp(["", "", "", "", "", ""]);
+    setMpinOtpSent(false);
+    setMpinError("");
+  };
+
   const handleSetMpin = async () => {
     const pin = mpinDigits.join("");
     const confirm = mpinConfirm.join("");
-    if (pin.length !== 4) { toast.error("Please enter all 4 digits"); return; }
-    if (mpinStep === 1) {
-      setMpinStep(2);
-      setTimeout(() => mpinConfirmRefs[0].current?.focus(), 100);
+
+    // For setup/new MPIN (no existing MPIN)
+    if (mpinMode === "setup") {
+      if (mpinStep === 1) {
+        if (pin.length !== 4) { toast.error("Please enter all 4 digits"); return; }
+        setMpinStep(2);
+        setTimeout(() => mpinConfirmRefs[0].current?.focus(), 100);
+        return;
+      }
+      if (pin !== confirm) {
+        toast.error("PINs do not match. Please try again.");
+        setMpinConfirm(["", "", "", ""]);
+        mpinConfirmRefs[0].current?.focus();
+        return;
+      }
+      setMpinSaving(true);
+      try {
+        await axios.post(`${backendUrl}/api/mpin/set`, { mpin: pin }, { withCredentials: true });
+        toast.success("MPIN set successfully");
+        setHasMpin(true);
+        resetMpinState();
+      } catch (err) {
+        toast.error(err.response?.data?.detail || "Failed to set MPIN");
+      } finally { setMpinSaving(false); }
       return;
     }
-    if (pin !== confirm) {
-      toast.error("PINs do not match. Please try again.");
-      setMpinConfirm(["", "", "", ""]);
-      mpinConfirmRefs[0].current?.focus();
-      return;
+
+    // For change mode: step 1=verify current, step 2=enter new, step 3=confirm new
+    if (mpinMode === "change") {
+      if (mpinStep === 1) {
+        // Verify current MPIN on the server
+        const currentPin = mpinCurrentDigits.join("");
+        if (currentPin.length !== 4) { setMpinError("Please enter all 4 digits"); return; }
+        setMpinSaving(true);
+        setMpinError("");
+        try {
+          await axios.post(`${backendUrl}/api/mpin/verify`, { mpin: currentPin }, { withCredentials: true });
+          // Current MPIN verified, move to enter new
+          setMpinStep(2);
+          setTimeout(() => mpinInputRefs[0].current?.focus(), 100);
+        } catch (err) {
+          setMpinError(err.response?.data?.detail || "Incorrect MPIN");
+        } finally { setMpinSaving(false); }
+        return;
+      }
+      if (mpinStep === 2) {
+        if (pin.length !== 4) { setMpinError("Please enter all 4 digits"); return; }
+        setMpinStep(3);
+        setMpinError("");
+        setTimeout(() => mpinConfirmRefs[0].current?.focus(), 100);
+        return;
+      }
+      if (mpinStep === 3) {
+        if (pin !== confirm) {
+          setMpinError("PINs do not match");
+          setMpinConfirm(["", "", "", ""]);
+          mpinConfirmRefs[0].current?.focus();
+          return;
+        }
+        setMpinSaving(true);
+        setMpinError("");
+        try {
+          await axios.post(`${backendUrl}/api/mpin/change`, {
+            current_mpin: mpinCurrentDigits.join(""),
+            new_mpin: pin,
+          }, { withCredentials: true });
+          toast.success("MPIN changed successfully");
+          resetMpinState();
+        } catch (err) {
+          toast.error(err.response?.data?.detail || "Failed to change MPIN");
+        } finally { setMpinSaving(false); }
+        return;
+      }
     }
-    setMpinSaving(true);
+
+    // For OTP mode: step 2=enter new, step 3=confirm new
+    if (mpinMode === "otp") {
+      if (mpinStep === 2) {
+        if (pin.length !== 4) { setMpinError("Please enter all 4 digits"); return; }
+        setMpinStep(3);
+        setMpinError("");
+        setTimeout(() => mpinConfirmRefs[0].current?.focus(), 100);
+        return;
+      }
+      if (mpinStep === 3) {
+        if (pin !== confirm) {
+          setMpinError("PINs do not match");
+          setMpinConfirm(["", "", "", ""]);
+          mpinConfirmRefs[0].current?.focus();
+          return;
+        }
+        const otpString = mpinOtp.join("");
+        if (otpString.length !== 6) { setMpinError("Please enter the 6-digit OTP"); return; }
+        setMpinSaving(true);
+        setMpinError("");
+        try {
+          await axios.post(`${backendUrl}/api/mpin/change-with-otp`, {
+            otp: otpString,
+            new_mpin: pin,
+          }, { withCredentials: true });
+          toast.success("MPIN changed successfully");
+          resetMpinState();
+        } catch (err) {
+          setMpinError(err.response?.data?.detail || "Failed to change MPIN");
+        } finally { setMpinSaving(false); }
+        return;
+      }
+    }
+  };
+
+  const handleSendMpinOtp = async () => {
+    setMpinOtpSending(true);
+    setMpinError("");
     try {
-      await axios.post(`${backendUrl}/api/mpin/set`, { mpin: pin }, { withCredentials: true });
-      toast.success("MPIN set successfully");
-      setHasMpin(true);
-      setShowMpinSetup(false);
-      setMpinDigits(["", "", "", ""]);
-      setMpinConfirm(["", "", "", ""]);
-      setMpinStep(1);
+      const res = await axios.post(`${backendUrl}/api/mpin/send-change-otp`, {}, { withCredentials: true });
+      setMpinOtpSent(true);
+      setMpinMaskedEmail(res.data.masked_email || "your email");
+      setMpinOtpResendTimer(60);
+      setMpinStep(1); // Step 1 in OTP mode = enter OTP
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Failed to set MPIN");
-    } finally { setMpinSaving(false); }
+      setMpinError(err.response?.data?.detail || "Failed to send OTP");
+    } finally { setMpinOtpSending(false); }
+  };
+
+  const handleVerifyMpinOtp = () => {
+    const otpString = mpinOtp.join("");
+    if (otpString.length !== 6) { setMpinError("Please enter all 6 digits"); return; }
+    // OTP will be verified together with new MPIN on the backend
+    setMpinStep(2);
+    setMpinError("");
+    setTimeout(() => mpinInputRefs[0].current?.focus(), 100);
   };
 
   const handleRemoveMpin = async () => {
@@ -148,6 +293,7 @@ const SecuritySettings = () => {
       await axios.delete(`${backendUrl}/api/mpin/remove`, { withCredentials: true });
       toast.success("MPIN removed");
       setHasMpin(false);
+      resetMpinState();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Failed to remove MPIN");
     }
@@ -582,7 +728,7 @@ const SecuritySettings = () => {
               ) : hasMpin ? (
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => { setShowMpinSetup(true); setMpinStep(1); setMpinDigits(["","","",""]); setMpinConfirm(["","","",""]); }}
+                    onClick={() => { setShowMpinSetup(true); setMpinMode("change"); setMpinStep(1); setMpinCurrentDigits(["","","",""]); setMpinDigits(["","","",""]); setMpinConfirm(["","","",""]); setMpinError(""); setMpinOtpSent(false); setMpinOtp(["","","","","",""]); }}
                     className="text-xs font-medium px-3 py-1.5 rounded-lg transition-all"
                     style={{ color: "var(--brand-primary)", backgroundColor: "var(--brand-primary-soft)" }}
                     data-testid="change-mpin-btn"
@@ -599,7 +745,7 @@ const SecuritySettings = () => {
                 </div>
               ) : (
                 <button
-                  onClick={() => { setShowMpinSetup(true); setMpinStep(1); setMpinDigits(["","","",""]); setMpinConfirm(["","","",""]); }}
+                  onClick={() => { setShowMpinSetup(true); setMpinMode("setup"); setMpinStep(1); setMpinDigits(["","","",""]); setMpinConfirm(["","","",""]); setMpinError(""); }}
                   className="text-xs font-semibold px-4 py-2 rounded-xl text-white transition-all"
                   style={{ backgroundColor: "var(--brand-primary)" }}
                   data-testid="setup-mpin-btn"
@@ -610,58 +756,277 @@ const SecuritySettings = () => {
             </div>
 
             {showMpinSetup && (
-              <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
-                <p className="text-sm font-medium mb-3 text-center" style={{ color: "var(--text-primary)" }}>
-                  {mpinStep === 1 ? "Enter a 4-digit MPIN" : "Confirm your MPIN"}
-                </p>
-                <div className="flex gap-3 justify-center mb-4">
-                  {(mpinStep === 1 ? mpinDigits : mpinConfirm).map((digit, i) => (
-                    <input
-                      key={`mpin-setup-${mpinStep}-${i}`}
-                      ref={mpinStep === 1 ? mpinInputRefs[i] : mpinConfirmRefs[i]}
-                      type="password"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleMpinDigitChange(
-                        mpinStep === 1 ? mpinInputRefs : mpinConfirmRefs,
-                        mpinStep === 1 ? mpinDigits : mpinConfirm,
-                        mpinStep === 1 ? setMpinDigits : setMpinConfirm,
-                        i, e.target.value
+              <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }} data-testid="mpin-setup-panel">
+                {/* Error */}
+                {mpinError && (
+                  <div className="mb-3 p-2.5 rounded-lg flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)" }}>
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0" style={{ color: "var(--status-error)" }} />
+                    <p className="text-xs" style={{ color: "var(--status-error)" }}>{mpinError}</p>
+                  </div>
+                )}
+
+                {/* SETUP mode: Enter new → Confirm */}
+                {mpinMode === "setup" && (
+                  <>
+                    <p className="text-sm font-medium mb-3 text-center" style={{ color: "var(--text-primary)" }}>
+                      {mpinStep === 1 ? "Enter a 4-digit MPIN" : "Confirm your MPIN"}
+                    </p>
+                    <div className="flex gap-3 justify-center mb-4">
+                      {(mpinStep === 1 ? mpinDigits : mpinConfirm).map((digit, i) => (
+                        <input
+                          key={`mpin-setup-${mpinStep}-${i}`}
+                          ref={mpinStep === 1 ? mpinInputRefs[i] : mpinConfirmRefs[i]}
+                          type="password"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleMpinDigitChange(
+                            mpinStep === 1 ? mpinInputRefs : mpinConfirmRefs,
+                            mpinStep === 1 ? mpinDigits : mpinConfirm,
+                            mpinStep === 1 ? setMpinDigits : setMpinConfirm,
+                            i, e.target.value
+                          )}
+                          onKeyDown={(e) => handleMpinDigitKeyDown(
+                            mpinStep === 1 ? mpinInputRefs : mpinConfirmRefs,
+                            mpinStep === 1 ? mpinDigits : mpinConfirm,
+                            i, e
+                          )}
+                          className="w-12 h-12 text-center text-xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                          style={{ backgroundColor: "var(--bg-card)", border: "2px solid var(--border-light)", color: "var(--text-primary)" }}
+                          data-testid={`setup-mpin-digit-${mpinStep}-${i}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* CHANGE mode: Step 1 = Enter current MPIN */}
+                {mpinMode === "change" && mpinStep === 1 && (
+                  <>
+                    <p className="text-sm font-medium mb-3 text-center" style={{ color: "var(--text-primary)" }}>
+                      Enter current MPIN
+                    </p>
+                    <div className="flex gap-3 justify-center mb-3">
+                      {mpinCurrentDigits.map((digit, i) => (
+                        <input
+                          key={`mpin-current-${i}`}
+                          ref={mpinCurrentRefs[i]}
+                          type="password"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleMpinDigitChange(mpinCurrentRefs, mpinCurrentDigits, setMpinCurrentDigits, i, e.target.value)}
+                          onKeyDown={(e) => handleMpinDigitKeyDown(mpinCurrentRefs, mpinCurrentDigits, i, e)}
+                          className="w-12 h-12 text-center text-xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                          style={{ backgroundColor: "var(--bg-card)", border: "2px solid var(--border-light)", color: "var(--text-primary)" }}
+                          data-testid={`current-mpin-digit-${i}`}
+                        />
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setMpinMode("otp"); setMpinStep(0); setMpinError(""); handleSendMpinOtp(); }}
+                      className="block mx-auto text-xs font-semibold mb-3"
+                      style={{ color: "var(--brand-primary)" }}
+                      data-testid="forgot-mpin-link"
+                    >
+                      Forgot MPIN? Verify via Email
+                    </button>
+                  </>
+                )}
+
+                {/* CHANGE mode: Step 2 = Enter new MPIN */}
+                {mpinMode === "change" && mpinStep === 2 && (
+                  <>
+                    <p className="text-sm font-medium mb-3 text-center" style={{ color: "var(--text-primary)" }}>
+                      Enter new MPIN
+                    </p>
+                    <div className="flex gap-3 justify-center mb-4">
+                      {mpinDigits.map((digit, i) => (
+                        <input
+                          key={`mpin-new-${i}`}
+                          ref={mpinInputRefs[i]}
+                          type="password"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleMpinDigitChange(mpinInputRefs, mpinDigits, setMpinDigits, i, e.target.value)}
+                          onKeyDown={(e) => handleMpinDigitKeyDown(mpinInputRefs, mpinDigits, i, e)}
+                          className="w-12 h-12 text-center text-xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                          style={{ backgroundColor: "var(--bg-card)", border: "2px solid var(--border-light)", color: "var(--text-primary)" }}
+                          data-testid={`new-mpin-digit-${i}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* CHANGE mode: Step 3 = Confirm new MPIN */}
+                {mpinMode === "change" && mpinStep === 3 && (
+                  <>
+                    <p className="text-sm font-medium mb-3 text-center" style={{ color: "var(--text-primary)" }}>
+                      Confirm new MPIN
+                    </p>
+                    <div className="flex gap-3 justify-center mb-4">
+                      {mpinConfirm.map((digit, i) => (
+                        <input
+                          key={`mpin-confirm-${i}`}
+                          ref={mpinConfirmRefs[i]}
+                          type="password"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleMpinDigitChange(mpinConfirmRefs, mpinConfirm, setMpinConfirm, i, e.target.value)}
+                          onKeyDown={(e) => handleMpinDigitKeyDown(mpinConfirmRefs, mpinConfirm, i, e)}
+                          className="w-12 h-12 text-center text-xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                          style={{ backgroundColor: "var(--bg-card)", border: "2px solid var(--border-light)", color: "var(--text-primary)" }}
+                          data-testid={`confirm-mpin-digit-${i}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* OTP mode: Step 0 = Sending/waiting */}
+                {mpinMode === "otp" && mpinStep === 0 && (
+                  <div className="text-center py-3">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" style={{ color: "var(--brand-primary)" }} />
+                    <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Sending OTP...</p>
+                  </div>
+                )}
+
+                {/* OTP mode: Step 1 = Enter OTP */}
+                {mpinMode === "otp" && mpinStep === 1 && (
+                  <>
+                    <p className="text-sm font-medium mb-1 text-center" style={{ color: "var(--text-primary)" }}>
+                      Enter verification code
+                    </p>
+                    <p className="text-xs mb-3 text-center" style={{ color: "var(--text-muted)" }}>
+                      Sent to {mpinMaskedEmail}
+                    </p>
+                    <div className="flex justify-center gap-1.5 mb-3" onPaste={handleOtpPaste}>
+                      {mpinOtp.map((digit, i) => (
+                        <input
+                          key={`mpin-otp-${i}`}
+                          ref={mpinOtpRefs[i]}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleMpinDigitChange(mpinOtpRefs, mpinOtp, setMpinOtp, i, e.target.value)}
+                          onKeyDown={(e) => handleMpinDigitKeyDown(mpinOtpRefs, mpinOtp, i, e)}
+                          className="w-10 h-11 text-center text-lg font-bold rounded-lg outline-none transition-all"
+                          style={{ backgroundColor: "var(--bg-card)", border: `2px solid ${digit ? "var(--brand-primary)" : "var(--border-light)"}`, color: "var(--text-primary)" }}
+                          data-testid={`mpin-change-otp-${i}`}
+                        />
+                      ))}
+                    </div>
+                    <div className="text-center mb-3">
+                      {mpinOtpResendTimer > 0 ? (
+                        <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Resend in {mpinOtpResendTimer}s</p>
+                      ) : (
+                        <button type="button" onClick={handleSendMpinOtp} disabled={mpinOtpSending} className="text-xs font-semibold" style={{ color: "var(--brand-primary)" }} data-testid="resend-mpin-otp-btn">
+                          Resend OTP
+                        </button>
                       )}
-                      onKeyDown={(e) => handleMpinDigitKeyDown(
-                        mpinStep === 1 ? mpinInputRefs : mpinConfirmRefs,
-                        mpinStep === 1 ? mpinDigits : mpinConfirm,
-                        i, e
-                      )}
-                      className="w-12 h-12 text-center text-xl font-bold rounded-xl outline-none transition-all focus:ring-2"
-                      style={{
-                        backgroundColor: "var(--bg-card)",
-                        border: "2px solid var(--border-light)",
-                        color: "var(--text-primary)",
-                      }}
-                      data-testid={`setup-mpin-digit-${mpinStep}-${i}`}
-                    />
-                  ))}
-                </div>
+                    </div>
+                  </>
+                )}
+
+                {/* OTP mode: Step 2 = Enter new MPIN */}
+                {mpinMode === "otp" && mpinStep === 2 && (
+                  <>
+                    <p className="text-sm font-medium mb-3 text-center" style={{ color: "var(--text-primary)" }}>
+                      Enter new MPIN
+                    </p>
+                    <div className="flex gap-3 justify-center mb-4">
+                      {mpinDigits.map((digit, i) => (
+                        <input
+                          key={`otp-new-mpin-${i}`}
+                          ref={mpinInputRefs[i]}
+                          type="password"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleMpinDigitChange(mpinInputRefs, mpinDigits, setMpinDigits, i, e.target.value)}
+                          onKeyDown={(e) => handleMpinDigitKeyDown(mpinInputRefs, mpinDigits, i, e)}
+                          className="w-12 h-12 text-center text-xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                          style={{ backgroundColor: "var(--bg-card)", border: "2px solid var(--border-light)", color: "var(--text-primary)" }}
+                          data-testid={`otp-new-mpin-digit-${i}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* OTP mode: Step 3 = Confirm new MPIN */}
+                {mpinMode === "otp" && mpinStep === 3 && (
+                  <>
+                    <p className="text-sm font-medium mb-3 text-center" style={{ color: "var(--text-primary)" }}>
+                      Confirm new MPIN
+                    </p>
+                    <div className="flex gap-3 justify-center mb-4">
+                      {mpinConfirm.map((digit, i) => (
+                        <input
+                          key={`otp-confirm-mpin-${i}`}
+                          ref={mpinConfirmRefs[i]}
+                          type="password"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleMpinDigitChange(mpinConfirmRefs, mpinConfirm, setMpinConfirm, i, e.target.value)}
+                          onKeyDown={(e) => handleMpinDigitKeyDown(mpinConfirmRefs, mpinConfirm, i, e)}
+                          className="w-12 h-12 text-center text-xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                          style={{ backgroundColor: "var(--bg-card)", border: "2px solid var(--border-light)", color: "var(--text-primary)" }}
+                          data-testid={`otp-confirm-mpin-digit-${i}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Action buttons */}
                 <div className="flex gap-2">
                   <button
-                    onClick={() => { setShowMpinSetup(false); setMpinStep(1); }}
+                    onClick={resetMpinState}
                     className="flex-1 py-2.5 rounded-xl font-medium text-sm"
                     style={{ color: "var(--text-secondary)", border: "1px solid var(--border-light)" }}
+                    data-testid="cancel-mpin-btn"
                   >
                     Cancel
                   </button>
-                  <button
-                    onClick={handleSetMpin}
-                    disabled={mpinSaving || (mpinStep === 1 ? mpinDigits : mpinConfirm).join("").length !== 4}
-                    className="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 flex items-center justify-center gap-1"
-                    style={{ backgroundColor: "var(--brand-primary)" }}
-                    data-testid="confirm-mpin-btn"
-                  >
-                    {mpinSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                    {mpinStep === 1 ? "Next" : "Set MPIN"}
-                  </button>
+                  {/* OTP mode step 1: Verify OTP button */}
+                  {mpinMode === "otp" && mpinStep === 1 ? (
+                    <button
+                      onClick={handleVerifyMpinOtp}
+                      disabled={mpinOtp.join("").length !== 6}
+                      className="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 flex items-center justify-center gap-1"
+                      style={{ backgroundColor: "var(--brand-primary)" }}
+                      data-testid="verify-mpin-otp-btn"
+                    >
+                      Verify OTP
+                    </button>
+                  ) : mpinMode === "otp" && mpinStep === 0 ? null : (
+                    <button
+                      onClick={handleSetMpin}
+                      disabled={mpinSaving || (() => {
+                        if (mpinMode === "setup") return (mpinStep === 1 ? mpinDigits : mpinConfirm).join("").length !== 4;
+                        if (mpinMode === "change" && mpinStep === 1) return mpinCurrentDigits.join("").length !== 4;
+                        if (mpinStep === 2) return mpinDigits.join("").length !== 4;
+                        if (mpinStep === 3) return mpinConfirm.join("").length !== 4;
+                        return false;
+                      })()}
+                      className="flex-1 py-2.5 rounded-xl font-semibold text-white text-sm disabled:opacity-50 flex items-center justify-center gap-1"
+                      style={{ backgroundColor: "var(--brand-primary)" }}
+                      data-testid="confirm-mpin-btn"
+                    >
+                      {mpinSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                      {mpinMode === "setup" && mpinStep === 1 ? "Next" : 
+                       mpinMode === "change" && mpinStep === 1 ? "Verify" :
+                       mpinStep === 2 ? "Next" : 
+                       mpinMode === "change" ? "Change MPIN" : "Set New MPIN"}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
