@@ -69,9 +69,9 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Added 5 goals (1 per type) with proper investment/account/loan linking
 - All verified: 100% pass rate on backend + frontend tests (iteration_158.json)
 - **BUGFIX: Dashboard combined endpoint 500 error** — `calculate_goal_progress(g, user)` was called with 2 args but function only takes 1. Fixed to `calculate_goal_progress(g)`. Also fixed goal summary field names (`name`/`type` → `goalName`/`goalType`). This caused ALL users with goals to see empty dashboards.
-- **NEW: Visual Goals Page** (`/dream-goals`) — CRED-style dream-based image cards with keyword-based auto-generated background images, progress rings, status badges, amounts, days left, filter tabs. FAB for adding new goals.
+- **NEW: Visual Goals Page V2** (`/dream-goals`) — Horizontal scrollable cards (like Bank Accounts) + "ALL GOALS" label list below. Light pink (#FFF5F3) background with brown (#8B5E3C) accents. Horizontal progress bar at bottom of cards (replaced center circle). Image upload on Add Goal form (POST /api/goals/{id}/upload-image).
 - **NEW: Goals Rolling Button** — Added "Goals" / "Dream Tracker" rolling button in the middle of existing Credit Cards and Bank Balance buttons on the dashboard.
-- All verified: 100% pass rate on frontend tests (iteration_159.json)
+- All verified: 100% pass rate on frontend + backend tests (iteration_159.json, iteration_160.json)
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration
