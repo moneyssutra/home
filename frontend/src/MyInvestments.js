@@ -22,7 +22,7 @@ const MyInvestments = () => {
   const fetchInvestments = async () => {
     try {
       setLoading(true);
-      const params = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
+      const params = isFamilyView ? "?family=true" : (!isPersonalView && activeViewId) ? `?memberId=${activeViewId}` : "";
       const response = await axios.get(`${backendUrl}/api/investments${params}`);
       const sortedInvestments = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setInvestments(sortedInvestments);

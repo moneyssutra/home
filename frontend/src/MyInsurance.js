@@ -23,7 +23,7 @@ const MyInsurance = () => {
   const fetchInsurances = async () => {
     try {
       setLoading(true);
-      const params = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
+      const params = isFamilyView ? "?family=true" : (!isPersonalView && activeViewId) ? `?memberId=${activeViewId}` : "";
       const response = await axios.get(`${backendUrl}/api/insurances${params}`);
       const sortedInsurances = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setInsurances(sortedInsurances);

@@ -61,7 +61,7 @@ const MyExpenses = () => {
   const [activeView, setActiveView] = useState(searchParams.get("tab") || "list");
   const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
 
-  const memberParam = (!isPersonalView && !isFamilyView && activeViewId) ? `memberId=${activeViewId}` : "";
+  const memberParam = isFamilyView ? "family=true" : (!isPersonalView && activeViewId) ? `memberId=${activeViewId}` : "";
 
   const handleViewChange = (view) => {
     setActiveView(view);

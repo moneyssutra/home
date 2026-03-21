@@ -16,7 +16,7 @@ const MyIncome = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
 
-  const memberParam = (!isPersonalView && !isFamilyView && activeViewId) ? `memberId=${activeViewId}` : "";
+  const memberParam = isFamilyView ? "family=true" : (!isPersonalView && activeViewId) ? `memberId=${activeViewId}` : "";
 
   // Use SWR for data fetching with caching
   const { data: incomes = [], isLoading: incomeLoading } = useSWR(

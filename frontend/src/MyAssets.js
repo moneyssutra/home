@@ -23,7 +23,7 @@ const MyAssets = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const params = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
+      const params = isFamilyView ? "?family=true" : (!isPersonalView && activeViewId) ? `?memberId=${activeViewId}` : "";
       const [assetsRes, loansRes] = await Promise.all([
         axios.get(`${backendUrl}/api/assets${params}`),
         axios.get(`${backendUrl}/api/loans${params}`)
