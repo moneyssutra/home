@@ -11,7 +11,7 @@
 
 /* ─── HEADER ─── */
 .gv-header {
-  background: linear-gradient(160deg, #E8A0BF 0%, #D4789C 40%, #F2B5D4 100%);
+  background: linear-gradient(160deg, #2D6A4F 0%, #40916C 40%, #52B788 100%);
   padding: 1rem 1.25rem 1.5rem;
   border-radius: 0 0 1.75rem 1.75rem;
   position: relative;
@@ -24,7 +24,7 @@
   right: -30%;
   width: 320px;
   height: 320px;
-  background: radial-gradient(circle, rgba(255,182,193,0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(149,213,178,0.2) 0%, transparent 70%);
   pointer-events: none;
 }
 .gv-header__row {
@@ -88,7 +88,7 @@
 .gv-header__bar-fill {
   height: 100%;
   border-radius: 6px;
-  background: linear-gradient(90deg, #FBBF24, #F59E0B);
+  background: linear-gradient(90deg, #95D5B2, #D8F3DC);
   transition: width 0.8s ease;
 }
 .gv-header__bar-pct {
@@ -301,13 +301,13 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #D4B5A0;
+  background: #B7E4C7;
   transition: all 0.3s ease;
 }
 .gv-dot--on {
   width: 20px;
   border-radius: 10px;
-  background: #8B5E3C;
+  background: #2D6A4F;
 }
 
 /* ─── FILTER TABS ─── */
@@ -323,15 +323,15 @@
   font-size: 0.78rem;
   font-weight: 600;
   background: #fff;
-  color: #9B7D6A;
-  border: 1px solid #E8D5CC;
+  color: #6B7280;
+  border: 1px solid #E5E7EB;
   transition: all 0.25s ease;
   cursor: pointer;
 }
 .gv-filter-btn--on {
-  background: #8B5E3C;
+  background: #2D6A4F;
   color: #fff;
-  border-color: #8B5E3C;
+  border-color: #2D6A4F;
 }
 
 /* ─── LABEL LIST ─── */
@@ -343,7 +343,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #9B7D6A;
+  color: #6B7280;
   margin-bottom: 0.5rem;
 }
 .gv-list {
@@ -360,7 +360,7 @@
   padding: 0.75rem;
   border-radius: 1rem;
   background: #fff;
-  border: 1px solid #F0DDD5;
+  border: 1px solid #E5E7EB;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
@@ -368,7 +368,7 @@
 }
 .gv-row:active {
   transform: scale(0.98);
-  background: #FFF0EB;
+  background: #F0FDF4;
 }
 .gv-row__thumb {
   width: 46px;
@@ -377,7 +377,7 @@
   flex-shrink: 0;
   background-size: cover;
   background-position: center;
-  background-color: #F0DDD5;
+  background-color: #D1FAE5;
 }
 .gv-row__info {
   flex: 1;
@@ -393,7 +393,7 @@
 }
 .gv-row__sub {
   font-size: 0.65rem;
-  color: #9B7D6A;
+  color: #6B7280;
   margin-top: 1px;
   white-space: nowrap;
   overflow: hidden;
@@ -402,7 +402,7 @@
 .gv-row__bar-bg {
   height: 4px;
   border-radius: 4px;
-  background: #F0DDD5;
+  background: #E5E7EB;
   overflow: hidden;
   margin-top: 5px;
 }
@@ -422,11 +422,11 @@
 }
 .gv-row__total {
   font-size: 0.6rem;
-  color: #9B7D6A;
+  color: #6B7280;
   margin-top: 1px;
 }
 .gv-row__chevron {
-  color: #C9A48C;
+  color: #9CA3AF;
   flex-shrink: 0;
 }
 
@@ -442,8 +442,8 @@
   gap: 0.5rem;
   padding: 0.75rem;
   border-radius: 1rem;
-  border: 2px dashed #C9A48C;
-  color: #8B5E3C;
+  border: 2px dashed #95D5B2;
+  color: #2D6A4F;
   font-weight: 600;
   font-size: 0.85rem;
   background: transparent;
@@ -451,7 +451,7 @@
   transition: all 0.2s ease;
 }
 .gv-add-btn:active {
-  background: #FFF0EB;
+  background: #F0FDF4;
   transform: scale(0.98);
 }
 
@@ -468,22 +468,22 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #FDDDD3;
+  background: #D1FAE5;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #A0522D;
+  color: #2D6A4F;
   margin-bottom: 1rem;
 }
 .gv-empty__title {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #3E2723;
+  color: #1F2937;
   margin-bottom: 0.5rem;
 }
 .gv-empty__desc {
   font-size: 0.85rem;
-  color: #9B7D6A;
+  color: #6B7280;
   max-width: 260px;
   margin-bottom: 1.5rem;
   line-height: 1.5;
@@ -497,22 +497,22 @@
   font-weight: 600;
   font-size: 0.85rem;
   color: #fff;
-  background: linear-gradient(135deg, #A0522D, #8B5E3C);
+  background: linear-gradient(135deg, #2D6A4F, #40916C);
   border: none;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .gv-empty__cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(139,94,60,0.35);
+  box-shadow: 0 8px 24px rgba(45,106,79,0.35);
 }
 
 /* ─── SPINNER ─── */
 .gv-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #F0DDD5;
-  border-top-color: #8B5E3C;
+  border: 3px solid #D1FAE5;
+  border-top-color: #2D6A4F;
   border-radius: 50%;
   animation: gvSpin 0.8s linear infinite;
 }

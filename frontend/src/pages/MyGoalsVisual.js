@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
+import FamilyToggle from "@/components/FamilyToggle";
 import { useFamilyContext } from "@/context/FamilyContext";
 
 /* ─── keyword → image mapping ─── */
@@ -252,7 +253,10 @@ const MyGoalsVisual = () => {
       {/* Header */}
       <header className="gv-header">
         <div className="gv-header__row">
-          <ProfileMenu userName={null} userPicture={null} />
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <ProfileMenu userName={null} userPicture={null} />
+            <FamilyToggle />
+          </div>
           <NotificationBell />
         </div>
         <h1 className="gv-header__title">
