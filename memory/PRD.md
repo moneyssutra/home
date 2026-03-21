@@ -40,11 +40,28 @@ Comprehensive financial management app with precise data intake, complex financi
 - **Family combined view excludes shared references** to prevent double-counting
 - Loan stored under primary owner + referenced copies for shared members
 
+### Family Member Data Isolation (Mar 2026)
+- **Backend**: All GET list endpoints (loans, expenses, insurance, credit-cards, income, other-income) now accept `?memberId=` and use `get_effective_user_filter()` to return only that member's data
+- **Frontend**: MyLoans, MyExpenses, MyInsurance, MyIncome, MyLiabilities all import `useFamilyContext` and pass `memberId` to API calls when a specific family member is selected
+- `useExpenseList` hook updated to support `memberId` filter parameter
+
+### Goal Form Wizard (Mar 2026)
+- Restructured GoalForm from single long form to 5-step wizard: Type -> Name -> Image -> Amount/Date/Priority -> Link Sources/Notes
+- Step indicator with checkmarks for completed steps, clickable to go back
+- Auto-advance on goal type selection (except "Other")
+- Per-step validation with error display
+- Back/Next navigation with sticky bottom buttons
+- Full edit mode support with delete option
+
+### Back Button on Dreams Page (Mar 2026)
+- Added `navigate(-1)` back button to MyGoalsVisual.js header
+
 ### Bug Fixes
 - iOS Safe Area, FamilyToggle visibility, Notification dot, Clipboard API fallback
 - Bottom nav on all Add pages, Smart back navigation
 - Health page zeros for family members
 - Badges/Challenges empty for family views
+- Family member list filtering (data bleed fix across all entity pages)
 
 ## Key Credentials
 - Google Login: `kumaramarendra10@gmail.com`, `chandrashekhar.iter@gmail.com`
@@ -69,3 +86,5 @@ Comprehensive financial management app with precise data intake, complex financi
 - iteration_162: Family invite system (13/13 PASS)
 - iteration_163: Category picker pages (12/12 PASS)
 - iteration_164: Health page + shared loans (9/9 PASS)
+- iteration_165: Family member data isolation - backend 18/18 PASS, frontend 100%
+- iteration_166: GoalForm wizard - frontend 100% PASS (all 5 steps verified)
