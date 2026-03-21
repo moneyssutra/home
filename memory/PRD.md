@@ -68,6 +68,11 @@ Comprehensive financial management app with precise data intake, complex financi
 ### Back Button on Dreams Page (Mar 2026)
 - Added `navigate(-1)` back button to MyGoalsVisual.js header
 
+### Health Page Family Member Fix (Mar 2026)
+- `useIntelligenceData` member view now uses `/api/dashboard/networth?memberId=` (same reliable API as Dashboard) instead of the old member summary endpoint
+- Backend networth API now returns `totalEMI` and `effectiveFunds` fields for Health page calculations
+- Challenges never empty: Added growth challenges (Super Saver 30%, 6-Month Safety Net, First Investment, Income Diversification, Health Star 75+, Consistency King)
+
 ### Bug Fixes
 - iOS Safe Area, FamilyToggle visibility, Notification dot, Clipboard API fallback
 - Bottom nav on all Add pages, Smart back navigation
@@ -101,3 +106,4 @@ Comprehensive financial management app with precise data intake, complex financi
 - iteration_165: Family member data isolation Phase 1 - backend 18/18 PASS, frontend 100%
 - iteration_166: GoalForm wizard - frontend 100% PASS (all 5 steps verified)
 - iteration_167: Comprehensive family data isolation Phase 2 - backend 23/23 PASS, frontend 100% (18+ pages)
+- iteration_168: Health page member fix + challenges - backend 90% (9/10, 1 skipped), frontend 100%, challenges logic 3/3 PASS
