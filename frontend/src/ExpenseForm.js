@@ -489,26 +489,20 @@ const ExpenseForm = () => {
             data-testid="variable-button">Variable</button>
         </div>
       </div>
-      <div className="w-full">
-        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Category</label>
-        {categoryLocked ? (
-          <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#FF4D4D10", borderColor: "#FF4D4D", color: "#FF4D4D" }} data-testid="category-locked">
-            <span className="font-semibold text-sm">{category}</span>
+      {!categoryLocked && (
+        <div className="w-full">
+          <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Category</label>
+          <div className="grid grid-cols-2 gap-2">
+            {categoryOptions.map((opt) => (
+              <button key={opt} type="button" onClick={() => setCategory(opt)}
+                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] text-left ${category === opt ? "border-[#FF4D4D] bg-[#FF4D4D]/10 text-[#FF4D4D] ring-1 ring-[#FF4D4D]/30" : ""}`}
+                style={category !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+                data-testid={`category-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
+            ))}
           </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 gap-2">
-              {categoryOptions.map((opt) => (
-                <button key={opt} type="button" onClick={() => setCategory(opt)}
-                  className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] text-left ${category === opt ? "border-[#FF4D4D] bg-[#FF4D4D]/10 text-[#FF4D4D] ring-1 ring-[#FF4D4D]/30" : ""}`}
-                  style={category !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
-                  data-testid={`category-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
-              ))}
-            </div>
-            {errors.category && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.category}</p>}
-          </>
-        )}
-      </div>
+          {errors.category && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.category}</p>}
+        </div>
+      )}
     </div>
   );
 
@@ -778,7 +772,7 @@ const ExpenseForm = () => {
 
   return (
     <WizardShell
-      title={id ? "Edit Expense" : "Add Expense"}
+      title={id ? "Edit Expense" : (categoryLocked ? `Add ${category} Expense` : "Add Expense")}
       step={step} totalSteps={TOTAL_STEPS}
       onNext={handleNext} onPrev={handlePrev} onSave={handleSave}
       onDelete={id ? () => setShowDeleteConfirm(true) : undefined}

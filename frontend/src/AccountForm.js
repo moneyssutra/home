@@ -439,7 +439,7 @@ const AccountForm = () => {
 
   return (
     <WizardShell
-      title={id ? "Edit Account" : "Add Account"}
+      title={id ? "Edit Account" : (isTypeLocked ? `Add ${accountType}` : "Add Account")}
       step={step} totalSteps={TOTAL_STEPS}
       onNext={handleNext} onPrev={handlePrev} onSave={handleSave}
       onDelete={id ? () => setShowDeleteConfirm(true) : undefined}

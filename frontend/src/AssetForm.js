@@ -570,12 +570,6 @@ const AssetForm = () => {
         <p className="text-base font-semibold" style={labelStyle}>Asset Details</p>
       </div>
       <div>
-        <label className={labelCls} style={labelStyle}>Asset Type</label>
-        <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#14B8A610", borderColor: "#14B8A6", color: "#14B8A6" }} data-testid="type-locked">
-          <span className="font-semibold text-sm">{assetType}</span>
-        </div>
-      </div>
-      <div>
         <label className={labelCls} style={labelStyle}>Asset Name *</label>
         <div className="relative">
           <input type="text" value={assetName}
@@ -598,7 +592,7 @@ const AssetForm = () => {
 
   return (
     <WizardShell
-      title={id ? "Edit Asset" : "Add Asset"}
+      title={id ? "Edit Asset" : (isTypeLocked ? `Add ${assetType}` : "Add Asset")}
       step={step} totalSteps={TOTAL_STEPS}
       onNext={handleNext} onPrev={handlePrev} onSave={handleSave}
       onDelete={id ? () => setShowDeleteConfirm(true) : undefined}

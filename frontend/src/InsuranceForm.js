@@ -689,13 +689,7 @@ const InsuranceForm = () => {
   const mergedStep1Content = (
     <div className="space-y-6" data-testid="step-1-merged">
       <div className="text-center mb-2">
-        <p className="text-base font-semibold" style={labelStyle}>Insurance Details</p>
-      </div>
-      <div>
-        <label className={labelCls} style={labelStyle}>Insurance Type</label>
-        <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#00D09C10", borderColor: "#00D09C", color: "#00D09C" }} data-testid="type-locked">
-          <span className="font-semibold text-sm">{insuranceType}</span>
-        </div>
+        <p className="text-base font-semibold" style={labelStyle}>Policy Details</p>
       </div>
       <div>
         <label className={labelCls} style={labelStyle}>Policy Name *</label>
@@ -718,7 +712,7 @@ const InsuranceForm = () => {
 
   return (
     <WizardShell
-      title={id ? "Edit Insurance" : "Add Insurance"}
+      title={id ? "Edit Insurance" : (isTypeLocked ? `Add ${insuranceType}` : "Add Insurance")}
       step={step} totalSteps={TOTAL_STEPS}
       onNext={handleNext} onPrev={handlePrev} onSave={handleSave}
       onDelete={id ? () => setShowDeleteConfirm(true) : undefined}

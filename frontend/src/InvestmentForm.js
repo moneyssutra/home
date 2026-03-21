@@ -1071,12 +1071,6 @@ const InvestmentForm = () => {
       <div className="text-center mb-2">
         <p className="text-base font-semibold" style={labelStyle}>{isLoanGiven ? "Loan Details" : "Investment Details"}</p>
       </div>
-      <div>
-        <label className={labelCls} style={labelStyle}>Investment Category</label>
-        <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#14B8A610", borderColor: "#14B8A6", color: "#14B8A6" }} data-testid="category-locked">
-          <span className="font-semibold text-sm">{investmentCategory}</span>
-        </div>
-      </div>
       {!isLoanGiven && (
         <div>
           <label className={labelCls} style={labelStyle}>Investment Mode</label>
@@ -1094,7 +1088,7 @@ const InvestmentForm = () => {
 
   return (
     <WizardShell
-      title={id ? "Edit Investment" : "Add Investment"}
+      title={id ? "Edit Investment" : (isCategoryLocked ? `Add ${investmentCategory}` : "Add Investment")}
       step={step} totalSteps={TOTAL_STEPS}
       onNext={handleNext} onPrev={handlePrev} onSave={handleSave}
       onDelete={id ? () => setShowDeleteConfirm(true) : undefined}

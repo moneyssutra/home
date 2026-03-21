@@ -592,13 +592,6 @@ const LoanIncome = () => {
         <p className="text-base font-semibold" style={labelStyle}>Loan Details</p>
       </div>
       <div>
-        <label className={labelCls} style={labelStyle}>Loan Type</label>
-        <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#00D09C10", borderColor: "#00D09C", color: "#00D09C" }} data-testid="type-locked">
-          <span className="font-semibold text-sm">{loanType}</span>
-        </div>
-      </div>
-      {/* Name + Lender from step1Content */}
-      <div>
         <label className={labelCls} style={labelStyle}>Loan Name</label>
         <div className="relative">
           <input type="text" value={loanName} onChange={(e) => { setLoanName(e.target.value); if (errors.loanName) setErrors(prev => ({...prev, loanName: null})); }}
@@ -625,7 +618,7 @@ const LoanIncome = () => {
 
   return (
     <WizardShell
-      title={id ? "Edit Loan" : "Add Loan"}
+      title={id ? "Edit Loan" : (isTypeLocked ? `Add ${loanType}` : "Add Loan")}
       step={step} totalSteps={TOTAL_STEPS}
       onNext={handleNext} onPrev={handlePrev} onSave={handleSave}
       onDelete={id ? () => setShowDeleteConfirm(true) : undefined}
