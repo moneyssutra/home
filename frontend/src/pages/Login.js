@@ -13,7 +13,11 @@ const Login = () => {
   const location = useLocation();
   const { login, loginWithMpin, loginWithBiometric, loginWithGoogle, isAuthenticated, loading } = useAuth();
 
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  // Extract invite code from URL params (e.g., /login?invite=ABC123)
+  const urlParams = new URLSearchParams(location.search);
+  const inviteCodeFromUrl = urlParams.get("invite") || "";
+
+  const [isRegisterMode, setIsRegisterMode] = useState(!!inviteCodeFromUrl);
   const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
   const [loginMode, setLoginMode] = useState("biometric"); // "biometric" | "mpin" | "password"
   const [forgotPasswordStep, setForgotPasswordStep] = useState(1);
@@ -241,7 +245,7 @@ const Login = () => {
             <LogoFull height={100} className="mb-2" />
           </div>
           
-          <RegisterForm onBackToLogin={() => setIsRegisterMode(false)} />
+          <RegisterForm onBackToLogin={() => setIsRegisterMode(false)} initialInviteCode={inviteCodeFromUrl} />
         </div>
         
         {/* Footer */}

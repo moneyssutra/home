@@ -96,6 +96,8 @@ import ExpenseDetail from "@/pages/ExpenseDetail";
 import AccountDetail from "@/pages/AccountDetail";
 import Opportunities from "@/pages/Opportunities";
 
+import InviteLanding from "@/pages/InviteLanding";
+
 // Goal Pages
 import MyGoals from "@/MyGoals";
 import MyGoalsVisual from "@/pages/MyGoalsVisual";
@@ -147,6 +149,7 @@ function AppRouter() {
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
+      <Route path="/join/:code" element={<InviteLanding />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       

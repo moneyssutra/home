@@ -53,6 +53,7 @@ class RegisterRequest(BaseModel):
     sex: str
     dateOfBirth: str
     password: str
+    inviteCode: Optional[str] = None
 
 class SetPasswordRequest(BaseModel):
     password: str

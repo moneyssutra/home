@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { 
   User, Lock, Eye, EyeOff, AlertCircle, Mail, Phone, Calendar,
-  Check, X, Loader2, ChevronLeft
+  Check, X, Loader2, ChevronLeft, Users
 } from "lucide-react";
 import axios from "axios";
 import { format } from "date-fns";
@@ -36,7 +36,7 @@ const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 // Validate mobile (10 digits)
 const isValidMobile = (mobile) => !mobile || /^\d{10}$/.test(mobile);
 
-const RegisterForm = ({ onBackToLogin }) => {
+const RegisterForm = ({ onBackToLogin, initialInviteCode = "" }) => {
   const navigate = useNavigate();
   const { register } = useAuth();
   
@@ -52,6 +52,12 @@ const RegisterForm = ({ onBackToLogin }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Invite code
+  const [inviteCode, setInviteCode] = useState(initialInviteCode);
+  const [showInviteField, setShowInviteField] = useState(!!initialInviteCode);
+  const [inviteInfo, setInviteInfo] = useState(null);
+  const [checkingInvite, setCheckingInvite] = useState(false);
   
   // Validation states
   const [emailAvailable, setEmailAvailable] = useState(null);
@@ -65,6 +71,27 @@ const RegisterForm = ({ onBackToLogin }) => {
 
   // Today's date for DOB constraint
   const today = format(new Date(), "yyyy-MM-dd");
+
+  // Lookup invite code when it changes
+  useEffect(() => {
+    const lookupInvite = async () => {
+      if (!inviteCode || inviteCode.length < 4) {
+        setInviteInfo(null);
+        return;
+      }
+      setCheckingInvite(true);
+      try {
+        const res = await axios.get(`${backendUrl}/api/family/invite-info/${inviteCode.trim()}`);
+        setInviteInfo(res.data);
+      } catch {
+        setInviteInfo(null);
+      } finally {
+        setCheckingInvite(false);
+      }
+    };
+    const timer = setTimeout(lookupInvite, 500);
+    return () => clearTimeout(timer);
+  }, [inviteCode]);
 
   // Password strength
   const passwordStrength = calculatePasswordStrength(password);
@@ -248,7 +275,8 @@ const RegisterForm = ({ onBackToLogin }) => {
         mobile: mobile || null,
         sex: sex.toLowerCase(),
         dateOfBirth: dateOfBirth,
-        password: password
+        password: password,
+        inviteCode: inviteCode.trim() || null
       });
       
       if (result.success) {
@@ -623,6 +651,67 @@ const RegisterForm = ({ onBackToLogin }) => {
               <p className="mt-1 text-xs" style={{ color: "var(--status-success)" }}>
                 Passwords match
               </p>
+            )}
+          </div>
+
+          {/* Invite Code Section */}
+          <div className="p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
+            {!showInviteField ? (
+              <button
+                type="button"
+                onClick={() => setShowInviteField(true)}
+                className="w-full text-sm font-medium flex items-center justify-center gap-2 py-1"
+                style={{ color: "var(--brand-primary)" }}
+                data-testid="show-invite-code-btn"
+              >
+                <Users className="h-4 w-4" />
+                Have an invite code?
+              </button>
+            ) : (
+              <div>
+                <p className="text-xs font-medium mb-2" style={{ color: "var(--text-muted)" }}>
+                  INVITE / REFERRAL CODE
+                </p>
+                <input
+                  type="text"
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  placeholder="Enter invite code (optional)"
+                  className="w-full px-4 py-2.5 rounded-lg text-sm outline-none uppercase tracking-widest font-mono text-center"
+                  style={{
+                    backgroundColor: "var(--bg-card)",
+                    border: inviteInfo ? "1px solid var(--status-success)" : "1px solid var(--border-light)",
+                    color: "var(--text-primary)"
+                  }}
+                  data-testid="invite-code-input"
+                />
+                {checkingInvite && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <Loader2 className="h-3 w-3 animate-spin" style={{ color: "var(--text-muted)" }} />
+                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>Checking code...</span>
+                  </div>
+                )}
+                {inviteInfo && (
+                  <div className="mt-2 p-3 rounded-lg flex items-center gap-3" style={{ backgroundColor: "#DCFCE7", border: "1px solid #BBF7D0" }} data-testid="invite-info-card">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #7C3AED, #A78BFA)" }}>
+                      <Users className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold" style={{ color: "#166534" }}>{inviteInfo.familyName}</p>
+                      <p className="text-[10px]" style={{ color: "#15803D" }}>
+                        Invited by {inviteInfo.ownerName}
+                        {inviteInfo.pendingMember?.relationship && ` as ${inviteInfo.pendingMember.relationship}`}
+                      </p>
+                    </div>
+                    <Check className="h-5 w-5" style={{ color: "#16A34A" }} />
+                  </div>
+                )}
+                {inviteCode.length >= 4 && !checkingInvite && !inviteInfo && (
+                  <p className="mt-1 text-xs" style={{ color: "var(--status-warning)" }}>
+                    Code not found — you can still register and join later
+                  </p>
+                )}
+              </div>
             )}
           </div>
 

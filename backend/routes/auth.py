@@ -210,10 +210,71 @@ async def register_user(request: RegisterRequest, response: Response):
     response.set_cookie(key="session_token", value=session_token, httponly=True,
                         secure=True, samesite="none", path="/", max_age=7*24*60*60)
 
+    # Auto-join family if invite code provided
+    family_joined = None
+    if request.inviteCode:
+        try:
+            invite_code = request.inviteCode.strip().upper()
+            family = await db.families.find_one({"inviteCode": invite_code}, {"_id": 0})
+            if family:
+                already_member = any(m["id"] == user_id for m in family.get("members", []))
+                if not already_member:
+                    # Check if user's phone matches a pending member
+                    matched_pending = None
+                    user_phone = request.mobile.strip() if request.mobile else None
+                    if user_phone:
+                        for m in family.get("members", []):
+                            if m.get("phone") == user_phone and m.get("role") == "member" and not m.get("linkedUserId"):
+                                matched_pending = m
+                                break
+
+                    if matched_pending:
+                        await db.families.update_one(
+                            {"id": family["id"], "members.id": matched_pending["id"]},
+                            {"$set": {
+                                "members.$.id": user_id,
+                                "members.$.name": fullName,
+                                "members.$.email": email,
+                                "members.$.role": "linked",
+                                "members.$.linkedUserId": user_id,
+                                "members.$.joinedAt": datetime.now(timezone.utc).isoformat()
+                            }}
+                        )
+                    else:
+                        new_member = {
+                            "id": user_id,
+                            "name": fullName,
+                            "relationship": "Family",
+                            "email": email,
+                            "phone": user_phone,
+                            "role": "member",
+                            "joinedAt": datetime.now(timezone.utc).isoformat()
+                        }
+                        await db.families.update_one(
+                            {"id": family["id"]},
+                            {"$push": {"members": new_member}}
+                        )
+
+                    # Track referral
+                    await db.referrals.insert_one({
+                        "referral_id": str(uuid.uuid4()),
+                        "invite_code": invite_code,
+                        "family_id": family["id"],
+                        "inviter_id": family.get("createdBy"),
+                        "joined_user_id": user_id,
+                        "joined_at": datetime.now(timezone.utc).isoformat(),
+                        "reward_claimed": False
+                    })
+
+                    family_joined = family.get("familyName")
+        except Exception as e:
+            logger.error(f"Auto-join family failed for invite code {request.inviteCode}: {e}")
+
     return {
         "user_id": user_id, "email": email, "name": fullName,
         "firstName": firstName, "lastName": lastName, "picture": None,
-        "session_token": session_token, "isNewUser": True
+        "session_token": session_token, "isNewUser": True,
+        "familyJoined": family_joined
     }
 
 

@@ -88,12 +88,22 @@ const FamilyPage = () => {
   const handleAddMember = async () => {
     if (!memberName.trim() || !memberRelation) { toast.error("Fill name and relationship"); return; }
     if (!memberPhone.trim()) { toast.error("Phone number is mandatory"); return; }
+    if (!/^\d{10}$/.test(memberPhone.trim())) { toast.error("Enter valid 10-digit phone number"); return; }
     try {
       const res = await axios.post(`${API}/api/family/add-member`, {
         name: memberName.trim(), relationship: memberRelation, email: memberEmail || null, phone: memberPhone.trim()
       }, { withCredentials: true });
       const linked = res.data.linked;
-      toast.success(linked ? `${memberName} linked to existing account!` : `${memberName} added!`);
+      const notifications = res.data.notifications;
+      
+      if (linked) {
+        toast.success(`${memberName} linked to existing account!`);
+      } else if (notifications?.all_mock) {
+        toast.success(`${memberName} added! SMS/WhatsApp will be sent once Twilio is configured.`, { duration: 5000 });
+      } else {
+        toast.success(`${memberName} added! Invite sent via SMS & WhatsApp.`, { duration: 5000 });
+      }
+      
       setShowAddMember(false);
       setMemberName(""); setMemberRelation(""); setMemberEmail(""); setMemberPhone("");
       fetchFamily();
@@ -222,13 +232,36 @@ const FamilyPage = () => {
           /* Family exists */
           <>
             {/* Invite Code */}
-            <div className="rounded-2xl p-4 shadow-card flex items-center justify-between" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="invite-code-card">
-              <div>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Invite Code</p>
-                <p className="text-lg font-mono font-bold tracking-widest" style={{ color: "#7C3AED" }}>{family.inviteCode}</p>
+            <div className="rounded-2xl p-4 shadow-card" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="invite-code-card">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>Invite Code</p>
+                  <p className="text-lg font-mono font-bold tracking-widest" style={{ color: "#7C3AED" }}>{family.inviteCode}</p>
+                </div>
+                <button onClick={copyInviteCode} className="p-2 rounded-lg" style={{ backgroundColor: "#F3E8FF" }} data-testid="copy-code-btn">
+                  <Copy className="h-4 w-4" style={{ color: "#7C3AED" }} />
+                </button>
               </div>
-              <button onClick={copyInviteCode} className="p-2 rounded-lg" style={{ backgroundColor: "#F3E8FF" }} data-testid="copy-code-btn">
-                <Copy className="h-4 w-4" style={{ color: "#7C3AED" }} />
+              <button
+                onClick={() => {
+                  const inviteUrl = `${window.location.origin}/join/${family.inviteCode}`;
+                  if (navigator.share) {
+                    navigator.share({
+                      title: "Join my family on MoneySutra",
+                      text: `Join ${family.familyName} on MoneySutra! Use invite code: ${family.inviteCode}`,
+                      url: inviteUrl
+                    }).catch(() => {});
+                  } else {
+                    navigator.clipboard.writeText(inviteUrl);
+                    toast.success("Invite link copied!");
+                  }
+                }}
+                className="w-full py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5"
+                style={{ backgroundColor: "#F3E8FF", color: "#7C3AED" }}
+                data-testid="share-invite-btn"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+                Share Invite Link
               </button>
             </div>
 
@@ -356,9 +389,12 @@ const FamilyPage = () => {
                     <option value="">Select Relationship</option>
                     {["Wife", "Husband", "Son", "Daughter", "Father", "Mother", "Brother", "Sister", "Other"].map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
-                  <input value={memberPhone} onChange={(e) => setMemberPhone(e.target.value)} placeholder="Phone Number *" type="tel" className="w-full rounded-xl px-4 py-2.5 text-sm" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="member-phone-input" />
+                  <input value={memberPhone} onChange={(e) => setMemberPhone(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="Phone Number *" type="tel" className="w-full rounded-xl px-4 py-2.5 text-sm" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="member-phone-input" />
+                  {memberPhone && !/^\d{10}$/.test(memberPhone) && (
+                    <p className="text-[10px] mt-1" style={{ color: "var(--status-error)" }}>Enter 10-digit mobile number</p>
+                  )}
                   <input value={memberEmail} onChange={(e) => setMemberEmail(e.target.value)} placeholder="Email (optional)" type="email" className="w-full rounded-xl px-4 py-2.5 text-sm" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="member-email-input" />
-                  <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>If this person already has a MoneySutra account with the same phone, their data will be automatically linked.</p>
+                  <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Member will receive an SMS & WhatsApp invite to download MoneySutra and join your family.</p>
                   <div className="flex gap-2">
                     <button onClick={() => { setShowAddMember(false); setMemberName(""); setMemberRelation(""); }} className="flex-1 rounded-xl py-2.5 text-sm" style={{ border: "1px solid var(--border-light)", color: "var(--text-secondary)" }}>Cancel</button>
                     <button onClick={handleAddMember} className="flex-1 rounded-xl py-2.5 text-sm font-medium text-white" style={{ backgroundColor: "#7C3AED" }} data-testid="confirm-add-member-btn">Add Member</button>

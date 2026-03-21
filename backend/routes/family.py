@@ -1,5 +1,7 @@
 """Family management routes - create family, add members, view family data."""
+import os
 import uuid
+import logging
 from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
@@ -7,6 +9,11 @@ from typing import Optional
 from routes.auth import get_current_user
 from routes.utils import get_weekly_multiplier
 from database import db
+from notification_service import send_family_invite
+
+logger = logging.getLogger(__name__)
+
+APP_URL = os.environ.get("APP_URL", os.environ.get("REACT_APP_BACKEND_URL", "https://moneyssutra.com"))
 
 router = APIRouter(prefix="/family", tags=["family"])
 
@@ -146,7 +153,32 @@ async def add_family_member(input: FamilyMemberCreate, request: Request):
     if linked_user:
         msg += " (linked to existing account)"
 
-    return {"message": msg, "member": new_member, "linked": linked_user is not None}
+    # Send SMS + WhatsApp invite to the new member
+    notification_result = None
+    if phone and not linked_user:
+        try:
+            inviter_name = user.get("name", "Someone")
+            notification_result = await send_family_invite(
+                phone=phone,
+                inviter_name=inviter_name,
+                family_name=family.get("familyName", "your family"),
+                invite_code=family.get("inviteCode", ""),
+                app_url=APP_URL
+            )
+            if notification_result.get("all_mock"):
+                msg += " (notifications queued — Twilio not configured yet)"
+            else:
+                msg += " (SMS & WhatsApp invite sent!)"
+        except Exception as e:
+            logger.error(f"Failed to send invite notification: {e}")
+            notification_result = {"error": str(e)}
+
+    return {
+        "message": msg,
+        "member": new_member,
+        "linked": linked_user is not None,
+        "notifications": notification_result
+    }
 
 
 @router.delete("/member/{member_id}")
@@ -207,6 +239,42 @@ async def edit_family_member(member_id: str, input: FamilyMemberCreate, request:
     return {"message": f"{input.name} updated successfully"}
 
 
+@router.get("/invite-info/{invite_code}")
+async def get_invite_info(invite_code: str):
+    """Public endpoint - lookup invite code to show family info on registration page."""
+    family = await db.families.find_one({"inviteCode": invite_code.upper()}, {"_id": 0})
+    if not family:
+        raise HTTPException(status_code=404, detail="Invalid invite code")
+
+    # Find the pending member info if phone was pre-registered
+    pending_member = None
+    for m in family.get("members", []):
+        if m.get("role") == "member" and not m.get("linkedUserId"):
+            pending_member = {
+                "name": m.get("name"),
+                "relationship": m.get("relationship"),
+                "phone": m.get("phone"),
+            }
+
+    owner = None
+    for m in family.get("members", []):
+        if m.get("role") == "owner":
+            owner = m.get("name", "Someone")
+            break
+
+    return {
+        "familyName": family.get("familyName"),
+        "inviteCode": family.get("inviteCode"),
+        "ownerName": owner,
+        "memberCount": len(family.get("members", [])),
+        "pendingMember": pending_member,
+    }
+
+
+class JoinFamilyRequest(BaseModel):
+    relationship: Optional[str] = None
+
+
 @router.post("/join/{invite_code}")
 async def join_family(invite_code: str, request: Request):
     """Join a family using invite code."""
@@ -214,7 +282,18 @@ async def join_family(invite_code: str, request: Request):
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
+    # Parse optional body for relationship
+    relationship = "Family"
+    try:
+        body = await request.json()
+        if body and body.get("relationship"):
+            relationship = body["relationship"]
+    except Exception:
+        pass
+
     user_id = user.get("user_id")
+    user_phone = user.get("phone") or user.get("mobile")
+
     family = await db.families.find_one({"inviteCode": invite_code.upper()}, {"_id": 0})
     if not family:
         raise HTTPException(status_code=404, detail="Invalid invite code")
@@ -223,20 +302,58 @@ async def join_family(invite_code: str, request: Request):
         if m["id"] == user_id:
             raise HTTPException(status_code=400, detail="Already a member")
 
-    new_member = {
-        "id": user_id,
-        "name": user.get("name", "User"),
-        "relationship": "Family",
-        "email": user.get("email"),
-        "role": "member",
-        "joinedAt": datetime.now(timezone.utc).isoformat()
-    }
+    # Check if this user's phone matches a pending member and use their relationship
+    matched_pending = None
+    if user_phone:
+        for m in family.get("members", []):
+            if m.get("phone") and m["phone"] == user_phone and m.get("role") == "member" and not m.get("linkedUserId"):
+                matched_pending = m
+                break
 
-    await db.families.update_one(
-        {"id": family["id"]},
-        {"$push": {"members": new_member}}
-    )
-    return {"message": f"Joined {family['familyName']}", "family": family}
+    if matched_pending:
+        # Upgrade the pending member entry to link to this user
+        await db.families.update_one(
+            {"id": family["id"], "members.id": matched_pending["id"]},
+            {"$set": {
+                "members.$.id": user_id,
+                "members.$.name": user.get("name", matched_pending.get("name", "User")),
+                "members.$.email": user.get("email"),
+                "members.$.role": "linked",
+                "members.$.linkedUserId": user_id,
+                "members.$.joinedAt": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+    else:
+        new_member = {
+            "id": user_id,
+            "name": user.get("name", "User"),
+            "relationship": relationship,
+            "email": user.get("email"),
+            "phone": user_phone,
+            "role": "member",
+            "joinedAt": datetime.now(timezone.utc).isoformat()
+        }
+        await db.families.update_one(
+            {"id": family["id"]},
+            {"$push": {"members": new_member}}
+        )
+
+    # Track referral
+    await db.referrals.insert_one({
+        "referral_id": str(uuid.uuid4()),
+        "invite_code": invite_code.upper(),
+        "family_id": family["id"],
+        "inviter_id": family.get("createdBy"),
+        "joined_user_id": user_id,
+        "joined_at": datetime.now(timezone.utc).isoformat(),
+        "reward_claimed": False
+    })
+
+    return {"message": f"Joined {family['familyName']}", "family": {
+        "id": family["id"],
+        "familyName": family.get("familyName"),
+        "memberCount": len(family.get("members", [])) + (0 if matched_pending else 1)
+    }}
 
 
 @router.get("/member/{member_id}/summary")
