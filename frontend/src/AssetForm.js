@@ -7,6 +7,7 @@ import { numberToWords } from "@/lib/formatters";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
+import WizardShell from "@/components/WizardShell";
 import { 
   validatePositiveAmount, 
   validateNonNegativeAmount,
@@ -23,7 +24,6 @@ const AssetForm = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   
-  // Get pre-filled asset type from URL params
   const prefilledType = searchParams.get('type') || '';
   
   // Form fields
@@ -59,35 +59,25 @@ const AssetForm = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
-  // Today's date for maxDate constraint
-  const today = format(new Date(), "yyyy-MM-dd");
+  // ─── WIZARD STATE ───
+  const TOTAL_STEPS = 4;
+  const [step, setStep] = useState(1);
 
+  const today = format(new Date(), "yyyy-MM-dd");
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
-  // Entity uniqueness check for asset name
   const {
     checkUniqueness: checkAssetNameUnique,
     isChecking: isCheckingAssetName,
     isUnique: isAssetNameUnique,
     error: assetNameUniqueError,
     reset: resetAssetNameCheck
-  } = useEntityUniqueness({
-    collection: "assets",
-    field: "assetName",
-    excludeId: id || null
-  });
+  } = useEntityUniqueness({ collection: "assets", field: "assetName", excludeId: id || null });
 
   const assetTypes = [
-    "Residential Property",
-    "Commercial Property",
-    "Land",
-    "Vehicle",
-    "Physical Gold",
-    "Physical Silver",
-    "Diamonds",
-    "Business Asset",
-    "Equipment / Machinery",
-    "Other"
+    "Residential Property", "Commercial Property", "Land", "Vehicle",
+    "Physical Gold", "Physical Silver", "Diamonds",
+    "Business Asset", "Equipment / Machinery", "Other"
   ];
 
   const depreciationTypes = [
@@ -99,111 +89,42 @@ const AssetForm = () => {
   // Auto-suggest depreciation type based on asset type
   useEffect(() => {
     if (!depreciationType) {
-      if (assetType.includes("Property") || assetType === "Land") {
-        setDepreciationType("Appreciating");
-      } else if (assetType === "Vehicle" || assetType.includes("Equipment")) {
-        setDepreciationType("Depreciating");
-      } else if (assetType.includes("Gold") || assetType.includes("Silver") || assetType === "Diamonds") {
-        setDepreciationType("Market Driven");
-      }
+      if (assetType.includes("Property") || assetType === "Land") setDepreciationType("Appreciating");
+      else if (assetType === "Vehicle" || assetType.includes("Equipment")) setDepreciationType("Depreciating");
+      else if (assetType.includes("Gold") || assetType.includes("Silver") || assetType === "Diamonds") setDepreciationType("Market Driven");
     }
   }, [assetType]);
 
-  // Fetch loans for linking
-  useEffect(() => {
-    fetchLoans();
-    fetchInsurances();
-  }, []);
+  useEffect(() => { fetchLoans(); fetchInsurances(); }, []);
 
-  // Restore form state if returning from loan creation
   useEffect(() => {
     if (location.state?.assetFormData) {
       const data = location.state.assetFormData;
-      setAssetType(data.assetType || "");
-      setAssetName(data.assetName || "");
-      setPurchaseValue(data.purchaseValue || "");
-      setCurrentValue(data.currentValue || "");
-      setPurchaseDate(data.purchaseDate || "");
-      setDepreciationType(data.depreciationType || "");
-      setIsFinanced(data.isFinanced || false);
-      setGeneratesIncome(data.generatesIncome || false);
-      setIsInsured(data.isInsured || false);
-      setAssetLocation(data.location || "");
-      setNotes(data.notes || "");
-      setRenterName(data.renterName || "");
-      setRentalAmount(data.rentalAmount || "");
-      setSecurityDeposit(data.securityDeposit || "");
+      setAssetType(data.assetType || ""); setAssetName(data.assetName || "");
+      setPurchaseValue(data.purchaseValue || ""); setCurrentValue(data.currentValue || "");
+      setPurchaseDate(data.purchaseDate || ""); setDepreciationType(data.depreciationType || "");
+      setIsFinanced(data.isFinanced || false); setGeneratesIncome(data.generatesIncome || false);
+      setIsInsured(data.isInsured || false); setAssetLocation(data.location || "");
+      setNotes(data.notes || ""); setRenterName(data.renterName || "");
+      setRentalAmount(data.rentalAmount || ""); setSecurityDeposit(data.securityDeposit || "");
       setRentalFrequency(data.rentalFrequency || "Monthly");
-      
-      // If a new loan was just created, set it as linked
-      if (location.state?.newLoanId) {
-        fetchLoans().then(() => {
-          setLinkedLoanId(location.state.newLoanId);
-        });
-      }
-      // If a new insurance was just created, set it as linked
-      if (location.state?.newInsuranceId) {
-        fetchInsurances().then(() => {
-          setLinkedInsuranceId(location.state.newInsuranceId);
-          setIsInsured(true);
-        });
-      }
+      if (location.state?.newLoanId) fetchLoans().then(() => { setLinkedLoanId(location.state.newLoanId); });
+      if (location.state?.newInsuranceId) fetchInsurances().then(() => { setLinkedInsuranceId(location.state.newInsuranceId); setIsInsured(true); });
     }
   }, [location.state]);
 
-  // Fetch asset data if editing
-  useEffect(() => {
-    if (id) {
-      fetchAssetData();
-    }
-  }, [id]);
+  useEffect(() => { if (id) fetchAssetData(); }, [id]);
 
   const fetchLoans = async () => {
-    try {
-      const response = await axios.get(`${backendUrl}/api/loans`);
-      setAvailableLoans(response.data);
-    } catch (error) {
-      console.error("Error fetching loans:", error);
-    }
+    try { const r = await axios.get(`${backendUrl}/api/loans`); setAvailableLoans(r.data); } catch (e) { console.error("Error fetching loans:", e); }
+  };
+  const fetchInsurances = async () => {
+    try { const r = await axios.get(`${backendUrl}/api/insurances`); setAvailableInsurances(r.data || []); } catch (e) { setAvailableInsurances([]); }
   };
 
-  const fetchInsurances = async () => {
-    try {
-      const response = await axios.get(`${backendUrl}/api/insurances`);
-      setAvailableInsurances(response.data || []);
-    } catch (error) {
-      console.error("Error fetching insurances:", error);
-      setAvailableInsurances([]);
-    }
-  };
-  
-  // Handle adding new insurance - preserves form state
   const handleAddInsurance = () => {
-    const formData = {
-      assetType,
-      assetName,
-      purchaseValue,
-      currentValue,
-      purchaseDate,
-      depreciationType,
-      isFinanced,
-      generatesIncome,
-      isInsured: true, // Set to true since they're adding insurance
-      location: assetLocation,
-      notes,
-      renterName,
-      rentalAmount,
-      securityDeposit,
-      rentalFrequency
-    };
-    
-    // Navigate to insurance form with return state
-    navigate('/insurance', {
-      state: {
-        returnTo: '/asset',
-        assetFormData: formData
-      }
-    });
+    const formData = { assetType, assetName, purchaseValue, currentValue, purchaseDate, depreciationType, isFinanced, generatesIncome, isInsured: true, location: assetLocation, notes, renterName, rentalAmount, securityDeposit, rentalFrequency };
+    navigate('/insurance', { state: { returnTo: '/asset', assetFormData: formData } });
   };
 
   const fetchAssetData = async () => {
@@ -211,779 +132,433 @@ const AssetForm = () => {
       setLoading(true);
       const response = await axios.get(`${backendUrl}/api/assets/${id}`);
       const data = response.data;
-      
-      setAssetType(data.assetType || "");
-      setAssetName(data.assetName || "");
-      setPurchaseValue(data.purchaseValue?.toString() || "");
-      setCurrentValue(data.currentValue?.toString() || "");
-      setPurchaseDate(data.purchaseDate || "");
-      setDepreciationType(data.depreciationType || "");
-      setIsFinanced(data.isFinanced || false);
-      setLinkedLoanId(data.linkedLoanId || "");
-      setGeneratesIncome(data.generatesIncome || false);
-      setLinkedIncomeId(data.linkedIncomeId || "");
-      setIsInsured(data.isInsured || false);
-      setLinkedInsuranceId(data.linkedInsuranceId || "");
-      setAssetLocation(data.location || "");
-      setNotes(data.notes || "");
-    } catch (error) {
-      console.error("Error fetching asset data:", error);
-      setErrors({ submit: "Failed to load asset data" });
-    } finally {
-      setLoading(false);
-    }
+      setAssetType(data.assetType || ""); setAssetName(data.assetName || "");
+      setPurchaseValue(data.purchaseValue?.toString() || ""); setCurrentValue(data.currentValue?.toString() || "");
+      setPurchaseDate(data.purchaseDate || ""); setDepreciationType(data.depreciationType || "");
+      setIsFinanced(data.isFinanced || false); setLinkedLoanId(data.linkedLoanId || "");
+      setGeneratesIncome(data.generatesIncome || false); setLinkedIncomeId(data.linkedIncomeId || "");
+      setIsInsured(data.isInsured || false); setLinkedInsuranceId(data.linkedInsuranceId || "");
+      setAssetLocation(data.location || ""); setNotes(data.notes || "");
+    } catch (error) { setErrors({ submit: "Failed to load asset data" }); }
+    finally { setLoading(false); }
   };
 
-  const handleAmountChange = (setter) => (e) => {
-    const value = formatAmountInput(e.target.value);
-    setter(value);
-  };
+  const handleAmountChange = (setter) => (e) => { setter(formatAmountInput(e.target.value)); };
 
-  // Clear field errors in real-time when user fills data
+  const isPropertyType = assetType.includes("Property") || assetType === "Land";
+
+  // Clear field errors in real-time
   useEffect(() => { if (assetType && errors.assetType) setErrors(prev => { const n = {...prev}; delete n.assetType; return n; }); }, [assetType]);
   useEffect(() => { if (purchaseValue && errors.purchaseValue) setErrors(prev => { const n = {...prev}; delete n.purchaseValue; return n; }); }, [purchaseValue]);
   useEffect(() => { if (purchaseDate && errors.purchaseDate) setErrors(prev => { const n = {...prev}; delete n.purchaseDate; return n; }); }, [purchaseDate]);
   useEffect(() => { if (rentalAmount && errors.rentalAmount) setErrors(prev => { const n = {...prev}; delete n.rentalAmount; return n; }); }, [rentalAmount]);
 
-  const validate = () => {
+  // ─── PER-STEP VALIDATION ───
+  const validateStep = (s) => {
     const newErrors = {};
-
-    // Asset Type validation
-    if (!assetType) {
-      newErrors.assetType = "Please select asset type.";
+    if (s === 1) {
+      if (!assetType) newErrors.assetType = "Please select asset type.";
+      const nameError = validateTextField(assetName, "Asset name", 100);
+      if (nameError) newErrors.assetName = nameError;
+      if (isAssetNameUnique === false) newErrors.assetName = assetNameUniqueError || "An entry with this name already exists.";
     }
-
-    // Asset Name validation
-    const nameError = validateTextField(assetName, "Asset name", 100);
-    if (nameError) newErrors.assetName = nameError;
-    
-    // Check uniqueness
-    if (isAssetNameUnique === false) {
-      newErrors.assetName = assetNameUniqueError || "An entry with this name already exists.";
+    if (s === 2) {
+      if (!purchaseValue || parseFloat(purchaseValue) <= 0) newErrors.purchaseValue = "Purchase value is required and must be greater than 0.";
+      if (currentValue && parseFloat(currentValue) < 0) newErrors.currentValue = "Current market value cannot be negative.";
+      if (purchaseDate) { const dateError = validatePastOrTodayDate(purchaseDate, "Purchase date"); if (dateError) newErrors.purchaseDate = dateError; }
     }
-
-    // Purchase Value validation (required)
-    if (!purchaseValue || parseFloat(purchaseValue) <= 0) {
-      newErrors.purchaseValue = "Purchase value is required and must be greater than 0.";
+    if (s === 3) {
+      if (generatesIncome) { const rentalError = validatePositiveAmount(rentalAmount, "Rental amount"); if (rentalError) newErrors.rentalAmount = rentalError; }
     }
-
-    // Current Value validation (optional, but must be non-negative if provided)
-    if (currentValue && parseFloat(currentValue) < 0) {
-      newErrors.currentValue = "Current market value cannot be negative.";
+    if (s === 4) {
+      if (isInsured && !linkedInsuranceId) newErrors.linkedInsuranceId = "Please select an insurance policy or turn off the insurance toggle to save.";
     }
-
-    // Purchase Date validation (if provided, cannot be in the future)
-    if (purchaseDate) {
-      const dateError = validatePastOrTodayDate(purchaseDate, "Purchase date");
-      if (dateError) newErrors.purchaseDate = dateError;
-    }
-
-    // Insurance validation - must select policy if toggle is ON
-    if (isInsured && !linkedInsuranceId) {
-      newErrors.linkedInsuranceId = "Please select an insurance policy or turn off the insurance toggle to save.";
-    }
-
-    // Rental Amount validation (if generates income)
-    if (generatesIncome) {
-      const rentalError = validatePositiveAmount(rentalAmount, "Rental amount");
-      if (rentalError) newErrors.rentalAmount = rentalError;
-    }
-
     setErrors(newErrors);
-    
-    // Scroll to first error
-    if (Object.keys(newErrors).length > 0) {
-      scrollToFirstError(newErrors);
-    }
-    
+    if (Object.keys(newErrors).length > 0) scrollToFirstError(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = async () => {
-    if (!validate()) return;
-
-    if (id) {
-      setShowUpdateConfirm(true);
-      return;
-    }
-
-    await performSave();
+  const validate = () => {
+    const newErrors = {};
+    if (!assetType) newErrors.assetType = "Please select asset type.";
+    const nameError = validateTextField(assetName, "Asset name", 100); if (nameError) newErrors.assetName = nameError;
+    if (isAssetNameUnique === false) newErrors.assetName = assetNameUniqueError || "An entry with this name already exists.";
+    if (!purchaseValue || parseFloat(purchaseValue) <= 0) newErrors.purchaseValue = "Purchase value is required and must be greater than 0.";
+    if (currentValue && parseFloat(currentValue) < 0) newErrors.currentValue = "Current market value cannot be negative.";
+    if (purchaseDate) { const dateError = validatePastOrTodayDate(purchaseDate, "Purchase date"); if (dateError) newErrors.purchaseDate = dateError; }
+    if (isInsured && !linkedInsuranceId) newErrors.linkedInsuranceId = "Please select an insurance policy or turn off the insurance toggle to save.";
+    if (generatesIncome) { const rentalError = validatePositiveAmount(rentalAmount, "Rental amount"); if (rentalError) newErrors.rentalAmount = rentalError; }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) scrollToFirstError(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
+  const handleNext = () => { if (validateStep(step)) setStep(Math.min(step + 1, TOTAL_STEPS)); };
+  const handlePrev = () => setStep(Math.max(step - 1, 1));
+
+  const handleSave = async () => { if (!validate()) return; if (id) { setShowUpdateConfirm(true); return; } await performSave(); };
+
   const performSave = async () => {
-    setIsSubmitting(true);
-    setShowUpdateConfirm(false);
-    
+    setIsSubmitting(true); setShowUpdateConfirm(false);
     try {
-      // Default current value to purchase value if not provided
-      const finalCurrentValue = currentValue 
-        ? parseFloat(currentValue) 
-        : (purchaseValue ? parseFloat(purchaseValue) : 0);
-      
+      const finalCurrentValue = currentValue ? parseFloat(currentValue) : (purchaseValue ? parseFloat(purchaseValue) : 0);
       const payload = {
-        assetType,
-        assetName,
+        assetType, assetName,
         purchaseValue: purchaseValue ? parseFloat(purchaseValue) : null,
-        currentValue: finalCurrentValue,
-        purchaseDate: purchaseDate || null,
-        depreciationType: depreciationType || null,
-        isFinanced,
-        linkedLoanId: isFinanced && linkedLoanId ? linkedLoanId : null,
-        generatesIncome,
+        currentValue: finalCurrentValue, purchaseDate: purchaseDate || null,
+        depreciationType: depreciationType || null, isFinanced,
+        linkedLoanId: isFinanced && linkedLoanId ? linkedLoanId : null, generatesIncome,
         linkedIncomeId: generatesIncome && linkedIncomeId ? linkedIncomeId : null,
         incomeAmount: generatesIncome && rentalAmount ? parseFloat(rentalAmount) : null,
         incomeFrequency: generatesIncome ? rentalFrequency : null,
         renterName: generatesIncome ? renterName : null,
         securityDeposit: generatesIncome && securityDeposit ? parseFloat(securityDeposit) : null,
-        isInsured,
-        linkedInsuranceId: isInsured && linkedInsuranceId ? linkedInsuranceId : null,
-        location: assetLocation || null,
-        notes: notes || null,
+        isInsured, linkedInsuranceId: isInsured && linkedInsuranceId ? linkedInsuranceId : null,
+        location: assetLocation || null, notes: notes || null,
       };
-
-      if (id) {
-        await axios.put(`${backendUrl}/api/assets/${id}`, payload);
-      } else {
+      if (id) { await axios.put(`${backendUrl}/api/assets/${id}`, payload); }
+      else {
         const response = await axios.post(`${backendUrl}/api/assets`, payload);
         const savedAssetId = response.data?.id;
-        
-        // If we came from loan form, return there with the new asset ID
         if (location.state?.fromLoanFlow && location.state?.loanFormData) {
-          navigate(location.state.returnTo || '/loan', {
-            state: {
-              loanFormData: location.state.loanFormData,
-              newAssetId: savedAssetId
-            }
-          });
+          navigate(location.state.returnTo || '/loan', { state: { loanFormData: location.state.loanFormData, newAssetId: savedAssetId } });
           return;
         }
       }
-      
       navigate("/my-assets");
-    } catch (error) {
-      console.error("Error saving asset:", error);
-      setErrors({ submit: "Failed to save. Please try again." });
-    } finally {
-      setIsSubmitting(false);
-    }
+    } catch (error) { setErrors({ submit: "Failed to save. Please try again." }); }
+    finally { setIsSubmitting(false); }
   };
 
   const handleDelete = async () => {
     if (!id) return;
-    
-    setIsSubmitting(true);
-    setShowDeleteConfirm(false);
-    
-    try {
-      await axios.delete(`${backendUrl}/api/assets/${id}`);
-      navigate("/my-assets");
-    } catch (error) {
-      console.error("Error deleting asset:", error);
-      setErrors({ submit: "Failed to delete. Please try again." });
-    } finally {
-      setIsSubmitting(false);
-    }
+    setIsSubmitting(true); setShowDeleteConfirm(false);
+    try { await axios.delete(`${backendUrl}/api/assets/${id}`); navigate("/my-assets"); }
+    catch (error) { setErrors({ submit: "Failed to delete. Please try again." }); }
+    finally { setIsSubmitting(false); }
   };
 
-  const isPropertyType = assetType.includes("Property") || assetType === "Land";
-
-  // Handle back navigation
   const handleBack = () => {
-    if (location.state?.fromLoanFlow && location.state?.loanFormData) {
-      navigate(location.state.returnTo || '/loan', {
-        state: { loanFormData: location.state.loanFormData }
-      });
-    } else if (window.history.length > 2) {
-      navigate(-1);
-    } else {
-      navigate("/my-assets");
-    }
+    if (location.state?.fromLoanFlow && location.state?.loanFormData) navigate(location.state.returnTo || '/loan', { state: { loanFormData: location.state.loanFormData } });
+    else navigate("/my-assets");
   };
 
-  return (
-    <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="asset-form-page">
-      {/* Header */}
-      <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
-          onClick={handleBack}
-          data-testid="back-button"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
-          {id ? "Edit Asset" : "Add Asset"}
-        </h1>
-        <div className="h-10 w-10" />
-      </header>
+  // ─── SHARED STYLES ───
+  const inputCls = "w-full rounded-xl border px-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20";
+  const inputStyle = (err) => ({ backgroundColor: "var(--bg-subtle)", borderColor: err ? "var(--status-error)" : "var(--border-light)", color: "var(--text-primary)" });
+  const labelCls = "block text-sm font-medium mb-2";
+  const labelStyle = { color: "var(--text-primary)" };
+  const mutedStyle = { color: "var(--text-muted)" };
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto pb-48">
-        <div className="mx-auto w-full max-w-[620px] px-6">
-          <div className="space-y-6">
-            {/* Asset Type */}
-            <div className="w-full">
-              <label htmlFor="assetType" className="block text-sm font-medium text-[#334155] mb-2">
-                Asset Type
-              </label>
-              <select
-                id="assetType"
-                value={assetType}
-                onChange={(e) => setAssetType(e.target.value)}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="asset-type-select"
-              >
-                <option value="">Select Asset Type</option>
-                {assetTypes.map((type) => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-              {errors.assetType && <p className="text-sm text-red-500 mt-1">{errors.assetType}</p>}
-            </div>
-
-            {/* Asset Name */}
-            <div className="w-full">
-              <label htmlFor="assetName" className="block text-sm font-medium text-[#334155] mb-2">
-                Asset Name
-              </label>
-              <div className="relative">
-                <input
-                  id="assetName"
-                  type="text"
-                  value={assetName}
-                  onChange={(e) => {
-                    setAssetName(e.target.value);
-                    if (errors.assetName) {
-                      setErrors(prev => ({ ...prev, assetName: null }));
-                    }
-                  }}
-                  onBlur={() => checkAssetNameUnique(assetName)}
-                  placeholder="e.g., Green Villa – Flat 302, Honda City 2020"
-                  maxLength={100}
-                  className="w-full rounded-xl border px-4 py-3 pr-10 text-[#334155] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                  style={{
-                    backgroundColor: "var(--bg-subtle)",
-                    borderColor: errors.assetName || assetNameUniqueError 
-                      ? "var(--status-error)" 
-                      : isAssetNameUnique === true && assetName.trim() 
-                        ? "var(--status-success)" 
-                        : "var(--border-light)"
-                  }}
-                  data-testid="asset-name-input"
-                />
-                {/* Status indicator */}
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  {isCheckingAssetName && (
-                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
-                  )}
-                  {!isCheckingAssetName && isAssetNameUnique === true && assetName.trim() && (
-                    <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
-                  )}
-                </div>
-              </div>
-              {errors.assetName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.assetName}</p>}
-              {!errors.assetName && assetNameUniqueError && (
-                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{assetNameUniqueError}</p>
-              )}
-              {!errors.assetName && !assetNameUniqueError && isAssetNameUnique === true && assetName.trim() && (
-                <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>
-              )}
-            </div>
-
-            {/* Purchase Value */}
-            <div className="w-full">
-              <label htmlFor="purchaseValue" className="block text-sm font-medium text-[#334155] mb-2">
-                Purchase Value <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
-                <input
-                  id="purchaseValue"
-                  type="text"
-                  value={purchaseValue}
-                  onChange={handleAmountChange(setPurchaseValue)}
-                  placeholder="0"
-                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                  data-testid="purchase-value-input"
-                />
-              </div>
-              {parseFloat(purchaseValue) > 0 && (
-                <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="purchase-value-words">
-                  {numberToWords(parseFloat(purchaseValue))}
-                </p>
-              )}
-              {errors.purchaseValue && <p className="text-sm text-red-500 mt-1">{errors.purchaseValue}</p>}
-            </div>
-
-            {/* Current Market Value */}
-            <div className="w-full">
-              <label htmlFor="currentValue" className="block text-sm font-medium text-[#334155] mb-2">
-                Current Market Value <span className="text-[#94A3B8] font-normal">(Optional)</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
-                <input
-                  id="currentValue"
-                  type="text"
-                  value={currentValue}
-                  onChange={handleAmountChange(setCurrentValue)}
-                  placeholder={purchaseValue ? purchaseValue : "0"}
-                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                  data-testid="current-value-input"
-                />
-              </div>
-              {parseFloat(currentValue) > 0 && (
-                <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="current-value-words">
-                  {numberToWords(parseFloat(currentValue))}
-                </p>
-              )}
-              {errors.currentValue && <p className="text-sm text-red-500 mt-1">{errors.currentValue}</p>}
-              <p className="text-xs text-[#334155]/60 mt-1">
-                {currentValue ? "This feeds into your Net Worth calculation" : "Leave blank to use Purchase Value for Net Worth"}
-              </p>
-            </div>
-
-            {/* Purchase Date */}
-            <div className="w-full">
-              <label className="block text-sm font-medium text-[#334155] mb-2">
-                Purchase Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
-              </label>
-              <RestrictedDatePicker
-                value={purchaseDate}
-                onChange={(date) => setPurchaseDate(date)}
-                maxDate={today}
-                placeholder="Select purchase date"
-                error={!!errors.purchaseDate}
-                testId="purchase-date-input"
-              />
-              {errors.purchaseDate && <p className="text-sm text-red-500 mt-1">{errors.purchaseDate}</p>}
-            </div>
-
-            {/* Depreciation Type */}
-            <div className="w-full">
-              <label htmlFor="depreciationType" className="block text-sm font-medium text-[#334155] mb-2">
-                Value Trend <span className="text-[#94A3B8] font-normal">(Optional)</span>
-              </label>
-              <select
-                id="depreciationType"
-                value={depreciationType}
-                onChange={(e) => setDepreciationType(e.target.value)}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="depreciation-type-select"
-              >
-                <option value="">Select Value Trend</option>
-                {depreciationTypes.map((type) => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Is Financed Toggle */}
-            <div className="w-full rounded-xl border border-[#334155] p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-[#334155]">
-                    Is This Asset Financed?
-                  </label>
-                  <p className="text-xs text-[#334155]/60 mt-0.5">Link to a loan for net worth calculation</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsFinanced(!isFinanced)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    isFinanced ? "bg-[#F59E0B]" : "bg-[#334155]"
-                  }`}
-                  data-testid="is-financed-toggle"
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-[#1E293B] transition-transform ${
-                      isFinanced ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {isFinanced && (
-                <div className="mt-4 pt-4 border-t border-[#334155]">
-                  <label htmlFor="linkedLoan" className="block text-sm font-medium text-[#334155] mb-2">
-                    Select Linked Loan
-                  </label>
-                  <select
-                    id="linkedLoan"
-                    value={linkedLoanId}
-                    onChange={(e) => setLinkedLoanId(e.target.value)}
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                    data-testid="linked-loan-select"
-                  >
-                    <option value="">Select a Loan</option>
-                    {availableLoans.map((loan) => (
-                      <option key={loan.id} value={loan.id}>
-                        {loan.loanName} - ₹{new Intl.NumberFormat('en-IN').format(loan.outstandingAmount)}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/loan", { 
-                      state: { 
-                        returnTo: id ? `/asset/${id}` : '/asset',
-                        assetFormData: {
-                          assetType,
-                          assetName,
-                          purchaseValue,
-                          currentValue,
-                          purchaseDate,
-                          depreciationType,
-                          isFinanced,
-                          generatesIncome,
-                          isInsured,
-                          location: assetLocation,
-                          notes
-                        }
-                      } 
-                    })}
-                    className="mt-3 flex items-center gap-2 text-sm text-[#F59E0B] font-medium hover:text-[#D97706]"
-                    data-testid="add-loan-link"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Add New Loan
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Generates Income Toggle */}
-            <div className="w-full rounded-xl border border-[#334155] p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-[#334155]">
-                    Does This Asset Generate Income?
-                  </label>
-                  <p className="text-xs text-[#334155]/60 mt-0.5">E.g., Rental income from property</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setGeneratesIncome(!generatesIncome)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    generatesIncome ? "bg-[#14B8A6]" : "bg-[#334155]"
-                  }`}
-                  data-testid="generates-income-toggle"
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-[#1E293B] transition-transform ${
-                      generatesIncome ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-              
-              {/* Rental Income Fields - shown when toggle is ON */}
-              {generatesIncome && (
-                <div className="mt-4 pt-4 border-t border-[#334155] space-y-4">
-                  <div>
-                    <label htmlFor="renterName" className="block text-sm font-medium text-[#334155] mb-2">
-                      Renter Name <span className="text-[#334155]/40">(Optional)</span>
-                    </label>
-                    <input
-                      id="renterName"
-                      type="text"
-                      value={renterName}
-                      onChange={(e) => setRenterName(e.target.value)}
-                      placeholder="Enter renter's name"
-                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="renter-name-input"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="rentalAmount" className="block text-sm font-medium text-[#334155] mb-2">
-                      Rental Amount <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155]/60 font-medium">₹</span>
-                      <input
-                        id="rentalAmount"
-                        type="text"
-                        value={rentalAmount}
-                        onChange={(e) => setRentalAmount(e.target.value.replace(/[^0-9]/g, ""))}
-                        placeholder="0"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#334155] bg-[#1E293B] text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                        data-testid="rental-amount-input"
-                      />
-                    </div>
-                    {parseFloat(rentalAmount) > 0 && (
-                      <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="rental-amount-words">
-                        {numberToWords(parseFloat(rentalAmount))}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="securityDeposit" className="block text-sm font-medium text-[#334155] mb-2">
-                      Security Deposit <span className="text-[#334155]/40">(Optional)</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155]/60 font-medium">₹</span>
-                      <input
-                        id="securityDeposit"
-                        type="text"
-                        value={securityDeposit}
-                        onChange={(e) => setSecurityDeposit(e.target.value.replace(/[^0-9]/g, ""))}
-                        placeholder="0"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#334155] bg-[#1E293B] text-[#334155] placeholder-[#334155]/40 focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                        data-testid="security-deposit-input"
-                      />
-                    </div>
-                    {parseFloat(securityDeposit) > 0 && (
-                      <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="security-deposit-words">
-                        {numberToWords(parseFloat(securityDeposit))}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="rentalFrequency" className="block text-sm font-medium text-[#334155] mb-2">
-                      Rental Frequency
-                    </label>
-                    <select
-                      id="rentalFrequency"
-                      value={rentalFrequency}
-                      onChange={(e) => setRentalFrequency(e.target.value)}
-                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="rental-frequency-select"
-                    >
-                      <option value="Daily">Daily</option>
-                      <option value="Weekly">Weekly</option>
-                      <option value="Monthly">Monthly</option>
-                      <option value="Quarterly">Quarterly</option>
-                      <option value="Half-Yearly">Half-Yearly</option>
-                      <option value="Yearly">Yearly</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Is Insured Toggle */}
-            <div className="w-full rounded-xl border border-[#334155] p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-[#334155]">
-                    Is This Asset Insured?
-                  </label>
-                  <p className="text-xs text-[#334155]/60 mt-0.5">Link to an insurance policy</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsInsured(!isInsured)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    isInsured ? "bg-[#6366F1]" : "bg-[#334155]"
-                  }`}
-                  data-testid="is-insured-toggle"
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-[#1E293B] transition-transform ${
-                      isInsured ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {isInsured && (
-                <div className="mt-4 pt-4 border-t border-[#334155]">
-                  <div className="flex items-center justify-between mb-2">
-                    <label htmlFor="linkedInsurance" className="block text-sm font-medium text-[#334155]">
-                      Select Linked Insurance <span className="text-rose-500">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleAddInsurance}
-                      className="flex items-center gap-1 text-xs font-medium text-[#6366F1] hover:text-[#4F46E5] transition-colors"
-                      data-testid="add-insurance-shortcut"
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                      Add Insurance
-                    </button>
-                  </div>
-                  {availableInsurances.length > 0 ? (
-                    <>
-                      <select
-                        id="linkedInsurance"
-                        value={linkedInsuranceId}
-                        onChange={(e) => {
-                          setLinkedInsuranceId(e.target.value);
-                          if (errors.linkedInsuranceId) {
-                            setErrors(prev => ({ ...prev, linkedInsuranceId: null }));
-                          }
-                        }}
-                        className={`w-full rounded-xl border px-4 py-3 text-[#334155] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 ${
-                          errors.linkedInsuranceId 
-                            ? "border-red-500 bg-red-500/5" 
-                            : "border-[#334155] bg-[#1E293B]"
-                        }`}
-                        data-testid="linked-insurance-select"
-                      >
-                        <option value="">Select an Insurance Policy</option>
-                        {availableInsurances.map((ins) => (
-                          <option key={ins.id} value={ins.id}>
-                            {ins.policyName}
-                          </option>
-                        ))}
-                      </select>
-                      {errors.linkedInsuranceId && (
-                        <p className="text-sm text-red-500 mt-1 flex items-center gap-1">
-                          <AlertTriangle className="h-4 w-4" />
-                          {errors.linkedInsuranceId}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className={`text-sm bg-[#0F172A] rounded-xl px-4 py-3 text-center ${
-                        errors.linkedInsuranceId ? "text-red-400 border border-red-500" : "text-[#334155]/60"
-                      }`}>
-                        No insurance policies found. Click "Add Insurance" to create one.
-                      </div>
-                      {errors.linkedInsuranceId && (
-                        <p className="text-sm text-red-500 flex items-center gap-1">
-                          <AlertTriangle className="h-4 w-4" />
-                          {errors.linkedInsuranceId}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Location (for Property) */}
-            {isPropertyType && (
-              <div className="w-full">
-                <label htmlFor="assetLocation" className="block text-sm font-medium text-[#334155] mb-2">
-                  Location <span className="text-[#94A3B8] font-normal">(Optional)</span>
-                </label>
-                <input
-                  id="assetLocation"
-                  type="text"
-                  value={assetLocation}
-                  onChange={(e) => setAssetLocation(e.target.value)}
-                  placeholder="e.g., Mumbai, Andheri West"
-                  maxLength={100}
-                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                  data-testid="location-input"
-                />
-              </div>
-            )}
-
-            {/* Notes */}
-            <div className="w-full">
-              <label htmlFor="notes" className="block text-sm font-medium text-[#334155] mb-2">
-                Notes <span className="text-[#94A3B8] font-normal">(Optional)</span>
-              </label>
-              <textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any additional notes..."
-                rows={3}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 resize-none"
-                data-testid="notes-input"
-              />
-            </div>
-
-            {errors.submit && (
-              <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">{errors.submit}</div>
-            )}
+  // ─── STEP 1: Type & Name ───
+  const step1Content = (
+    <div className="space-y-6" data-testid="step-1-type">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={labelStyle}>Asset Type & Name</p>
+        <p className="text-xs mt-1" style={mutedStyle}>What kind of asset is this?</p>
+      </div>
+      <div>
+        <label className={labelCls} style={labelStyle}>Asset Type *</label>
+        <select value={assetType} onChange={(e) => setAssetType(e.target.value)}
+          className={inputCls} style={inputStyle(errors.assetType)} data-testid="asset-type-select">
+          <option value="">Select Asset Type</option>
+          {assetTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+        </select>
+        {errors.assetType && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.assetType}</p>}
+      </div>
+      <div>
+        <label className={labelCls} style={labelStyle}>Asset Name *</label>
+        <div className="relative">
+          <input type="text" value={assetName}
+            onChange={(e) => { setAssetName(e.target.value); if (errors.assetName) setErrors(prev => ({...prev, assetName: null})); }}
+            onBlur={() => checkAssetNameUnique(assetName)}
+            placeholder="e.g., Green Villa – Flat 302, Honda City 2020" maxLength={100}
+            className={`${inputCls} pr-10`}
+            style={{ backgroundColor: "var(--bg-subtle)", borderColor: errors.assetName || assetNameUniqueError ? "var(--status-error)" : isAssetNameUnique === true && assetName.trim() ? "var(--status-success)" : "var(--border-light)", color: "var(--text-primary)" }}
+            data-testid="asset-name-input" />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            {isCheckingAssetName && <Loader2 className="h-5 w-5 animate-spin" style={mutedStyle} />}
+            {!isCheckingAssetName && isAssetNameUnique === true && assetName.trim() && <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />}
           </div>
         </div>
+        {errors.assetName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.assetName}</p>}
+        {!errors.assetName && assetNameUniqueError && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{assetNameUniqueError}</p>}
+        {!errors.assetName && !assetNameUniqueError && isAssetNameUnique === true && assetName.trim() && <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>}
       </div>
+    </div>
+  );
 
-      {/* Sticky Action Buttons - Mobile Optimized */}
-      <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-40">
-        <div className="mx-auto max-w-[620px]">
-          {id ? (
-            /* Edit Mode - Show Update and Delete side-by-side */
-            <div className="flex flex-row gap-3">
-              {/* Delete Button - Ghost Style (flex: 1 = 30%) */}
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={isSubmitting}
-                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-[#FF4D4D] bg-transparent text-[#FF4D4D] text-sm font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
-                data-testid="delete-button"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
-              {/* Update Button - Primary Style (flex: 2 = 70%) */}
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isSubmitting}
-                className="flex-[2] h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 shadow-sm"
-                data-testid="update-button"
-              >
-                {isSubmitting ? "Updating..." : "Update Asset"}
+  // ─── STEP 2: Valuation ───
+  const step2Content = (
+    <div className="space-y-6" data-testid="step-2-valuation">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={labelStyle}>Valuation</p>
+        <p className="text-xs mt-1" style={mutedStyle}>Purchase price and current market value</p>
+      </div>
+      <div>
+        <label className={labelCls} style={labelStyle}>Purchase Value *</label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium" style={labelStyle}>₹</span>
+          <input type="text" value={purchaseValue} onChange={handleAmountChange(setPurchaseValue)} placeholder="0"
+            className={`${inputCls} pl-10`} style={inputStyle(errors.purchaseValue)} data-testid="purchase-value-input" />
+        </div>
+        {parseFloat(purchaseValue) > 0 && <p className="mt-1.5 text-xs italic" style={mutedStyle}>{numberToWords(parseFloat(purchaseValue))}</p>}
+        {errors.purchaseValue && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.purchaseValue}</p>}
+      </div>
+      <div>
+        <label className={labelCls} style={labelStyle}>Current Market Value <span className="text-xs font-normal" style={mutedStyle}>(Optional)</span></label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium" style={labelStyle}>₹</span>
+          <input type="text" value={currentValue} onChange={handleAmountChange(setCurrentValue)}
+            placeholder={purchaseValue ? purchaseValue : "0"}
+            className={`${inputCls} pl-10`} style={inputStyle(errors.currentValue)} data-testid="current-value-input" />
+        </div>
+        {parseFloat(currentValue) > 0 && <p className="mt-1.5 text-xs italic" style={mutedStyle}>{numberToWords(parseFloat(currentValue))}</p>}
+        {errors.currentValue && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.currentValue}</p>}
+        <p className="text-xs mt-1" style={mutedStyle}>{currentValue ? "This feeds into your Net Worth calculation" : "Leave blank to use Purchase Value for Net Worth"}</p>
+      </div>
+      <div>
+        <label className={labelCls} style={labelStyle}>Purchase Date <span className="text-xs font-normal" style={mutedStyle}>(Optional)</span></label>
+        <RestrictedDatePicker value={purchaseDate} onChange={(date) => setPurchaseDate(date)}
+          maxDate={today} placeholder="Select purchase date" error={!!errors.purchaseDate} testId="purchase-date-input" />
+        {errors.purchaseDate && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.purchaseDate}</p>}
+      </div>
+      <div>
+        <label className={labelCls} style={labelStyle}>Value Trend <span className="text-xs font-normal" style={mutedStyle}>(Optional)</span></label>
+        <select value={depreciationType} onChange={(e) => setDepreciationType(e.target.value)}
+          className={inputCls} style={inputStyle()} data-testid="depreciation-type-select">
+          <option value="">Select Value Trend</option>
+          {depreciationTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+        </select>
+      </div>
+    </div>
+  );
+
+  // ─── STEP 3: Income & Financing ───
+  const step3Content = (
+    <div className="space-y-6" data-testid="step-3-finance">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={labelStyle}>Financing & Income</p>
+        <p className="text-xs mt-1" style={mutedStyle}>Loan linked? Generates rental income?</p>
+      </div>
+      {/* Financed Toggle */}
+      <div className="rounded-xl p-4" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="text-sm font-medium" style={labelStyle}>Is This Asset Financed?</label>
+            <p className="text-xs mt-0.5" style={mutedStyle}>Link to a loan for net worth calculation</p>
+          </div>
+          <button type="button" onClick={() => setIsFinanced(!isFinanced)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isFinanced ? "bg-[#F59E0B]" : "bg-gray-300"}`}
+            data-testid="is-financed-toggle">
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isFinanced ? "translate-x-6" : "translate-x-1"}`} />
+          </button>
+        </div>
+        {isFinanced && (
+          <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--border-light)" }}>
+            <label className={labelCls} style={labelStyle}>Select Linked Loan</label>
+            <select value={linkedLoanId} onChange={(e) => setLinkedLoanId(e.target.value)}
+              className={inputCls} style={inputStyle()} data-testid="linked-loan-select">
+              <option value="">Select a Loan</option>
+              {availableLoans.map((loan) => (
+                <option key={loan.id} value={loan.id}>{loan.loanName} - ₹{new Intl.NumberFormat('en-IN').format(loan.outstandingAmount)}</option>
+              ))}
+            </select>
+            <button type="button" onClick={() => navigate("/loan", { state: { returnTo: id ? `/asset/${id}` : '/asset', assetFormData: { assetType, assetName, purchaseValue, currentValue, purchaseDate, depreciationType, isFinanced, generatesIncome, isInsured, location: assetLocation, notes } } })}
+              className="mt-3 flex items-center gap-2 text-sm font-medium" style={{ color: "#F59E0B" }} data-testid="add-loan-link">
+              <Plus className="h-4 w-4" /> Add New Loan
+            </button>
+          </div>
+        )}
+      </div>
+      {/* Generates Income Toggle */}
+      <div className="rounded-xl p-4" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="text-sm font-medium" style={labelStyle}>Does This Asset Generate Income?</label>
+            <p className="text-xs mt-0.5" style={mutedStyle}>E.g., Rental income from property</p>
+          </div>
+          <button type="button" onClick={() => setGeneratesIncome(!generatesIncome)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${generatesIncome ? "bg-[#14B8A6]" : "bg-gray-300"}`}
+            data-testid="generates-income-toggle">
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${generatesIncome ? "translate-x-6" : "translate-x-1"}`} />
+          </button>
+        </div>
+        {generatesIncome && (
+          <div className="mt-4 pt-4 space-y-4" style={{ borderTop: "1px solid var(--border-light)" }}>
+            <div>
+              <label className={labelCls} style={labelStyle}>Renter Name <span className="text-xs font-normal" style={mutedStyle}>(Optional)</span></label>
+              <input type="text" value={renterName} onChange={(e) => setRenterName(e.target.value)} placeholder="Enter renter's name"
+                className={inputCls} style={inputStyle()} data-testid="renter-name-input" />
+            </div>
+            <div>
+              <label className={labelCls} style={labelStyle}>Rental Amount *</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium" style={mutedStyle}>₹</span>
+                <input type="text" value={rentalAmount} onChange={(e) => setRentalAmount(e.target.value.replace(/[^0-9]/g, ""))} placeholder="0"
+                  className={`${inputCls} pl-10`} style={inputStyle(errors.rentalAmount)} data-testid="rental-amount-input" />
+              </div>
+              {parseFloat(rentalAmount) > 0 && <p className="mt-1.5 text-xs italic" style={mutedStyle}>{numberToWords(parseFloat(rentalAmount))}</p>}
+              {errors.rentalAmount && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.rentalAmount}</p>}
+            </div>
+            <div>
+              <label className={labelCls} style={labelStyle}>Security Deposit <span className="text-xs font-normal" style={mutedStyle}>(Optional)</span></label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium" style={mutedStyle}>₹</span>
+                <input type="text" value={securityDeposit} onChange={(e) => setSecurityDeposit(e.target.value.replace(/[^0-9]/g, ""))} placeholder="0"
+                  className={`${inputCls} pl-10`} style={inputStyle()} data-testid="security-deposit-input" />
+              </div>
+              {parseFloat(securityDeposit) > 0 && <p className="mt-1.5 text-xs italic" style={mutedStyle}>{numberToWords(parseFloat(securityDeposit))}</p>}
+            </div>
+            <div>
+              <label className={labelCls} style={labelStyle}>Rental Frequency</label>
+              <select value={rentalFrequency} onChange={(e) => setRentalFrequency(e.target.value)}
+                className={inputCls} style={inputStyle()} data-testid="rental-frequency-select">
+                <option value="Daily">Daily</option><option value="Weekly">Weekly</option>
+                <option value="Monthly">Monthly</option><option value="Quarterly">Quarterly</option>
+                <option value="Half-Yearly">Half-Yearly</option><option value="Yearly">Yearly</option>
+              </select>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  // ─── STEP 4: Insurance & Notes ───
+  const step4Content = (
+    <div className="space-y-6" data-testid="step-4-extras">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={labelStyle}>Insurance & Notes</p>
+        <p className="text-xs mt-1" style={mutedStyle}>Optional coverage and details</p>
+      </div>
+      {/* Insurance Toggle */}
+      <div className="rounded-xl p-4" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <label className="text-sm font-medium" style={labelStyle}>Is This Asset Insured?</label>
+            <p className="text-xs mt-0.5" style={mutedStyle}>Link to an insurance policy</p>
+          </div>
+          <button type="button" onClick={() => setIsInsured(!isInsured)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isInsured ? "bg-[#6366F1]" : "bg-gray-300"}`}
+            data-testid="is-insured-toggle">
+            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isInsured ? "translate-x-6" : "translate-x-1"}`} />
+          </button>
+        </div>
+        {isInsured && (
+          <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--border-light)" }}>
+            <div className="flex items-center justify-between mb-2">
+              <label className={labelCls} style={labelStyle}>Select Insurance *</label>
+              <button type="button" onClick={handleAddInsurance}
+                className="flex items-center gap-1 text-xs font-medium" style={{ color: "#6366F1" }} data-testid="add-insurance-shortcut">
+                <Plus className="h-3.5 w-3.5" /> Add Insurance
               </button>
             </div>
-          ) : (
-            /* Create Mode - Show Save Only */
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSubmitting}
-              className="w-full h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 shadow-sm"
-              data-testid="save-button"
-            >
-              {isSubmitting ? "Saving..." : "Save Asset"}
-            </button>
-          )}
-        </div>
+            {availableInsurances.length > 0 ? (
+              <>
+                <select value={linkedInsuranceId} onChange={(e) => { setLinkedInsuranceId(e.target.value); if (errors.linkedInsuranceId) setErrors(prev => ({...prev, linkedInsuranceId: null})); }}
+                  className={inputCls} style={inputStyle(errors.linkedInsuranceId)} data-testid="linked-insurance-select">
+                  <option value="">Select an Insurance Policy</option>
+                  {availableInsurances.map((ins) => <option key={ins.id} value={ins.id}>{ins.policyName}</option>)}
+                </select>
+                {errors.linkedInsuranceId && (
+                  <p className="text-sm mt-1 flex items-center gap-1" style={{ color: "var(--status-error)" }}>
+                    <AlertTriangle className="h-4 w-4" />{errors.linkedInsuranceId}
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="space-y-2">
+                <div className={`text-sm rounded-xl px-4 py-3 text-center ${errors.linkedInsuranceId ? "border" : ""}`}
+                  style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)", borderColor: errors.linkedInsuranceId ? "var(--status-error)" : "transparent" }}>
+                  No insurance policies found. Click "Add Insurance" to create one.
+                </div>
+                {errors.linkedInsuranceId && (
+                  <p className="text-sm flex items-center gap-1" style={{ color: "var(--status-error)" }}>
+                    <AlertTriangle className="h-4 w-4" />{errors.linkedInsuranceId}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+      {/* Location (for Property) */}
+      {isPropertyType && (
+        <div>
+          <label className={labelCls} style={labelStyle}>Location <span className="text-xs font-normal" style={mutedStyle}>(Optional)</span></label>
+          <input type="text" value={assetLocation} onChange={(e) => setAssetLocation(e.target.value)}
+            placeholder="e.g., Mumbai, Andheri West" maxLength={100}
+            className={inputCls} style={inputStyle()} data-testid="location-input" />
+        </div>
+      )}
+      {/* Notes */}
+      <div>
+        <label className={labelCls} style={labelStyle}>Notes <span className="text-xs font-normal" style={mutedStyle}>(Optional)</span></label>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Any additional notes..." rows={3}
+          className={`${inputCls} resize-none`} style={inputStyle()} data-testid="notes-input" />
+      </div>
+    </div>
+  );
 
-      {/* Update Confirmation Dialog */}
+  // ─── EDIT MODE ───
+  const accentColor = "#14B8A6";
+  const editModeContent = (
+    <div className="space-y-8" data-testid="asset-edit-all-fields">
+      <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={mutedStyle}><span className="w-6 h-6 rounded-full bg-[#14B8A6]/10 flex items-center justify-center text-xs font-bold text-[#14B8A6]">1</span>Type & Name</h3>{step1Content}</div>
+      <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={mutedStyle}><span className="w-6 h-6 rounded-full bg-[#14B8A6]/10 flex items-center justify-center text-xs font-bold text-[#14B8A6]">2</span>Valuation</h3>{step2Content}</div>
+      <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={mutedStyle}><span className="w-6 h-6 rounded-full bg-[#14B8A6]/10 flex items-center justify-center text-xs font-bold text-[#14B8A6]">3</span>Financing & Income</h3>{step3Content}</div>
+      <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={mutedStyle}><span className="w-6 h-6 rounded-full bg-[#14B8A6]/10 flex items-center justify-center text-xs font-bold text-[#14B8A6]">4</span>Insurance & Notes</h3>{step4Content}</div>
+    </div>
+  );
+
+  const errorContent = errors.submit ? <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600 mt-4">{errors.submit}</div> : null;
+
+  const dialogContent = (
+    <>
       {showUpdateConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#334155] mb-3">Confirm Changes</h3>
-            <p className="text-[#334155]/70 mb-6">
-              Are you sure you want to update this asset?
-            </p>
+          <div className="rounded-2xl p-6 max-w-md w-full shadow-2xl" style={{ backgroundColor: "var(--bg-card)" }}>
+            <h3 className="text-xl font-semibold mb-3" style={labelStyle}>Confirm Changes</h3>
+            <p className="mb-6" style={mutedStyle}>Are you sure you want to update this asset?</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">
-                Cancel
-              </button>
-              <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium">
-                Yes, Update
-              </button>
+              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border px-4 py-3 font-medium" style={{ borderColor: "var(--border-light)", color: "var(--text-primary)" }}>Cancel</button>
+              <button type="button" onClick={performSave} className="flex-1 rounded-xl px-4 py-3 text-white font-medium" style={{ backgroundColor: accentColor }}>Yes, Update</button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+          <div className="rounded-2xl p-6 max-w-md w-full shadow-2xl" style={{ backgroundColor: "var(--bg-card)" }}>
             <h3 className="text-xl font-semibold text-red-600 mb-3">Delete Asset?</h3>
-            <p className="text-[#334155]/70 mb-6">
-              Are you sure you want to delete "{assetName}"? This action cannot be undone.
-            </p>
+            <p className="mb-6" style={mutedStyle}>Are you sure you want to delete "{assetName}"? This cannot be undone.</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">
-                Cancel
-              </button>
-              <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">
-                Yes, Delete
-              </button>
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border px-4 py-3 font-medium" style={{ borderColor: "var(--border-light)", color: "var(--text-primary)" }}>Cancel</button>
+              <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">Yes, Delete</button>
             </div>
           </div>
         </div>
       )}
+    </>
+  );
 
-      {/* Bottom Navigation */}
-    </div>
+  return (
+    <WizardShell
+      title={id ? "Edit Asset" : "Add Asset"}
+      step={step} totalSteps={TOTAL_STEPS}
+      onNext={handleNext} onPrev={handlePrev} onSave={handleSave}
+      onDelete={id ? () => setShowDeleteConfirm(true) : undefined}
+      isEdit={!!id} isSubmitting={isSubmitting} accentColor={accentColor}
+      editModeContent={editModeContent}
+      errorContent={errorContent} dialogContent={dialogContent}
+      onClose={() => handleBack()}
+    >
+      {step === 1 && step1Content}
+      {step === 2 && step2Content}
+      {step === 3 && step3Content}
+      {step === 4 && step4Content}
+    </WizardShell>
   );
 };
 
