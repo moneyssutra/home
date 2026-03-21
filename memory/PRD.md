@@ -79,10 +79,15 @@ Comprehensive financial management app with precise data intake, complex financi
 - Health page zeros for family members
 - Badges/Challenges empty for family views
 - Family member list filtering (data bleed fix across all entity pages)
+- GoalForm wizard blinking fix: replaced setTimeout with direct setStep() to avoid stale closures (Mar 2026)
+- Added Close (X) button to GoalForm header when creating new goals (Mar 2026)
+- Fixed Badges showing 7/7 (all unlocked incorrectly) - now shows proper unlocked/total count (Mar 2026)
+- Fixed Challenges showing 0/1 - now shows proper completed/total count with dynamic challenges (Mar 2026)
 
 ## Key Credentials
 - Google Login: `kumaramarendra10@gmail.com`, `chandrashekhar.iter@gmail.com`
 - JWT Login: `moneyssutra@gmail.com` / `123456`
+- JWT Test User: `test@moneysutra.com` / `Test@123` (MPIN: 1234)
 - Admin: `admin@moneyssutra.com` / `admin123`
 
 ## Prioritized Backlog
@@ -108,3 +113,4 @@ Comprehensive financial management app with precise data intake, complex financi
 - iteration_167: Comprehensive family data isolation Phase 2 - backend 23/23 PASS, frontend 100% (18+ pages)
 - iteration_168: Health page member fix + challenges - backend 90% (9/10, 1 skipped), frontend 100%, challenges logic 3/3 PASS
 - iteration_169: Financial Health member view fix - backend 14/14 PASS, frontend 100% (Health page fetches real member data)
+- iteration_170: P0 Bug fixes verification - frontend 100% (5/5 PASS: GoalForm blinking fix, Close button, Badges 19/30 not 7/7, Challenges 0/6 not 0/1, Health page data)
