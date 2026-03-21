@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Calendar as CalendarIcon, Trash2, Info, Link2, Target, AlertCircle } from "lucide-react";
+import { ChevronLeft, Calendar as CalendarIcon, Trash2, Info, Link2, Target, AlertCircle, ImagePlus, X } from "lucide-react";
 import axios from "axios";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -32,6 +32,10 @@ const GoalForm = () => {
   const [notes, setNotes] = useState("");
   const [autoCalculate, setAutoCalculate] = useState(true);
   const [manualOverride, setManualOverride] = useState(false);
+  const [goalImage, setGoalImage] = useState(null);
+  const [goalImagePreview, setGoalImagePreview] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef(null);
   
   // Linked sources - Legacy (for backward compatibility)
   const [linkedInvestmentIds, setLinkedInvestmentIds] = useState([]);
@@ -122,6 +126,9 @@ const GoalForm = () => {
       setNotes(data.notes || "");
       setAutoCalculate(data.autoCalculate !== false);
       setManualOverride(data.manualOverride || false);
+      if (data.goalImage) {
+        setGoalImagePreview(data.goalImage.startsWith("/api") ? `${backendUrl}${data.goalImage}` : data.goalImage);
+      }
       setLinkedInvestmentIds(data.linkedInvestmentIds || []);
       setLinkedLoanId(data.linkedLoanId || "");
       setLinkedCreditCardId(data.linkedCreditCardId || "");
@@ -340,6 +347,39 @@ const GoalForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, goalImage: "Image must be under 5MB" }));
+      return;
+    }
+    setGoalImage(file);
+    setGoalImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    setGoalImage(null);
+    setGoalImagePreview(null);
+    if (imageInputRef.current) imageInputRef.current.value = "";
+  };
+
+  const uploadGoalImage = async (goalId) => {
+    if (!goalImage) return;
+    try {
+      setUploadingImage(true);
+      const formData = new FormData();
+      formData.append("file", goalImage);
+      await axios.post(`${backendUrl}/api/goals/${goalId}/upload-image`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+    } catch (err) {
+      console.error("Image upload failed:", err);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!validate()) return;
 
@@ -375,13 +415,19 @@ const GoalForm = () => {
         notes: notes || null
       };
 
+      let savedGoalId = id;
       if (id) {
         await axios.put(`${backendUrl}/api/goals/${id}`, payload);
       } else {
-        await axios.post(`${backendUrl}/api/goals`, payload);
+        const resp = await axios.post(`${backendUrl}/api/goals`, payload);
+        savedGoalId = resp.data?.id;
+      }
+
+      if (goalImage && savedGoalId) {
+        await uploadGoalImage(savedGoalId);
       }
       
-      navigate("/my-goals");
+      navigate("/dream-goals");
     } catch (error) {
       console.error("Error saving goal:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -503,6 +549,46 @@ const GoalForm = () => {
                 data-testid="goal-name-input"
               />
               {errors.goalName && <p className="text-sm text-red-500 mt-1">{errors.goalName}</p>}
+            </div>
+
+            {/* Goal Image Upload */}
+            <div className="w-full">
+              <label className="block text-sm font-medium text-[#334155] mb-2">
+                Goal Image <span className="text-[#94A3B8] font-normal">(optional)</span>
+              </label>
+              {goalImagePreview ? (
+                <div className="relative rounded-xl overflow-hidden border border-[#334155]" data-testid="goal-image-preview">
+                  <img src={goalImagePreview} alt="Goal" className="w-full h-40 object-cover" />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center text-white hover:bg-black/80 transition"
+                    data-testid="remove-image-btn"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[#334155] bg-[#1E293B]/50 py-8 text-[#94A3B8] hover:border-[#7C3AED]/50 hover:text-[#7C3AED] transition"
+                  data-testid="upload-image-btn"
+                >
+                  <ImagePlus size={28} />
+                  <span className="text-sm font-medium">Upload a dream image</span>
+                  <span className="text-xs opacity-60">JPG, PNG up to 5MB</span>
+                </button>
+              )}
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleImageSelect}
+                className="hidden"
+                data-testid="image-file-input"
+              />
+              {errors.goalImage && <p className="text-sm text-red-500 mt-1">{errors.goalImage}</p>}
             </div>
 
             {/* Target Amount */}

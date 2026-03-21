@@ -1,12 +1,11 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Target, Clock, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
+import { Plus, Target, Clock, CheckCircle2, AlertCircle, Sparkles, ChevronRight } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
-import { useAuth } from "@/context/AuthContext";
 import { useFamilyContext } from "@/context/FamilyContext";
 
 /* ─── keyword → image mapping ─── */
@@ -20,10 +19,10 @@ const GOAL_IMAGES = {
   vehicle: "https://images.pexels.com/photos/7150302/pexels-photo-7150302.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   bike: "https://images.pexels.com/photos/35974726/pexels-photo-35974726.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   motorcycle: "https://images.pexels.com/photos/35974726/pexels-photo-35974726.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-  travel: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTF8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMGJlYWNoJTIwdHJhdmVsJTIwdmFjYXRpb258ZW58MHx8fHwxNzc0MDgxNzUyfDA&ixlib=rb-4.1.0&q=85",
-  trip: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTF8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMGJlYWNoJTIwdHJhdmVsJTIwdmFjYXRpb258ZW58MHx8fHwxNzc0MDgxNzUyfDA&ixlib=rb-4.1.0&q=85",
-  vacation: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTF8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMGJlYWNoJTIwdHJhdmVsJTIwdmFjYXRpb258ZW58MHx8fHwxNzc0MDgxNzUyfDA&ixlib=rb-4.1.0&q=85",
-  goa: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTF8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMGJlYWNoJTIwdHJhdmVsJTIwdmFjYXRpb258ZW58MHx8fHwxNzc0MDgxNzUyfDA&ixlib=rb-4.1.0&q=85",
+  travel: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+  trip: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+  vacation: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+  goa: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
   phone: "https://images.pexels.com/photos/215581/pexels-photo-215581.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   iphone: "https://images.pexels.com/photos/215581/pexels-photo-215581.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   samsung: "https://images.pexels.com/photos/215581/pexels-photo-215581.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
@@ -39,130 +38,161 @@ const GOAL_IMAGES = {
   marriage: "https://images.pexels.com/photos/1646730/pexels-photo-1646730.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   shoe: "https://images.pexels.com/photos/215581/pexels-photo-215581.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   balance: "https://images.pexels.com/photos/215581/pexels-photo-215581.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  gold: "https://images.pexels.com/photos/3943727/pexels-photo-3943727.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  fund: "https://images.pexels.com/photos/3943727/pexels-photo-3943727.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
 };
 
 const TYPE_IMAGES = {
   "Wealth Creation": "https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-  "Debt Elimination": "https://images.unsplash.com/photo-1705056509273-3e2292bd2e39?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2OTV8MHwxfHNlYXJjaHwyfHxkZWJ0JTIwZnJlZSUyMGZpbmFuY2lhbCUyMGZyZWVkb218ZW58MHx8fHwxNzc0MDgxNzU3fDA&ixlib=rb-4.1.0&q=85",
+  "Debt Elimination": "https://images.unsplash.com/photo-1705056509273-3e2292bd2e39?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
   "Investment Target": "https://images.pexels.com/photos/7567445/pexels-photo-7567445.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   "Emergency Fund": "https://images.pexels.com/photos/3943727/pexels-photo-3943727.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
 };
-
 const FALLBACK_IMG = "https://images.pexels.com/photos/3943727/pexels-photo-3943727.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940";
 
-function getGoalImage(goalName, goalType) {
-  const lower = (goalName || "").toLowerCase();
+function getGoalImage(goal) {
+  if (goal.goalImage) {
+    const backendUrl = process.env.REACT_APP_BACKEND_URL || "";
+    return goal.goalImage.startsWith("/api") ? `${backendUrl}${goal.goalImage}` : goal.goalImage;
+  }
+  const lower = (goal.goalName || "").toLowerCase();
   for (const [kw, url] of Object.entries(GOAL_IMAGES)) {
     if (lower.includes(kw)) return url;
   }
-  return TYPE_IMAGES[goalType] || FALLBACK_IMG;
+  return TYPE_IMAGES[goal.goalType] || FALLBACK_IMG;
 }
 
-/* ─── Progress Ring SVG ─── */
-const ProgressRing = ({ percent, size = 90, stroke = 5 }) => {
-  const r = (size - stroke) / 2;
-  const circ = 2 * Math.PI * r;
-  const capped = Math.min(percent, 100);
-  const offset = circ - (capped / 100) * circ;
-  const color = percent >= 100 ? "#10B981" : percent >= 50 ? "#F59E0B" : "#EF4444";
-
-  return (
-    <svg width={size} height={size} className="progress-ring-svg">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth={stroke} />
-      <circle
-        cx={size / 2} cy={size / 2} r={r}
-        fill="none" stroke={color} strokeWidth={stroke}
-        strokeLinecap="round"
-        strokeDasharray={circ} strokeDashoffset={offset}
-        style={{ transform: "rotate(-90deg)", transformOrigin: "50% 50%", transition: "stroke-dashoffset 1.2s ease-out" }}
-      />
-      <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central"
-        fill="#fff" fontSize={size > 70 ? 18 : 14} fontWeight="700">
-        {Math.round(capped)}%
-      </text>
-    </svg>
-  );
+const fmt = (n) => {
+  if (n >= 10000000) return `${(n / 10000000).toFixed(2)} Cr`;
+  if (n >= 100000) return `${(n / 100000).toFixed(2)} L`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)} K`;
+  return new Intl.NumberFormat("en-IN").format(n);
 };
 
-/* ─── Status Badge ─── */
-const StatusBadge = ({ goal }) => {
-  if (goal.isCompleted) {
-    return (
-      <span className="gv-badge gv-badge--completed" data-testid={`badge-completed-${goal.id}`}>
-        <CheckCircle2 size={12} /> Completed
-      </span>
-    );
-  }
-  if (goal.isOverdue) {
-    return (
-      <span className="gv-badge gv-badge--overdue" data-testid={`badge-overdue-${goal.id}`}>
-        <AlertCircle size={12} /> Overdue
-      </span>
-    );
-  }
-  return (
-    <span className="gv-badge gv-badge--active" data-testid={`badge-active-${goal.id}`}>
-      <Clock size={12} /> Active
-    </span>
-  );
+const fmtFull = (n) => Math.abs(n).toLocaleString("en-IN");
+
+const getProgressColor = (pct) => {
+  if (pct >= 100) return "#10B981";
+  if (pct >= 75) return "#22C55E";
+  if (pct >= 50) return "#F59E0B";
+  if (pct >= 25) return "#F97316";
+  return "#EF4444";
 };
 
-/* ─── Goal Visual Card ─── */
-const GoalVisualCard = ({ goal, navigate, formatAmount, index }) => {
+const getStatusInfo = (goal) => {
+  if (goal.isCompleted) return { label: "Completed", cls: "gv-badge--completed" };
+  if (goal.isOverdue) return { label: "Overdue", cls: "gv-badge--overdue" };
+  return { label: "Active", cls: "gv-badge--active" };
+};
+
+/* ─── Horizontal Scroll Card ─── */
+const GoalScrollCard = ({ goal, isActive }) => {
+  const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
-  const progress = goal.progressPercent || 0;
-  const imgUrl = getGoalImage(goal.goalName, goal.goalType);
+  const pct = Math.min(goal.progressPercent || 0, 100);
+  const imgUrl = getGoalImage(goal);
+  const status = getStatusInfo(goal);
 
   return (
     <button
       onClick={() => navigate(`/goal/${goal.id}`)}
-      className="gv-card"
-      style={{ animationDelay: `${index * 0.08}s` }}
-      data-testid={`goal-visual-card-${goal.id}`}
+      data-testid={`goal-scroll-card-${goal.id}`}
+      className="gv-scroll-card"
+      style={{
+        transform: isActive ? "scale(1)" : "scale(0.93)",
+        opacity: isActive ? 1 : 0.75,
+      }}
     >
-      {/* Background Image */}
       <img
-        src={imgUrl}
-        alt=""
-        className={`gv-card__img ${imgLoaded ? "gv-card__img--loaded" : ""}`}
+        src={imgUrl} alt="" loading="lazy"
+        className={`gv-scroll-card__img ${imgLoaded ? "gv-scroll-card__img--on" : ""}`}
         onLoad={() => setImgLoaded(true)}
-        loading="lazy"
       />
-      <div className="gv-card__overlay" />
+      <div className="gv-scroll-card__overlay" />
 
-      {/* Top Row: Name + Badge */}
-      <div className="gv-card__top">
-        <div className="gv-card__name-wrap">
-          <p className="gv-card__label">Your Dream</p>
-          <h3 className="gv-card__name">{goal.goalName}</h3>
+      <div className="gv-scroll-card__content">
+        {/* Top */}
+        <div className="gv-scroll-card__top">
+          <div className="gv-scroll-card__name-area">
+            <span className="gv-scroll-card__dream-label">Your Dream</span>
+            <h3 className="gv-scroll-card__name">{goal.goalName}</h3>
+          </div>
+          <span className={`gv-badge ${status.cls}`}>
+            {status.label === "Completed" && <CheckCircle2 size={10} />}
+            {status.label === "Overdue" && <AlertCircle size={10} />}
+            {status.label === "Active" && <Clock size={10} />}
+            {status.label}
+          </span>
         </div>
-        <StatusBadge goal={goal} />
-      </div>
 
-      {/* Center: Progress Ring */}
-      <div className="gv-card__center">
-        <ProgressRing percent={progress} />
-      </div>
-
-      {/* Bottom: Amount + Days */}
-      <div className="gv-card__bottom">
-        <div className="gv-card__amount">
-          <span className="gv-card__saved">{formatAmount(goal.calculatedAmount || 0)}</span>
-          <span className="gv-card__sep">/</span>
-          <span className="gv-card__target">{formatAmount(goal.targetAmount)}</span>
+        {/* Amount */}
+        <div className="gv-scroll-card__amount-row">
+          <span className="gv-scroll-card__saved">{fmt(goal.calculatedAmount || 0)}</span>
+          <span className="gv-scroll-card__sep">/</span>
+          <span className="gv-scroll-card__target">{fmt(goal.targetAmount)}</span>
         </div>
-        <div className="gv-card__timeline">
-          {goal.isCompleted ? (
-            <span className="gv-card__days gv-card__days--done">Goal Achieved</span>
-          ) : goal.isOverdue ? (
-            <span className="gv-card__days gv-card__days--overdue">
-              {Math.abs(goal.daysRemaining)}d overdue
+
+        {/* Progress Bar */}
+        <div className="gv-scroll-card__bar-wrap">
+          <div className="gv-scroll-card__bar-bg">
+            <div
+              className="gv-scroll-card__bar-fill"
+              style={{ width: `${pct}%`, background: getProgressColor(pct) }}
+            />
+          </div>
+          <div className="gv-scroll-card__bar-meta">
+            <span className="gv-scroll-card__pct">{(goal.progressPercent || 0).toFixed(1)}%</span>
+            {goal.isCompleted ? (
+              <span className="gv-scroll-card__days gv-scroll-card__days--done">Achieved</span>
+            ) : goal.isOverdue ? (
+              <span className="gv-scroll-card__days gv-scroll-card__days--overdue">{Math.abs(goal.daysRemaining)}d overdue</span>
+            ) : goal.daysRemaining != null ? (
+              <span className="gv-scroll-card__days">{goal.daysRemaining}d left</span>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+};
+
+/* ─── Row Label Item ─── */
+const GoalRow = ({ goal }) => {
+  const navigate = useNavigate();
+  const pct = Math.min(goal.progressPercent || 0, 100);
+  const status = getStatusInfo(goal);
+  const imgUrl = getGoalImage(goal);
+
+  return (
+    <button
+      onClick={() => navigate(`/goal/${goal.id}`)}
+      className="gv-row"
+      data-testid={`goal-row-${goal.id}`}
+    >
+      <div className="gv-row__thumb" style={{ backgroundImage: `url(${imgUrl})` }} />
+      <div className="gv-row__info">
+        <p className="gv-row__name">{goal.goalName}</p>
+        <p className="gv-row__sub">
+          {goal.goalType === "Other" ? goal.customTypeName || "Other" : goal.goalType}
+          {goal.daysRemaining != null && !goal.isCompleted && (
+            <span>
+              {" · "}
+              {goal.isOverdue
+                ? <span style={{ color: "#C0392B" }}>{Math.abs(goal.daysRemaining)}d overdue</span>
+                : `${goal.daysRemaining}d left`}
             </span>
-          ) : goal.daysRemaining != null ? (
-            <span className="gv-card__days">{goal.daysRemaining}d left</span>
-          ) : null}
+          )}
+        </p>
+        <div className="gv-row__bar-bg">
+          <div className="gv-row__bar-fill" style={{ width: `${pct}%`, background: getProgressColor(pct) }} />
         </div>
       </div>
+      <div className="gv-row__right">
+        <p className="gv-row__amount">{fmt(goal.calculatedAmount || 0)}</p>
+        <p className="gv-row__total">/ {fmt(goal.targetAmount)}</p>
+        <span className={`gv-badge-sm ${status.cls}`}>{status.label}</span>
+      </div>
+      <ChevronRight size={16} className="gv-row__chevron" />
     </button>
   );
 };
@@ -174,7 +204,9 @@ const MyGoalsVisual = () => {
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [filter, setFilter] = useState("all");
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const [activeIdx, setActiveIdx] = useState(0);
+  const scrollRef = useRef(null);
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || "";
   const { isPersonalView, isFamilyView, activeViewLabel, activeViewId } = useFamilyContext();
 
   useEffect(() => { fetchGoals(); }, [activeViewId]);
@@ -189,12 +221,12 @@ const MyGoalsVisual = () => {
     finally { setLoading(false); }
   };
 
-  const formatAmount = (n) => {
-    if (n >= 10000000) return `${(n / 10000000).toFixed(2)} Cr`;
-    if (n >= 100000) return `${(n / 100000).toFixed(2)} L`;
-    if (n >= 1000) return `${(n / 1000).toFixed(1)} K`;
-    return new Intl.NumberFormat("en-IN").format(n);
-  };
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const idx = Math.round(el.scrollLeft / 296);
+    setActiveIdx(Math.min(idx, goals.length - 1));
+  }, [goals.length]);
 
   const filtered = useMemo(() =>
     goals
@@ -216,17 +248,11 @@ const MyGoalsVisual = () => {
           <ProfileMenu userName={null} userPicture={null} />
           <NotificationBell />
         </div>
-        <div className="gv-header__hero">
-          <div>
-            <p className="gv-header__sub">Dream Tracker</p>
-            <h1 className="gv-header__title">
-              {isFamilyView ? `${activeViewLabel} Goals` : "My Dreams"}
-            </h1>
-          </div>
-          <div className="gv-header__ring">
-            <ProgressRing percent={overallPct} size={72} stroke={4} />
-          </div>
-        </div>
+        <h1 className="gv-header__title">
+          {isFamilyView ? `${activeViewLabel} Goals` : "My Dreams"}
+        </h1>
+
+        {/* Summary Stats */}
         <div className="gv-header__stats">
           <div className="gv-stat">
             <span className="gv-stat__val">{active.length}</span>
@@ -234,47 +260,37 @@ const MyGoalsVisual = () => {
           </div>
           <div className="gv-stat__divider" />
           <div className="gv-stat">
-            <span className="gv-stat__val">{formatAmount(totalCurrent)}</span>
+            <span className="gv-stat__val">{fmt(totalCurrent)}</span>
             <span className="gv-stat__lbl">Saved</span>
           </div>
           <div className="gv-stat__divider" />
           <div className="gv-stat">
-            <span className="gv-stat__val">{formatAmount(totalTarget)}</span>
+            <span className="gv-stat__val">{fmt(totalTarget)}</span>
             <span className="gv-stat__lbl">Target</span>
           </div>
         </div>
+
+        {/* Overall Progress Bar */}
+        <div className="gv-header__bar-wrap">
+          <div className="gv-header__bar-bg">
+            <div className="gv-header__bar-fill" style={{ width: `${overallPct}%` }} />
+          </div>
+          <span className="gv-header__bar-pct">{overallPct.toFixed(0)}% overall</span>
+        </div>
       </header>
 
-      {/* Filter Tabs */}
-      <div className="gv-filters">
-        {["all", "active", "completed"].map(tab => (
-          <button
-            key={tab}
-            onClick={() => setFilter(tab)}
-            className={`gv-filter-btn ${filter === tab ? "gv-filter-btn--on" : ""}`}
-            data-testid={`gv-filter-${tab}`}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {/* Goals Grid */}
-      <div className="gv-grid">
+      {/* Content */}
+      <div className="gv-body">
         {loading ? (
-          <div className="gv-empty">
-            <div className="gv-spinner" />
-          </div>
+          <div className="gv-empty"><div className="gv-spinner" /></div>
         ) : filtered.length === 0 ? (
           <div className="gv-empty" data-testid="gv-empty-state">
-            <div className="gv-empty__icon"><Sparkles size={40} /></div>
+            <div className="gv-empty__icon"><Sparkles size={36} /></div>
             <h2 className="gv-empty__title">
               {filter === "completed" ? "No Achievements Yet" : "No Dreams Yet"}
             </h2>
             <p className="gv-empty__desc">
-              {filter === "completed"
-                ? "Complete your first goal to celebrate here!"
-                : "Start building your dreams. Set your first financial goal."}
+              {filter === "completed" ? "Complete your first goal to celebrate here!" : "Start building your dreams. Set your first financial goal."}
             </p>
             {filter !== "completed" && (
               <button onClick={() => navigate("/goal")} className="gv-empty__cta" data-testid="gv-add-first">
@@ -283,18 +299,61 @@ const MyGoalsVisual = () => {
             )}
           </div>
         ) : (
-          filtered.map((goal, i) => (
-            <GoalVisualCard key={goal.id} goal={goal} navigate={navigate} formatAmount={formatAmount} index={i} />
-          ))
+          <>
+            {/* Horizontal Card Scroll */}
+            <div
+              ref={scrollRef}
+              onScroll={handleScroll}
+              className="gv-scroll"
+              data-testid="goals-card-scroll"
+            >
+              {filtered.map((goal, i) => (
+                <GoalScrollCard key={goal.id} goal={goal} isActive={i === activeIdx} />
+              ))}
+            </div>
+
+            {/* Dot Indicators */}
+            {filtered.length > 1 && (
+              <div className="gv-dots" data-testid="goal-dots">
+                {filtered.map((_, i) => (
+                  <div key={i} className={`gv-dot ${i === activeIdx ? "gv-dot--on" : ""}`} />
+                ))}
+              </div>
+            )}
+
+            {/* Filter Tabs */}
+            <div className="gv-filters">
+              {["all", "active", "completed"].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setFilter(tab)}
+                  className={`gv-filter-btn ${filter === tab ? "gv-filter-btn--on" : ""}`}
+                  data-testid={`gv-filter-${tab}`}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* All Goals Label List */}
+            <div className="gv-list-section">
+              <p className="gv-list-title">All Goals</p>
+              <div className="gv-list">
+                {filtered.map(goal => <GoalRow key={goal.id} goal={goal} />)}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Add Goal Button (dashed) */}
+        {filtered.length > 0 && filter !== "completed" && (
+          <div className="gv-add-wrap">
+            <button onClick={() => navigate("/goal")} className="gv-add-btn" data-testid="gv-add-goal-btn">
+              <Plus size={18} /> Add New Goal
+            </button>
+          </div>
         )}
       </div>
-
-      {/* Floating Add Button */}
-      {filtered.length > 0 && filter !== "completed" && (
-        <button onClick={() => navigate("/goal")} className="gv-fab" data-testid="gv-add-goal-fab">
-          <Plus size={24} />
-        </button>
-      )}
 
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />

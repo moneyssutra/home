@@ -531,6 +531,7 @@ class Goal(BaseModel):
     targetAmount: float
     currentAmount: float = 0
     targetDate: str
+    goalImage: Optional[str] = None
     linkedInvestmentIds: List[str] = []
     linkedInvestments: List[dict] = []
     linkedLoanId: Optional[str] = None
@@ -553,6 +554,7 @@ class GoalCreate(BaseModel):
     targetAmount: float
     currentAmount: float = 0
     targetDate: str
+    goalImage: Optional[str] = None
     linkedInvestmentIds: List[str] = []
     linkedInvestments: List[dict] = []
     linkedLoanId: Optional[str] = None

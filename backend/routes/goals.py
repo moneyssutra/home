@@ -1,6 +1,9 @@
 """Goal routes - Full CRUD with progress calculation from server.py."""
 import asyncio
-from fastapi import APIRouter, HTTPException, Request
+import base64
+import os
+import uuid as uuid_mod
+from fastapi import APIRouter, HTTPException, Request, UploadFile, File
 from typing import List
 from datetime import datetime, timezone
 
@@ -10,6 +13,9 @@ from routes.auth import get_current_user
 from routes.utils import get_user_filter
 
 router = APIRouter(prefix="/goals", tags=["Goals"])
+
+UPLOAD_DIR = "/app/backend/uploads/goals"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 async def calculate_goal_progress(goal: dict) -> dict:
@@ -207,6 +213,35 @@ async def create_goal(input: GoalCreate, request: Request):
     doc['createdAt'] = doc['createdAt'].isoformat()
     await db.goals.insert_one(doc)
     return goal_obj
+
+
+@router.post("/{goal_id}/upload-image")
+async def upload_goal_image(goal_id: str, request: Request, file: UploadFile = File(...)):
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = get_user_filter(user)
+    goal = await db.goals.find_one({"id": goal_id, **user_filter}, {"_id": 0})
+    if not goal:
+        raise HTTPException(status_code=404, detail="Goal not found")
+    content = await file.read()
+    ext = file.filename.rsplit(".", 1)[-1] if "." in file.filename else "jpg"
+    fname = f"{goal_id}_{uuid_mod.uuid4().hex[:8]}.{ext}"
+    fpath = os.path.join(UPLOAD_DIR, fname)
+    with open(fpath, "wb") as f:
+        f.write(content)
+    image_url = f"/api/goals/image/{fname}"
+    await db.goals.update_one({"id": goal_id}, {"$set": {"goalImage": image_url}})
+    return {"imageUrl": image_url}
+
+
+@router.get("/image/{filename}")
+async def serve_goal_image(filename: str):
+    from fastapi.responses import FileResponse
+    fpath = os.path.join(UPLOAD_DIR, filename)
+    if not os.path.exists(fpath):
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(fpath)
 
 
 @router.get("/allocation-status")
