@@ -816,21 +816,18 @@ async def forgot_mpin(request: Request):
     return {"message": "Verification code sent to your email."}
 
 
-@router.post("/reset-mpin")
-async def reset_mpin(request: Request, response: Response):
-    """Verify OTP and set new MPIN. Logs user in."""
+@router.post("/verify-forgot-mpin-otp")
+async def verify_forgot_mpin_otp(request: Request):
+    """Verify OTP for forgot-MPIN flow. Marks record as pre-verified so reset-mpin can proceed."""
     body = await request.json()
     email = (body.get("email") or "").strip().lower()
     otp = (body.get("otp") or "").strip()
-    new_mpin = body.get("new_mpin", "")
 
-    if not email or not otp or not new_mpin:
-        raise HTTPException(status_code=400, detail="Email, OTP and new MPIN are required")
-    if len(new_mpin) != 4 or not new_mpin.isdigit():
-        raise HTTPException(status_code=400, detail="MPIN must be exactly 4 digits")
+    if not email or not otp:
+        raise HTTPException(status_code=400, detail="Email and OTP are required")
 
     record = await db.login_otp_tokens.find_one(
-        {"email": email, "used": False},
+        {"email": email, "used": False, "purpose": "mpin_reset"},
         {"_id": 0},
         sort=[("created_at", -1)]
     )
@@ -851,7 +848,41 @@ async def reset_mpin(request: Request, response: Response):
 
     if not verify_password(otp, record["otp_hash"]):
         remaining = 3 - record.get("attempts", 0) - 1
-        raise HTTPException(status_code=400, detail=f"Invalid code. ({remaining} left)")
+        raise HTTPException(status_code=400, detail=f"Invalid code. {max(remaining, 0)} attempt(s) left.")
+
+    # Mark as pre-verified (not used — reset-mpin will consume it)
+    await db.login_otp_tokens.update_one(
+        {"otp_id": record["otp_id"]},
+        {"$set": {"verified": True}}
+    )
+    return {"success": True, "message": "OTP verified"}
+
+
+@router.post("/reset-mpin")
+async def reset_mpin(request: Request, response: Response):
+    """Set new MPIN after OTP has been verified via /verify-forgot-mpin-otp."""
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    new_mpin = body.get("new_mpin", "")
+
+    if not email or not new_mpin:
+        raise HTTPException(status_code=400, detail="Email and new MPIN are required")
+    if len(new_mpin) != 4 or not new_mpin.isdigit():
+        raise HTTPException(status_code=400, detail="MPIN must be exactly 4 digits")
+
+    record = await db.login_otp_tokens.find_one(
+        {"email": email, "used": False, "purpose": "mpin_reset", "verified": True},
+        {"_id": 0},
+        sort=[("created_at", -1)]
+    )
+    if not record:
+        raise HTTPException(status_code=400, detail="Please verify OTP first")
+
+    expires_at = datetime.fromisoformat(record["expires_at"])
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Session expired. Please start over.")
 
     await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
 

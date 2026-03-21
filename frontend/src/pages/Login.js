@@ -239,11 +239,19 @@ const Login = () => {
 
   const submitForgotMpinOtp = async (code) => {
     if (code.length !== 6) return;
-    setStep("reset_mpin");
-    setMpin(["", "", "", ""]); setMpinStep("enter");
-    // Store the OTP for the final reset call
-    setTempToken(code);
-    setTimeout(() => mpinRefs.current[0]?.focus(), 100);
+    setError(""); setIsSubmitting(true);
+    try {
+      await axios.post(`${API}/api/auth/verify-forgot-mpin-otp`, {
+        email: identifier.trim(), otp: code,
+      });
+      // OTP verified — move to set new MPIN
+      setStep("reset_mpin");
+      setMpin(["", "", "", ""]); setMpinStep("enter");
+      setTimeout(() => mpinRefs.current[0]?.focus(), 100);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Invalid code. Try again.");
+      setOtp(["", "", "", "", "", ""]); otpRefs.current[0]?.focus();
+    } finally { setIsSubmitting(false); }
   };
 
   const handleResetMpinComplete = (pin) => {
@@ -265,7 +273,7 @@ const Login = () => {
     setError(""); setIsSubmitting(true);
     try {
       await axios.post(`${API}/api/auth/reset-mpin`, {
-        email: identifier.trim(), otp: tempToken, new_mpin: pin,
+        email: identifier.trim(), new_mpin: pin,
       }, { withCredentials: true });
       setStep("success"); await checkAuth();
       setTimeout(goHome, 1200);
