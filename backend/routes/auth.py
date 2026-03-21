@@ -548,19 +548,19 @@ async def forgot_password(request: ForgotPasswordRequest):
 
     success_message = "If an account exists with this email or mobile number, you will receive a password reset link shortly."
     if user:
-        if user.get("auth_type") == "jwt" or user.get("auth_type") is None:
-            reset_token = secrets.token_urlsafe(32)
-            expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
-            reset_record = {
-                "token_id": str(uuid.uuid4()), "user_id": user["user_id"],
-                "reset_token": reset_token, "expires_at": expires_at.isoformat(),
-                "used": False, "created_at": datetime.now(timezone.utc).isoformat()
-            }
-            await db.password_reset_tokens.insert_one(reset_record)
-            first_name = user.get("firstName", user.get("name", "User").split()[0] if user.get("name") else "User")
-            email_result = await send_password_reset_email(user["email"], first_name, reset_token)
-            if not email_result.get("success"):
-                logger.error(f"Failed to send password reset email: {email_result.get('error')}")
+        # Allow password reset for all users (JWT, Google, or any auth type)
+        reset_token = secrets.token_urlsafe(32)
+        expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
+        reset_record = {
+            "token_id": str(uuid.uuid4()), "user_id": user["user_id"],
+            "reset_token": reset_token, "expires_at": expires_at.isoformat(),
+            "used": False, "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.password_reset_tokens.insert_one(reset_record)
+        first_name = user.get("firstName", user.get("name", "User").split()[0] if user.get("name") else "User")
+        email_result = await send_password_reset_email(user["email"], first_name, reset_token)
+        if not email_result.get("success"):
+            logger.error(f"Failed to send password reset email: {email_result.get('error')}")
     return {"message": success_message}
 
 
@@ -586,7 +586,7 @@ async def reset_password(request: ResetPasswordRequest):
     if not user:
         raise HTTPException(status_code=400, detail="User not found")
 
-    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"password_hash": hash_password(request.new_password)}})
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"password_hash": hash_password(request.new_password), "has_password": True}})
     await db.password_reset_tokens.update_one({"reset_token": request.token}, {"$set": {"used": True}})
     await db.user_sessions.delete_many({"user_id": user["user_id"]})
 
@@ -762,7 +762,7 @@ async def reset_password_otp(request: ResetPasswordOTPRequest):
     if not user:
         raise HTTPException(status_code=400, detail="User not found")
 
-    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"password_hash": hash_password(request.new_password)}})
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"password_hash": hash_password(request.new_password), "has_password": True}})
     await db.user_sessions.delete_many({"user_id": user["user_id"]})
 
     username = user.get("name", "User")

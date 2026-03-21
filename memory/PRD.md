@@ -160,6 +160,7 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 ## Test Reports
 - iteration_182: Signup OTP verification - backend 100% (13/13), frontend 100%
 - iteration_181: OTP email system - backend 100% (15/15), frontend 100% (all UI flows verified)
+- Bug fix: forgot-password skipped Google-auth users (auth_type filter removed - all users can now reset)
 - iteration_180: Family quick summary badge + email branding - backend 100% (7/7), frontend 100%
 - iteration_179: Family View data consistency fix - backend 100% (19/19 API tests), frontend 100% (6/6 pages)
 - iteration_177: Wizard form step structure revert - frontend 100% (all 6 forms: correct step counts, hidden type/category when locked, validation, save button on final step)
