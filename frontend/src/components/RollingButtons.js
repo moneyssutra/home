@@ -25,24 +25,13 @@ const BUTTON_GROUPS = [
     shimmerDelay: "0s",
   },
   {
-    id: "grow",
-    items: [
-      { label: "Invest", icon: LineChart, route: "/my-investments", color: "#8B5CF6" },
-      { label: "Assets", icon: Building2, route: "/my-assets", color: "#3B82F6" },
-      { label: "Loans", icon: HandCoins, route: "/my-investments", color: "#F59E0B" },
-      { label: "Insure", icon: Shield, route: "/my-insurance", color: "#10B981" },
-    ],
-    interval: 3200,
-    shimmerDelay: "1.3s",
-  },
-  {
     id: "plan",
     items: [
       { label: "Bank Balance", icon: Landmark, route: "/bank-accounts-experimental", color: "#3B82F6" },
       { label: "Check your balance", icon: Landmark, route: "/bank-accounts-experimental", color: "#3B82F6" },
     ],
     interval: 3600,
-    shimmerDelay: "2.6s",
+    shimmerDelay: "1.3s",
   },
 ];
 
