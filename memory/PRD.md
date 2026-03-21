@@ -121,7 +121,30 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Backend register endpoint checks `emailVerificationToken` - rejects unverified emails
 - Tested: iteration_182 - 13/13 backend tests, all frontend UI flows verified
 
-### Rule-Based Financial Insights Engine (Mar 2026)
+### Dashboard Family View Counts Fix (Mar 2026)
+- Fixed bug where toggling to "Family View" showed 0 for all top-level counts (assetCount, investmentCount, accountCount, etc.)
+- Root cause: `/api/family/combined-summary` wasn't returning count fields; `Dashboard.js` `fetchFamilyDashboard` wasn't mapping them
+- Added 6 count fields to `family.py` combined-summary response
+- Updated `Dashboard.js` family data mapping to include assetCount, investmentCount, accountCount, loanCount, creditCardCount
+
+### Auth Page Logo Fix (Mar 2026)
+- Added `<LogoFull />` component to ForgotPassword.js (replacing Wallet icon placeholder)
+- Added `<LogoFull />` component to ResetPassword.js (all 3 states: error, success, form)
+- Consistent branding across all auth pages
+
+### MPIN Change in Settings (Mar 2026)
+- New backend endpoints: `/api/mpin/change`, `/api/mpin/send-change-otp`, `/api/mpin/change-with-otp`
+- Change flow: Enter current MPIN → if correct → enter new MPIN → confirm → done
+- Forgot flow: "Forgot MPIN?" → send OTP to email → verify OTP → enter new MPIN → confirm → done
+- SecuritySettings.js rewritten with 3 modes: setup, change, otp
+- Rate limited: 30s OTP cooldown, 3 attempts per OTP, 5-minute expiry
+
+### Twilio SMS Integration (Mar 2026)
+- Created `sms_service.py` with config-driven `send_sms_otp(phone, otp)` utility
+- Unified `send_otp(identifier, otp)` dispatcher: email→Resend, phone→Twilio
+- Disabled by default (`ENABLE_SMS_OTP=false`), activate via env flag after DLT registration
+- Twilio SDK installed, credentials in `.env` (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER)
+- Proper error handling for disabled state, invalid format, Twilio API failures
 - Replaced AI/GPT-based ai_insights.py with deterministic rule engine
 - 10 financial rules: expense ratio, savings rate, emergency fund, investments, debt burden, insurance gaps, credit utilization, loan exposure, overall health
 - Financial Level System: 5 levels (Survival → Stability → Security → Growth → Freedom) with 0-100 score
@@ -154,7 +177,6 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 
 ### P0
 - Implement "Financial Level" System (USP/Top Priority)
-- Twilio Credentials for SMS/WhatsApp (currently MOCKED)
 
 ### P1
 - Backend Refactoring Phase 2: Pydantic validation sweep, naming conventions, remove DB calls in loops
@@ -164,6 +186,8 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 ### P2
 - Redis caching for dashboard + Pagination for lists
 - Auto AI goal images, Monthly summary email/notification
+- Biometric WebAuthn (Phase 2)
+- Device Trust mapping (skip OTP for trusted devices)
 - Refactoring: `ProfileSetup.js` (>1500 lines), `Dashboard.js` (>700 lines)
 
 ## Test Reports
