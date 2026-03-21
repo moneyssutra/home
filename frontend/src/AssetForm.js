@@ -390,10 +390,11 @@ const AssetForm = () => {
   // Handle back navigation
   const handleBack = () => {
     if (location.state?.fromLoanFlow && location.state?.loanFormData) {
-      // Return to loan form with preserved data
       navigate(location.state.returnTo || '/loan', {
         state: { loanFormData: location.state.loanFormData }
       });
+    } else if (window.history.length > 2) {
+      navigate(-1);
     } else {
       navigate("/my-assets");
     }

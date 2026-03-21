@@ -1,5 +1,8 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { ArrowLeft, Landmark, BarChart3, TrendingUp, Coins, Shield, Gem, Bitcoin, Banknote, PiggyBank, CircleDollarSign, HandCoins, Layers, BarChart, Wallet } from "lucide-react";
+import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 
 const investmentTypes = [
   { key: "Fixed Deposit (FD)", label: "Fixed Deposit (FD)", desc: "Bank FDs with fixed returns", icon: Landmark, color: "#3B82F6", bg: "#EFF6FF" },
@@ -25,12 +28,13 @@ const investmentTypes = [
 
 const AddInvestment = () => {
   const navigate = useNavigate();
+  const [showAddSheet, setShowAddSheet] = useState(false);
 
   return (
-    <div className="min-h-screen pb-8" style={{ backgroundColor: "var(--bg-app)" }} data-testid="add-investment-page">
+    <div className="min-h-screen pb-24" style={{ backgroundColor: "var(--bg-app)" }} data-testid="add-investment-page">
       <header className="px-6 pt-6 pb-4">
         <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate("/my-investments")} className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="back-btn">
+          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="back-btn">
             <ArrowLeft className="h-4 w-4" style={{ color: "var(--text-primary)" }} />
           </button>
           <div>
@@ -65,6 +69,8 @@ const AddInvestment = () => {
           );
         })}
       </div>
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };
