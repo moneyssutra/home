@@ -179,15 +179,91 @@ export function useIntelligenceData() {
       return;
     }
     if (!isPersonalView) {
-      const clock = buildSurvivalClock(0, 0, 0, 0, 0);
-      setSurvivalClock(clock);
-      setControlScore({ overallScore: 0, phase: 0, modules: [] });
-      setGamification({ level: 0, xp: 0, achievements: [], activeChallenges: [], allAchievements: [] });
-      setBehaviorAlerts(null);
-      setChallenges({ active: [], available: [], completed: [] });
-      setMoneyPattern(null);
-      setFutureYou(null);
-      setPersonalityHistory(null);
+      // Individual family member view — fetch their specific data
+      setLoading(true);
+      try {
+        const res = await axios.get(`${backendUrl}/api/family/member/${activeViewId}/summary`, { withCredentials: true });
+        const s = res.data.summary || {};
+        const monthlyIncome = s.monthlyIncome || 0;
+        const monthlyExpenses = s.monthlyExpenses || 0;
+        const liquidBalance = s.liquidBalance || 0;
+        const totalInvestments = s.totalInvestments || 0;
+        const netWorth = s.netWorth || 0;
+        const totalEMI = s.totalEMI || 0;
+        const effectiveFunds = s.effectiveFunds || liquidBalance;
+        const survivalDays = s.survivalDays || (monthlyExpenses > 0 ? Math.round(effectiveFunds / (monthlyExpenses / 30)) : 0);
+        const savingsRate = s.savingsRate || (monthlyIncome > 0 ? Math.round(((monthlyIncome - monthlyExpenses) / monthlyIncome) * 100) : 0);
+
+        const clock = buildSurvivalClock(survivalDays, effectiveFunds, monthlyExpenses, liquidBalance, netWorth);
+        clock.monthlyIncome = monthlyIncome;
+
+        // Calculate Financial Score with breakdown
+        const emiRatio = monthlyIncome > 0 ? (totalEMI / monthlyIncome) * 100 : 0;
+        const emergencyMonths = monthlyExpenses > 0 ? effectiveFunds / monthlyExpenses : 0;
+
+        const sr = savingsRate;
+        const srScore = sr >= 35 ? 25 : sr >= 30 ? 22 : sr >= 25 ? 20 : sr >= 20 ? 17 : sr >= 15 ? 14 : sr >= 10 ? 10 : sr >= 5 ? 6 : 0;
+        const emiScore = emiRatio <= 20 ? 25 : emiRatio <= 25 ? 22 : emiRatio <= 30 ? 20 : emiRatio <= 40 ? 15 : emiRatio <= 50 ? 10 : emiRatio <= 60 ? 5 : 0;
+        const bufferScore = emergencyMonths >= 8 ? 25 : emergencyMonths >= 6 ? 22 : emergencyMonths >= 4 ? 18 : emergencyMonths >= 3 ? 14 : emergencyMonths >= 2 ? 10 : emergencyMonths >= 1 ? 5 : 0;
+        const consistencyScore = 18;
+        const finalScore = srScore + emiScore + bufferScore + consistencyScore;
+        const grade = finalScore >= 85 ? "A+" : finalScore >= 75 ? "A" : finalScore >= 65 ? "B+" : finalScore >= 55 ? "B" : finalScore >= 45 ? "C" : finalScore >= 35 ? "D" : "F";
+
+        const controlScoreData = {
+          finalScore, score: finalScore, grade,
+          phase: finalScore >= 60 ? 3 : finalScore >= 30 ? 2 : 1,
+          metrics: { monthlyIncome, totalEMI, savingsRate: sr, effectiveFunds, monthlyExpenses, emergencyMonths: Math.round(emergencyMonths * 10) / 10 },
+          breakdown: {
+            savingsRate: { label: "Savings Rate", score: srScore, max: 25 },
+            emiLoad: { label: "EMI Load", score: emiScore, max: 25 },
+            safetyBuffer: { label: "Safety Buffer", score: bufferScore, max: 25 },
+            incomeConsistency: { label: "Income Consistency", score: consistencyScore, max: 25 },
+          },
+          modules: []
+        };
+
+        // Money Personality
+        const spendRatio = monthlyIncome > 0 ? (monthlyExpenses / monthlyIncome) * 100 : 100;
+        const needsRatio = Math.min(50, spendRatio * 0.5);
+        const wantsRatio = Math.max(0, spendRatio - needsRatio);
+        const emiPct = emiRatio;
+
+        let personalityId, personality, zone;
+        if (sr >= 40 && emergencyMonths >= 6) { personalityId = 13; personality = "Wealth Builder"; zone = "Growth"; }
+        else if (sr >= 30 && emergencyMonths >= 4) { personalityId = 9; personality = "Structured Controller"; zone = "Control"; }
+        else if (sr >= 20 && emergencyMonths >= 2) { personalityId = 6; personality = "Buffer Builder"; zone = "Stabilizing"; }
+        else if (sr >= 10) { personalityId = 5; personality = "Recovering Planner"; zone = "Stabilizing"; }
+        else if (emiRatio > 40) { personalityId = 3; personality = "EMI Trapped"; zone = "Survival"; }
+        else { personalityId = 2; personality = "Drifter"; zone = "Survival"; }
+
+        const confidence = Math.min(95, Math.max(40, Math.round(sr * 1.2 + emergencyMonths * 5)));
+
+        setSurvivalClock(clock);
+        setControlScore(controlScoreData);
+        setGamification({ level: Math.min(Math.floor(survivalDays / 30), 20), xp: survivalDays * 10, achievements: [], activeChallenges: [], allAchievements: [] });
+        setChallenges({ active: [], available: [], completed: [] });
+        setBehaviorAlerts(null);
+        setMoneyPattern({
+          personality, personalityId, zone, confidence,
+          tagline: `Financial profile based on ${Math.round(sr)}% savings rate and ${Math.round(emergencyMonths * 10) / 10} months emergency buffer.`,
+          secondary: null, dominantTrait: personality,
+          spendingDNA: { needs: Math.round(needsRatio), wants: Math.round(wantsRatio), savings: Math.round(sr), emi: Math.round(emiPct) },
+          metrics: { survival: survivalDays, score: finalScore, savings: Math.round(sr), debt: Math.round(emiRatio) },
+        });
+        setFutureYou(null);
+        setPersonalityHistory(null);
+      } catch (e) {
+        console.error("Failed to fetch member health data:", e);
+        const clock = buildSurvivalClock(0, 0, 0, 0, 0);
+        setSurvivalClock(clock);
+        setControlScore({ overallScore: 0, phase: 0, modules: [] });
+        setGamification({ level: 0, xp: 0, achievements: [], activeChallenges: [], allAchievements: [] });
+        setBehaviorAlerts(null);
+        setChallenges({ active: [], available: [], completed: [] });
+        setMoneyPattern(null);
+        setFutureYou(null);
+        setPersonalityHistory(null);
+      }
       setLoading(false);
       return;
     }

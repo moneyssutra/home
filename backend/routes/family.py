@@ -359,6 +359,8 @@ async def join_family(invite_code: str, request: Request):
 @router.get("/member/{member_id}/summary")
 async def get_member_summary(member_id: str, request: Request):
     """Get financial summary for a specific family member."""
+    from routes.utils import get_user_now
+
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -381,30 +383,65 @@ async def get_member_summary(member_id: str, request: Request):
 
     # Fetch member's financial data
     filter_key = {"userId": member_id}
-    income = await db.income_sources.find(filter_key, {"_id": 0}).to_list(1000)
-    expenses = await db.expenses.find(filter_key, {"_id": 0}).to_list(1000)
-    investments = await db.investments.find(filter_key, {"_id": 0}).to_list(1000)
-    assets = await db.assets.find(filter_key, {"_id": 0}).to_list(1000)
-    loans = await db.loans.find(filter_key, {"_id": 0}).to_list(1000)
-    accounts = await db.accounts.find(filter_key, {"_id": 0}).to_list(1000)
 
-    total_income = sum(i.get("expectedAmount", 0) for i in income)
-    total_expenses = sum(e.get("expectedAmount", 0) for e in expenses)
+    import asyncio
+    income_t = db.income_sources.find(filter_key, {"_id": 0}).to_list(1000)
+    expenses_t = db.expenses.find(filter_key, {"_id": 0}).to_list(1000)
+    investments_t = db.investments.find(filter_key, {"_id": 0}).to_list(1000)
+    assets_t = db.assets.find(filter_key, {"_id": 0}).to_list(1000)
+    loans_t = db.loans.find(filter_key, {"_id": 0}).to_list(1000)
+    accounts_t = db.accounts.find(filter_key, {"_id": 0}).to_list(1000)
+    insurances_t = db.insurances.find(filter_key, {"_id": 0}).to_list(1000)
+
+    income, expenses, investments, assets, loans, accounts, insurances = await asyncio.gather(
+        income_t, expenses_t, investments_t, assets_t, loans_t, accounts_t, insurances_t
+    )
+
+    # Frequency-normalized monthly values
+    freq_map = {"Daily": 30, "Weekly": 4, "Monthly": 1, "Quarterly": 1/3, "Half-Yearly": 1/6, "Yearly": 1/12}
+    monthly_income = sum(
+        (inc.get("expectedAmount", 0) or 0) * freq_map.get(inc.get("frequency", "Monthly"), 1)
+        for inc in income
+    )
+    monthly_expenses = sum(
+        (exp.get("expectedAmount", 0) or 0) * freq_map.get(exp.get("frequency", "Monthly"), 1)
+        for exp in expenses
+    )
+
     total_investments = sum(i.get("currentValue", 0) for i in investments)
     total_assets = sum(a.get("currentValue", 0) for a in assets)
     total_loans = sum(ln.get("outstandingAmount", 0) for ln in loans)
-    total_liquid = sum(a.get("currentBalance", 0) for a in accounts)
+    liquid_balance = sum(a.get("currentBalance", 0) for a in accounts)
+    total_emi = sum(ln.get("emiAmount", 0) for ln in loans)
+
+    # Semi-liquid investments (MF, FD, RD - 60% accessible)
+    semi_liquid_value = sum(
+        i.get("currentValue", 0) for i in investments
+        if i.get("investmentCategory", "").lower() in ("mutual fund", "fixed deposit", "fd", "recurring deposit", "rd")
+    )
+    effective_funds = liquid_balance + (semi_liquid_value * 0.6)
+
+    # Survival calculation
+    daily_burn = monthly_expenses / 30 if monthly_expenses > 0 else 0
+    survival_days = int(effective_funds / daily_burn) if daily_burn > 0 else 0
+    savings_rate = round(((monthly_income - monthly_expenses) / monthly_income * 100), 1) if monthly_income > 0 else 0
+
+    net_worth = total_assets + total_investments + liquid_balance - total_loans
 
     return {
         "member": member,
         "summary": {
-            "monthlyIncome": total_income,
-            "monthlyExpenses": total_expenses,
+            "monthlyIncome": round(monthly_income, 2),
+            "monthlyExpenses": round(monthly_expenses, 2),
             "totalInvestments": total_investments,
             "totalAssets": total_assets,
             "totalLoans": total_loans,
-            "liquidBalance": total_liquid,
-            "netWorth": total_assets + total_investments + total_liquid - total_loans,
+            "totalEMI": total_emi,
+            "liquidBalance": liquid_balance,
+            "effectiveFunds": round(effective_funds, 0),
+            "survivalDays": survival_days,
+            "savingsRate": savings_rate,
+            "netWorth": net_worth,
             "counts": {
                 "income": len(income),
                 "expenses": len(expenses),
@@ -412,6 +449,7 @@ async def get_member_summary(member_id: str, request: Request):
                 "assets": len(assets),
                 "loans": len(loans),
                 "accounts": len(accounts),
+                "insurances": len(insurances),
             }
         }
     }
