@@ -1,12 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Save, Trash2, AlertCircle, CalendarDays, ChevronDown, Gift, Award, TrendingUp, Wallet, RefreshCw, Banknote, Sparkles, ArrowLeftRight, ReceiptText, CheckCircle, PlusCircle } from "lucide-react";
+import { Save, Trash2, AlertCircle, CalendarDays, ChevronDown, Gift, Award, TrendingUp, Wallet, RefreshCw, Banknote, Sparkles, ArrowLeftRight, ReceiptText, CheckCircle, PlusCircle, ChevronRight, X, Check } from "lucide-react";
 import axios from "axios";
 import { mutate } from "swr";
-import BackButton from "@/components/BackButton";
-import AmountInput from "@/components/AmountInput";
+import WizardShell from "@/components/WizardShell";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -220,10 +219,7 @@ const OtherIncomeForm = () => {
     try {
       setSaving(true);
       await axios.delete(`${backendUrl}/api/other-income/${id}`);
-      
-      // Invalidate SWR cache
       await mutate((key) => typeof key === 'string' && key.includes('/api/other-income'), undefined, { revalidate: true });
-      
       navigate("/my-other-income");
     } catch (error) {
       console.error("Error deleting income:", error);
@@ -233,6 +229,30 @@ const OtherIncomeForm = () => {
       setShowDeleteConfirm(false);
     }
   };
+
+  // ─── WIZARD STEP MANAGEMENT ───
+  const TOTAL_STEPS = 3;
+  const [step, setStep] = useState(1);
+
+  const validateStep = (s) => {
+    if (s === 1) {
+      if (!formData.incomeName.trim()) { setError("Please enter income name."); return false; }
+      if (!formData.category) { setError("Please select a category."); return false; }
+      if (formData.category === "Other" && !formData.customCategory.trim()) { setError("Please enter custom category."); return false; }
+    }
+    if (s === 2) {
+      if (!formData.amount || parseFloat(formData.amount) <= 0) { setError("Please enter a valid amount."); return false; }
+      if (!formData.frequency) { setError("Please select a frequency."); return false; }
+    }
+    if (s === 3) {
+      // Schedule fields validated by existing validate logic on save
+    }
+    setError("");
+    return true;
+  };
+
+  const handleNext = () => { if (validateStep(step)) setStep(Math.min(step + 1, TOTAL_STEPS)); };
+  const handlePrev = () => { setError(""); setStep(Math.max(step - 1, 1)); };
 
   const getOrdinal = (n) => {
     const num = parseInt(n);
@@ -253,552 +273,329 @@ const OtherIncomeForm = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen honeycomb-bg pb-32" data-testid="other-income-form">
-      {/* Header */}
-      <header className="bg-gradient-to-br from-[#7C3AED] via-[#8B5CF6] to-[#6D28D9] px-6 pt-8 pb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <BackButton fallbackPath="/my-income" className="bg-white/20 border-white/30 text-white hover:bg-white/30" />
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
-            {isEdit ? "Edit Entry" : "Add Other Income"}
-          </h1>
-        </div>
-        <p className="text-white/60 text-sm ml-11">
-          Track non-recurring income like gifts, bonuses, and refunds
-        </p>
-      </header>
-
-      {/* Form */}
-      <div className="px-6 -mt-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
-          {/* Error Message */}
-          {error && (
-            <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-600 text-sm" data-testid="error-message">
-              <AlertCircle className="h-4 w-4 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Income Name */}
-          <div>
-            <label className="block text-sm font-medium text-[#334155] mb-2">
-              Income Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.incomeName}
-              onChange={(e) => handleChange("incomeName", e.target.value)}
-              placeholder="e.g., Birthday Gift, Annual Bonus"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all"
-              data-testid="income-name-input"
-            />
-          </div>
-
-          {/* Category Selection */}
-          <div>
-            <label className="block text-sm font-medium text-[#334155] mb-2">
-              Category <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {categories.map((cat) => {
-                const Icon = cat.icon;
-                const isSelected = formData.category === cat.value;
-                return (
-                  <button
-                    key={cat.value}
-                    type="button"
-                    onClick={() => handleChange("category", cat.value)}
-                    className={cn(
-                      "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
-                      isSelected ? cat.color + " border-current" : "bg-[#1E293B] border-transparent hover:border-gray-200"
-                    )}
-                    data-testid={`category-${cat.value.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span className="text-xs font-medium text-center leading-tight">{cat.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Custom Category Input (when "Other" selected) */}
-          {formData.category === "Other" && (
-            <div>
-              <label className="block text-sm font-medium text-[#334155] mb-2">
-                Custom Category Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.customCategory}
-                onChange={(e) => handleChange("customCategory", e.target.value)}
-                placeholder="Enter custom category"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all"
-                data-testid="custom-category-input"
-              />
-            </div>
-          )}
-
-          {/* Amount */}
-          <AmountInput
-            label="Amount"
-            value={formData.amount}
-            onChange={(value) => handleChange("amount", value)}
-            required
-            testId="amount-input"
-          />
-
-          {/* Frequency */}
-          <div>
-            <label className="block text-sm font-medium text-[#334155] mb-2">
-              Frequency <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <select
-                value={formData.frequency}
-                onChange={(e) => handleChange("frequency", e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-[#1E293B]"
-                data-testid="frequency-select"
-              >
-                {frequencies.map((freq) => (
-                  <option key={freq} value={freq}>{freq}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-
-          {/* Conditional Fields Based on Frequency */}
-          <div ref={conditionalRef}>
-            {/* One-Time / Irregular: Date Picker */}
-            {(formData.frequency === "One-Time" || formData.frequency === "Irregular") && (
-              <div>
-                <label className="block text-sm font-medium text-[#334155] mb-2">
-                  Date Received
-                </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal h-12 rounded-xl border-gray-200",
-                        !formData.dateReceived && "text-muted-foreground"
-                      )}
-                      data-testid="date-received-picker"
-                    >
-                      <CalendarDays className="mr-2 h-4 w-4" />
-                      {formData.dateReceived ? format(formData.dateReceived, "PPP") : "Select date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.dateReceived}
-                      onSelect={(date) => handleChange("dateReceived", date)}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
-
-            {/* Weekly: Day of Week */}
-            {formData.frequency === "Weekly" && (
-              <div>
-                <label className="block text-sm font-medium text-[#334155] mb-2">
-                  Day of Week
-                </label>
-                <div className="relative">
-                  <select
-                    value={formData.selectedDay}
-                    onChange={(e) => handleChange("selectedDay", e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-white"
-                    data-testid="weekly-day-select"
-                  >
-                    <option value="">Select day</option>
-                    {days.map((day) => (
-                      <option key={day} value={day}>{day}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
-            )}
-
-            {/* Monthly: Day of Month */}
-            {formData.frequency === "Monthly" && (
-              <div>
-                <label className="block text-sm font-medium text-[#334155] mb-2">
-                  Day of Month
-                </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal h-12 rounded-xl border-gray-200",
-                        !formData.selectedDate && "text-muted-foreground"
-                      )}
-                      data-testid="monthly-date-picker"
-                    >
-                      <CalendarDays className="mr-2 h-4 w-4" />
-                      {formData.selectedDate ? `${formData.selectedDate}${getOrdinal(formData.selectedDate)} of every month` : "Select day"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.selectedDate ? new Date(2024, 0, parseInt(formData.selectedDate)) : undefined}
-                      onSelect={(date) => date && handleChange("selectedDate", String(date.getDate()))}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
-
-            {/* Quarterly: Quarter + Day */}
-            {formData.frequency === "Quarterly" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#334155] mb-2">
-                    Quarter
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={formData.selectedQuarter}
-                      onChange={(e) => handleChange("selectedQuarter", e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-[#1E293B]"
-                      data-testid="quarter-select"
-                    >
-                      <option value="">Select quarter</option>
-                      {quarters.map((q) => (
-                        <option key={q} value={q}>{q}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#334155] mb-2">
-                    Day of Quarter Start Month
-                  </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal h-12 rounded-xl border-gray-200",
-                          !formData.selectedDate && "text-muted-foreground"
-                        )}
-                        data-testid="quarterly-date-picker"
-                      >
-                        <CalendarDays className="mr-2 h-4 w-4" />
-                        {formData.selectedDate ? `${formData.selectedDate}${getOrdinal(formData.selectedDate)}` : "Select day"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={formData.selectedDate ? new Date(2024, 0, parseInt(formData.selectedDate)) : undefined}
-                        onSelect={(date) => date && handleChange("selectedDate", String(date.getDate()))}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            )}
-
-            {/* Half-Yearly: Half + Month + Day */}
-            {formData.frequency === "Half-Yearly" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#334155] mb-2">
-                    Select Half
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={formData.selectedHalf}
-                      onChange={(e) => handleChange("selectedHalf", e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-white"
-                      data-testid="half-select"
-                    >
-                      <option value="">Select half</option>
-                      {halves.map((h) => (
-                        <option key={h.id} value={h.label}>{h.label}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#334155] mb-2">
-                    Day of Month
-                  </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal h-12 rounded-xl border-gray-200",
-                          !formData.selectedDate && "text-muted-foreground"
-                        )}
-                        data-testid="half-yearly-date-picker"
-                      >
-                        <CalendarDays className="mr-2 h-4 w-4" />
-                        {formData.selectedDate ? `${formData.selectedDate}${getOrdinal(formData.selectedDate)}` : "Select day"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={formData.selectedDate ? new Date(2024, 0, parseInt(formData.selectedDate)) : undefined}
-                        onSelect={(date) => date && handleChange("selectedDate", String(date.getDate()))}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            )}
-
-            {/* Yearly: Month + Day */}
-            {formData.frequency === "Yearly" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-[#334155] mb-2">
-                    Month
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={formData.selectedMonth}
-                      onChange={(e) => handleChange("selectedMonth", e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all appearance-none bg-[#1E293B]"
-                      data-testid="month-select"
-                    >
-                      <option value="">Select month</option>
-                      {months.map((m) => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-[#334155] mb-2">
-                    Day of Month
-                  </label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal h-12 rounded-xl border-gray-200",
-                          !formData.selectedDate && "text-muted-foreground"
-                        )}
-                        data-testid="yearly-date-picker"
-                      >
-                        <CalendarDays className="mr-2 h-4 w-4" />
-                        {formData.selectedDate ? `${formData.selectedDate}${getOrdinal(formData.selectedDate)}` : "Select day"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={formData.selectedDate ? new Date(2024, 0, parseInt(formData.selectedDate)) : undefined}
-                        onSelect={(date) => date && handleChange("selectedDate", String(date.getDate()))}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Is Received Toggle */}
-          <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
-            <div className="flex items-center gap-3">
-              <CheckCircle className={cn("h-5 w-5", formData.isReceived ? "text-emerald-500" : "text-gray-400")} />
-              <div>
-                <p className="font-medium" style={{ color: "var(--text-primary)" }}>Already Received?</p>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Mark if you've already received this income</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => handleChange("isReceived", !formData.isReceived)}
-              className={cn(
-                "w-12 h-7 rounded-full transition-colors relative",
-                formData.isReceived ? "bg-emerald-500" : "bg-gray-300"
-              )}
-              data-testid="is-received-toggle"
-            >
-              <span
-                className={cn(
-                  "absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform",
-                  formData.isReceived ? "translate-x-6" : "translate-x-1"
+  // ─── STEP CONTENT ───
+  const step1Content = (
+    <div className="space-y-6" data-testid="step-1-details">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Income Details</p>
+        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>What kind of income is this?</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Income Name</label>
+        <input type="text" value={formData.incomeName} onChange={(e) => handleChange("incomeName", e.target.value)}
+          placeholder="e.g., Birthday Gift, Annual Bonus"
+          className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
+          style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+          data-testid="income-name-input" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Category</label>
+        <div className="grid grid-cols-3 gap-2">
+          {categories.map((cat) => {
+            const Icon = cat.icon;
+            const isSelected = formData.category === cat.value;
+            return (
+              <button key={cat.value} type="button" onClick={() => handleChange("category", cat.value)}
+                className={cn("flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
+                  isSelected ? cat.color + " border-current" : "border-transparent hover:border-gray-200"
                 )}
-              />
-            </button>
-          </div>
-
-          {/* Start Date (optional) */}
-          <div>
-            <label className="block text-sm font-medium text-[#334155] mb-2">
-              Start Date <span className="text-xs text-[#94A3B8] font-normal">(optional)</span>
-            </label>
-            <input
-              type="date"
-              value={formData.startDate}
-              onChange={(e) => handleChange("startDate", e.target.value)}
-              className="w-full rounded-xl border px-4 py-3 text-[#334155] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-              style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)" }}
-              data-testid="start-date-input"
-            />
-            <p className="text-xs text-[#94A3B8] mt-1">When did this income source start? Helps track received vs pending accurately.</p>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-[#334155] mb-2">
-              Notes (Optional)
-            </label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => handleChange("notes", e.target.value)}
-              placeholder="Add any additional details..."
-              rows={3}
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/20 outline-none transition-all resize-none"
-              data-testid="notes-input"
-            />
-          </div>
-
-          {/* Income Ledger Section - Only shown in Edit Mode */}
-          {isEdit && (
-            <div className="mt-6 p-4 rounded-xl bg-[#00D09C]/5 border border-[#00D09C]/20">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="font-medium text-[#334155]">Income Ledger</h3>
-                  <p className="text-xs text-[#64748B] mt-0.5">Track your earnings</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowIncomeModal(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00D09C] text-white text-sm font-medium hover:bg-[#00B88A] transition-colors"
-                  data-testid="add-todays-income-btn"
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  Add Today's Income
-                </button>
-              </div>
-              
-              {/* Transaction History Panel (Ledger) */}
-              <TransactionHistoryPanel
-                key={transactionRefreshKey}
-                entityId={id}
-                entityType="income"
-                fetchHistory={getIncomeTransactionHistory}
-                deleteTransaction={deleteIncomeTransaction}
-                onTransactionDeleted={() => setTransactionRefreshKey(k => k + 1)}
-                onEditTransaction={(txn) => {
-                  setEditingTransaction(txn);
-                  setShowRecordModal(true);
-                }}
-              />
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            {isEdit && (
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={saving}
-                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-red-200 text-red-600 font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
-                data-testid="delete-btn"
-              >
-                <Trash2 className="h-5 w-5" />
+                style={!isSelected ? { backgroundColor: "var(--bg-subtle)" } : {}}
+                data-testid={`category-${cat.value.toLowerCase().replace(/[^a-z0-9]/g, "-")}`}>
+                <Icon className="h-5 w-5" />
+                <span className="text-xs font-medium text-center leading-tight">{cat.label}</span>
               </button>
-            )}
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={saving}
-              className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#7C3AED] text-white font-semibold hover:bg-[#6D28D9] transition-colors disabled:opacity-50"
-              data-testid="save-btn"
-            >
-              {saving ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Save className="h-5 w-5" />
-                  {isEdit ? "Update" : "Save"}
-                </>
-              )}
-            </button>
-          </div>
+            );
+          })}
         </div>
       </div>
+      {formData.category === "Other" && (
+        <div>
+          <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Custom Category Name</label>
+          <input type="text" value={formData.customCategory} onChange={(e) => handleChange("customCategory", e.target.value)}
+            placeholder="Enter custom category"
+            className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
+            style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+            data-testid="custom-category-input" />
+        </div>
+      )}
+    </div>
+  );
 
-      {/* Delete Confirmation Modal */}
+  const step2Content = (
+    <div className="space-y-6" data-testid="step-2-amount">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>How much & how often?</p>
+        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Set the amount and frequency</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Amount</label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium" style={{ color: "var(--text-primary)" }}>₹</span>
+          <input type="text" value={formData.amount}
+            onChange={(e) => handleChange("amount", e.target.value.replace(/[^0-9]/g, ""))}
+            placeholder="0"
+            className="w-full rounded-xl border pl-10 pr-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
+            style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+            data-testid="amount-input" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-3" style={{ color: "var(--text-primary)" }}>Frequency</label>
+        <div className="grid grid-cols-2 gap-2">
+          {frequencies.map((freq) => (
+            <button key={freq} type="button" onClick={() => handleChange("frequency", freq)}
+              className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all active:scale-[0.97] ${formData.frequency === freq ? "border-[#7C3AED] bg-[#7C3AED]/10 text-[#7C3AED] ring-1 ring-[#7C3AED]/30" : ""}`}
+              style={formData.frequency !== freq ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+              data-testid={`freq-${freq.toLowerCase().replace(/\s+/g, '-')}`}>{freq}</button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+        <div className="flex items-center gap-3">
+          <CheckCircle className={cn("h-5 w-5", formData.isReceived ? "text-emerald-500" : "text-gray-400")} />
+          <div>
+            <p className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>Already Received?</p>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Mark if you've already received this income</p>
+          </div>
+        </div>
+        <button type="button" onClick={() => handleChange("isReceived", !formData.isReceived)}
+          className={cn("w-12 h-7 rounded-full transition-colors relative", formData.isReceived ? "bg-emerald-500" : "bg-gray-300")}
+          data-testid="is-received-toggle">
+          <span className={cn("absolute top-1 w-5 h-5 rounded-full bg-white shadow transition-transform", formData.isReceived ? "translate-x-6" : "translate-x-1")} />
+        </button>
+      </div>
+    </div>
+  );
+
+  const step3Content = (
+    <div className="space-y-6" data-testid="step-3-schedule">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Schedule & Notes</p>
+        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Additional details</p>
+      </div>
+      <div ref={conditionalRef}>
+        {(formData.frequency === "One-Time" || formData.frequency === "Irregular") && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Date Received</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-12 rounded-xl", !formData.dateReceived && "text-muted-foreground")} data-testid="date-received-picker">
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  {formData.dateReceived ? format(formData.dateReceived, "PPP") : "Select date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComp mode="single" selected={formData.dateReceived} onSelect={(date) => handleChange("dateReceived", date)} initialFocus />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+        {formData.frequency === "Weekly" && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Day of Week</label>
+            <div className="grid grid-cols-2 gap-2">
+              {days.map((day) => (
+                <button key={day} type="button" onClick={() => handleChange("selectedDay", day)}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${formData.selectedDay === day ? "border-[#7C3AED] bg-[#7C3AED]/10 text-[#7C3AED]" : ""}`}
+                  style={formData.selectedDay !== day ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+                  data-testid={`weekly-day-${day.toLowerCase()}`}>{day}</button>
+              ))}
+            </div>
+          </div>
+        )}
+        {formData.frequency === "Monthly" && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Day of Month</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-12 rounded-xl", !formData.selectedDate && "text-muted-foreground")} data-testid="monthly-date-picker">
+                  <CalendarDays className="mr-2 h-4 w-4" />
+                  {formData.selectedDate ? `${formData.selectedDate}${getOrdinal(formData.selectedDate)} of every month` : "Select day"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComp mode="single" selected={formData.selectedDate ? new Date(2024, 0, parseInt(formData.selectedDate)) : undefined}
+                  onSelect={(date) => date && handleChange("selectedDate", String(date.getDate()))} initialFocus />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+        {formData.frequency === "Quarterly" && (
+          <div className="space-y-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Quarter</label>
+              <div className="grid grid-cols-2 gap-2">
+                {quarters.map((q) => (
+                  <button key={q} type="button" onClick={() => handleChange("selectedQuarter", q)}
+                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${formData.selectedQuarter === q ? "border-[#7C3AED] bg-[#7C3AED]/10 text-[#7C3AED]" : ""}`}
+                    style={formData.selectedQuarter !== q ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+                    data-testid={`quarter-${q.replace(/\s/g, '-')}`}>{q}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Day of Quarter Start Month</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-12 rounded-xl", !formData.selectedDate && "text-muted-foreground")} data-testid="quarterly-date-picker">
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    {formData.selectedDate ? `${formData.selectedDate}${getOrdinal(formData.selectedDate)}` : "Select day"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComp mode="single" selected={formData.selectedDate ? new Date(2024, 0, parseInt(formData.selectedDate)) : undefined}
+                    onSelect={(date) => date && handleChange("selectedDate", String(date.getDate()))} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        )}
+        {formData.frequency === "Half-Yearly" && (
+          <div className="space-y-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Half</label>
+              <div className="grid grid-cols-2 gap-2">
+                {halves.map((h) => (
+                  <button key={h.id} type="button" onClick={() => handleChange("selectedHalf", h.label)}
+                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${formData.selectedHalf === h.label ? "border-[#7C3AED] bg-[#7C3AED]/10 text-[#7C3AED]" : ""}`}
+                    style={formData.selectedHalf !== h.label ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+                    data-testid={`half-${h.id}`}>{h.label}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Day of Month</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-12 rounded-xl", !formData.selectedDate && "text-muted-foreground")} data-testid="half-yearly-date-picker">
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    {formData.selectedDate ? `${formData.selectedDate}${getOrdinal(formData.selectedDate)}` : "Select day"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComp mode="single" selected={formData.selectedDate ? new Date(2024, 0, parseInt(formData.selectedDate)) : undefined}
+                    onSelect={(date) => date && handleChange("selectedDate", String(date.getDate()))} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        )}
+        {formData.frequency === "Yearly" && (
+          <div className="space-y-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Month</label>
+              <div className="grid grid-cols-3 gap-2">
+                {months.map((m) => (
+                  <button key={m} type="button" onClick={() => handleChange("selectedMonth", m)}
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-all active:scale-[0.97] ${formData.selectedMonth === m ? "border-[#7C3AED] bg-[#7C3AED]/10 text-[#7C3AED]" : ""}`}
+                    style={formData.selectedMonth !== m ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+                    data-testid={`month-${m.toLowerCase().slice(0,3)}`}>{m.slice(0, 3)}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Day of Month</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-12 rounded-xl", !formData.selectedDate && "text-muted-foreground")} data-testid="yearly-date-picker">
+                    <CalendarDays className="mr-2 h-4 w-4" />
+                    {formData.selectedDate ? `${formData.selectedDate}${getOrdinal(formData.selectedDate)}` : "Select day"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComp mode="single" selected={formData.selectedDate ? new Date(2024, 0, parseInt(formData.selectedDate)) : undefined}
+                    onSelect={(date) => date && handleChange("selectedDate", String(date.getDate()))} initialFocus />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        )}
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Start Date <span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>(optional)</span></label>
+        <input type="date" value={formData.startDate} onChange={(e) => handleChange("startDate", e.target.value)}
+          className="w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20"
+          style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+          data-testid="start-date-input" />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Notes (Optional)</label>
+        <textarea value={formData.notes} onChange={(e) => handleChange("notes", e.target.value)}
+          placeholder="Add any additional details..." rows={3}
+          className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/20 resize-none"
+          style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+          data-testid="notes-input" />
+      </div>
+    </div>
+  );
+
+  const editModeContent = (
+    <div className="space-y-8" data-testid="other-income-edit-all-fields">
+      <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}><span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold text-[#7C3AED]">1</span>Details</h3>{step1Content}</div>
+      <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}><span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold text-[#7C3AED]">2</span>Amount</h3>{step2Content}</div>
+      <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}><span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold text-[#7C3AED]">3</span>Schedule</h3>{step3Content}</div>
+    </div>
+  );
+
+  const ledgerContent = isEdit ? (
+    <div className="mt-6 p-4 rounded-xl" style={{ backgroundColor: "#7C3AED08", border: "1px solid #7C3AED20" }}>
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h3 className="font-medium" style={{ color: "var(--text-primary)" }}>Income Ledger</h3>
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Track your earnings</p>
+        </div>
+        <button type="button" onClick={() => setShowIncomeModal(true)}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#7C3AED] text-white text-xs font-medium" data-testid="add-todays-income-btn">
+          <PlusCircle className="h-3.5 w-3.5" /> Add Income
+        </button>
+      </div>
+      <TransactionHistoryPanel key={transactionRefreshKey} entityId={id} entityType="income"
+        fetchHistory={getIncomeTransactionHistory} deleteTransaction={deleteIncomeTransaction}
+        onTransactionDeleted={() => setTransactionRefreshKey(k => k + 1)}
+        onEditTransaction={(txn) => { setEditingTransaction(txn); setShowRecordModal(true); }} />
+    </div>
+  ) : null;
+
+  const errorContent = error ? <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-600 text-sm mt-4"><AlertCircle className="h-4 w-4 shrink-0" /><span>{error}</span></div> : null;
+
+  const dialogContent = (
+    <>
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-6" data-testid="delete-modal">
-          <div className="bg-[#1E293B] rounded-2xl p-6 w-full max-w-sm">
-            <h3 className="text-lg font-bold text-[#334155] mb-2">Delete Entry?</h3>
-            <p className="text-[#334155]/60 text-sm mb-6">
-              This will permanently delete this income entry. This action cannot be undone.
-            </p>
+          <div className="rounded-2xl p-6 w-full max-w-sm" style={{ backgroundColor: "var(--bg-card)" }}>
+            <h3 className="text-lg font-bold mb-2" style={{ color: "var(--text-primary)" }}>Delete Entry?</h3>
+            <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>This will permanently delete this income entry. This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-[#334155] font-medium hover:bg-[#1E293B] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={saving}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
-                data-testid="confirm-delete-btn"
-              >
-                {saving ? "Deleting..." : "Delete"}
-              </button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 px-4 py-2.5 rounded-xl border font-medium" style={{ borderColor: "var(--border-light)", color: "var(--text-primary)" }}>Cancel</button>
+              <button onClick={handleDelete} disabled={saving} className="flex-1 px-4 py-2.5 rounded-xl bg-red-500 text-white font-medium disabled:opacity-50" data-testid="confirm-delete-btn">{saving ? "Deleting..." : "Delete"}</button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Income Amount Modal (for recording income) */}
-      <IncomeAmountModal
-        isOpen={showIncomeModal || showRecordModal}
-        onClose={() => {
-          setShowIncomeModal(false);
-          setShowRecordModal(false);
-          setEditingTransaction(null);
-        }}
-        entityId={id}
-        entityName={formData.incomeName}
-        expectedAmount={parseFloat(formData.amount) || 0}
+      <IncomeAmountModal isOpen={showIncomeModal || showRecordModal}
+        onClose={() => { setShowIncomeModal(false); setShowRecordModal(false); setEditingTransaction(null); }}
+        entityId={id} entityName={formData.incomeName} expectedAmount={parseFloat(formData.amount) || 0}
         editingTransaction={editingTransaction}
-        onSubmit={async (data) => {
-          await recordIncomeTransaction(data);
-          await dismissRelatedNotifications(id);
-          setTransactionRefreshKey(k => k + 1);
-        }}
-        onUpdate={async (data) => {
-          await updateIncomeTransaction(data.transactionId, {
-            amount: data.amount,
-            transactionDate: data.transactionDate
-          });
-          setTransactionRefreshKey(k => k + 1);
-        }}
-      />
+        onSubmit={async (data) => { await recordIncomeTransaction(data); await dismissRelatedNotifications(id); setTransactionRefreshKey(k => k + 1); }}
+        onUpdate={async (data) => { await updateIncomeTransaction(data.transactionId, { amount: data.amount, transactionDate: data.transactionDate }); setTransactionRefreshKey(k => k + 1); }} />
+    </>
+  );
 
-      {/* Bottom Navigation */}
-    </div>
+  return (
+    <WizardShell
+      title={isEdit ? "Edit Other Income" : "Add Other Income"}
+      step={step} totalSteps={TOTAL_STEPS}
+      onNext={handleNext} onPrev={handlePrev} onSave={handleSubmit}
+      onDelete={isEdit ? () => setShowDeleteConfirm(true) : undefined}
+      isEdit={isEdit} isSubmitting={saving} accentColor="#7C3AED"
+      editModeContent={editModeContent} ledgerContent={ledgerContent}
+      errorContent={errorContent} dialogContent={dialogContent}
+      onClose={() => navigate(-1)}
+    >
+      {step === 1 && step1Content}
+      {step === 2 && step2Content}
+      {step === 3 && step3Content}
+    </WizardShell>
   );
 };
 

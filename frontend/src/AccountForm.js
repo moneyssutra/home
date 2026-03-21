@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ChevronLeft, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
 import axios from "axios";
+import WizardShell from "@/components/WizardShell";
 import { numberToWords } from "@/lib/formatters";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { 
@@ -210,331 +211,210 @@ const AccountForm = () => {
 
   const isCreditCard = accountType === "Credit Card";
 
-  return (
-    <div className="min-h-screen honeycomb-bg flex flex-col" data-testid="account-form-page">
-      {/* Header */}
-      <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A]"
-          onClick={() => navigate("/my-accounts")}
-          data-testid="back-button"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <h1 className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#334155]" style={{ fontFamily: "'Manrope', sans-serif" }}>
-          {id ? "Edit Account" : "Add Account"}
-        </h1>
-        <div className="h-10 w-10" />
-      </header>
+  // ─── WIZARD STEP MANAGEMENT ───
+  const TOTAL_STEPS = 2;
+  const [step, setStep] = useState(1);
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto pb-48">
-        <div className="mx-auto w-full max-w-[620px] px-6">
-          <div className="space-y-6">
-            {/* Account Name */}
-            <div className="w-full">
-              <label htmlFor="accountName" className="block text-sm font-medium text-[#334155] mb-2">
-                Account Name
-              </label>
-              <input
-                id="accountName"
-                type="text"
-                value={accountName}
-                onChange={(e) => setAccountName(e.target.value)}
-                placeholder="e.g., HDFC Savings, Office Cash"
-                maxLength={50}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="account-name-input"
-              />
-              {errors.accountName && <p className="text-sm text-red-500 mt-1">{errors.accountName}</p>}
+  const validateStep = (s) => {
+    const newErrors = {};
+    if (s === 1) {
+      const nameError = validateTextField(accountName, "Account name", 50);
+      if (nameError) newErrors.accountName = nameError;
+      if (!accountType) newErrors.accountType = "Please select an account type.";
+    }
+    if (s === 2) {
+      if (isCreditCard) {
+        const limitError = validatePositiveAmount(creditLimit, "Credit limit");
+        if (limitError) newErrors.creditLimit = limitError;
+        if (outstandingAmount && parseFloat(outstandingAmount) < 0) newErrors.outstandingAmount = "Outstanding amount cannot be negative.";
+        else if (outstandingAmount && creditLimit) { const err = validateCreditCardOutstanding(outstandingAmount, creditLimit); if (err) newErrors.outstandingAmount = err; }
+      } else {
+        const balanceError = validateNonNegativeAmount(currentBalance, "Opening balance");
+        if (balanceError && currentBalance !== "") newErrors.currentBalance = balanceError;
+        else if (currentBalance === "") newErrors.currentBalance = "Opening balance is required.";
+      }
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) scrollToFirstError(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => { if (validateStep(step)) setStep(Math.min(step + 1, TOTAL_STEPS)); };
+  const handlePrev = () => setStep(Math.max(step - 1, 1));
+
+  // ─── STEP CONTENT ───
+  const step1Content = (
+    <div className="space-y-6" data-testid="step-1-info">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Account Info</p>
+        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Name and type of your account</p>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Account Name</label>
+        <input type="text" value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="e.g., HDFC Savings, Office Cash" maxLength={50}
+          className="w-full rounded-xl border px-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20"
+          style={{ backgroundColor: "var(--bg-subtle)", borderColor: errors.accountName ? "var(--status-error)" : "var(--border-light)", color: "var(--text-primary)" }}
+          data-testid="account-name-input" />
+        {errors.accountName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.accountName}</p>}
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-3" style={{ color: "var(--text-primary)" }}>Account Type</label>
+        <div className="grid grid-cols-2 gap-2">
+          {accountTypeOptions.map((opt) => (
+            <button key={opt} type="button" onClick={() => setAccountType(opt)}
+              className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all active:scale-[0.97] ${accountType === opt ? "border-[#3B82F6] bg-[#3B82F6]/10 text-[#3B82F6] ring-1 ring-[#3B82F6]/30" : ""}`}
+              style={accountType !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+              data-testid={`type-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
+          ))}
+        </div>
+        {errors.accountType && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.accountType}</p>}
+      </div>
+    </div>
+  );
+
+  const step2Content = (
+    <div className="space-y-6" data-testid="step-2-balance">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>{isCreditCard ? "Card Details" : "Balance & Details"}</p>
+        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{isCreditCard ? "Credit card specifics" : "Set balance and preferences"}</p>
+      </div>
+      {isCreditCard ? (
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Credit Limit</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium" style={{ color: "var(--text-primary)" }}>₹</span>
+              <input type="text" value={creditLimit} onChange={handleAmountChange(setCreditLimit)} placeholder="0"
+                className="w-full rounded-xl border pl-10 pr-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20"
+                style={{ backgroundColor: "var(--bg-subtle)", borderColor: errors.creditLimit ? "var(--status-error)" : "var(--border-light)", color: "var(--text-primary)" }}
+                data-testid="credit-limit-input" />
             </div>
-
-            {/* Account Type */}
-            <div className="w-full">
-              <label htmlFor="accountType" className="block text-sm font-medium text-[#334155] mb-2">
-                Account Type
-              </label>
-              <select
-                id="accountType"
-                value={accountType}
-                onChange={(e) => setAccountType(e.target.value)}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="account-type-select"
-              >
-                <option value="">Select Account Type</option>
-                {accountTypeOptions.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-              {errors.accountType && <p className="text-sm text-red-500 mt-1">{errors.accountType}</p>}
+            {parseFloat(creditLimit) > 0 && <p className="mt-1.5 text-xs italic" style={{ color: "var(--text-muted)" }}>{numberToWords(parseFloat(creditLimit))}</p>}
+            {errors.creditLimit && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.creditLimit}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Current Outstanding</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium" style={{ color: "var(--text-primary)" }}>₹</span>
+              <input type="text" value={outstandingAmount} onChange={handleAmountChange(setOutstandingAmount)} placeholder="0"
+                className="w-full rounded-xl border pl-10 pr-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20"
+                style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+                data-testid="outstanding-amount-input" />
             </div>
-
-            {/* Credit Card Fields */}
-            {isCreditCard ? (
-              <>
-                {/* Credit Limit */}
-                <div className="w-full">
-                  <label htmlFor="creditLimit" className="block text-sm font-medium text-[#334155] mb-2">
-                    Credit Limit
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
-                    <input
-                      id="creditLimit"
-                      type="text"
-                      value={creditLimit}
-                      onChange={handleAmountChange(setCreditLimit)}
-                      placeholder="0"
-                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="credit-limit-input"
-                    />
-                  </div>
-                  {parseFloat(creditLimit) > 0 && (
-                    <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="credit-limit-words">
-                      {numberToWords(parseFloat(creditLimit))}
-                    </p>
-                  )}
-                  {errors.creditLimit && <p className="text-sm text-red-500 mt-1">{errors.creditLimit}</p>}
-                </div>
-
-                {/* Outstanding Amount */}
-                <div className="w-full">
-                  <label htmlFor="outstandingAmount" className="block text-sm font-medium text-[#334155] mb-2">
-                    Current Outstanding
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
-                    <input
-                      id="outstandingAmount"
-                      type="text"
-                      value={outstandingAmount}
-                      onChange={handleAmountChange(setOutstandingAmount)}
-                      placeholder="0"
-                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="outstanding-amount-input"
-                    />
-                  </div>
-                  {parseFloat(outstandingAmount) > 0 && (
-                    <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="outstanding-amount-words">
-                      {numberToWords(parseFloat(outstandingAmount))}
-                    </p>
-                  )}
-                </div>
-
-                {/* Due Date */}
-                <div className="w-full">
-                  <label htmlFor="dueDate" className="block text-sm font-medium text-[#334155] mb-2">
-                    Payment Due Date <span className="text-[#94A3B8] font-normal">(Optional)</span>
-                  </label>
-                  <input
-                    id="dueDate"
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                    data-testid="due-date-input"
-                  />
-                </div>
-
-                {/* Minimum Due */}
-                <div className="w-full">
-                  <label htmlFor="minimumDue" className="block text-sm font-medium text-[#334155] mb-2">
-                    Minimum Due <span className="text-[#94A3B8] font-normal">(Optional)</span>
-                  </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
-                    <input
-                      id="minimumDue"
-                      type="text"
-                      value={minimumDue}
-                      onChange={handleAmountChange(setMinimumDue)}
-                      placeholder="0"
-                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="minimum-due-input"
-                    />
-                  </div>
-                  {parseFloat(minimumDue) > 0 && (
-                    <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="minimum-due-words">
-                      {numberToWords(parseFloat(minimumDue))}
-                    </p>
-                  )}
-                </div>
-              </>
-            ) : (
-              /* Regular Account - Opening Balance */
-              <div className="w-full">
-                <label htmlFor="currentBalance" className="block text-sm font-medium text-[#334155] mb-2">
-                  {id ? "Current Balance" : "Opening Balance"}
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">₹</span>
-                  <input
-                    id="currentBalance"
-                    type="text"
-                    value={currentBalance}
-                    onChange={handleAmountChange(setCurrentBalance)}
-                    placeholder="0"
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                    data-testid="current-balance-input"
-                  />
-                </div>
-                {parseFloat(currentBalance) > 0 && (
-                  <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="current-balance-words">
-                    {numberToWords(parseFloat(currentBalance))}
-                  </p>
-                )}
-                {errors.currentBalance && <p className="text-sm text-red-500 mt-1">{errors.currentBalance}</p>}
-              </div>
-            )}
-
-            {/* Account Number (Optional) */}
-            <div className="w-full">
-              <label htmlFor="accountNumber" className="block text-sm font-medium text-[#334155] mb-2">
-                Account Number <span className="text-[#94A3B8] font-normal">(Optional)</span>
-              </label>
-              <input
-                id="accountNumber"
-                type="text"
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                placeholder="Last 4 digits or full number"
-                maxLength={20}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="account-number-input"
-              />
+            {parseFloat(outstandingAmount) > 0 && <p className="mt-1.5 text-xs italic" style={{ color: "var(--text-muted)" }}>{numberToWords(parseFloat(outstandingAmount))}</p>}
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Due Date <span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>(optional)</span></label>
+            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+              className="w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20"
+              style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+              data-testid="due-date-input" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Minimum Due <span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>(optional)</span></label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium" style={{ color: "var(--text-primary)" }}>₹</span>
+              <input type="text" value={minimumDue} onChange={handleAmountChange(setMinimumDue)} placeholder="0"
+                className="w-full rounded-xl border pl-10 pr-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20"
+                style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+                data-testid="minimum-due-input" />
             </div>
-
-            {/* Is Primary Account Toggle */}
-            <div className="w-full rounded-xl border border-[#334155] p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-[#334155]">
-                    Primary Account
-                  </label>
-                  <p className="text-xs text-[#334155]/60 mt-0.5">Used for default transactions</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsPrimary(!isPrimary)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    isPrimary ? "bg-[#14B8A6]" : "bg-[#334155]"
-                  }`}
-                  data-testid="is-primary-toggle"
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-[#1E293B] transition-transform ${
-                      isPrimary ? "translate-x-6" : "translate-x-1"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            {/* Notes */}
-            <div className="w-full">
-              <label htmlFor="notes" className="block text-sm font-medium text-[#334155] mb-2">
-                Notes <span className="text-[#94A3B8] font-normal">(Optional)</span>
-              </label>
-              <textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any additional notes..."
-                rows={3}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20 resize-none"
-                data-testid="notes-input"
-              />
-            </div>
-
-            {errors.submit && (
-              <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">{errors.submit}</div>
-            )}
           </div>
         </div>
-      </div>
-
-      {/* Sticky Action Buttons - Mobile Optimized */}
-      <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-40">
-        <div className="mx-auto max-w-[620px]">
-          {id ? (
-            <div className="flex flex-row gap-3">
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={isSubmitting}
-                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-[#FF4D4D] bg-transparent text-[#FF4D4D] text-sm font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50"
-                data-testid="delete-button"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isSubmitting}
-                className="flex-[2] h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 shadow-sm"
-                data-testid="update-button"
-              >
-                {isSubmitting ? "Updating..." : "Update Account"}
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSubmitting}
-              className="w-full h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 shadow-sm"
-              data-testid="save-button"
-            >
-              {isSubmitting ? "Saving..." : "Save Account"}
-            </button>
-          )}
+      ) : (
+        <div>
+          <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>{id ? "Current Balance" : "Opening Balance"}</label>
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium" style={{ color: "var(--text-primary)" }}>₹</span>
+            <input type="text" value={currentBalance} onChange={handleAmountChange(setCurrentBalance)} placeholder="0"
+              className="w-full rounded-xl border pl-10 pr-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20"
+              style={{ backgroundColor: "var(--bg-subtle)", borderColor: errors.currentBalance ? "var(--status-error)" : "var(--border-light)", color: "var(--text-primary)" }}
+              data-testid="current-balance-input" />
+          </div>
+          {parseFloat(currentBalance) > 0 && <p className="mt-1.5 text-xs italic" style={{ color: "var(--text-muted)" }}>{numberToWords(parseFloat(currentBalance))}</p>}
+          {errors.currentBalance && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.currentBalance}</p>}
         </div>
+      )}
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Account Number <span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>(optional)</span></label>
+        <input type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="Last 4 digits or full number" maxLength={20}
+          className="w-full rounded-xl border px-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20"
+          style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+          data-testid="account-number-input" />
       </div>
+      <div className="flex items-center justify-between p-4 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+        <div>
+          <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Primary Account</p>
+          <p className="text-xs" style={{ color: "var(--text-muted)" }}>Used for default transactions</p>
+        </div>
+        <button type="button" onClick={() => setIsPrimary(!isPrimary)}
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPrimary ? "bg-[#3B82F6]" : "bg-gray-300"}`}
+          data-testid="is-primary-toggle">
+          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPrimary ? "translate-x-6" : "translate-x-1"}`} />
+        </button>
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Notes <span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>(optional)</span></label>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Any additional notes..." rows={3}
+          className="w-full rounded-xl border px-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 resize-none"
+          style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+          data-testid="notes-input" />
+      </div>
+    </div>
+  );
 
-      {/* Update Confirmation Dialog */}
+  const editModeContent = (
+    <div className="space-y-8" data-testid="account-edit-all-fields">
+      <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}><span className="w-6 h-6 rounded-full bg-[#3B82F6]/10 flex items-center justify-center text-xs font-bold text-[#3B82F6]">1</span>Account Info</h3>{step1Content}</div>
+      <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}><span className="w-6 h-6 rounded-full bg-[#3B82F6]/10 flex items-center justify-center text-xs font-bold text-[#3B82F6]">2</span>Details</h3>{step2Content}</div>
+    </div>
+  );
+
+  const errorContent = errors.submit ? <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600 mt-4">{errors.submit}</div> : null;
+
+  const dialogContent = (
+    <>
       {showUpdateConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="text-xl font-semibold text-[#334155] mb-3">Confirm Changes</h3>
-            <p className="text-[#334155]/70 mb-6">
-              Are you sure you want to update this account?
-            </p>
+          <div className="rounded-2xl p-6 max-w-md w-full shadow-2xl" style={{ backgroundColor: "var(--bg-card)" }}>
+            <h3 className="text-xl font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Confirm Changes</h3>
+            <p className="mb-6" style={{ color: "var(--text-muted)" }}>Are you sure you want to update this account?</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">
-                Cancel
-              </button>
-              <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#14B8A6] px-4 py-3 text-white font-medium">
-                Yes, Update
-              </button>
+              <button type="button" onClick={() => setShowUpdateConfirm(false)} className="flex-1 rounded-xl border px-4 py-3 font-medium" style={{ borderColor: "var(--border-light)", color: "var(--text-primary)" }}>Cancel</button>
+              <button type="button" onClick={performSave} className="flex-1 rounded-xl bg-[#3B82F6] px-4 py-3 text-white font-medium">Yes, Update</button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-6">
-          <div className="bg-[#1E293B] rounded-2xl p-6 max-w-md w-full shadow-2xl">
+          <div className="rounded-2xl p-6 max-w-md w-full shadow-2xl" style={{ backgroundColor: "var(--bg-card)" }}>
             <h3 className="text-xl font-semibold text-red-600 mb-3">Delete Account?</h3>
-            <p className="text-[#334155]/70 mb-6">
-              Are you sure you want to delete "{accountName}"? This action cannot be undone.
-            </p>
+            <p className="mb-6" style={{ color: "var(--text-muted)" }}>Are you sure you want to delete "{accountName}"? This cannot be undone.</p>
             <div className="flex gap-3">
-              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border-2 border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] font-medium">
-                Cancel
-              </button>
-              <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">
-                Yes, Delete
-              </button>
+              <button type="button" onClick={() => setShowDeleteConfirm(false)} className="flex-1 rounded-xl border px-4 py-3 font-medium" style={{ borderColor: "var(--border-light)", color: "var(--text-primary)" }}>Cancel</button>
+              <button type="button" onClick={handleDelete} className="flex-1 rounded-xl bg-red-500 px-4 py-3 text-white font-medium">Yes, Delete</button>
             </div>
           </div>
         </div>
       )}
+    </>
+  );
 
-      {/* Bottom Navigation */}
-    </div>
+  return (
+    <WizardShell
+      title={id ? "Edit Account" : "Add Account"}
+      step={step} totalSteps={TOTAL_STEPS}
+      onNext={handleNext} onPrev={handlePrev} onSave={handleSave}
+      onDelete={id ? () => setShowDeleteConfirm(true) : undefined}
+      isEdit={!!id} isSubmitting={isSubmitting} accentColor="#3B82F6"
+      editModeContent={editModeContent}
+      errorContent={errorContent} dialogContent={dialogContent}
+      onClose={() => navigate("/my-accounts")}
+    >
+      {step === 1 && step1Content}
+      {step === 2 && step2Content}
+    </WizardShell>
   );
 };
 

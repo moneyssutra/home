@@ -1,0 +1,86 @@
+{
+  "summary": "Tested 3 NEW wizard form conversions: InvestmentForm (4-step), LoanForm (4-step), and InsuranceForm (4-step). All forms use WizardShell.js component correctly with step indicators, per-step validation, Next/Back navigation, and Save button on final step.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_175.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "All 3 forms correctly use WizardShell component with 4 steps each",
+    "Step content implemented as plain JSX variables (step1Content, step2Content, etc.) - prevents React remounting issues",
+    "Per-step validation works correctly - errors shown when clicking Next without required fields",
+    "Save button appears only on Step 4 (final step), Next button hidden on final step",
+    "Header back button correctly navigates to previous step when step > 1",
+    "InvestmentForm: Loan Given category shows special fields (borrower name, contact, interest type, repayment type)",
+    "LoanForm: EMI auto-calculates from principal, interest rate, and tenure",
+    "InsuranceForm: Life Insurance shows covered person, maturity type, premium payment term fields"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "email": "test@moneysutra.com",
+    "password": "Test@123"
+  },
+  "seed_data_creation": "None - tested wizard UI only without saving",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 3 wizard forms (Investment, Loan, Insurance) fully tested. Each has 4 steps with proper validation, navigation, and Save button on final step. Edit mode shows all fields at once (editModeContent). WizardShell.js provides shared header, step indicator, and sticky bottom buttons.",
+  "verified_features": {
+    "investment_form_wizard": {
+      "status": "PASS",
+      "details": {
+        "step_1_category_mode": "Category select and Mode select visible, validation works",
+        "step_2_name_details": "Name input visible, Loan Given shows borrower fields",
+        "step_3_amount_schedule": "Principal, start date, SIP fields visible",
+        "step_4_options": "Current value, linked account, notes, emergency fund toggle visible",
+        "navigation": "Next/Back buttons work between all 4 steps",
+        "save_button": "Save button appears on Step 4 only"
+      }
+    },
+    "loan_form_wizard": {
+      "status": "PASS",
+      "details": {
+        "step_1_type_name": "Loan type select, loan name input, lender name visible",
+        "step_2_amounts": "Principal, outstanding, interest rate, tenure, EMI (auto-calculated) visible",
+        "step_3_schedule": "Start date and end date pickers visible",
+        "step_4_options": "Linked asset toggle, auto-expense toggle, shared loan section visible",
+        "navigation": "Next/Back buttons work between all 4 steps",
+        "save_button": "Save button appears on Step 4 only"
+      }
+    },
+    "insurance_form_wizard": {
+      "status": "PASS",
+      "details": {
+        "step_1_type_name": "Insurance type select, policy name input visible",
+        "step_2_coverage": "Coverage amount, premium amount, premium frequency visible",
+        "step_3_dates": "Policy start and end date pickers visible",
+        "step_4_details": "Linked asset, covered person, maturity type, auto-expense, notes visible",
+        "navigation": "Next/Back buttons work between all 4 steps",
+        "save_button": "Save button appears on Step 4 only"
+      }
+    },
+    "header_back_button": {
+      "status": "PASS",
+      "details": "Header back button goes to previous step when step > 1, not browser back"
+    },
+    "loan_given_specific_fields": {
+      "status": "PASS",
+      "details": "When Investment category is 'Loan Given', Step 2 shows: borrower name, borrower contact, interest type (none/simple), repayment type (lump_sum/fixed/flexible)"
+    }
+  },
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
