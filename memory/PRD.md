@@ -66,6 +66,14 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Added `/api/dashboard/summary` — Single endpoint returning ALL financial data
 - Added Pydantic field validators to Investment, Loan, Expense models
 
+### Rule-Based Financial Insights Engine (Mar 2026)
+- Replaced AI/GPT-based ai_insights.py with deterministic rule engine
+- 10 financial rules: expense ratio, savings rate, emergency fund, investments, debt burden, insurance gaps, credit utilization, loan exposure, overall health
+- Financial Level System: 5 levels (Survival → Stability → Security → Growth → Freedom) with 0-100 score
+- Action-based insights with specific amounts in Indian notation (₹L/Cr)
+- Priority sorting (critical > high > medium > low)
+- Removed ALL OpenAI/GPT/prompt dependencies
+
 ### Wizard Form Step Layout Updates (Mar 2026)
 - InvestmentForm: Empty category-only page removed when locked (3 steps). Name + Mode merged into "Investment Details" step.
 - LoanForm: Step 1 heading renamed to "Loan & Lender Name"
