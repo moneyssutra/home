@@ -774,7 +774,10 @@ async def forgot_mpin(request: Request):
         "purpose": "mpin_reset",
     })
 
-    await send_otp_email(email, otp)
+    email_result = await send_otp_email(email, otp)
+    if not email_result.get("success"):
+        logger.error(f"forgot-mpin: Failed to send OTP email to {email}: {email_result.get('error')}")
+        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again.")
     return {"message": "Verification code sent to your email."}
 
 

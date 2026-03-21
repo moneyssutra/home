@@ -189,7 +189,10 @@ async def send_mpin_change_otp(request: Request):
     })
 
     from email_service import send_otp_email
-    await send_otp_email(email, otp)
+    email_result = await send_otp_email(email, otp)
+    if not email_result.get("success"):
+        logger.error(f"MPIN change OTP: Failed to send email to {email}: {email_result.get('error')}")
+        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again.")
     # Mask email for display
     parts = email.split("@")
     masked = parts[0][:2] + "***@" + parts[1] if len(parts) == 2 else email
