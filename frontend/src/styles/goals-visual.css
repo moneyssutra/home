@@ -11,7 +11,7 @@
 
 /* ─── HEADER ─── */
 .gv-header {
-  background: linear-gradient(160deg, #2D6A4F 0%, #40916C 40%, #52B788 100%);
+  background: linear-gradient(160deg, #9D4E6C 0%, #C06C84 40%, #D4A5A5 100%);
   padding: 1rem 1.25rem 1.5rem;
   border-radius: 0 0 1.75rem 1.75rem;
   position: relative;
@@ -24,7 +24,7 @@
   right: -30%;
   width: 320px;
   height: 320px;
-  background: radial-gradient(circle, rgba(149,213,178,0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(212,165,165,0.2) 0%, transparent 70%);
   pointer-events: none;
 }
 .gv-header__row {
@@ -88,7 +88,7 @@
 .gv-header__bar-fill {
   height: 100%;
   border-radius: 6px;
-  background: linear-gradient(90deg, #95D5B2, #D8F3DC);
+  background: linear-gradient(90deg, #F2D7D9, #FADBD8);
   transition: width 0.8s ease;
 }
 .gv-header__bar-pct {
@@ -301,13 +301,13 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #B7E4C7;
+  background: #E8C4C8;
   transition: all 0.3s ease;
 }
 .gv-dot--on {
   width: 20px;
   border-radius: 10px;
-  background: #2D6A4F;
+  background: #9D4E6C;
 }
 
 /* ─── FILTER TABS ─── */
@@ -329,9 +329,9 @@
   cursor: pointer;
 }
 .gv-filter-btn--on {
-  background: #2D6A4F;
+  background: #9D4E6C;
   color: #fff;
-  border-color: #2D6A4F;
+  border-color: #9D4E6C;
 }
 
 /* ─── LABEL LIST ─── */
@@ -368,7 +368,7 @@
 }
 .gv-row:active {
   transform: scale(0.98);
-  background: #F0FDF4;
+  background: #FDF2F4;
 }
 .gv-row__thumb {
   width: 46px;
@@ -377,7 +377,7 @@
   flex-shrink: 0;
   background-size: cover;
   background-position: center;
-  background-color: #D1FAE5;
+  background-color: #F8E8EA;
 }
 .gv-row__info {
   flex: 1;
@@ -442,8 +442,8 @@
   gap: 0.5rem;
   padding: 0.75rem;
   border-radius: 1rem;
-  border: 2px dashed #95D5B2;
-  color: #2D6A4F;
+  border: 2px dashed #D4A5A5;
+  color: #9D4E6C;
   font-weight: 600;
   font-size: 0.85rem;
   background: transparent;
@@ -451,7 +451,7 @@
   transition: all 0.2s ease;
 }
 .gv-add-btn:active {
-  background: #F0FDF4;
+  background: #FDF2F4;
   transform: scale(0.98);
 }
 
@@ -468,11 +468,11 @@
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: #D1FAE5;
+  background: #F8E8EA;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2D6A4F;
+  color: #9D4E6C;
   margin-bottom: 1rem;
 }
 .gv-empty__title {
@@ -497,22 +497,22 @@
   font-weight: 600;
   font-size: 0.85rem;
   color: #fff;
-  background: linear-gradient(135deg, #2D6A4F, #40916C);
+  background: linear-gradient(135deg, #9D4E6C, #C06C84);
   border: none;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 .gv-empty__cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(45,106,79,0.35);
+  box-shadow: 0 8px 24px rgba(157,78,108,0.35);
 }
 
 /* ─── SPINNER ─── */
 .gv-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #D1FAE5;
-  border-top-color: #2D6A4F;
+  border: 3px solid #F8E8EA;
+  border-top-color: #9D4E6C;
   border-radius: 50%;
   animation: gvSpin 0.8s linear infinite;
 }
