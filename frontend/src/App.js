@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "@/App.css";
+import "@/styles/goals-visual.css";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -97,6 +98,7 @@ import Opportunities from "@/pages/Opportunities";
 
 // Goal Pages
 import MyGoals from "@/MyGoals";
+import MyGoalsVisual from "@/pages/MyGoalsVisual";
 import GoalForm from "@/GoalForm";
 import GoalDetail from "@/GoalDetail";
 import GoalAchievements from "@/GoalAchievements";
@@ -260,6 +262,7 @@ function AppRouter() {
       
       {/* Goals */}
       <Route path="/my-goals" element={<ProtectedRoute><MyGoals /></ProtectedRoute>} />
+      <Route path="/dream-goals" element={<ProtectedRoute><MyGoalsVisual /></ProtectedRoute>} />
       <Route path="/goal" element={<ProtectedRoute><GoalForm /></ProtectedRoute>} />
       <Route path="/goal/:id" element={<ProtectedRoute><GoalDetail /></ProtectedRoute>} />
       <Route path="/goal/:id/edit" element={<ProtectedRoute><GoalForm /></ProtectedRoute>} />

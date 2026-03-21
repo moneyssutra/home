@@ -25,6 +25,15 @@ const BUTTON_GROUPS = [
     shimmerDelay: "0s",
   },
   {
+    id: "goals",
+    items: [
+      { label: "Goals", icon: Target, route: "/dream-goals", color: "#F59E0B" },
+      { label: "Dream Tracker", icon: Target, route: "/dream-goals", color: "#F59E0B" },
+    ],
+    interval: 3200,
+    shimmerDelay: "0.6s",
+  },
+  {
     id: "plan",
     items: [
       { label: "Bank Balance", icon: Landmark, route: "/bank-accounts-experimental", color: "#3B82F6" },
