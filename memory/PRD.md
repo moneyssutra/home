@@ -87,6 +87,13 @@ Comprehensive financial management app with precise data intake, complex financi
 - Edit Goal now starts at Step 4 (Amount/Date) instead of Step 1 (Type) for better UX (Mar 2026)
 - Add button on Bank Accounts Experimental and Credit Cards Experimental pages now opens AddActionSheet (Mar 2026)
 - Goals bottom nav and all references now use /dream-goals (new visual page), /my-goals redirects (Mar 2026)
+- Edit Goal now shows all fields in single scrollable form with numbered sections (not wizard) for better editing UX (Mar 2026)
+- Old /my-accounts redirects to /bank-accounts-experimental, old /my-credit-cards redirects to /credit-cards-experimental (Mar 2026)
+- New Add Account type picker page: Cash, Bank Account, Wallet, Others options before form (Mar 2026)
+- Fixed insurance coverage showing 0: coverageAmount field was not being checked (Mar 2026)
+- Fixed family member badges showing 10/10: expanded to 30 badges in 8 categories matching backend (Mar 2026)
+- Fixed Analytics charts not loading for family members: now fetches real data via memberId (Mar 2026)
+- Fixed Reports not generating for family members: added get_effective_user_filter + memberId param (Mar 2026)
 
 ## Key Credentials
 - Google Login: `kumaramarendra10@gmail.com`, `chandrashekhar.iter@gmail.com`
@@ -119,3 +126,4 @@ Comprehensive financial management app with precise data intake, complex financi
 - iteration_169: Financial Health member view fix - backend 14/14 PASS, frontend 100% (Health page fetches real member data)
 - iteration_170: P0 Bug fixes verification - frontend 100% (5/5 PASS: GoalForm blinking fix, Close button, Badges 19/30 not 7/7, Challenges 0/6 not 0/1, Health page data)
 - iteration_171: 4 UI fixes - frontend 100% (6/6 PASS: Biometric prompt options, Add button on experimental pages, Goals nav to /dream-goals, Edit Goal starts at step 4)
+- iteration_172: 8 fixes - 100% (Edit Goal single form, page redirects, Add Account type picker, insurance coverage field, 30 badges, Analytics for members, Reports for members)
