@@ -83,6 +83,10 @@ Comprehensive financial management app with precise data intake, complex financi
 - Added Close (X) button to GoalForm header when creating new goals (Mar 2026)
 - Fixed Badges showing 7/7 (all unlocked incorrectly) - now shows proper unlocked/total count (Mar 2026)
 - Fixed Challenges showing 0/1 - now shows proper completed/total count with dynamic challenges (Mar 2026)
+- Biometric prompt: added "Skip for now" + "I'll set it up from Settings" options (Mar 2026)
+- Edit Goal now starts at Step 4 (Amount/Date) instead of Step 1 (Type) for better UX (Mar 2026)
+- Add button on Bank Accounts Experimental and Credit Cards Experimental pages now opens AddActionSheet (Mar 2026)
+- Goals bottom nav and all references now use /dream-goals (new visual page), /my-goals redirects (Mar 2026)
 
 ## Key Credentials
 - Google Login: `kumaramarendra10@gmail.com`, `chandrashekhar.iter@gmail.com`
@@ -114,3 +118,4 @@ Comprehensive financial management app with precise data intake, complex financi
 - iteration_168: Health page member fix + challenges - backend 90% (9/10, 1 skipped), frontend 100%, challenges logic 3/3 PASS
 - iteration_169: Financial Health member view fix - backend 14/14 PASS, frontend 100% (Health page fetches real member data)
 - iteration_170: P0 Bug fixes verification - frontend 100% (5/5 PASS: GoalForm blinking fix, Close button, Badges 19/30 not 7/7, Challenges 0/6 not 0/1, Health page data)
+- iteration_171: 4 UI fixes - frontend 100% (6/6 PASS: Biometric prompt options, Add button on experimental pages, Goals nav to /dream-goals, Edit Goal starts at step 4)
