@@ -685,6 +685,155 @@ async def _create_session_and_respond(user: dict, response: Response, remember_m
 # STEP-BASED AUTH FLOW (CRED-style)
 # ============================================================
 
+@router.post("/check-user")
+async def check_user(request: Request):
+    """Check if user exists and has MPIN set. No OTP sent."""
+    body = await request.json()
+    identifier = (body.get("identifier") or "").strip().lower()
+
+    if not identifier:
+        raise HTTPException(status_code=400, detail="Email is required")
+    if not re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", identifier):
+        raise HTTPException(status_code=400, detail="Please enter a valid email address")
+
+    user = await db.users.find_one(
+        {"email": {"$regex": f"^{identifier}$", "$options": "i"}},
+        {"_id": 0, "user_id": 1, "mpin_hash": 1, "name": 1, "firstName": 1}
+    )
+
+    if not user:
+        return {"user_exists": False, "has_mpin": False}
+
+    return {
+        "user_exists": True,
+        "has_mpin": bool(user.get("mpin_hash")),
+        "firstName": user.get("firstName", user.get("name", "").split()[0] if user.get("name") else ""),
+    }
+
+
+@router.post("/mpin-direct-login")
+async def mpin_direct_login(request: Request, response: Response):
+    """Login directly with email + MPIN (no OTP required)."""
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    mpin = body.get("mpin", "")
+
+    if not email or not mpin:
+        raise HTTPException(status_code=400, detail="Email and MPIN are required")
+    if len(mpin) != 4 or not mpin.isdigit():
+        raise HTTPException(status_code=400, detail="MPIN must be 4 digits")
+
+    user = await db.users.find_one(
+        {"email": {"$regex": f"^{email}$", "$options": "i"}},
+        {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "picture": 1, "mpin_hash": 1}
+    )
+    if not user or not user.get("mpin_hash"):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    import bcrypt as _bcrypt
+    if not _bcrypt.checkpw(mpin.encode(), user["mpin_hash"].encode()):
+        raise HTTPException(status_code=401, detail="Invalid MPIN. Try again.")
+
+    return await _create_session_and_respond(user, response)
+
+
+@router.post("/forgot-mpin")
+async def forgot_mpin(request: Request):
+    """Send OTP to email for MPIN reset."""
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    user = await db.users.find_one(
+        {"email": {"$regex": f"^{email}$", "$options": "i"}},
+        {"_id": 0, "user_id": 1}
+    )
+    if not user:
+        return {"message": "If an account exists, you will receive a verification code."}
+
+    # Rate limit: 30s cooldown
+    recent = await db.login_otp_tokens.find_one(
+        {"email": email, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()}},
+        {"_id": 0}
+    )
+    if recent:
+        return {"message": "OTP already sent. Please wait."}
+
+    otp = generate_otp()
+    await db.login_otp_tokens.insert_one({
+        "otp_id": str(uuid.uuid4()),
+        "email": email,
+        "user_id": user["user_id"],
+        "otp_hash": hash_password(otp),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
+        "used": False,
+        "attempts": 0,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "purpose": "mpin_reset",
+    })
+
+    await send_otp_email(email, otp)
+    return {"message": "Verification code sent to your email."}
+
+
+@router.post("/reset-mpin")
+async def reset_mpin(request: Request, response: Response):
+    """Verify OTP and set new MPIN. Logs user in."""
+    body = await request.json()
+    email = (body.get("email") or "").strip().lower()
+    otp = (body.get("otp") or "").strip()
+    new_mpin = body.get("new_mpin", "")
+
+    if not email or not otp or not new_mpin:
+        raise HTTPException(status_code=400, detail="Email, OTP and new MPIN are required")
+    if len(new_mpin) != 4 or not new_mpin.isdigit():
+        raise HTTPException(status_code=400, detail="MPIN must be exactly 4 digits")
+
+    record = await db.login_otp_tokens.find_one(
+        {"email": email, "used": False},
+        {"_id": 0},
+        sort=[("created_at", -1)]
+    )
+    if not record:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+
+    if record.get("attempts", 0) >= 3:
+        await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+        raise HTTPException(status_code=400, detail="Too many attempts. Request a new OTP.")
+
+    await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$inc": {"attempts": 1}})
+
+    expires_at = datetime.fromisoformat(record["expires_at"])
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="OTP has expired. Request a new one.")
+
+    if not verify_password(otp, record["otp_hash"]):
+        remaining = 3 - record.get("attempts", 0) - 1
+        raise HTTPException(status_code=400, detail=f"Invalid code. ({remaining} left)")
+
+    await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+
+    user = await db.users.find_one(
+        {"email": {"$regex": f"^{email}$", "$options": "i"}},
+        {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "picture": 1}
+    )
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    import bcrypt as _bcrypt
+    hashed = _bcrypt.hashpw(new_mpin.encode(), _bcrypt.gensalt()).decode()
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"mpin_hash": hashed, "mpin_set_at": datetime.now(timezone.utc).isoformat()}}
+    )
+
+    return await _create_session_and_respond(user, response)
+
+
 @router.post("/start")
 async def auth_start(request: Request):
     """Step 1: Enter identifier (email). Check user, send OTP."""

@@ -1,0 +1,98 @@
+{
+  "summary": "Iteration 184 - Updated CRED-style Login Flow Tests - ALL PASSED. New flow: Users WITH MPIN go directly to MPIN screen (no OTP). 'Forgot MPIN?' triggers OTP → new MPIN setup. Backend APIs (/auth/check-user, /auth/mpin-direct-login, /auth/forgot-mpin, /auth/reset-mpin) all working correctly. Frontend Login.js shows correct step-based flow with proper UI elements.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_cred_style_login_v2_iter184.py",
+    "/app/test_reports/pytest/cred_style_login_v2_iter184_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "New /auth/check-user endpoint correctly returns user_exists, has_mpin, firstName without sending OTP",
+    "New /auth/mpin-direct-login takes {email, mpin} and returns session directly - no temp_token needed",
+    "New /auth/forgot-mpin sends OTP to email for MPIN reset with 30s rate limit",
+    "New /auth/reset-mpin verifies OTP and sets new MPIN, then logs user in",
+    "Existing /auth/start still works for users without MPIN",
+    "MPIN validation: must be exactly 4 digits",
+    "Rate limiting: 30s cooldown between OTP requests",
+    "Frontend correctly routes: email → check-user → (has_mpin? → MPIN screen / no_mpin? → OTP → setup)",
+    "MPIN screen shows 'Hi, {firstName}' greeting and 'Forgot MPIN?' link"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_cred_style_login_v2_iter184.py"
+  ],
+  "success_rate": {
+    "backend": "100% (20/20 tests passed)",
+    "frontend": "100% (All UI flows verified)"
+  },
+  "test_credentials": {
+    "user_with_mpin": "moneyssutra@gmail.com (has_mpin=true, MPIN=1234)"
+  },
+  "seed_data_creation": "None - used existing test user",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Updated CRED-style login flow fully tested. Key changes from iteration 183: 1) Users WITH MPIN now skip OTP entirely and go directly to MPIN screen, 2) New endpoints: /auth/check-user (no OTP sent), /auth/mpin-direct-login (email+MPIN, no token), /auth/forgot-mpin (sends OTP), /auth/reset-mpin (OTP+new_mpin). The user moneyssutra@gmail.com has MPIN=1234 set. E2E MPIN login tested and working - user enters email → MPIN screen → enters 1234 → redirected to /home.",
+  "verified_features": {
+    "backend_apis": {
+      "POST /api/auth/check-user (existing user with MPIN)": "PASS - Returns {user_exists: true, has_mpin: true, firstName: 'Money'}",
+      "POST /api/auth/check-user (non-existing user)": "PASS - Returns {user_exists: false, has_mpin: false}",
+      "POST /api/auth/check-user (empty email)": "PASS - Returns 400 'Email is required'",
+      "POST /api/auth/check-user (invalid email)": "PASS - Returns 400 'Please enter a valid email address'",
+      "POST /api/auth/mpin-direct-login (correct MPIN)": "PASS - Returns session_token, user_id, email",
+      "POST /api/auth/mpin-direct-login (wrong MPIN)": "PASS - Returns 401 'Invalid MPIN'",
+      "POST /api/auth/mpin-direct-login (missing fields)": "PASS - Returns 400 error",
+      "POST /api/auth/mpin-direct-login (invalid MPIN format)": "PASS - Returns 400 'MPIN must be 4 digits'",
+      "POST /api/auth/mpin-direct-login (non-existing user)": "PASS - Returns 401 'Invalid credentials'",
+      "POST /api/auth/forgot-mpin (existing user)": "PASS - Returns 'Verification code sent'",
+      "POST /api/auth/forgot-mpin (non-existing user)": "PASS - Returns generic message (no enumeration)",
+      "POST /api/auth/forgot-mpin (empty email)": "PASS - Returns 400 error",
+      "POST /api/auth/forgot-mpin (rate limit)": "PASS - Returns 'OTP already sent' within 30s",
+      "POST /api/auth/reset-mpin (missing fields)": "PASS - Returns 400 error",
+      "POST /api/auth/reset-mpin (invalid MPIN format)": "PASS - Returns 400 'MPIN must be 4 digits'",
+      "POST /api/auth/reset-mpin (wrong OTP)": "PASS - Returns 400 with attempts left",
+      "POST /api/auth/reset-mpin (no OTP sent)": "PASS - Returns 400 'Invalid or expired OTP'",
+      "POST /api/auth/start (still works)": "PASS - Returns {message: 'OTP sent', user_exists: bool}",
+      "POST /api/auth/start (rate limit)": "PASS - Returns 'OTP already sent' within 30s",
+      "POST /api/auth/login (invalid credentials)": "PASS - Returns 401 error"
+    },
+    "frontend_ui": {
+      "Login page - data-testid='login-page'": "PASS",
+      "Welcome heading - data-testid='welcome-heading'": "PASS - Shows 'Welcome back'",
+      "Email input - data-testid='identifier-input'": "PASS",
+      "Continue button - data-testid='continue-btn'": "PASS",
+      "Use Password link - data-testid='use-password-link'": "PASS",
+      "Create Account link - data-testid='create-account-link'": "PASS",
+      "Google login button - data-testid='google-login-btn'": "PASS",
+      "MPIN screen - 4 digit inputs - data-testid='mpin-digit-0' to 'mpin-digit-3'": "PASS",
+      "MPIN screen - 'Hi, {firstName}' greeting": "PASS - Shows 'Hi, Money'",
+      "MPIN screen - 'Forgot MPIN?' link - data-testid='forgot-mpin-btn'": "PASS",
+      "MPIN screen - Back button - data-testid='mpin-back-btn'": "PASS",
+      "Forgot MPIN OTP screen - 6 digit inputs": "PASS",
+      "Forgot MPIN OTP screen - 'Reset your MPIN' heading": "PASS",
+      "Forgot MPIN OTP screen - Resend timer": "PASS",
+      "Password form - email input - data-testid='pw-identifier-input'": "PASS",
+      "Password form - password input - data-testid='pw-password-input'": "PASS",
+      "Password form - Login button - data-testid='pw-login-btn'": "PASS",
+      "Password form - Back button - data-testid='back-from-password'": "PASS",
+      "Registration form - Shows on 'Create Account' click": "PASS"
+    },
+    "e2e_flows": {
+      "Email with MPIN → MPIN screen directly (no OTP)": "PASS",
+      "Enter correct MPIN → Login success → Redirect to /home": "PASS",
+      "Forgot MPIN → OTP screen for reset": "PASS"
+    }
+  },
+  "mocked_apis": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": ["Twilio SMS/WhatsApp"],
+    "live_apis": ["Resend Email (LIVE with real RESEND_API_KEY)"]
+  },
+  "notes": "OTP email is sent via Resend (LIVE). The OTP verification for reset-mpin cannot be fully tested end-to-end since we cannot read the actual email. However, all error handling, rate limiting, validation, and UI flows are verified. The login flow now supports: 1) Primary: Email → (has MPIN? → MPIN screen / no MPIN? → OTP → MPIN setup) → Dashboard, 2) Fallback: Use Password → Dashboard, 3) Google OAuth → Dashboard."
+}
