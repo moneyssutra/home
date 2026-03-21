@@ -1,5 +1,5 @@
 """Income source models."""
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional, List
 from datetime import datetime, timezone
 import uuid
@@ -62,6 +62,34 @@ class IncomeSourceCreate(BaseModel):
     securityDeposit: Optional[float] = None
     assetId: Optional[str] = None
 
+    @field_validator("expectedAmount")
+    @classmethod
+    def validate_amount(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Expected amount must be positive")
+        return v
+
+    @field_validator("principalAmount")
+    @classmethod
+    def validate_principal(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Principal amount cannot be negative")
+        return v
+
+    @field_validator("interestRate")
+    @classmethod
+    def validate_rate(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Interest rate cannot be negative")
+        return v
+
+    @field_validator("securityDeposit")
+    @classmethod
+    def validate_deposit(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Security deposit cannot be negative")
+        return v
+
 
 # Other Income Model (Non-recurring income: gifts, bonuses, capital gains, etc.)
 class OtherIncome(BaseModel):
@@ -98,3 +126,10 @@ class OtherIncomeCreate(BaseModel):
     selectedQuarter: Optional[str] = None
     notes: Optional[str] = None
     isReceived: bool = False
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Amount must be positive")
+        return v

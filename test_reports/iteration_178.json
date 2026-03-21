@@ -1,0 +1,125 @@
+{
+  "summary": "Backend Refactoring Phase 2 Testing - CRITICAL ISSUE: Pydantic field_validators NOT working. All negative value validation tests FAILED because routes import from server_models.py which has NO validators. The validators exist in /app/backend/models/*.py but are NOT being used by any routes. N+1 query fixes are working correctly.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "POST /api/expenses",
+        "issue": "Accepts negative expectedAmount (-100) - returns 200 instead of 422. Validator NOT applied.",
+        "priority": "CRITICAL",
+        "root_cause": "ExpenseCreate in server_models.py has NO field_validator. Routes import from server_models.py, not from models/expense.py"
+      },
+      {
+        "endpoint": "POST /api/assets",
+        "issue": "Accepts negative currentValue (-1000) and purchaseValue (-500000) - returns 200 instead of 422",
+        "priority": "CRITICAL",
+        "root_cause": "AssetCreate in server_models.py has NO field_validator. Validators in models/asset.py are NOT used"
+      },
+      {
+        "endpoint": "POST /api/accounts",
+        "issue": "Accepts negative creditLimit (-100) - returns 200 instead of 422",
+        "priority": "CRITICAL",
+        "root_cause": "AccountCreate in server_models.py has NO field_validator. Validators in models/account.py are NOT used"
+      },
+      {
+        "endpoint": "POST /api/credit-cards",
+        "issue": "Accepts negative creditLimit (-100) and outstandingAmount (-5000) - returns 200 instead of 422",
+        "priority": "CRITICAL",
+        "root_cause": "CreditCardCreate in server_models.py has NO field_validator. Validators in models/credit_card.py are NOT used"
+      },
+      {
+        "endpoint": "POST /api/loans",
+        "issue": "Accepts negative principalAmount (-100) and emiAmount (-1000) - returns 200 instead of 422",
+        "priority": "CRITICAL",
+        "root_cause": "LoanCreate in server_models.py has NO field_validator"
+      },
+      {
+        "endpoint": "POST /api/investments",
+        "issue": "Accepts negative principal (-100) and currentValue (-5000) - returns 200 instead of 422",
+        "priority": "CRITICAL",
+        "root_cause": "InvestmentCreate in server_models.py has NO field_validator"
+      },
+      {
+        "endpoint": "POST /api/income",
+        "issue": "Accepts negative expectedAmount - validator NOT applied",
+        "priority": "CRITICAL",
+        "root_cause": "IncomeSourceCreate in server_models.py has NO field_validator. Validators in models/income.py are NOT used"
+      },
+      {
+        "endpoint": "POST /api/insurances",
+        "issue": "Accepts negative coverageAmount and premiumAmount - validator NOT applied",
+        "priority": "CRITICAL",
+        "root_cause": "InsuranceCreate in server_models.py has NO field_validator. Validators in models/insurance.py are NOT used"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_negative_value_validators.py",
+    "/app/test_reports/pytest/negative_value_validators_results.xml"
+  ],
+  "action_items": [
+    "CRITICAL: Add field_validators to server_models.py for ALL financial amount fields (expectedAmount, currentValue, purchaseValue, creditLimit, outstandingAmount, principalAmount, emiAmount, coverageAmount, premiumAmount, principal, sipAmount, etc.)",
+    "Alternative: Update all routes to import from /app/backend/models/*.py instead of server_models.py",
+    "The validators in /app/backend/models/income.py, asset.py, insurance.py, account.py, credit_card.py are CORRECT but NOT BEING USED"
+  ],
+  "critical_code_review_comments": [
+    "ARCHITECTURE ISSUE: Duplicate model definitions - validators exist in /app/backend/models/*.py but routes use /app/backend/server_models.py which has NO validators",
+    "All routes (expenses.py, income.py, accounts.py, credit_cards.py, insurance.py, assets.py, loans.py, investments.py) import from server_models.py",
+    "The field_validators added in Phase 2 are in the WRONG files - they need to be in server_models.py or routes need to be updated to use models/*.py"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_negative_value_validators.py"
+  ],
+  "success_rate": {
+    "backend": "22% (4 passed, 14 failed)",
+    "frontend": "N/A (backend only testing)"
+  },
+  "test_credentials": {
+    "username": "test@moneysutra.com",
+    "password": "Test@123"
+  },
+  "seed_data_creation": "Test data created and cleaned up",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The validators in /app/backend/models/*.py are correctly implemented but NOT being used. Routes import from server_models.py. Main agent needs to either: (1) Add validators to server_models.py, or (2) Update all routes to import from models/*.py. N+1 query fixes in expenses.py and investments.py are working correctly.",
+  "rca_of_the_issue": {
+    "problem": "Pydantic field_validators for negative values are NOT working",
+    "root_cause": "Validators were added to /app/backend/models/*.py files but ALL routes import models from /app/backend/server_models.py which has NO validators",
+    "evidence": [
+      "grep shows all routes import from server_models: 'from server_models import Expense, ExpenseCreate'",
+      "server_models.py has NO field_validator decorators",
+      "models/income.py, asset.py, insurance.py, account.py, credit_card.py have validators but are NOT imported by routes"
+    ],
+    "fix_options": [
+      "Option 1: Add field_validators to server_models.py (recommended - single source of truth)",
+      "Option 2: Update all routes to import from models/*.py (requires updating 8+ route files)"
+    ]
+  },
+  "passed_tests": [
+    "GET /api/expenses/with-next-date - Returns linkedLoanName and linkedInsuranceName correctly (N+1 fix working)",
+    "GET /api/investments - Returns list correctly after bulk query refactor",
+    "POST /api/expenses with positive amount - Works correctly",
+    "Zero amount handling documented"
+  ],
+  "failed_tests": [
+    "POST /api/expenses with negative expectedAmount - Returns 200 instead of 422",
+    "POST /api/assets with negative currentValue - Returns 200 instead of 422",
+    "POST /api/assets with negative purchaseValue - Returns 200 instead of 422",
+    "POST /api/accounts with negative creditLimit - Returns 200 instead of 422",
+    "POST /api/credit-cards with negative creditLimit - Returns 200 instead of 422",
+    "POST /api/credit-cards with negative outstandingAmount - Returns 200 instead of 422",
+    "POST /api/loans with negative principalAmount - Returns 200 instead of 422",
+    "POST /api/loans with negative emiAmount - Returns 200 instead of 422",
+    "POST /api/investments with negative principal - Returns 200 instead of 422",
+    "POST /api/investments with negative currentValue - Returns 200 instead of 422"
+  ],
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}

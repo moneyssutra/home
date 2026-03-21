@@ -162,19 +162,28 @@ async def get_expenses_with_next_date(request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
     user_filter = await get_effective_user_filter(user, request)
     expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
+
+    # Bulk fetch linked loans and insurances to avoid N+1 queries
+    loan_ids = list({e['linkedLoanId'] for e in expenses if e.get('linkedLoanId')})
+    insurance_ids = list({e['linkedInsuranceId'] for e in expenses if e.get('linkedInsuranceId')})
+    loan_map = {}
+    insurance_map = {}
+    if loan_ids:
+        loans = await db.loans.find({"id": {"$in": loan_ids}}, {"_id": 0, "id": 1, "loanName": 1}).to_list(len(loan_ids))
+        loan_map = {loan["id"]: loan.get("loanName") for loan in loans}
+    if insurance_ids:
+        insurances = await db.insurances.find({"id": {"$in": insurance_ids}}, {"_id": 0, "id": 1, "policyName": 1}).to_list(len(insurance_ids))
+        insurance_map = {i["id"]: i.get("policyName") for i in insurances}
+
     result = []
     for expense in expenses:
         if isinstance(expense.get('createdAt'), str):
             expense['createdAt'] = datetime.fromisoformat(expense['createdAt'])
         expense['nextDeductionDate'] = calculate_next_deduction_date(expense)
-        if expense.get('linkedLoanId'):
-            loan = await db.loans.find_one({"id": expense['linkedLoanId']}, {"_id": 0})
-            if loan:
-                expense['linkedLoanName'] = loan.get('loanName')
-        if expense.get('linkedInsuranceId'):
-            insurance = await db.insurances.find_one({"id": expense['linkedInsuranceId']}, {"_id": 0})
-            if insurance:
-                expense['linkedInsuranceName'] = insurance.get('policyName')
+        if expense.get('linkedLoanId') and expense['linkedLoanId'] in loan_map:
+            expense['linkedLoanName'] = loan_map[expense['linkedLoanId']]
+        if expense.get('linkedInsuranceId') and expense['linkedInsuranceId'] in insurance_map:
+            expense['linkedInsuranceName'] = insurance_map[expense['linkedInsuranceId']]
         result.append(expense)
     return result
 
@@ -183,6 +192,14 @@ async def get_expenses_with_next_date(request: Request):
 async def process_fixed_expense_deductions():
     today = datetime.now(timezone.utc).date().isoformat()
     fixed_expenses = await db.expenses.find({"expenseType": "Fixed"}, {"_id": 0}).to_list(1000)
+
+    # Bulk fetch all linked accounts to avoid N+1
+    account_ids = list({e.get('linkedAccountId') for e in fixed_expenses if e.get('linkedAccountId')})
+    account_map = {}
+    if account_ids:
+        accounts_list = await db.accounts.find({"id": {"$in": account_ids}}, {"_id": 0}).to_list(len(account_ids))
+        account_map = {a["id"]: a for a in accounts_list}
+
     processed = []
     errors = []
     for expense in fixed_expenses:
@@ -192,7 +209,7 @@ async def process_fixed_expense_deductions():
                 linked_account_id = expense.get('linkedAccountId')
                 amount = expense.get('expectedAmount', 0)
                 if linked_account_id and amount > 0:
-                    account = await db.accounts.find_one({"id": linked_account_id}, {"_id": 0})
+                    account = account_map.get(linked_account_id)
                     if account:
                         new_balance = account.get('currentBalance', 0) - amount
                         await db.accounts.update_one({"id": linked_account_id}, {"$set": {"currentBalance": new_balance}})

@@ -1,7 +1,7 @@
 """
 Asset model
 """
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional
 from datetime import datetime, timezone
 import uuid
@@ -51,3 +51,31 @@ class AssetCreate(BaseModel):
     linkedInsuranceId: Optional[str] = None
     location: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator("purchaseValue")
+    @classmethod
+    def validate_purchase(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Purchase value cannot be negative")
+        return v
+
+    @field_validator("currentValue")
+    @classmethod
+    def validate_current(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Current value cannot be negative")
+        return v
+
+    @field_validator("incomeAmount")
+    @classmethod
+    def validate_income(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Income amount cannot be negative")
+        return v
+
+    @field_validator("securityDeposit")
+    @classmethod
+    def validate_deposit(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Security deposit cannot be negative")
+        return v

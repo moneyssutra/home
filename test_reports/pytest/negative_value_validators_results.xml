@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="14" skipped="0" tests="18" time="37.517" timestamp="2026-03-21T18:33:38.241411+00:00" hostname="agent-env-565d1737-cd91-4e07-9630-b704a1a6be52"><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_expense_negative_expected_amount_rejected" time="15.234"><failure message="AssertionError: Expected 422 for negative expectedAmount, got 200&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_negative_value_validators.py:43: in test_expense_negative_expected_amount_rejected
+    assert response.status_code == 422, f"Expected 422 for negative expectedAmount, got {response.status_code}"
+E   AssertionError: Expected 422 for negative expectedAmount, got 200
+E   assert 200 == 422
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_expense_zero_amount_allowed" time="1.347" /><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_income_negative_expected_amount_rejected" time="0.645"><failure message="AssertionError: Expected 422 for negative expectedAmount, got 405&#10;assert 405 == 422&#10; +  where 405 = &lt;Response [405]&gt;.status_code">backend/tests/test_negative_value_validators.py:81: in test_income_negative_expected_amount_rejected
+    assert response.status_code == 422, f"Expected 422 for negative expectedAmount, got {response.status_code}"
+E   AssertionError: Expected 422 for negative expectedAmount, got 405
+E   assert 405 == 422
+E    +  where 405 = &lt;Response [405]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_asset_negative_current_value_rejected" time="1.337"><failure message="AssertionError: Expected 422 for negative currentValue, got 200&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_negative_value_validators.py:95: in test_asset_negative_current_value_rejected
+    assert response.status_code == 422, f"Expected 422 for negative currentValue, got {response.status_code}"
+E   AssertionError: Expected 422 for negative currentValue, got 200
+E   assert 200 == 422
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_asset_negative_purchase_value_rejected" time="1.341"><failure message="AssertionError: Expected 422 for negative purchaseValue, got 200&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_negative_value_validators.py:109: in test_asset_negative_purchase_value_rejected
+    assert response.status_code == 422, f"Expected 422 for negative purchaseValue, got {response.status_code}"
+E   AssertionError: Expected 422 for negative purchaseValue, got 200
+E   assert 200 == 422
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_insurance_negative_coverage_amount_rejected" time="0.605"><failure message="AssertionError: Expected 422 for negative coverageAmount, got 404&#10;assert 404 == 422&#10; +  where 404 = &lt;Response [404]&gt;.status_code">backend/tests/test_negative_value_validators.py:126: in test_insurance_negative_coverage_amount_rejected
+    assert response.status_code == 422, f"Expected 422 for negative coverageAmount, got {response.status_code}"
+E   AssertionError: Expected 422 for negative coverageAmount, got 404
+E   assert 404 == 422
+E    +  where 404 = &lt;Response [404]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_insurance_negative_premium_amount_rejected" time="0.643"><failure message="AssertionError: Expected 422 for negative premiumAmount, got 404&#10;assert 404 == 422&#10; +  where 404 = &lt;Response [404]&gt;.status_code">backend/tests/test_negative_value_validators.py:142: in test_insurance_negative_premium_amount_rejected
+    assert response.status_code == 422, f"Expected 422 for negative premiumAmount, got {response.status_code}"
+E   AssertionError: Expected 422 for negative premiumAmount, got 404
+E   assert 404 == 422
+E    +  where 404 = &lt;Response [404]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_account_negative_credit_limit_rejected" time="1.342"><failure message="AssertionError: Expected 422 for negative creditLimit, got 200&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_negative_value_validators.py:157: in test_account_negative_credit_limit_rejected
+    assert response.status_code == 422, f"Expected 422 for negative creditLimit, got {response.status_code}"
+E   AssertionError: Expected 422 for negative creditLimit, got 200
+E   assert 200 == 422
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_credit_card_negative_credit_limit_rejected" time="1.336"><failure message="AssertionError: Expected 422 for negative creditLimit, got 200&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_negative_value_validators.py:171: in test_credit_card_negative_credit_limit_rejected
+    assert response.status_code == 422, f"Expected 422 for negative creditLimit, got {response.status_code}"
+E   AssertionError: Expected 422 for negative creditLimit, got 200
+E   assert 200 == 422
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_credit_card_negative_outstanding_rejected" time="1.334"><failure message="AssertionError: Expected 422 for negative outstandingAmount, got 200&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_negative_value_validators.py:185: in test_credit_card_negative_outstanding_rejected
+    assert response.status_code == 422, f"Expected 422 for negative outstandingAmount, got {response.status_code}"
+E   AssertionError: Expected 422 for negative outstandingAmount, got 200
+E   assert 200 == 422
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_loan_negative_principal_rejected" time="1.794"><failure message="AssertionError: Expected 422 for negative principalAmount, got 200&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_negative_value_validators.py:203: in test_loan_negative_principal_rejected
+    assert response.status_code == 422, f"Expected 422 for negative principalAmount, got {response.status_code}"
+E   AssertionError: Expected 422 for negative principalAmount, got 200
+E   assert 200 == 422
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_loan_negative_emi_rejected" time="1.811"><failure message="AssertionError: Expected 422 for negative emiAmount, got 200&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_negative_value_validators.py:220: in test_loan_negative_emi_rejected
+    assert response.status_code == 422, f"Expected 422 for negative emiAmount, got {response.status_code}"
+E   AssertionError: Expected 422 for negative emiAmount, got 200
+E   assert 200 == 422
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_investment_negative_principal_rejected" time="1.376"><failure message="AssertionError: Expected 422 for negative principal, got 200&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_negative_value_validators.py:237: in test_investment_negative_principal_rejected
+    assert response.status_code == 422, f"Expected 422 for negative principal, got {response.status_code}"
+E   AssertionError: Expected 422 for negative principal, got 200
+E   assert 200 == 422
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestNegativeValueValidation" name="test_investment_negative_current_value_rejected" time="1.336"><failure message="AssertionError: Expected 422 for negative currentValue, got 200&#10;assert 200 == 422&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_negative_value_validators.py:253: in test_investment_negative_current_value_rejected
+    assert response.status_code == 422, f"Expected 422 for negative currentValue, got {response.status_code}"
+E   AssertionError: Expected 422 for negative currentValue, got 200
+E   assert 200 == 422
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_negative_value_validators.TestN1QueryFixes" name="test_expenses_with_next_date_returns_linked_names" time="1.552" /><testcase classname="backend.tests.test_negative_value_validators.TestN1QueryFixes" name="test_investments_list_returns_correctly" time="1.341" /><testcase classname="backend.tests.test_negative_value_validators.TestPositiveValueCreation" name="test_expense_positive_amount_accepted" time="2.311" /><testcase classname="backend.tests.test_negative_value_validators.TestPositiveValueCreation" name="test_income_positive_amount_accepted" time="0.628"><failure message="AssertionError: Expected 200 for positive amount, got 405&#10;assert 405 == 200&#10; +  where 405 = &lt;Response [405]&gt;.status_code">backend/tests/test_negative_value_validators.py:363: in test_income_positive_amount_accepted
+    assert response.status_code == 200, f"Expected 200 for positive amount, got {response.status_code}"
+E   AssertionError: Expected 200 for positive amount, got 405
+E   assert 405 == 200
+E    +  where 405 = &lt;Response [405]&gt;.status_code</failure></testcase></testsuite></testsuites>

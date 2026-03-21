@@ -195,15 +195,21 @@ async def repair_missing_sip_expenses(request: Request):
     user_filter["autoCreateExpense"] = True
 
     investments = await db.investments.find(user_filter, {"_id": 0}).to_list(1000)
+
+    # Bulk fetch all linked expenses to avoid N+1
+    expense_ids = list({inv.get("linkedExpenseId") for inv in investments if inv.get("linkedExpenseId")})
+    existing_expense_ids = set()
+    if expense_ids:
+        existing = await db.expenses.find({"id": {"$in": expense_ids}}, {"_id": 0, "id": 1}).to_list(len(expense_ids))
+        existing_expense_ids = {e["id"] for e in existing}
+
     repaired = []
 
     for inv in investments:
         linked_id = inv.get("linkedExpenseId")
         # Check if linked expense actually exists
-        if linked_id:
-            existing_exp = await db.expenses.find_one({"id": linked_id}, {"_id": 0})
-            if existing_exp:
-                continue  # Already has a valid linked expense
+        if linked_id and linked_id in existing_expense_ids:
+            continue  # Already has a valid linked expense
 
         freq = inv.get("investmentFrequency")
         sip_amt = inv.get("sipAmount")
@@ -1131,17 +1137,21 @@ async def fix_loan_income_types(request: Request):
         {"_id": 0, "id": 1}
     ).to_list(500)
 
-    orphan_ids = []
-    for src in loan_income_sources:
-        linked_inv = await db.investments.find_one({"linkedIncomeSourceId": src["id"]}, {"_id": 0, "id": 1})
-        if not linked_inv:
-            orphan_ids.append(src["id"])
+    # Bulk check which income sources have linked investments
+    src_ids = [src["id"] for src in loan_income_sources]
+    linked_invs = await db.investments.find(
+        {"linkedIncomeSourceId": {"$in": src_ids}},
+        {"_id": 0, "linkedIncomeSourceId": 1}
+    ).to_list(500) if src_ids else []
+    linked_src_ids = {inv["linkedIncomeSourceId"] for inv in linked_invs}
+
+    orphan_ids = [src["id"] for src in loan_income_sources if src["id"] not in linked_src_ids]
 
     orphan_count = 0
-    for oid in orphan_ids:
-        await db.income_sources.delete_one({"id": oid})
-        await db.income_received.delete_many({"entityId": oid})
-        orphan_count += 1
+    if orphan_ids:
+        await db.income_sources.delete_many({"id": {"$in": orphan_ids}})
+        await db.income_received.delete_many({"entityId": {"$in": orphan_ids}})
+        orphan_count = len(orphan_ids)
 
     # Remove fake auto-recorded income transactions created by the fixed-income scheduler
     # for loan repayment income sources (these should only come from actual repayments)

@@ -1,5 +1,5 @@
 """Insurance model."""
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional
 from datetime import datetime, timezone
 import uuid
@@ -42,3 +42,24 @@ class InsuranceCreate(BaseModel):
     autoCreateExpense: bool = False
     premiumEndDate: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator("coverageAmount")
+    @classmethod
+    def validate_coverage(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Coverage amount must be positive")
+        return v
+
+    @field_validator("premiumAmount")
+    @classmethod
+    def validate_premium(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Premium amount must be positive")
+        return v
+
+    @field_validator("expectedMaturityAmount")
+    @classmethod
+    def validate_maturity(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Expected maturity amount cannot be negative")
+        return v

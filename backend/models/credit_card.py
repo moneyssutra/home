@@ -1,7 +1,7 @@
 """
 Credit Card model
 """
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional
 from datetime import datetime, timezone
 import uuid
@@ -33,3 +33,24 @@ class CreditCardCreate(BaseModel):
     minimumDue: Optional[float] = None
     interestRate: Optional[float] = None
     linkedAccountId: Optional[str] = None
+
+    @field_validator("creditLimit")
+    @classmethod
+    def validate_credit_limit(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Credit limit must be positive")
+        return v
+
+    @field_validator("outstandingAmount")
+    @classmethod
+    def validate_outstanding(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Outstanding amount cannot be negative")
+        return v
+
+    @field_validator("interestRate")
+    @classmethod
+    def validate_rate(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Interest rate cannot be negative")
+        return v
