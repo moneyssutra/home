@@ -251,8 +251,8 @@ const LevelAndStagesWidget = ({ gamData, clockData, onShare }) => {
         {[
           { val: gamData.lastScore || 0, label: "FIN. SCORE" },
           { val: survDays || gamData.lastSurvivalDays || 0, label: "RUNWAY" },
-          { val: `${gamData.achievementCount || 0}/${gamData.totalAchievements || 100}`, label: "BADGES" },
-          { val: gamData.maxBadgesUnlocked || gamData.achievementCount || 0, label: "PEAK" },
+          { val: `${gamData.achievementCount || 0}/${gamData.totalBadges || gamData.allAchievements?.length || 10}`, label: "BADGES" },
+          { val: gamData.level || 0, label: "LEVEL" },
         ].map((s, i) => (
           <div key={i} className="py-3 text-center">
             <p className="text-sm font-black" style={{ color: "var(--text-primary)" }}>{s.val}</p>

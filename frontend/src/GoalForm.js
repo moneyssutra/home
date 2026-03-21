@@ -417,8 +417,9 @@ const GoalForm = () => {
             type="button"
             onClick={() => {
               setGoalType(option.value);
+              setErrors(prev => { const n = {...prev}; delete n.goalType; return n; });
               if (option.value !== "Other") {
-                setTimeout(() => handleNext(), 200);
+                setStep(2);
               }
             }}
             className="flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all active:scale-[0.98]"
@@ -889,7 +890,15 @@ const GoalForm = () => {
             <Trash2 className="h-4.5 w-4.5" />
           </button>
         )}
-        {!isEditMode && <div className="h-10 w-10" />}
+        {!isEditMode && (
+          <button type="button" onClick={() => navigate(-1)}
+            className="flex h-10 w-10 items-center justify-center rounded-full transition-colors"
+            style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-muted)" }}
+            data-testid="close-button"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </header>
 
       {/* Step Indicator */}
