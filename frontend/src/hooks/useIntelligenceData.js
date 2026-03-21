@@ -86,6 +86,38 @@ export function useIntelligenceData() {
     };
   };
 
+  // Generate badges and challenges from financial metrics (used for family combined + individual member views)
+  const generateBadgesAndChallenges = (survivalDays, sr, finalScore, emiRatio, totalInvestments, incomeSources) => {
+    const badges = [];
+    if (survivalDays >= 180) badges.push({ id: "survivor_6m", name: "6-Month Survivor", icon: "shield", description: "Emergency fund covers 6+ months", unlocked: true, tier: "gold" });
+    if (survivalDays >= 90) badges.push({ id: "survivor_3m", name: "3-Month Buffer", icon: "shield", description: "3+ months emergency fund", unlocked: true, tier: "silver" });
+    else badges.push({ id: "survivor_3m", name: "3-Month Buffer", icon: "shield", description: "Build 3 months emergency fund", unlocked: false, tier: "silver" });
+    if (sr >= 30) badges.push({ id: "super_saver", name: "Super Saver", icon: "piggy-bank", description: "Saving 30%+ of income", unlocked: true, tier: "gold" });
+    else if (sr >= 20) badges.push({ id: "good_saver", name: "Smart Saver", icon: "piggy-bank", description: "Saving 20%+ of income", unlocked: true, tier: "silver" });
+    else badges.push({ id: "good_saver", name: "Smart Saver", icon: "piggy-bank", description: "Save 20% of income to unlock", unlocked: false, tier: "silver" });
+    if (finalScore >= 75) badges.push({ id: "health_star", name: "Health Star", icon: "star", description: "Financial health score 75+", unlocked: true, tier: "gold" });
+    else badges.push({ id: "health_star", name: "Health Star", icon: "star", description: "Reach 75+ health score", unlocked: false, tier: "gold" });
+    if (emiRatio <= 20) badges.push({ id: "debt_free", name: "Low Debt Champion", icon: "trending-down", description: "EMI under 20% of income", unlocked: true, tier: "silver" });
+    if (totalInvestments > 0) badges.push({ id: "investor", name: "Active Investor", icon: "trending-up", description: "Has active investments", unlocked: true, tier: "bronze" });
+    if (incomeSources > 1) badges.push({ id: "multi_income", name: "Multi-Income", icon: "layers", description: "Multiple income sources", unlocked: true, tier: "silver" });
+
+    const unlocked = badges.filter(b => b.unlocked);
+    const gamData = {
+      level: Math.min(Math.floor(survivalDays / 30), 20), xp: survivalDays * 10 + finalScore * 5,
+      achievements: unlocked, activeChallenges: [], allAchievements: badges,
+      achievementCount: unlocked.length, maxBadgesUnlocked: unlocked.length,
+    };
+
+    const challs = [];
+    if (sr < 20) challs.push({ code: "save_20", name: "Save 20% Challenge", description: "Increase savings rate to 20%", type: "active", difficulty: "medium" });
+    if (survivalDays < 90) challs.push({ code: "build_buffer", name: "3-Month Buffer", description: "Build 3 months emergency fund", type: "available", difficulty: "hard" });
+    if (emiRatio > 30) challs.push({ code: "reduce_emi", name: "EMI Reduction", description: "Reduce EMI to under 30%", type: "available", difficulty: "hard" });
+    const challData = { active: challs.filter(c => c.type === "active"), available: challs.filter(c => c.type === "available"), completed: [] };
+
+    return { gamData, challData };
+  };
+
+
   const fetchAll = async () => {
     if (isFamilyView) {
       setLoading(true);
@@ -158,8 +190,11 @@ export function useIntelligenceData() {
 
         setSurvivalClock(clock);
         setControlScore(controlScoreData);
-        setGamification({ level: Math.min(Math.floor(survivalDays / 30), 20), xp: survivalDays * 10, achievements: [], activeChallenges: [], allAchievements: [] });
-        setChallenges({ active: [], available: [], completed: [] });
+        const totalInvestments = cs.totalInvestments || 0;
+        const incomeSources = 1; // Default for family combined view
+        const { gamData: fGam, challData: fChall } = generateBadgesAndChallenges(survivalDays, sr, finalScore, emiRatio, totalInvestments, incomeSources);
+        setGamification(fGam);
+        setChallenges(fChall);
         setBehaviorAlerts(null);
         setMoneyPattern({
           personality,
@@ -240,8 +275,9 @@ export function useIntelligenceData() {
 
         setSurvivalClock(clock);
         setControlScore(controlScoreData);
-        setGamification({ level: Math.min(Math.floor(survivalDays / 30), 20), xp: survivalDays * 10, achievements: [], activeChallenges: [], allAchievements: [] });
-        setChallenges({ active: [], available: [], completed: [] });
+        const { gamData: mGam, challData: mChall } = generateBadgesAndChallenges(survivalDays, sr, finalScore, emiRatio, totalInvestments, s.counts?.income || 0);
+        setGamification(mGam);
+        setChallenges(mChall);
         setBehaviorAlerts(null);
         setMoneyPattern({
           personality, personalityId, zone, confidence,

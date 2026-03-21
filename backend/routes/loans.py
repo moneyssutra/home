@@ -20,10 +20,18 @@ async def create_loan(input: LoanCreate, request: Request):
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     loan_dict = input.model_dump()
+    shared_members = loan_dict.pop('sharedWithMembers', None) or []
     loan_dict['userId'] = user.get('user_id')
+    loan_dict['isShared'] = len(shared_members) > 0
+    loan_dict['sharedWithMembers'] = shared_members  # [{memberId, memberName, sharePercentage}]
+    loan_dict['primaryOwnerId'] = user.get('user_id')
+
     loan_obj = Loan(**loan_dict)
     doc = loan_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
+    doc['isShared'] = loan_dict['isShared']
+    doc['sharedWithMembers'] = shared_members
+    doc['primaryOwnerId'] = user.get('user_id')
     await db.loans.insert_one(doc)
 
     if loan_obj.autoCreateExpense:
@@ -45,6 +53,28 @@ async def create_loan(input: LoanCreate, request: Request):
                 "createdAt": datetime.now(timezone.utc).isoformat()
             }
             await db.expenses.insert_one(expense_data)
+
+    # Create shared loan references for each shared member
+    if shared_members:
+        for sm in shared_members:
+            member_id = sm.get("memberId")
+            share_pct = sm.get("sharePercentage", 50) / 100
+            if member_id and member_id != user.get('user_id'):
+                shared_loan_doc = {
+                    **doc,
+                    "id": str(uuid.uuid4()),
+                    "userId": member_id,
+                    "isSharedReference": True,
+                    "originalLoanId": loan_obj.id,
+                    "primaryOwnerId": user.get('user_id'),
+                    "sharePercentage": sm.get("sharePercentage", 50),
+                    "outstandingAmount": round((loan_dict.get("outstandingAmount") or loan_dict["principalAmount"]) * share_pct, 2),
+                    "emiAmount": round(loan_dict["emiAmount"] * share_pct, 2),
+                    "createdAt": datetime.now(timezone.utc).isoformat()
+                }
+                shared_loan_doc.pop("_id", None)
+                await db.loans.insert_one(shared_loan_doc)
+
     return loan_obj
 
 

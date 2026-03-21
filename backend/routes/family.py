@@ -511,8 +511,11 @@ async def get_combined_family_summary(request: Request):
 
     total_investments = sum(i.get("currentValue", 0) for i in investments)
     total_assets = sum(a.get("currentValue", 0) for a in assets)
-    total_loans = sum(ln.get("outstandingAmount", 0) for ln in loans)
+    # Exclude shared loan references from combined total to avoid double counting
+    unique_loans = [ln for ln in loans if not ln.get("isSharedReference")]
+    total_loans = sum(ln.get("outstandingAmount", 0) for ln in unique_loans)
     liquid_balance = sum(a.get("currentBalance", 0) for a in accounts)
+    total_emi = sum(ln.get("emiAmount", 0) for ln in unique_loans)
     total_insurance_coverage = sum(i.get("coverageAmount", 0) for i in insurances)
     life_ins_types = {"term insurance", "life insurance", "endowment", "ulip"}
     health_ins_types = {"health insurance", "medical insurance", "mediclaim"}

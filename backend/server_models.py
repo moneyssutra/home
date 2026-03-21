@@ -348,6 +348,7 @@ class LoanCreate(BaseModel):
     linkedAccountId: Optional[str] = None
     autoCreateExpense: bool = True
     emiSelectedDate: Optional[str] = None
+    sharedWithMembers: Optional[list] = None
 
 
 # ============ ASSET MODEL ============

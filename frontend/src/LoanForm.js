@@ -42,6 +42,11 @@ const LoanIncome = () => {
   const [linkedAccountId, setLinkedAccountId] = useState("");
   const [autoCreateExpense, setAutoCreateExpense] = useState(true);
   
+  // Shared loan with family members
+  const [isShared, setIsShared] = useState(false);
+  const [sharedMembers, setSharedMembers] = useState([]);
+  const [familyMembers, setFamilyMembers] = useState([]);
+  
   // Track if end date was manually overridden
   const [endDateManuallySet, setEndDateManuallySet] = useState(false);
   
@@ -93,6 +98,7 @@ const LoanIncome = () => {
   useEffect(() => {
     fetchAssets();
     fetchAccounts();
+    fetchFamilyMembers();
     if (id) {
       fetchLoanData();
     }
@@ -146,6 +152,18 @@ const LoanIncome = () => {
       console.error("Error fetching accounts:", error);
     }
   };
+
+  const fetchFamilyMembers = async () => {
+    try {
+      const res = await axios.get(`${backendUrl}/api/family`, { withCredentials: true });
+      const family = res.data?.family || res.data;
+      if (family?.members) {
+        const members = family.members.filter(m => m.role !== "owner");
+        setFamilyMembers(members);
+      }
+    } catch { /* No family - that's fine */ }
+  };
+
 
   const fetchLoanData = async () => {
     try {
@@ -423,6 +441,7 @@ const LoanIncome = () => {
         linkedAssetId: linkedAssetId || null,
         linkedAccountId: linkedAccountId || null,
         autoCreateExpense,
+        sharedWithMembers: isShared ? sharedMembers.filter(sm => sm.memberId) : null,
       };
 
       let savedLoanId = id;
@@ -920,6 +939,78 @@ const LoanIncome = () => {
                 </button>
               </div>
             </div>
+
+            {/* Shared Loan with Family Member */}
+            {!id && familyMembers.length > 0 && (
+              <div className="rounded-2xl p-5 space-y-3" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Share Loan with Family</p>
+                    <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>Both members become liable. Won't double-count in family view.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setIsShared(!isShared); if (isShared) setSharedMembers([]); }}
+                    className={`relative w-12 h-6 rounded-full transition-all ${isShared ? "bg-[#14B8A6]" : "bg-[#334155]"}`}
+                    data-testid="shared-loan-toggle"
+                  >
+                    <div className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-transform ${isShared ? "translate-x-6" : "translate-x-1"}`} />
+                  </button>
+                </div>
+
+                {isShared && (
+                  <div className="space-y-2 pt-2" style={{ borderTop: "1px solid var(--border-light)" }}>
+                    {familyMembers.map((member) => {
+                      const existing = sharedMembers.find(sm => sm.memberId === member.id);
+                      return (
+                        <div key={member.id} className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)" }}>
+                          <input
+                            type="checkbox"
+                            checked={!!existing}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSharedMembers([...sharedMembers, { memberId: member.id, memberName: member.name, sharePercentage: 50 }]);
+                              } else {
+                                setSharedMembers(sharedMembers.filter(sm => sm.memberId !== member.id));
+                              }
+                            }}
+                            className="w-4 h-4 rounded accent-[#14B8A6]"
+                            data-testid={`share-member-${member.id}`}
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{member.name}</p>
+                            <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{member.relationship}</p>
+                          </div>
+                          {existing && (
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                min="1" max="99"
+                                value={existing.sharePercentage}
+                                onChange={(e) => {
+                                  const val = Math.min(99, Math.max(1, parseInt(e.target.value) || 50));
+                                  setSharedMembers(sharedMembers.map(sm => sm.memberId === member.id ? { ...sm, sharePercentage: val } : sm));
+                                }}
+                                className="w-14 text-center text-xs rounded-lg px-2 py-1.5"
+                                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+                                data-testid={`share-percentage-${member.id}`}
+                              />
+                              <span className="text-xs" style={{ color: "var(--text-muted)" }}>%</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    {sharedMembers.length > 0 && (
+                      <p className="text-[10px] text-center pt-1" style={{ color: "var(--text-muted)" }}>
+                        Their share: {sharedMembers.map(sm => `${sm.memberName} (${sm.sharePercentage}%)`).join(", ")}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
 
             {errors.submit && (
               <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">{errors.submit}</div>
