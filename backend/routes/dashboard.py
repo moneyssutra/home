@@ -20,7 +20,7 @@ async def get_networth_summary(request: Request):
 
     user_filter = await get_effective_user_filter(user, request)
 
-    assets, investments, accounts, credit_cards, loans, incomes, other_incomes, expenses = await asyncio.gather(
+    assets, investments, accounts, credit_cards, loans, incomes, other_incomes, expenses, insurances = await asyncio.gather(
         db.assets.find(user_filter, {"_id": 0}).to_list(1000),
         db.investments.find(user_filter, {"_id": 0}).to_list(1000),
         db.accounts.find(user_filter, {"_id": 0}).to_list(1000),
@@ -29,6 +29,7 @@ async def get_networth_summary(request: Request):
         db.income_sources.find(user_filter, {"_id": 0}).to_list(1000),
         db.other_income.find(user_filter, {"_id": 0}).to_list(1000),
         db.expenses.find(user_filter, {"_id": 0}).to_list(1000),
+        db.insurances.find(user_filter, {"_id": 0}).to_list(1000),
     )
 
     total_assets = sum(asset.get('currentValue', 0) for asset in assets)
@@ -38,6 +39,7 @@ async def get_networth_summary(request: Request):
     credit_card_outstanding = sum(card.get('outstandingAmount', 0) for card in credit_cards)
     credit_card_limit = sum(card.get('creditLimit', 0) for card in credit_cards)
     total_liabilities = sum(loan.get('outstandingAmount', 0) or loan.get('principalAmount', 0) for loan in loans) + credit_outstanding + credit_card_outstanding
+    total_insurance_coverage = sum(ins.get('coverAmount', 0) or ins.get('sumAssured', 0) or 0 for ins in insurances)
 
     current_month = get_user_now(request).month
     current_year = get_user_now(request).year
@@ -111,6 +113,7 @@ async def get_networth_summary(request: Request):
         "assetCount": len(assets), "investmentCount": len(investments),
         "accountCount": len(accounts), "loanCount": len(loans),
         "creditCardCount": len(credit_cards), "incomeCount": len(incomes), "expenseCount": len(expenses),
+        "insuranceCount": len(insurances), "totalInsuranceCoverage": total_insurance_coverage,
         "totalEMI": total_emi,
         "effectiveFunds": round(effective_funds, 0),
         # Loan Given snapshot

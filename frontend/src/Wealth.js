@@ -83,7 +83,7 @@ const Wealth = () => {
         loanCount: nw.loanCount || 0,
         accountCount: nw.accountCount || 0,
         creditCardCount: nw.creditCardCount || 0,
-        insuranceCount: 0,
+        insuranceCount: nw.insuranceCount || 0,
         incomeCount: nw.incomeCount || 0,
         expenseCount: nw.expenseCount || 0,
         totalIncome: (nw.incomeReceived || 0) + (nw.expectedIncome || 0),
@@ -93,6 +93,7 @@ const Wealth = () => {
         overrideLoans: nw.totalLiabilities || 0,
         overrideBalance: nw.liquidBalance || 0,
         overrideCC: nw.creditCardOutstanding || 0,
+        overrideInsurance: nw.totalInsuranceCoverage || 0,
       });
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -134,7 +135,7 @@ const Wealth = () => {
   const totalInvestments = data.overrideInvestments ?? (data.investments || []).reduce((s, i) => s + (i.currentValue || 0), 0);
   const totalLoans = data.overrideLoans ?? (data.loans || []).reduce((s, l) => s + (l.outstandingAmount || 0), 0);
   const totalCC = data.overrideCC ?? (data.creditCards || []).reduce((s, c) => s + (c.outstandingAmount || 0), 0);
-  const totalCoverage = data.overrideCoverage ?? (data.insurances || []).reduce((s, i) => s + (i.coverageAmount || 0), 0);
+  const totalCoverage = data.overrideInsurance ?? data.overrideCoverage ?? (data.insurances || []).reduce((s, i) => s + (i.coverageAmount || 0), 0);
   const totalBalance = data.overrideBalance ?? (data.accounts || []).filter(a => a.accountType !== "Credit Card").reduce((s, a) => s + (a.currentBalance || 0), 0);
 
   const sections = [
@@ -144,7 +145,7 @@ const Wealth = () => {
     { title: "Investments", icon: LineChart, gradient: "from-violet-500 to-purple-600", bgColor: "#F3E8FF", textColor: "#7C3AED", value: totalInvestments, count: data.investmentCount ?? (data.investments || []).length, path: "/my-investments", label: "items" },
     { title: "Loans", icon: Landmark, gradient: "from-amber-500 to-orange-600", bgColor: "var(--status-warning-soft)", textColor: "var(--status-warning)", value: totalLoans, count: data.loanCount ?? (data.loans || []).length, path: "/my-loans", label: "loans", isLiability: true },
     { title: "Credit Cards", icon: CreditCard, gradient: "from-fuchsia-500 to-pink-600", bgColor: "#FCE7F3", textColor: "#DB2777", value: totalCC, count: data.overrideCCCount ?? data.creditCardCount ?? (data.creditCards || []).length, path: "/my-credit-cards", label: "cards", isLiability: true },
-    { title: "Insurance", icon: Shield, gradient: "from-cyan-500 to-blue-600", bgColor: "#CFFAFE", textColor: "#0891B2", value: totalCoverage, count: data.overrideInsCount ?? (data.insurances || []).length, path: "/my-insurance", label: "coverage" },
+    { title: "Insurance", icon: Shield, gradient: "from-cyan-500 to-blue-600", bgColor: "#CFFAFE", textColor: "#0891B2", value: totalCoverage, count: data.insuranceCount ?? data.overrideInsCount ?? (data.insurances || []).length, path: "/my-insurance", label: "coverage" },
     { title: "Accounts", icon: Wallet, gradient: "from-emerald-500 to-teal-600", bgColor: "var(--brand-primary-soft)", textColor: "var(--brand-primary)", value: totalBalance, count: data.accountCount ?? (data.accounts || []).length, path: "/my-accounts", label: "accounts" },
   ];
 
