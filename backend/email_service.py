@@ -252,12 +252,14 @@ def get_password_changed_email(username: str) -> dict:
 
 
 async def send_email_resend(to_email: str, subject: str, html_content: str) -> dict:
-    """Send email using Resend API (Emergent integration)"""
+    """Send email using Resend API"""
     try:
         import resend
         
-        # Use Emergent LLM key for Resend
-        resend.api_key = os.environ.get("EMERGENT_LLM_KEY")
+        resend.api_key = os.environ.get("RESEND_API_KEY")
+        if not resend.api_key:
+            logger.error("RESEND_API_KEY not set in environment")
+            return {"success": False, "error": "RESEND_API_KEY not configured"}
         
         params = {
             "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
@@ -266,7 +268,6 @@ async def send_email_resend(to_email: str, subject: str, html_content: str) -> d
             "html": html_content
         }
         
-        # Run sync SDK in thread to keep FastAPI non-blocking
         email = await asyncio.to_thread(resend.Emails.send, params)
         
         logger.info(f"Email sent successfully to {to_email} via Resend")
@@ -363,4 +364,63 @@ async def send_password_reset_email(to_email: str, username: str, reset_token: s
 async def send_password_changed_notification(to_email: str, username: str) -> dict:
     """Send password changed security notification"""
     email_data = get_password_changed_email(username)
+    return await send_email(to_email, email_data["subject"], email_data["html"])
+
+
+def get_otp_email(otp: str) -> dict:
+    """Generate branded OTP verification email"""
+    subject = "Your MoneySSutra Verification Code"
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: {BRAND_BG}; font-family: 'Segoe UI', Arial, sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <tr>
+                <td>
+                    {get_email_header()}
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 40px 30px; text-align: center;">
+                    <h2 style="margin: 0 0 15px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 22px; color: {TEXT_PRIMARY};">
+                        Verification Code
+                    </h2>
+                    <p style="margin: 0 0 30px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; color: {TEXT_SECONDARY}; line-height: 1.6;">
+                        Use the code below to verify your identity
+                    </p>
+
+                    <div style="background-color: {BRAND_BG}; border: 2px dashed {BRAND_PRIMARY}; padding: 25px; border-radius: 12px; margin: 0 auto; max-width: 280px;">
+                        <p style="margin: 0; font-family: 'Courier New', monospace; font-size: 40px; font-weight: bold; color: {BRAND_PRIMARY}; letter-spacing: 12px;">
+                            {otp}
+                        </p>
+                    </div>
+
+                    <div style="background-color: #FFF9E6; border: 1px solid #FFE082; padding: 15px 20px; border-radius: 8px; margin: 30px 0 0 0;">
+                        <p style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #8B6914;">
+                            This code is valid for <strong>5 minutes</strong>. Do not share it with anyone.
+                        </p>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {get_email_footer()}
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """
+
+    return {"subject": subject, "html": html_content}
+
+
+async def send_otp_email(to_email: str, otp: str) -> dict:
+    """Send OTP verification email"""
+    email_data = get_otp_email(otp)
     return await send_email(to_email, email_data["subject"], email_data["html"])

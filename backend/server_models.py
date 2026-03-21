@@ -72,6 +72,18 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
 
+class SendOTPRequest(BaseModel):
+    email: str
+
+class VerifyOTPRequest(BaseModel):
+    email: str
+    otp: str
+
+class ResetPasswordOTPRequest(BaseModel):
+    email: str
+    otp: str
+    new_password: str
+
 
 # ============ WORKSPACE MODELS ============
 class Workspace(BaseModel):

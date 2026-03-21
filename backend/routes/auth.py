@@ -13,12 +13,14 @@ from database import db
 from server_models import (
     JWTLoginRequest, GoogleSessionRequest, RegisterRequest,
     SetPasswordRequest, CheckAvailabilityRequest, ForgotUsernameRequest,
-    ForgotPasswordRequest, ResetPasswordRequest
+    ForgotPasswordRequest, ResetPasswordRequest,
+    SendOTPRequest, VerifyOTPRequest, ResetPasswordOTPRequest
 )
 from email_service import (
     send_username_recovery_email,
     send_password_reset_email,
-    send_password_changed_notification
+    send_password_changed_notification,
+    send_otp_email
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -587,6 +589,165 @@ async def verify_reset_token(token: str):
     if expires_at < datetime.now(timezone.utc):
         return {"valid": False, "message": "Reset link has expired. Please request a new one."}
     return {"valid": True}
+
+
+import random
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+
+@router.post("/send-otp")
+async def send_otp(request: SendOTPRequest):
+    """Send 6-digit OTP to email for password reset."""
+    email = request.email.strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    user = await db.users.find_one(
+        {"email": {"$regex": f"^{email}$", "$options": "i"}},
+        {"_id": 0, "user_id": 1, "auth_type": 1}
+    )
+
+    # Always return success to prevent email enumeration
+    success_msg = "If an account exists with this email, you will receive a verification code shortly."
+
+    if user:
+        # Rate limit: max 1 OTP per 60 seconds
+        recent = await db.otp_tokens.find_one(
+            {"email": email, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()}},
+            {"_id": 0}
+        )
+        if recent:
+            return {"message": "OTP already sent. Please wait before requesting another."}
+
+        otp = generate_otp()
+        otp_record = {
+            "otp_id": str(uuid.uuid4()),
+            "email": email,
+            "user_id": user["user_id"],
+            "otp_hash": hash_password(otp),
+            "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
+            "used": False,
+            "attempts": 0,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        await db.otp_tokens.insert_one(otp_record)
+
+        email_result = await send_otp_email(email, otp)
+        if not email_result.get("success"):
+            logger.error(f"Failed to send OTP email: {email_result.get('error')}")
+
+    return {"message": success_msg}
+
+
+@router.post("/verify-otp")
+async def verify_otp(request: VerifyOTPRequest):
+    """Verify OTP code. Returns a one-time reset token on success."""
+    email = request.email.strip().lower()
+    otp = request.otp.strip()
+
+    if not email or not otp:
+        raise HTTPException(status_code=400, detail="Email and OTP are required")
+
+    record = await db.otp_tokens.find_one(
+        {"email": email, "used": False},
+        {"_id": 0},
+        sort=[("created_at", -1)]
+    )
+
+    if not record:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+
+    # Max 3 attempts
+    if record.get("attempts", 0) >= 3:
+        await db.otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+        raise HTTPException(status_code=400, detail="Too many attempts. Please request a new OTP.")
+
+    # Increment attempt counter
+    await db.otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$inc": {"attempts": 1}})
+
+    # Check expiry
+    expires_at = datetime.fromisoformat(record["expires_at"])
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
+
+    # Verify OTP hash
+    if not verify_password(otp, record["otp_hash"]):
+        remaining = 3 - record.get("attempts", 0) - 1
+        raise HTTPException(status_code=400, detail=f"Invalid OTP. {remaining} attempt(s) remaining.")
+
+    # Mark OTP as used and generate a reset token
+    await db.otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+
+    reset_token = secrets.token_urlsafe(32)
+    await db.password_reset_tokens.insert_one({
+        "token_id": str(uuid.uuid4()),
+        "user_id": record["user_id"],
+        "reset_token": reset_token,
+        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat(),
+        "used": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    return {"message": "OTP verified successfully", "reset_token": reset_token}
+
+
+@router.post("/reset-password-otp")
+async def reset_password_otp(request: ResetPasswordOTPRequest):
+    """Reset password after OTP verification (combined verify + reset in one step)."""
+    email = request.email.strip().lower()
+    otp = request.otp.strip()
+
+    if not email or not otp or not request.new_password:
+        raise HTTPException(status_code=400, detail="Email, OTP and new password are required")
+
+    record = await db.otp_tokens.find_one(
+        {"email": email, "used": False},
+        {"_id": 0},
+        sort=[("created_at", -1)]
+    )
+
+    if not record:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+
+    if record.get("attempts", 0) >= 3:
+        await db.otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+        raise HTTPException(status_code=400, detail="Too many attempts. Please request a new OTP.")
+
+    await db.otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$inc": {"attempts": 1}})
+
+    expires_at = datetime.fromisoformat(record["expires_at"])
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
+
+    if not verify_password(otp, record["otp_hash"]):
+        remaining = 3 - record.get("attempts", 0) - 1
+        raise HTTPException(status_code=400, detail=f"Invalid OTP. {remaining} attempt(s) remaining.")
+
+    if len(request.new_password) < 4:
+        raise HTTPException(status_code=400, detail="Password must be at least 4 characters")
+
+    # Mark OTP as used
+    await db.otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+
+    user = await db.users.find_one({"user_id": record["user_id"]}, {"_id": 0, "user_id": 1, "name": 1, "email": 1})
+    if not user:
+        raise HTTPException(status_code=400, detail="User not found")
+
+    await db.users.update_one({"user_id": user["user_id"]}, {"$set": {"password_hash": hash_password(request.new_password)}})
+    await db.user_sessions.delete_many({"user_id": user["user_id"]})
+
+    username = user.get("name", "User")
+    email_result = await send_password_changed_notification(user["email"], username)
+    if not email_result.get("success"):
+        logger.error(f"Failed to send password changed notification: {email_result.get('error')}")
+
+    return {"message": "Password reset successfully. Please log in with your new password."}
 
 
 @router.delete("/cleanup-test-data")

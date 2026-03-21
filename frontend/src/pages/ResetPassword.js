@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Wallet, Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 import axios from "axios";
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const ResetPassword = () => {
   const navigate = useNavigate();
@@ -91,7 +91,7 @@ const ResetPassword = () => {
             <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 shadow-lg border border-white/30">
               <Wallet className="h-10 w-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Moneyssutra</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">MoneySSutra</h1>
           </div>
 
           {/* Error Card */}
@@ -136,7 +136,7 @@ const ResetPassword = () => {
             <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-4 shadow-lg border border-white/30">
               <Wallet className="h-10 w-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Moneyssutra</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">MoneySSutra</h1>
           </div>
 
           {/* Success Card */}
