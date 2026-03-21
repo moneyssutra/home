@@ -22,6 +22,51 @@ import { useMilestoneNotification, MilestoneProgress } from "@/components/Milest
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 
+/* ─── keyword → image mapping (shared logic) ─── */
+const GOAL_IMAGES = {
+  home: "https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  house: "https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  flat: "https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  apartment: "https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  car: "https://images.pexels.com/photos/7150302/pexels-photo-7150302.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  vehicle: "https://images.pexels.com/photos/7150302/pexels-photo-7150302.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  bike: "https://images.pexels.com/photos/35974726/pexels-photo-35974726.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  motorcycle: "https://images.pexels.com/photos/35974726/pexels-photo-35974726.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  travel: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+  trip: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+  vacation: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+  goa: "https://images.unsplash.com/photo-1631535152690-ba1a85229136?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+  phone: "https://images.pexels.com/photos/215581/pexels-photo-215581.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  iphone: "https://images.pexels.com/photos/215581/pexels-photo-215581.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  gadget: "https://images.pexels.com/photos/3945693/pexels-photo-3945693.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  laptop: "https://images.pexels.com/photos/3945693/pexels-photo-3945693.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  education: "https://images.pexels.com/photos/5820203/pexels-photo-5820203.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  college: "https://images.pexels.com/photos/5820203/pexels-photo-5820203.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  wedding: "https://images.pexels.com/photos/1646730/pexels-photo-1646730.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  marriage: "https://images.pexels.com/photos/1646730/pexels-photo-1646730.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  emergency: "https://static.prod-images.emergentagent.com/jobs/01b891f9-9672-414f-bf4d-1ee4283b2940/images/92df9115bec6fdb3fb22c69cd7379d7818f14c4d28b812829eef970c7c3ddfc7.png",
+  fund: "https://static.prod-images.emergentagent.com/jobs/01b891f9-9672-414f-bf4d-1ee4283b2940/images/92df9115bec6fdb3fb22c69cd7379d7818f14c4d28b812829eef970c7c3ddfc7.png",
+  saving: "https://static.prod-images.emergentagent.com/jobs/01b891f9-9672-414f-bf4d-1ee4283b2940/images/92df9115bec6fdb3fb22c69cd7379d7818f14c4d28b812829eef970c7c3ddfc7.png",
+};
+const TYPE_IMGS = {
+  "Wealth Creation": "https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  "Debt Elimination": "https://images.unsplash.com/photo-1705056509273-3e2292bd2e39?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
+  "Investment Target": "https://images.pexels.com/photos/7567445/pexels-photo-7567445.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  "Emergency Fund": "https://static.prod-images.emergentagent.com/jobs/01b891f9-9672-414f-bf4d-1ee4283b2940/images/92df9115bec6fdb3fb22c69cd7379d7818f14c4d28b812829eef970c7c3ddfc7.png",
+};
+const DETAIL_FALLBACK = "https://static.prod-images.emergentagent.com/jobs/01b891f9-9672-414f-bf4d-1ee4283b2940/images/92df9115bec6fdb3fb22c69cd7379d7818f14c4d28b812829eef970c7c3ddfc7.png";
+
+function getDetailGoalImage(goal, backendUrl) {
+  if (goal.goalImage) {
+    return goal.goalImage.startsWith("/api") ? `${backendUrl}${goal.goalImage}` : goal.goalImage;
+  }
+  const lower = (goal.goalName || "").toLowerCase();
+  for (const [kw, url] of Object.entries(GOAL_IMAGES)) {
+    if (lower.includes(kw)) return url;
+  }
+  return TYPE_IMGS[goal.goalType] || DETAIL_FALLBACK;
+}
+
 const GoalDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -147,30 +192,37 @@ const GoalDetail = () => {
   const colors = getGoalColor(goal.goalType);
   const progress = goal.progressPercent || 0;
   const remaining = goal.targetAmount - (goal.calculatedAmount || 0);
+  const heroImage = getDetailGoalImage(goal, backendUrl);
 
   return (
     <div className="min-h-screen bg-[#0F172A] pb-32" data-testid="goal-detail-page">
-      {/* Header */}
-      <header className={`bg-gradient-to-br ${colors.bg} px-6 pt-8 pb-12 relative overflow-hidden`}>
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 right-10 w-32 h-32 rounded-full bg-[#1E293B]/30 blur-3xl" />
-          <div className="absolute bottom-10 left-10 w-40 h-40 rounded-full bg-[#1E293B]/20 blur-3xl" />
-        </div>
-        
-        <div className="relative">
+      {/* Header with Hero Image */}
+      <header className="relative overflow-hidden" style={{ minHeight: "220px" }}>
+        {/* Hero Image */}
+        <img
+          src={heroImage}
+          alt={goal.goalName}
+          className="absolute inset-0 w-full h-full object-cover"
+          data-testid="goal-detail-hero-image"
+        />
+        {/* Dark gradient overlay for readability */}
+        <div className="absolute inset-0" style={{
+          background: "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.65) 100%)"
+        }} />
+
+        <div className="relative px-6 pt-8 pb-8">
           <div className="flex items-center justify-between mb-6">
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E293B]/20 text-white transition-colors hover:bg-[#1E293B]/30"
-              onClick={() => navigate("/my-goals")}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm text-white transition-colors hover:bg-black/50"
+              onClick={() => navigate("/dream-goals")}
               data-testid="back-button"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E293B]/20 text-white transition-colors hover:bg-[#1E293B]/30"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm text-white transition-colors hover:bg-black/50"
               onClick={() => navigate(`/goal/${id}/edit`)}
               data-testid="edit-button"
             >
@@ -178,26 +230,29 @@ const GoalDetail = () => {
             </button>
           </div>
 
-          <div className="flex items-start gap-4 mb-6">
-            <div className={`w-14 h-14 rounded-2xl ${colors.icon} flex items-center justify-center`}>
-              <Icon className="h-7 w-7" />
+          <div className="flex items-start gap-4 mb-4">
+            <div className={`w-12 h-12 rounded-2xl ${colors.icon} flex items-center justify-center backdrop-blur-sm`}>
+              <Icon className="h-6 w-6" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <h1 className="text-2xl font-bold text-white" data-testid="goal-name">
+                <h1 className="text-2xl font-bold text-white drop-shadow-lg" data-testid="goal-name">
                   {goal.goalName}
                 </h1>
                 {goal.isCompleted && (
                   <CheckCircle2 className="h-6 w-6 text-emerald-300" />
                 )}
               </div>
-              <p className="text-white/70 text-sm">
+              <p className="text-white/75 text-sm drop-shadow">
                 {goal.goalType === "Other" ? goal.customTypeName : goal.goalType}
               </p>
             </div>
           </div>
+        </div>
+      </header>
 
-          {/* Progress Section */}
+      {/* Progress Section */}
+      <div className="px-6 -mt-2 relative z-10">
           <div className="bg-white rounded-2xl p-5 shadow-lg" data-testid="progress-section">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -242,11 +297,10 @@ const GoalDetail = () => {
               />
             </div>
           </div>
-        </div>
-      </header>
+      </div>
 
       {/* Content */}
-      <div className="px-6 -mt-4 space-y-4 relative z-10">
+      <div className="px-6 mt-4 space-y-4 relative z-10">
         {/* Stats Cards */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-[#1E293B] rounded-2xl p-4 border border-gray-100 shadow-sm" data-testid="target-date-card">

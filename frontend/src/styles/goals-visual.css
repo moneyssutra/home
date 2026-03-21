@@ -11,7 +11,7 @@
 
 /* ─── HEADER ─── */
 .gv-header {
-  background: linear-gradient(160deg, #8B5E3C 0%, #A0522D 40%, #C97B5E 100%);
+  background: linear-gradient(160deg, #E8A0BF 0%, #D4789C 40%, #F2B5D4 100%);
   padding: 1rem 1.25rem 1.5rem;
   border-radius: 0 0 1.75rem 1.75rem;
   position: relative;
@@ -24,7 +24,7 @@
   right: -30%;
   width: 320px;
   height: 320px;
-  background: radial-gradient(circle, rgba(255,200,180,0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255,182,193,0.2) 0%, transparent 70%);
   pointer-events: none;
 }
 .gv-header__row {

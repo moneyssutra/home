@@ -39,16 +39,18 @@ const GOAL_IMAGES = {
   shoe: "https://images.pexels.com/photos/215581/pexels-photo-215581.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   balance: "https://images.pexels.com/photos/215581/pexels-photo-215581.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   gold: "https://images.pexels.com/photos/3943727/pexels-photo-3943727.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-  fund: "https://images.pexels.com/photos/3943727/pexels-photo-3943727.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  fund: "https://static.prod-images.emergentagent.com/jobs/01b891f9-9672-414f-bf4d-1ee4283b2940/images/92df9115bec6fdb3fb22c69cd7379d7818f14c4d28b812829eef970c7c3ddfc7.png",
+  emergency: "https://static.prod-images.emergentagent.com/jobs/01b891f9-9672-414f-bf4d-1ee4283b2940/images/92df9115bec6fdb3fb22c69cd7379d7818f14c4d28b812829eef970c7c3ddfc7.png",
+  saving: "https://static.prod-images.emergentagent.com/jobs/01b891f9-9672-414f-bf4d-1ee4283b2940/images/92df9115bec6fdb3fb22c69cd7379d7818f14c4d28b812829eef970c7c3ddfc7.png",
 };
 
 const TYPE_IMAGES = {
   "Wealth Creation": "https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
   "Debt Elimination": "https://images.unsplash.com/photo-1705056509273-3e2292bd2e39?crop=entropy&cs=srgb&fm=jpg&ixlib=rb-4.1.0&q=85",
   "Investment Target": "https://images.pexels.com/photos/7567445/pexels-photo-7567445.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
-  "Emergency Fund": "https://images.pexels.com/photos/3943727/pexels-photo-3943727.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+  "Emergency Fund": "https://static.prod-images.emergentagent.com/jobs/01b891f9-9672-414f-bf4d-1ee4283b2940/images/92df9115bec6fdb3fb22c69cd7379d7818f14c4d28b812829eef970c7c3ddfc7.png",
 };
-const FALLBACK_IMG = "https://images.pexels.com/photos/3943727/pexels-photo-3943727.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940";
+const FALLBACK_IMG = "https://static.prod-images.emergentagent.com/jobs/01b891f9-9672-414f-bf4d-1ee4283b2940/images/92df9115bec6fdb3fb22c69cd7379d7818f14c4d28b812829eef970c7c3ddfc7.png";
 
 function getGoalImage(goal) {
   if (goal.goalImage) {
@@ -101,12 +103,17 @@ const GoalScrollCard = ({ goal, isActive }) => {
       style={{
         transform: isActive ? "scale(1)" : "scale(0.93)",
         opacity: isActive ? 1 : 0.75,
+        backgroundColor: "#2d2d3a",
       }}
     >
       <img
-        src={imgUrl} alt="" loading="lazy"
+        src={imgUrl} alt={goal.goalName}
         className={`gv-scroll-card__img ${imgLoaded ? "gv-scroll-card__img--on" : ""}`}
         onLoad={() => setImgLoaded(true)}
+        onError={(e) => {
+          e.target.src = "https://images.pexels.com/photos/186077/pexels-photo-186077.jpeg?auto=compress&cs=tinysrgb&w=600";
+          setImgLoaded(true);
+        }}
       />
       <div className="gv-scroll-card__overlay" />
 
@@ -281,22 +288,42 @@ const MyGoalsVisual = () => {
 
       {/* Content */}
       <div className="gv-body">
+        {/* Filter Tabs - always visible */}
+        {!loading && goals.length > 0 && (
+          <div className="gv-filters">
+            {["all", "active", "completed"].map(tab => (
+              <button
+                key={tab}
+                onClick={() => setFilter(tab)}
+                className={`gv-filter-btn ${filter === tab ? "gv-filter-btn--on" : ""}`}
+                data-testid={`gv-filter-${tab}`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
+        )}
+
         {loading ? (
           <div className="gv-empty"><div className="gv-spinner" /></div>
+        ) : goals.length === 0 ? (
+          <div className="gv-empty" data-testid="gv-empty-state">
+            <div className="gv-empty__icon"><Sparkles size={36} /></div>
+            <h2 className="gv-empty__title">No Dreams Yet</h2>
+            <p className="gv-empty__desc">Start building your dreams. Set your first financial goal.</p>
+            <button onClick={() => navigate("/goal")} className="gv-empty__cta" data-testid="gv-add-first">
+              <Plus size={18} /> Create Your First Dream
+            </button>
+          </div>
         ) : filtered.length === 0 ? (
           <div className="gv-empty" data-testid="gv-empty-state">
             <div className="gv-empty__icon"><Sparkles size={36} /></div>
             <h2 className="gv-empty__title">
-              {filter === "completed" ? "No Achievements Yet" : "No Dreams Yet"}
+              {filter === "completed" ? "No Achievements Yet" : "No Active Goals"}
             </h2>
             <p className="gv-empty__desc">
-              {filter === "completed" ? "Complete your first goal to celebrate here!" : "Start building your dreams. Set your first financial goal."}
+              {filter === "completed" ? "Complete your first goal to celebrate here!" : "All caught up! Create a new goal."}
             </p>
-            {filter !== "completed" && (
-              <button onClick={() => navigate("/goal")} className="gv-empty__cta" data-testid="gv-add-first">
-                <Plus size={18} /> Create Your First Dream
-              </button>
-            )}
           </div>
         ) : (
           <>
@@ -320,20 +347,6 @@ const MyGoalsVisual = () => {
                 ))}
               </div>
             )}
-
-            {/* Filter Tabs */}
-            <div className="gv-filters">
-              {["all", "active", "completed"].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setFilter(tab)}
-                  className={`gv-filter-btn ${filter === tab ? "gv-filter-btn--on" : ""}`}
-                  data-testid={`gv-filter-${tab}`}
-                >
-                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                </button>
-              ))}
-            </div>
 
             {/* All Goals Label List */}
             <div className="gv-list-section">

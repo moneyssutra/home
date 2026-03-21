@@ -444,7 +444,7 @@ const GoalForm = () => {
     
     try {
       await axios.delete(`${backendUrl}/api/goals/${id}`);
-      navigate("/my-goals");
+      navigate("/dream-goals");
     } catch (error) {
       console.error("Error deleting goal:", error);
       setErrors({ submit: "Failed to delete. Please try again." });
