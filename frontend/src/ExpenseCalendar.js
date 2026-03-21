@@ -5,6 +5,7 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -80,6 +81,7 @@ function getHeatColor(value, maxValue) {
 
 const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: propMonthKey, monthOffset: propMonthOffset, setMonthOffset: propSetMonthOffset, dataLoading: propLoading }) => {
   const navigate = useNavigate();
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   const [localMonthOffset, setLocalMonthOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState(null);
   const [showAddSheet, setShowAddSheet] = useState(false);
@@ -109,8 +111,9 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
   useEffect(() => {
     if (embedded) return;
     setLocalLoading(true);
+    const memberParam = (!isPersonalView && !isFamilyView && activeViewId) ? { memberId: activeViewId } : {};
     axios.get(`${API}/api/expenses/by-month`, {
-      params: { month: currentMonthKey },
+      params: { month: currentMonthKey, ...memberParam },
       withCredentials: true,
     }).then(res => {
       setLocalExpenses(Array.isArray(res.data) ? res.data : []);
@@ -119,7 +122,7 @@ const ExpenseCalendar = ({ embedded = false, expenses: propExpenses, monthKey: p
       setLocalExpenses([]);
       setLocalLoading(false);
     });
-  }, [currentMonthKey, embedded]);
+  }, [currentMonthKey, embedded, activeViewId]);
   const calendarDays = useMemo(() => getCalendarDays(currentMonthKey), [currentMonthKey]);
 
   const dayExpenseMap = useMemo(() => {

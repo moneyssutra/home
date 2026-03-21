@@ -105,25 +105,38 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setFamilyData(null);
-      const res = await axios.get(`${backendUrl}/api/family/member/${activeViewId}/summary`, { withCredentials: true });
-      const s = res.data.summary || {};
-      // Transform member data to match personal dashboard format
+      const [networthRes, memberRes] = await Promise.all([
+        axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}&memberId=${activeViewId}`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/family/member/${activeViewId}/summary`, { withCredentials: true }),
+      ]);
+      const nw = networthRes.data;
+      const memberInfo = memberRes.data.member || {};
       setData({
-        netWorth: s.netWorth || 0,
-        totalAssets: s.totalAssets || 0,
-        totalInvestments: s.totalInvestments || 0,
-        totalLoans: s.totalLoans || 0,
-        liquidBalance: s.liquidBalance || 0,
-        monthlyIncome: s.monthlyIncome || 0,
-        monthlyExpenses: s.monthlyExpenses || 0,
-        monthlySavings: (s.monthlyIncome || 0) - (s.monthlyExpenses || 0),
-        incomeReceived: 0,
-        expectedIncome: s.monthlyIncome || 0,
-        expensesDone: 0,
-        upcomingExpenses: s.monthlyExpenses || 0,
-        memberName: res.data.member?.name,
-        memberRelationship: res.data.member?.relationship,
-        counts: s.counts || {},
+        netWorth: nw.netWorth || 0,
+        totalAssets: nw.totalAssets || 0,
+        totalInvestments: nw.totalInvestments || 0,
+        totalLoans: nw.totalLiabilities || 0,
+        totalLiabilities: nw.totalLiabilities || 0,
+        liquidBalance: nw.liquidBalance || 0,
+        monthlyIncome: nw.monthlyIncome || 0,
+        monthlyExpenses: nw.monthlyExpenses || 0,
+        monthlySavings: nw.monthlySavings || 0,
+        incomeReceived: nw.incomeReceived || 0,
+        expectedIncome: nw.expectedIncome || 0,
+        expensesDone: nw.expensesDone || 0,
+        upcomingExpenses: nw.upcomingExpenses || 0,
+        assetCount: nw.assetCount || 0,
+        investmentCount: nw.investmentCount || 0,
+        accountCount: nw.accountCount || 0,
+        loanCount: nw.loanCount || 0,
+        creditCardCount: nw.creditCardCount || 0,
+        creditCardOutstanding: nw.creditCardOutstanding || 0,
+        creditCardLimit: nw.creditCardLimit || 0,
+        creditCardUtilization: nw.creditCardUtilization || 0,
+        loanGivenTotal: nw.loanGivenTotal || 0,
+        loanGivenAtRisk: nw.loanGivenAtRisk || 0,
+        memberName: memberInfo.name,
+        memberRelationship: memberInfo.relationship,
       });
       setProfile(null);
       setGoalsSummary(null);

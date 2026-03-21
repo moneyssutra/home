@@ -5,7 +5,7 @@ import asyncio
 
 from database import db
 from routes.auth import get_current_user
-from routes.utils import get_user_filter, get_user_now, count_weekday_occurrences, get_weekly_multiplier, parse_due_day
+from routes.utils import get_user_filter, get_effective_user_filter, get_user_now, count_weekday_occurrences, get_weekly_multiplier, parse_due_day
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -18,10 +18,7 @@ async def get_networth_summary(request: Request):
     user_id = user.get('user_id')
     user_email = user.get('email', '')
 
-    if user_email == 'test@moneyssutra.com' or user_id == 'test':
-        user_filter = {"$or": [{"userId": user_id}, {"userId": None}, {"userId": {"$exists": False}}]}
-    else:
-        user_filter = {"userId": user_id}
+    user_filter = await get_effective_user_filter(user, request)
 
     assets, investments, accounts, credit_cards, loans, incomes, other_incomes, expenses = await asyncio.gather(
         db.assets.find(user_filter, {"_id": 0}).to_list(1000),
@@ -118,7 +115,7 @@ async def get_breakdown(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
 
     now = get_user_now(request)
     current_month = f"{now.year}-{now.month:02d}"
@@ -735,7 +732,7 @@ def _split_other_income(other_incomes, current_day, current_month, current_year)
 async def get_combined_dashboard(request: Request):
     """Single endpoint that returns all data needed by the Dashboard page."""
     user = await get_current_user(request)
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
     user_id = user["user_id"]
 
     from routes.onboarding import _get_profile_completion

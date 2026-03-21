@@ -4,23 +4,26 @@ import { ChevronLeft, ChevronRight, Plus, Wallet, CreditCard, Building2, Banknot
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const MyAccounts = () => {
   const navigate = useNavigate();
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
     fetchAccounts();
-  }, []);
+  }, [activeViewId]);
 
   const fetchAccounts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/accounts`);
+      const params = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
+      const response = await axios.get(`${backendUrl}/api/accounts${params}`);
       const sortedAccounts = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setAccounts(sortedAccounts);
     } catch (error) {

@@ -160,7 +160,7 @@ async def get_expenses_with_next_date(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
     expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
     result = []
     for expense in expenses:
@@ -620,12 +620,13 @@ async def get_behavior_insights(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
+
+    now = get_user_now(request)
+    today = now.date()
 
     all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
     income_sources = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
-
-    now = get_user_now(request)
     insights = []
 
     # Build 6-month data for analysis
@@ -964,7 +965,7 @@ async def get_weekly_summary(request: Request, last: int = 8):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
 
     all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
 

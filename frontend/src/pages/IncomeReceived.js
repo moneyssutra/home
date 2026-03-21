@@ -4,6 +4,7 @@ import { ArrowLeft, CheckCircle2, ChevronRight, Briefcase, Building2, Laptop, Ho
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -30,18 +31,20 @@ const IncomeReceived = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
+        const memberParam = (!isPersonalView && !isFamilyView && activeViewId) ? `&memberId=${activeViewId}` : "";
+        const res = await axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}${memberParam}`, { withCredentials: true });
         setItems(res.data.incomeReceivedList || []);
         setTotal(res.data.incomeReceived || 0);
       } catch {}
       setLoading(false);
     };
     fetch();
-  }, []);
+  }, [activeViewId]);
 
   const formatAmount = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n));
 

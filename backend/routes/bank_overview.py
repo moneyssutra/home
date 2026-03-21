@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Request
 from database import db
 from routes.auth import get_current_user
-from routes.utils import parse_due_day
+from routes.utils import parse_due_day, get_effective_user_filter
 from datetime import datetime, timezone
 import asyncio
 
@@ -93,20 +93,21 @@ async def get_bank_overview(request: Request):
     if not user:
         return {"error": "Not authenticated"}
     user_id = user["user_id"]
+    user_filter = await get_effective_user_filter(user, request)
 
     now = datetime.now(timezone.utc)
     current_month = now.strftime("%Y-%m")
 
     # Fetch all data in parallel
-    accounts_task = db.accounts.find({"userId": user_id}, {"_id": 0}).to_list(50)
+    accounts_task = db.accounts.find(user_filter, {"_id": 0}).to_list(50)
     expense_tx_task = db.expense_transactions.find(
-        {"userId": user_id}, {"_id": 0}
+        user_filter, {"_id": 0}
     ).sort("transactionDate", -1).to_list(50)
     income_tx_task = db.income_transactions.find(
-        {"userId": user_id}, {"_id": 0}
+        user_filter, {"_id": 0}
     ).sort("transactionDate", -1).to_list(50)
-    expenses_task = db.expenses.find({"userId": user_id}, {"_id": 0}).to_list(100)
-    income_task = db.income_sources.find({"userId": user_id}, {"_id": 0}).to_list(100)
+    expenses_task = db.expenses.find(user_filter, {"_id": 0}).to_list(100)
+    income_task = db.income_sources.find(user_filter, {"_id": 0}).to_list(100)
 
     accounts, expense_txs, income_txs, expenses, incomes = await asyncio.gather(
         accounts_task, expense_tx_task, income_tx_task, expenses_task, income_task

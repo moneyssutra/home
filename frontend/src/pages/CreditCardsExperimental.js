@@ -6,6 +6,7 @@ import {
   Receipt, DollarSign, BarChart3, Banknote,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -329,6 +330,7 @@ const TABS = ["Cards", "Payments", "Insights"];
 
 const CreditCardsExperimental = () => {
   const navigate = useNavigate();
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -346,14 +348,15 @@ const CreditCardsExperimental = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/api/cc-overview`, { credentials: "include" });
+      const memberParam = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
+      const res = await fetch(`${API}/api/cc-overview${memberParam}`, { credentials: "include" });
       if (res.ok) setData(await res.json());
     } catch (e) {
       console.error("CC overview fetch error:", e);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeViewId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

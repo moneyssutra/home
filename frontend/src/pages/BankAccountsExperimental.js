@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import BottomNav from "@/components/BottomNav";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -425,6 +426,7 @@ const TABS = ["Accounts", "Transactions", "Recurring", "Cashflow"];
 
 const BankAccountsExperimental = () => {
   const navigate = useNavigate();
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -442,7 +444,8 @@ const BankAccountsExperimental = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const res = await fetch(`${API}/api/bank-overview`, { credentials: "include" });
+      const memberParam = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
+      const res = await fetch(`${API}/api/bank-overview${memberParam}`, { credentials: "include" });
       if (res.ok) {
         const d = await res.json();
         setData(d);
@@ -452,7 +455,7 @@ const BankAccountsExperimental = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeViewId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

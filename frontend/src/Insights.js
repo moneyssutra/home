@@ -6,6 +6,7 @@ import RunwaySimulator from "@/components/RunwaySimulator";
 import MoneyPatternWidget from "@/components/MoneyPatternWidget";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
+import FamilyToggle from "@/components/FamilyToggle";
 import FinancialHealthWizard from "@/components/FinancialHealthWizard";
 import FinancialHealth from "@/components/FinancialHealth";
 import { useFamilyContext } from "@/context/FamilyContext";
@@ -1259,6 +1260,7 @@ const Insights = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <ProfileMenu userName={null} userPicture={null} />
+              <FamilyToggle />
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => setShowShareCard(true)} className="p-2 rounded-xl bg-white/10" data-testid="share-btn"><Share2 className="h-4 w-4 text-white" /></button>

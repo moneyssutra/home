@@ -6,30 +6,34 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
 import { normalizeToMonthly } from "@/lib/formatters";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const FixedExpenses = () => {
   const navigate = useNavigate();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
     fetchExpenses();
-  }, []);
+  }, [activeViewId]);
 
   const fetchExpenses = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/expenses/with-next-date`);
+      const params = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
+      const response = await axios.get(`${backendUrl}/api/expenses/with-next-date${params}`);
       // Filter only fixed expenses
       const fixedExpenses = response.data.filter(e => e.expenseType === "Fixed");
       setExpenses(fixedExpenses);
     } catch (error) {
       console.error("Error fetching expenses:", error);
       try {
-        const fallbackResponse = await axios.get(`${backendUrl}/api/expenses`);
+        const params2 = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
+        const fallbackResponse = await axios.get(`${backendUrl}/api/expenses${params2}`);
         const fixedExpenses = fallbackResponse.data.filter(e => e.expenseType === "Fixed");
         setExpenses(fixedExpenses);
       } catch (fallbackError) {

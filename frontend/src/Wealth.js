@@ -9,6 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
+import FamilyToggle from "@/components/FamilyToggle";
 import { useAuth } from "@/context/AuthContext";
 import { useFamilyContext } from "@/context/FamilyContext";
 
@@ -73,17 +74,25 @@ const Wealth = () => {
   const fetchMemberWealth = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/api/family/member/${activeViewId}/summary`, { withCredentials: true });
-      const s = res.data.summary || {};
+      const nwRes = await axios.get(`${API}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}&memberId=${activeViewId}`, { withCredentials: true });
+      const nw = nwRes.data;
       setData({
-        nw: { netWorth: s.netWorth || 0 },
-        assets: [], investments: [], loans: [], insurances: [], accounts: [], creditCards: [], incomes: [], expenses: [],
-        totalIncome: s.monthlyIncome || 0,
-        totalExpenses: s.monthlyExpenses || 0,
-        overrideAssets: s.totalAssets || 0,
-        overrideInvestments: s.totalInvestments || 0,
-        overrideLoans: s.totalLoans || 0,
-        overrideBalance: s.liquidBalance || 0,
+        nw: { netWorth: nw.netWorth || 0 },
+        assetCount: nw.assetCount || 0,
+        investmentCount: nw.investmentCount || 0,
+        loanCount: nw.loanCount || 0,
+        accountCount: nw.accountCount || 0,
+        creditCardCount: nw.creditCardCount || 0,
+        insuranceCount: 0,
+        incomeCount: nw.incomeCount || 0,
+        expenseCount: nw.expenseCount || 0,
+        totalIncome: (nw.incomeReceived || 0) + (nw.expectedIncome || 0),
+        totalExpenses: (nw.expensesDone || 0) + (nw.upcomingExpenses || 0),
+        overrideAssets: nw.totalAssets || 0,
+        overrideInvestments: nw.totalInvestments || 0,
+        overrideLoans: nw.totalLiabilities || 0,
+        overrideBalance: nw.liquidBalance || 0,
+        overrideCC: nw.creditCardOutstanding || 0,
       });
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -129,14 +138,14 @@ const Wealth = () => {
   const totalBalance = data.overrideBalance ?? (data.accounts || []).filter(a => a.accountType !== "Credit Card").reduce((s, a) => s + (a.currentBalance || 0), 0);
 
   const sections = [
-    { title: "Income", icon: ArrowUpRight, gradient: "from-emerald-500 to-green-600", bgColor: "#ECFDF5", textColor: "#059669", value: data.totalIncome || 0, count: (data.incomes || []).length, path: "/my-income", label: "sources" },
-    { title: "Expenses", icon: ArrowDownRight, gradient: "from-red-500 to-rose-600", bgColor: "#FEF2F2", textColor: "#DC2626", value: data.totalExpenses || 0, count: (data.expenses || []).length, path: "/my-expenses", label: "this month", isExpense: true },
-    { title: "Assets", icon: Building2, gradient: "from-blue-500 to-indigo-600", bgColor: "var(--status-info-soft)", textColor: "var(--status-info)", value: totalAssets, count: (data.assets || []).length, path: "/my-assets", label: "items" },
-    { title: "Investments", icon: LineChart, gradient: "from-violet-500 to-purple-600", bgColor: "#F3E8FF", textColor: "#7C3AED", value: totalInvestments, count: (data.investments || []).length, path: "/my-investments", label: "items" },
-    { title: "Loans", icon: Landmark, gradient: "from-amber-500 to-orange-600", bgColor: "var(--status-warning-soft)", textColor: "var(--status-warning)", value: totalLoans, count: (data.loans || []).length, path: "/my-loans", label: "loans", isLiability: true },
-    { title: "Credit Cards", icon: CreditCard, gradient: "from-fuchsia-500 to-pink-600", bgColor: "#FCE7F3", textColor: "#DB2777", value: totalCC, count: data.overrideCCCount ?? (data.creditCards || []).length, path: "/my-credit-cards", label: "cards", isLiability: true },
+    { title: "Income", icon: ArrowUpRight, gradient: "from-emerald-500 to-green-600", bgColor: "#ECFDF5", textColor: "#059669", value: data.totalIncome || 0, count: data.incomeCount ?? (data.incomes || []).length, path: "/my-income", label: "sources" },
+    { title: "Expenses", icon: ArrowDownRight, gradient: "from-red-500 to-rose-600", bgColor: "#FEF2F2", textColor: "#DC2626", value: data.totalExpenses || 0, count: data.expenseCount ?? (data.expenses || []).length, path: "/my-expenses", label: "this month", isExpense: true },
+    { title: "Assets", icon: Building2, gradient: "from-blue-500 to-indigo-600", bgColor: "var(--status-info-soft)", textColor: "var(--status-info)", value: totalAssets, count: data.assetCount ?? (data.assets || []).length, path: "/my-assets", label: "items" },
+    { title: "Investments", icon: LineChart, gradient: "from-violet-500 to-purple-600", bgColor: "#F3E8FF", textColor: "#7C3AED", value: totalInvestments, count: data.investmentCount ?? (data.investments || []).length, path: "/my-investments", label: "items" },
+    { title: "Loans", icon: Landmark, gradient: "from-amber-500 to-orange-600", bgColor: "var(--status-warning-soft)", textColor: "var(--status-warning)", value: totalLoans, count: data.loanCount ?? (data.loans || []).length, path: "/my-loans", label: "loans", isLiability: true },
+    { title: "Credit Cards", icon: CreditCard, gradient: "from-fuchsia-500 to-pink-600", bgColor: "#FCE7F3", textColor: "#DB2777", value: totalCC, count: data.overrideCCCount ?? data.creditCardCount ?? (data.creditCards || []).length, path: "/my-credit-cards", label: "cards", isLiability: true },
     { title: "Insurance", icon: Shield, gradient: "from-cyan-500 to-blue-600", bgColor: "#CFFAFE", textColor: "#0891B2", value: totalCoverage, count: data.overrideInsCount ?? (data.insurances || []).length, path: "/my-insurance", label: "coverage" },
-    { title: "Accounts", icon: Wallet, gradient: "from-emerald-500 to-teal-600", bgColor: "var(--brand-primary-soft)", textColor: "var(--brand-primary)", value: totalBalance, count: (data.accounts || []).length, path: "/my-accounts", label: "accounts" },
+    { title: "Accounts", icon: Wallet, gradient: "from-emerald-500 to-teal-600", bgColor: "var(--brand-primary-soft)", textColor: "var(--brand-primary)", value: totalBalance, count: data.accountCount ?? (data.accounts || []).length, path: "/my-accounts", label: "accounts" },
   ];
 
   return (
@@ -147,6 +156,7 @@ const Wealth = () => {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <ProfileMenu userName={getUserName()} userPicture={user?.picture} />
+              <FamilyToggle />
             </div>
             <NotificationBell />
           </div>

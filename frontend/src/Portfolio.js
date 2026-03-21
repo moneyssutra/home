@@ -5,11 +5,13 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const Portfolio = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   const [data, setData] = useState({
     assets: [],
     investments: [],
@@ -23,18 +25,19 @@ const Portfolio = () => {
 
   useEffect(() => {
     fetchPortfolioData();
-  }, []);
+  }, [activeViewId]);
 
   const fetchPortfolioData = async () => {
     try {
       setLoading(true);
+      const params = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
       const [assets, investments, loans, insurances, accounts, creditCards] = await Promise.all([
-        axios.get(`${backendUrl}/api/assets`),
-        axios.get(`${backendUrl}/api/investments`),
-        axios.get(`${backendUrl}/api/loans`),
-        axios.get(`${backendUrl}/api/insurances`),
-        axios.get(`${backendUrl}/api/accounts`),
-        axios.get(`${backendUrl}/api/credit-cards`),
+        axios.get(`${backendUrl}/api/assets${params}`),
+        axios.get(`${backendUrl}/api/investments${params}`),
+        axios.get(`${backendUrl}/api/loans${params}`),
+        axios.get(`${backendUrl}/api/insurances${params}`),
+        axios.get(`${backendUrl}/api/accounts${params}`),
+        axios.get(`${backendUrl}/api/credit-cards${params}`),
       ]);
       setData({
         assets: assets.data,

@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Request
 from database import db
 from routes.auth import get_current_user
+from routes.utils import get_effective_user_filter
 from datetime import datetime, timezone
 import asyncio
 
@@ -91,9 +92,10 @@ async def get_cc_overview(request: Request):
     if not user:
         return {"error": "Not authenticated"}
     user_id = user["user_id"]
+    user_filter = await get_effective_user_filter(user, request)
 
-    cards_task = db.credit_cards.find({"userId": user_id}, {"_id": 0}).to_list(50)
-    payments_task = db.cc_payments.find({"userId": user_id}, {"_id": 0}).sort("paymentDate", -1).to_list(100)
+    cards_task = db.credit_cards.find(user_filter, {"_id": 0}).to_list(50)
+    payments_task = db.cc_payments.find(user_filter, {"_id": 0}).sort("paymentDate", -1).to_list(100)
 
     # Get cardholder name
     user_doc = await db.users.find_one({"user_id": user_id}, {"_id": 0, "name": 1, "firstName": 1, "lastName": 1})

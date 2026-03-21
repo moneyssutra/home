@@ -4,23 +4,26 @@ import { ChevronLeft, ChevronRight, Plus, CreditCard, AlertCircle } from "lucide
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const MyCreditCards = () => {
   const navigate = useNavigate();
   const [cards, setCards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
     fetchCreditCards();
-  }, []);
+  }, [activeViewId]);
 
   const fetchCreditCards = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/credit-cards`);
+      const params = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
+      const response = await axios.get(`${backendUrl}/api/credit-cards${params}`);
       setCards(response.data);
     } catch (error) {
       console.error("Error fetching credit cards:", error);

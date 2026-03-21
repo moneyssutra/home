@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import FinancialIntelligence from "@/components/FinancialIntelligence";
 import WealthImpactAnalysis from "@/components/financial_intelligence/WealthImpactAnalysis";
 import SpendingInsights from "@/components/financial_intelligence/SpendingInsights";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const MONTH_NAMES_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -45,6 +46,7 @@ const DK = {
 
 const ExpenseMonthly = () => {
   const navigate = useNavigate();
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedIdx, setSelectedIdx] = useState(null);
@@ -53,9 +55,10 @@ const ExpenseMonthly = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      const memberParam = (!isPersonalView && !isFamilyView && activeViewId) ? `&memberId=${activeViewId}` : "";
       const [summaryRes, behaviorRes] = await Promise.all([
-        axios.get(`${API}/api/expenses/monthly-summary?last=6&tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
-        axios.get(`${API}/api/expenses/behavior-insights?tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true }),
+        axios.get(`${API}/api/expenses/monthly-summary?last=6&tz_offset=${new Date().getTimezoneOffset()}${memberParam}`, { withCredentials: true }),
+        axios.get(`${API}/api/expenses/behavior-insights?tz_offset=${new Date().getTimezoneOffset()}${memberParam}`, { withCredentials: true }),
       ]);
       setData(summaryRes.data);
       setBehaviorData(behaviorRes.data);
@@ -65,7 +68,7 @@ const ExpenseMonthly = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeViewId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

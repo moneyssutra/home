@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { TrendingUp, TrendingDown, Eye, Zap, ChevronLeft, ChevronRight, Wallet, ShoppingBag, PiggyBank } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -53,6 +54,7 @@ const CAT_COLORS = [DK.blue, DK.orangeHot, DK.green, DK.amber, DK.cyan, DK.teal]
 
 const ExpenseWeekly = () => {
   const navigate = useNavigate();
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedIdx, setSelectedIdx] = useState(null);
@@ -61,7 +63,8 @@ const ExpenseWeekly = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/api/expenses/weekly-summary?last=8&tz_offset=${new Date().getTimezoneOffset()}`, { withCredentials: true });
+      const memberParam = (!isPersonalView && !isFamilyView && activeViewId) ? `&memberId=${activeViewId}` : "";
+      const res = await axios.get(`${API}/api/expenses/weekly-summary?last=8&tz_offset=${new Date().getTimezoneOffset()}${memberParam}`, { withCredentials: true });
       setData(res.data);
       if (res.data?.weeks?.length > 0) {
         setSelectedIdx(res.data.weeks.length - 1);
@@ -71,7 +74,7 @@ const ExpenseWeekly = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeViewId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
