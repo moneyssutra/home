@@ -80,6 +80,18 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - All 6 list pages correctly construct `?family=true` query param when `isFamilyView` is active
 - Tested: 19/19 backend API tests passed, 6/6 frontend pages verified (iteration_179)
 
+### Family Data Summary Badge (Mar 2026)
+- Added `/api/family/quick-summary` endpoint returning memberCount and combinedNetworth
+- FamilyToggle dropdown now shows "3 members, ₹2.4L combined" on the Family option
+- Toggle button shows member count in parentheses when family view is active
+- FamilyContext fetches quick summary in parallel with family data (no extra load time)
+- Tested: iteration_180 - 7/7 backend tests, frontend verified
+
+### Email Branding Update (Mar 2026)
+- Sender updated from `Moneyssutra <noreply@moneyssutra.app>` to `MoneySSutra Support <noreply@moneyssutra.com>`
+- All email templates updated with correct "MoneySSutra" branding (username reminder, password reset, password changed)
+- Tested: iteration_180 - env vars and template branding verified
+
 ### Rule-Based Financial Insights Engine (Mar 2026)
 - Replaced AI/GPT-based ai_insights.py with deterministic rule engine
 - 10 financial rules: expense ratio, savings rate, emergency fund, investments, debt burden, insurance gaps, credit utilization, loan exposure, overall health
@@ -126,6 +138,7 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Refactoring: `ProfileSetup.js` (>1500 lines), `Dashboard.js` (>700 lines)
 
 ## Test Reports
+- iteration_180: Family quick summary badge + email branding - backend 100% (7/7), frontend 100%
 - iteration_179: Family View data consistency fix - backend 100% (19/19 API tests), frontend 100% (6/6 pages)
 - iteration_177: Wizard form step structure revert - frontend 100% (all 6 forms: correct step counts, hidden type/category when locked, validation, save button on final step)
 - iteration_176: Code review of locked category removal
