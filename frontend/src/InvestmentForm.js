@@ -434,23 +434,17 @@ const InvestmentForm = () => {
         <p className="text-base font-semibold" style={labelStyle}>What type of investment?</p>
         <p className="text-xs mt-1" style={mutedStyle}>Select category and investment mode</p>
       </div>
-      <div>
-        <label className={labelCls} style={labelStyle}>Investment Category</label>
-        {isCategoryLocked ? (
-          <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#14B8A610", borderColor: "#14B8A6", color: "#14B8A6" }} data-testid="category-locked">
-            <span className="font-semibold text-sm">{investmentCategory}</span>
-          </div>
-        ) : (
-          <>
-            <select value={investmentCategory} onChange={(e) => { setInvestmentCategory(e.target.value); setInvestmentMode(""); }}
-              className={inputCls} style={inputStyle(errors.investmentCategory)} data-testid="category-select">
-              <option value="">Select Category</option>
-              {categoryOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            {errors.investmentCategory && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.investmentCategory}</p>}
-          </>
-        )}
-      </div>
+      {!isCategoryLocked && (
+        <div>
+          <label className={labelCls} style={labelStyle}>Investment Category</label>
+          <select value={investmentCategory} onChange={(e) => { setInvestmentCategory(e.target.value); setInvestmentMode(""); }}
+            className={inputCls} style={inputStyle(errors.investmentCategory)} data-testid="category-select">
+            <option value="">Select Category</option>
+            {categoryOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+          {errors.investmentCategory && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.investmentCategory}</p>}
+        </div>
+      )}
       {!isLoanGiven && (
         <div>
           <label className={labelCls} style={labelStyle}>Investment Mode</label>

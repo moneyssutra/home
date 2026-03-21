@@ -317,23 +317,17 @@ const InsuranceForm = () => {
         <p className="text-base font-semibold" style={labelStyle}>Insurance Type & Policy</p>
         <p className="text-xs mt-1" style={mutedStyle}>Select type and name your policy</p>
       </div>
-      <div>
-        <label className={labelCls} style={labelStyle}>Insurance Type *</label>
-        {isTypeLocked ? (
-          <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#00D09C10", borderColor: "#00D09C", color: "#00D09C" }} data-testid="type-locked">
-            <span className="font-semibold text-sm">{insuranceType}</span>
-          </div>
-        ) : (
-          <>
-            <select value={insuranceType} onChange={(e) => { setInsuranceType(e.target.value); setLinkedAssetId(""); setCoveredPerson(""); }}
-              className={inputCls} style={inputStyle(errors.insuranceType)} data-testid="insurance-type-select">
-              <option value="">Select Insurance Type</option>
-              {insuranceTypeOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-            {errors.insuranceType && <p className="text-sm mt-1 flex items-center gap-1" style={{ color: "var(--status-error)" }}><AlertCircle className="h-3.5 w-3.5" />{errors.insuranceType}</p>}
-          </>
-        )}
-      </div>
+      {!isTypeLocked && (
+        <div>
+          <label className={labelCls} style={labelStyle}>Insurance Type *</label>
+          <select value={insuranceType} onChange={(e) => { setInsuranceType(e.target.value); setLinkedAssetId(""); setCoveredPerson(""); }}
+            className={inputCls} style={inputStyle(errors.insuranceType)} data-testid="insurance-type-select">
+            <option value="">Select Insurance Type</option>
+            {insuranceTypeOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+          {errors.insuranceType && <p className="text-sm mt-1 flex items-center gap-1" style={{ color: "var(--status-error)" }}><AlertCircle className="h-3.5 w-3.5" />{errors.insuranceType}</p>}
+        </div>
+      )}
       <div>
         <label className={labelCls} style={labelStyle}>Policy Name *</label>
         <div className="relative">
