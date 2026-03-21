@@ -88,14 +88,15 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Tested: iteration_180 - 7/7 backend tests, frontend verified
 
 ### CRED-Style Step-Based Login (Mar 2026)
-- Complete rewrite of Login.js to step-based flow: Enter → OTP → MPIN → Dashboard
-- New backend endpoints: `/auth/start`, `/auth/verify-login-otp`, `/auth/mpin-login`, `/auth/mpin-setup-login`
-- OTP via Resend (email primary), temp JWT token (10-min), rate limit (5/hr, 30s cooldown)
+- Complete rewrite of Login.js to step-based flow
+- **Primary flow**: Enter email → check-user → (has MPIN → MPIN screen directly, no OTP! / no MPIN → OTP → setup MPIN) → Dashboard
+- **Forgot MPIN**: MPIN screen → "Forgot MPIN?" → OTP to email → Verify → Set new MPIN → Login
+- New endpoints: `/auth/check-user`, `/auth/mpin-direct-login`, `/auth/forgot-mpin`, `/auth/reset-mpin`
+- Also: `/auth/start`, `/auth/verify-login-otp`, `/auth/mpin-setup-login` for first-time users
 - MPIN: 4-digit PIN, bcrypt hashed, mandatory setup after first OTP login
-- Secondary options: "Use Password" fallback, "Continue with Google", "Create Account"
-- UX microcopy: "Welcome back", "Verify your email", "Enter your secure PIN", "You're in"
-- Fixed: forgot-password now works for ALL auth types (Google users included)
-- Tested: iteration_183 - 15/15 backend, all frontend UI flows verified
+- Secondary: "Use Password" fallback, "Continue with Google", "Create Account"
+- Rate limits: 5 OTP/hour, 30s cooldown, max 3 attempts per OTP
+- Tested: iteration_184 - 20/20 backend, all frontend + E2E flows verified
 - Sender updated from `Moneyssutra <noreply@moneyssutra.app>` to `MoneySSutra Support <noreply@moneyssutra.com>`
 - All email templates updated with correct "MoneySSutra" branding (username reminder, password reset, password changed)
 - Tested: iteration_180 - env vars and template branding verified
@@ -166,8 +167,8 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Refactoring: `ProfileSetup.js` (>1500 lines), `Dashboard.js` (>700 lines)
 
 ## Test Reports
-- iteration_183: CRED-style login flow - backend 100% (15/15), frontend 100% (all UI verified)
-- iteration_182: Signup OTP verification - backend 100% (13/13), frontend 100%
+- iteration_184: CRED-style login v2 (MPIN direct, forgot MPIN) - backend 100% (20/20), frontend 100%, E2E verified
+- iteration_183: CRED-style login v1 - backend 100% (15/15), frontend 100%
 - iteration_181: OTP email system - backend 100% (15/15), frontend 100% (all UI flows verified)
 - Bug fix: forgot-password skipped Google-auth users (auth_type filter removed - all users can now reset)
 - iteration_180: Family quick summary badge + email branding - backend 100% (7/7), frontend 100%
