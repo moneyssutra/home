@@ -765,6 +765,7 @@ async def get_combined_dashboard(request: Request):
     cache_key = f"combined:{user_id}"
     cached = dashboard_cache.get(cache_key)
     if cached:
+        cached["cached"] = True
         return cached
 
     from routes.onboarding import _get_profile_completion
@@ -802,6 +803,7 @@ async def get_combined_dashboard(request: Request):
         "goals": goals_summary,
         "completion": completion_data,
         "preferences": {"is_premium": prefs.get("is_premium", False)},
+        "cached": False,
     }
     dashboard_cache.set(cache_key, result)
     return result
