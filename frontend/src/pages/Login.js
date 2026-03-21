@@ -5,6 +5,7 @@ import { AlertCircle, Mail, Loader2, ArrowLeft, Lock, Eye, EyeOff, Check } from 
 import RegisterForm from "@/components/RegisterForm";
 import { LogoFull } from "@/components/Logo";
 import axios from "axios";
+import { toast } from "sonner";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -225,15 +226,18 @@ const Login = () => {
   // FORGOT MPIN FLOW
   // ============================================================
   const handleForgotMpin = async () => {
-    setError(""); setIsSubmitting(true);
+    setIsSubmitting(true);
     try {
       await axios.post(`${API}/api/auth/forgot-mpin`, { email: identifier.trim() });
+      setError("");
       setStep("forgot_mpin_otp");
       setResendTimer(30);
       setOtp(["", "", "", "", "", ""]);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to send OTP");
+      const detail = err.response?.data?.detail || "Failed to send OTP";
+      // Show as toast instead of inline error on MPIN page
+      toast.error(detail);
     } finally { setIsSubmitting(false); }
   };
 
