@@ -788,9 +788,9 @@ async def forgot_mpin(request: Request):
     if not user:
         return {"message": "If an account exists, you will receive a verification code."}
 
-    # Rate limit: 30s cooldown
+    # Rate limit: 60s cooldown
     recent = await db.login_otp_tokens.find_one(
-        {"email": email, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()}},
+        {"email": email, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()}},
         {"_id": 0}
     )
     if recent:
@@ -937,9 +937,9 @@ async def auth_start(request: Request):
     if recent_count >= 5:
         raise HTTPException(status_code=429, detail="Too many OTP requests. Please try again later.")
 
-    # Cooldown: 1 per 30 seconds
+    # Cooldown: 1 per 60 seconds
     recent = await db.login_otp_tokens.find_one(
-        {"email": identifier, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()}},
+        {"email": identifier, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()}},
         {"_id": 0}
     )
     if recent:

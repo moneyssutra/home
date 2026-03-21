@@ -164,9 +164,9 @@ async def send_mpin_change_otp(request: Request):
 
     email = user_doc["email"]
 
-    # Rate limit: 30s cooldown
+    # Rate limit: 60s cooldown
     recent = await db.login_otp_tokens.find_one(
-        {"email": email, "purpose": "mpin_change", "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()}},
+        {"email": email, "purpose": "mpin_change", "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()}},
         {"_id": 0}
     )
     if recent:

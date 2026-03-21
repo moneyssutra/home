@@ -109,7 +109,7 @@ const Login = () => {
   // ============================================================
   const sendOtp = async (email) => {
     await axios.post(`${API}/api/auth/start`, { identifier: email || identifier.trim() });
-    setResendTimer(30);
+    setResendTimer(60);
     setOtp(["", "", "", "", "", ""]);
     setTimeout(() => otpRefs.current[0]?.focus(), 100);
   };
@@ -231,12 +231,11 @@ const Login = () => {
       await axios.post(`${API}/api/auth/forgot-mpin`, { email: identifier.trim() });
       setError("");
       setStep("forgot_mpin_otp");
-      setResendTimer(30);
+      setResendTimer(60);
       setOtp(["", "", "", "", "", ""]);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch (err) {
       const detail = err.response?.data?.detail || "Failed to send OTP";
-      // Show as toast instead of inline error on MPIN page
       toast.error(detail);
     } finally { setIsSubmitting(false); }
   };
