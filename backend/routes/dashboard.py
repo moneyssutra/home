@@ -646,13 +646,11 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
         if freq == 'Daily':
             entry_received = {**entry, "amount": round(amount * current_day, 2)}
             entry_expected = {**entry, "amount": round(amount * (days_in_month - current_day), 2)}
-            # Variable income hybrid: actual + expectedAmount for unrecorded past days
+            # Variable income: use actual recorded transactions only
             if is_income and item.get('incomeType', '').lower() == 'variable':
                 actual = variable_txn_sums.get(item.get('id', ''), 0)
                 if actual > 0:
-                    txn_count = variable_txn_counts.get(item.get('id', ''), 0)
-                    unrecorded = max(0, current_day - txn_count)
-                    entry_received = {**entry, "amount": round(actual + (unrecorded * amount), 2)}
+                    entry_received = {**entry, "amount": round(actual, 2)}
             if entry_received["amount"] > 0:
                 received.append(entry_received)
             if entry_expected["amount"] > 0:
@@ -670,13 +668,11 @@ def _split_by_schedule_date(items, current_day, current_month, current_year, is_
                 future_count = max(0, 4 - past_count)
             entry_received = {**entry, "amount": round(amount * past_count, 2)}
             entry_expected = {**entry, "amount": round(amount * future_count, 2)}
-            # Variable income hybrid: actual + expectedAmount for unrecorded past weeks
+            # Variable income: use actual recorded transactions only
             if is_income and item.get('incomeType', '').lower() == 'variable':
                 actual = variable_txn_sums.get(item.get('id', ''), 0)
                 if actual > 0:
-                    txn_count = variable_txn_counts.get(item.get('id', ''), 0)
-                    unrecorded = max(0, past_count - txn_count)
-                    entry_received = {**entry, "amount": round(actual + (unrecorded * amount), 2)}
+                    entry_received = {**entry, "amount": round(actual, 2)}
             if entry_received["amount"] > 0:
                 received.append(entry_received)
             if entry_expected["amount"] > 0:

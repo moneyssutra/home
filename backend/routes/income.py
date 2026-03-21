@@ -177,23 +177,12 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
                 source["monthlyReceived"] = 0
                 source["monthlyPending"] = amount
 
-        # For variable income: hybrid approach
-        # actual transactions + expectedAmount for unrecorded past occurrences
+        # For variable income: use actual recorded transactions only
         is_variable = source.get('incomeType', '').lower() == 'variable'
         actual_this_month = monthly_txn_sums.get(source["id"], 0)
         if is_variable and actual_this_month > 0:
-            txn_count = monthly_txn_counts.get(source["id"], 0)
-            # Calculate past scheduled occurrences
-            if freq == 'Daily':
-                past_scheduled = now.day
-            elif freq == 'Weekly':
-                day_name = source.get('selectedDay', '')
-                past_scheduled = count_weekday_occurrences(now.year, now.month, day_name, now.day) if day_name else 0
-            else:
-                past_scheduled = 1 if source["monthlyReceived"] > 0 else 0
-            unrecorded = max(0, past_scheduled - txn_count)
-            source["monthlyReceived"] = actual_this_month + (unrecorded * amount)
-            source["monthlyTotal"] = source["monthlyReceived"] + source["monthlyPending"]
+            source["monthlyReceived"] = actual_this_month
+            source["monthlyTotal"] = actual_this_month + source["monthlyPending"]
 
     return income_sources
 
@@ -386,19 +375,9 @@ async def get_income_monthly_summary(request: Request):
                 rec = 0
                 pend = month_amt
 
-        # For variable income: hybrid approach
-        # actual transactions + expectedAmount for unrecorded past occurrences
+        # For variable income: use actual recorded transactions only
         if is_variable and actual_received > 0:
-            txn_count = variable_txn_counts.get(entity_id, 0)
-            # Calculate how many past occurrences were scheduled
-            if freq == 'Daily':
-                past_scheduled = current_day
-            elif freq == 'Weekly':
-                past_scheduled = count_weekday_occurrences(current_year, current_month, inc.get('selectedDay', ''), current_day)
-            else:
-                past_scheduled = 1 if rec > 0 else 0
-            unrecorded = max(0, past_scheduled - txn_count)
-            rec = actual_received + (unrecorded * amount)
+            rec = actual_received
             month_amt = rec + pend
 
         total_income += month_amt
@@ -684,7 +663,15 @@ async def get_income_detail(income_id: str, request: Request):
                 entry["isActual"] = False
 
     total_received = sum(s["amount"] for s in schedule if s["status"] == "received")
-    total_received = sum(s["amount"] for s in schedule if s["status"] == "received")
+
+    # For variable income: update past entries without actual transactions to "missed" status
+    is_variable = inc.get('incomeType', '').lower() == 'variable'
+    if is_variable:
+        for entry in schedule:
+            if entry["status"] == "received" and not entry.get("isActual", False):
+                entry["status"] = "missed"
+        # Recalculate: total_received only includes entries with actual transactions
+        total_received = sum(s["amount"] for s in schedule if s["status"] == "received")
 
     # Calculate current month's received/pending with hybrid logic for variable income
     import calendar as cal
@@ -716,19 +703,17 @@ async def get_income_detail(income_id: str, request: Request):
         monthly_received = expected * past_count
         monthly_total = expected * total_count
         monthly_pending = expected * (total_count - past_count)
-        # Hybrid: use actual transactions + expected for unrecorded past weeks
+        # Variable income: use actual recorded transactions only
         if is_variable and actual_received_this_month > 0:
-            unrecorded = max(0, past_count - txn_count_this_month)
-            monthly_received = actual_received_this_month + (unrecorded * expected)
+            monthly_received = actual_received_this_month
             monthly_total = monthly_received + monthly_pending
     elif freq == "Daily":
         monthly_received = expected * current_day
         monthly_total = expected * days_in_month
         monthly_pending = expected * (days_in_month - current_day)
-        # Hybrid: use actual transactions + expected for unrecorded past days
+        # Variable income: use actual recorded transactions only
         if is_variable and actual_received_this_month > 0:
-            unrecorded = max(0, current_day - txn_count_this_month)
-            monthly_received = actual_received_this_month + (unrecorded * expected)
+            monthly_received = actual_received_this_month
             monthly_total = monthly_received + monthly_pending
     else:
         sd_str = inc.get("selectedDate")
@@ -751,11 +736,11 @@ async def get_income_detail(income_id: str, request: Request):
     if inc.get("assetId"):
         linked_asset = await db.assets.find_one({"id": inc["assetId"]}, {"_id": 0, "assetName": 1, "currentValue": 1, "id": 1})
 
-    # Show balanced schedule: last N received + next N upcoming
-    received_entries = [s for s in schedule if s["status"] == "received"]
+    # Show balanced schedule: past entries (received + missed) + upcoming
+    past_entries = [s for s in schedule if s["status"] in ("received", "missed")]
     upcoming_entries = [s for s in schedule if s["status"] == "upcoming"]
-    # Take last 8 received (most recent first) + next 8 upcoming
-    balanced_schedule = received_entries[-8:] + upcoming_entries[:8]
+    # Take last 8 past (most recent first) + next 8 upcoming
+    balanced_schedule = past_entries[-8:] + upcoming_entries[:8]
 
     return {
         **{k: v for k, v in inc.items() if k != "createdAt"},

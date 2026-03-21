@@ -94,9 +94,9 @@ const getEditRoute = (incomeType, id) => {
             <div className="max-h-[400px] overflow-y-auto">
               {schedule.map((s, i) => {
                 const prevStatus = i > 0 ? schedule[i - 1].status : null;
-                const showDivider = prevStatus === "received" && s.status === "upcoming";
+                const showDivider = prevStatus && prevStatus !== "upcoming" && s.status === "upcoming";
                 const isActual = s.isActual;
-                const isReceivedExpected = s.status === "received" && !isActual;
+                const isMissed = s.status === "missed";
                 return (
                   <div key={i}>
                     {showDivider && (
@@ -106,10 +106,10 @@ const getEditRoute = (incomeType, id) => {
                         <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
                       </div>
                     )}
-                    <div className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)", opacity: isReceivedExpected ? 0.55 : 1 }}>
-                      <span style={{ color: isReceivedExpected ? "var(--text-muted)" : "var(--text-secondary)" }}>{formatDate(s.dueDate)}</span>
+                    <div className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)", opacity: isMissed ? 0.55 : 1 }}>
+                      <span style={{ color: isMissed ? "var(--text-muted)" : "var(--text-secondary)" }}>{formatDate(s.dueDate)}</span>
                       <div className="flex items-center gap-2">
-                        <span className={isActual ? "font-bold" : ""} style={{ color: isActual ? "#059669" : isReceivedExpected ? "var(--text-muted)" : "var(--text-primary)" }}>₹{fmt(s.amount)}</span>
+                        <span className={isActual ? "font-bold" : ""} style={{ color: isActual ? "#059669" : isMissed ? "var(--text-muted)" : "var(--text-primary)" }}>₹{fmt(s.amount)}</span>
                         {s.status === "upcoming" ? (
                           <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: "#F59E0B15", color: "#F59E0B" }}>
                             <Clock className="h-3 w-3" /> Upcoming
@@ -118,9 +118,13 @@ const getEditRoute = (incomeType, id) => {
                           <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: "#05966920", color: "#059669" }}>
                             <CheckCircle2 className="h-3 w-3" /> Recorded
                           </span>
+                        ) : isMissed ? (
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: "#EF444415", color: "#EF4444" }}>
+                            <Clock className="h-3 w-3" /> Not Recorded
+                          </span>
                         ) : (
-                          <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: "#9CA3AF15", color: "#9CA3AF" }}>
-                            <Clock className="h-3 w-3" /> Expected
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: "#05966915", color: "#059669" }}>
+                            <CheckCircle2 className="h-3 w-3" /> Received
                           </span>
                         )}
                       </div>
