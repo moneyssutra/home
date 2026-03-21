@@ -34,6 +34,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useFamilyContext } from "@/context/FamilyContext";
 import ProfileSetup from "@/components/ProfileSetup";
 import RollingButtons from "@/components/RollingButtons";
+import GoalCard from "@/components/GoalCard";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -627,63 +628,35 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Goals Widget */}
-        <div 
-          className="rounded-2xl p-5 cursor-pointer transition-all hover:shadow-md shadow-card"
-          style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-          onClick={() => navigate("/dream-goals")}
-          data-testid="goals-widget"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: "var(--brand-primary-soft)" }}>
-                <Target className="h-5 w-5" style={{ color: "var(--brand-primary)" }} />
-              </div>
-              <div>
-                <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Financial Goals</h3>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  {goalsSummary?.totalActiveGoals || 0} active goals
-                </p>
-              </div>
+        {/* Goals Widget — Horizontal Scrollable Cards */}
+        <div data-testid="goals-widget">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Target className="h-5 w-5" style={{ color: "var(--brand-primary)" }} />
+              <h3 className="font-semibold" style={{ color: "var(--text-primary)" }}>Financial Goals</h3>
+              <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: "var(--brand-primary-soft)", color: "var(--brand-primary)" }}>
+                {goalsSummary?.totalActiveGoals || 0}
+              </span>
             </div>
-            <ChevronRight className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
+            <button onClick={() => navigate("/dream-goals")} className="flex items-center gap-1 text-xs font-medium" style={{ color: "var(--brand-primary)" }} data-testid="goals-see-all">
+              See all <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </div>
-          
+
           {goalsSummary?.goals && goalsSummary.goals.length > 0 ? (
-            <div className="space-y-3">
-              {goalsSummary.goals.slice(0, 2).map((goal) => (
-                <div key={goal.id} className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium truncate max-w-[150px]" style={{ color: "var(--text-secondary)" }}>
-                        {goal.goalName}
-                      </span>
-                      <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-                        {goal.progressPercent.toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: "var(--bg-subtle)" }}>
-                      <div 
-                        className="h-full rounded-full transition-all"
-                        style={{ 
-                          width: `${Math.min(goal.progressPercent, 100)}%`,
-                          backgroundColor: goal.progressPercent >= 75 ? "var(--brand-primary)" : 
-                                          goal.progressPercent >= 50 ? "var(--status-warning)" : "var(--brand-primary)"
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1" style={{ scrollSnapType: "x mandatory", scrollbarWidth: "none" }}>
+              {goalsSummary.goals.map((goal) => (
+                <GoalCard key={goal.id} goal={goal} onClick={() => navigate(`/goal/${goal.id}`)} />
               ))}
-              {goalsSummary.totalActiveGoals > 2 && (
-                <p className="text-xs text-center pt-1" style={{ color: "var(--text-muted)" }}>
-                  +{goalsSummary.totalActiveGoals - 2} more goals
-                </p>
-              )}
             </div>
           ) : (
-            <div className="text-center py-2">
-              <p className="text-sm" style={{ color: "var(--text-secondary)" }}>No active goals yet</p>
+            <div
+              className="rounded-2xl p-6 text-center cursor-pointer transition-all hover:shadow-md"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px dashed var(--border-light)" }}
+              onClick={() => navigate("/dream-goals")}
+            >
+              <Target className="h-8 w-8 mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
+              <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>No active goals yet</p>
               <p className="text-xs mt-1" style={{ color: "var(--brand-primary)" }}>Tap to create your first goal</p>
             </div>
           )}
