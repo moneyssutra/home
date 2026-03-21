@@ -248,7 +248,7 @@ const AccountForm = () => {
   // ─── STEP CONTENT ───
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-info">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Account Info</p>
         <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Name and type of your account</p>
       </div>
@@ -279,7 +279,7 @@ const AccountForm = () => {
 
   const step2Content = (
     <div className="space-y-6" data-testid="step-2-balance">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>{isCreditCard ? "Card Details" : "Balance & Details"}</p>
         <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{isCreditCard ? "Credit card specifics" : "Set balance and preferences"}</p>
       </div>

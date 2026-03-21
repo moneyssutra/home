@@ -278,7 +278,7 @@ const OtherIncomeForm = () => {
   // ─── STEP CONTENT ───
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-details">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Income Details</p>
         <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>What kind of income is this?</p>
       </div>
@@ -325,7 +325,7 @@ const OtherIncomeForm = () => {
 
   const step2Content = (
     <div className="space-y-6" data-testid="step-2-amount">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>How much & how often?</p>
         <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Set the amount and frequency</p>
       </div>
@@ -371,7 +371,7 @@ const OtherIncomeForm = () => {
 
   const step3Content = (
     <div className="space-y-6" data-testid="step-3-schedule">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Schedule & Notes</p>
         <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Additional details</p>
       </div>

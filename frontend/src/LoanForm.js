@@ -267,7 +267,7 @@ const LoanIncome = () => {
   // ─── STEP 1: Type & Name ───
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-type">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Loan & Lender Name</p>
         <p className="text-xs mt-1" style={mutedStyle}>Basic loan identification</p>
       </div>
@@ -310,7 +310,7 @@ const LoanIncome = () => {
   // ─── STEP 2: Amounts ───
   const step2Content = (
     <div className="space-y-6" data-testid="step-2-amounts">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Loan Amounts</p>
         <p className="text-xs mt-1" style={mutedStyle}>Principal, outstanding, rate & EMI</p>
       </div>
@@ -373,7 +373,7 @@ const LoanIncome = () => {
   // ─── STEP 3: Schedule ───
   const step3Content = (
     <div className="space-y-6" data-testid="step-3-schedule">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Loan Schedule</p>
         <p className="text-xs mt-1" style={mutedStyle}>Start and end dates</p>
       </div>
@@ -396,7 +396,7 @@ const LoanIncome = () => {
   // ─── STEP 4: Linking & Options ───
   const step4Content = (
     <div className="space-y-6" data-testid="step-4-options">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Linking & Options</p>
         <p className="text-xs mt-1" style={mutedStyle}>Link assets, accounts, and more</p>
       </div>

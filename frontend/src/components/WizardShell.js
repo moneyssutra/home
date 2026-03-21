@@ -70,7 +70,7 @@ const WizardShell = ({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto pb-40">
-        <div className="mx-auto w-full max-w-[540px] px-5 pt-4">
+        <div className="mx-auto w-full max-w-[540px] px-5 pt-6 pb-4">
           {isEdit ? editModeContent : children}
           {ledgerContent}
           {errorContent}

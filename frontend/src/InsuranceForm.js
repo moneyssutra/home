@@ -304,7 +304,7 @@ const InsuranceForm = () => {
   // ─── STEP 1: Type & Name ───
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-type">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Policy Details</p>
         <p className="text-xs mt-1" style={mutedStyle}>Select type and name your policy</p>
       </div>
@@ -342,7 +342,7 @@ const InsuranceForm = () => {
   // ─── STEP 2: Coverage & Premium ───
   const step2Content = (
     <div className="space-y-6" data-testid="step-2-coverage">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Coverage & Premium</p>
         <p className="text-xs mt-1" style={mutedStyle}>Amount details and payment frequency</p>
       </div>
@@ -471,7 +471,7 @@ const InsuranceForm = () => {
   // ─── STEP 3: Policy Dates ───
   const step3Content = (
     <div className="space-y-6" data-testid="step-3-dates">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Policy Dates</p>
         <p className="text-xs mt-1" style={mutedStyle}>When does your policy start and end?</p>
       </div>
@@ -528,7 +528,7 @@ const InsuranceForm = () => {
   // ─── STEP 4: Additional Details ───
   const step4Content = (
     <div className="space-y-6" data-testid="step-4-details">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Additional Details</p>
         <p className="text-xs mt-1" style={mutedStyle}>Optional settings</p>
       </div>

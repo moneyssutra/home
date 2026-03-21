@@ -406,7 +406,7 @@ const GoalForm = () => {
   /* ─── STEP 1: Goal Type ─── */
   const step1Content = (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300" data-testid="wizard-step-1">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>What's your dream?</h2>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Choose the type that best fits your goal</p>
       </div>
@@ -473,7 +473,7 @@ const GoalForm = () => {
   /* ─── STEP 2: Goal Name ─── */
   const step2Content = (
     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300" data-testid="wizard-step-2">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Name your dream</h2>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Give your goal a meaningful name</p>
       </div>
@@ -507,7 +507,7 @@ const GoalForm = () => {
   /* ─── STEP 3: Goal Image ─── */
   const step3Content = (
     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300" data-testid="wizard-step-3">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Visualize your dream</h2>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Upload an image that inspires you (optional)</p>
       </div>
@@ -558,7 +558,7 @@ const GoalForm = () => {
   /* ─── STEP 4: Target Amount + Date ─── */
   const step4Content = (
     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300" data-testid="wizard-step-4">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Set your target</h2>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>How much do you need and by when?</p>
       </div>
@@ -655,7 +655,7 @@ const GoalForm = () => {
   /* ─── STEP 5: Link Sources + Notes ─── */
   const step5Content = (
     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300" data-testid="wizard-step-5">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Final details</h2>
         <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Link financial sources and add notes</p>
       </div>

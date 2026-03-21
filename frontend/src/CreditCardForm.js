@@ -228,7 +228,7 @@ const CreditCardForm = () => {
   // ─── STEP CONTENT ───
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-card-info">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Card Info</p>
         <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Basic card details</p>
       </div>
@@ -262,7 +262,7 @@ const CreditCardForm = () => {
 
   const step2Content = (
     <div className="space-y-6" data-testid="step-2-card-details">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Card Details</p>
         <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Credit limits and billing info</p>
       </div>

@@ -83,7 +83,7 @@ const InvestmentForm = () => {
   const [maturityCalendarOpen, setMaturityCalendarOpen] = useState(false);
 
   // ─── WIZARD STATE ───
-  const TOTAL_STEPS = 4;
+  const TOTAL_STEPS = isCategoryLocked ? 3 : 4;
   const [step, setStep] = useState(1);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
@@ -279,16 +279,17 @@ const InvestmentForm = () => {
   // ─── PER-STEP VALIDATION ───
   const validateStep = (s) => {
     const newErrors = {};
-    if (s === 1) {
+    const logical = isCategoryLocked ? s + 1 : s;
+    if (logical === 1) {
       if (!investmentCategory) newErrors.investmentCategory = "Please select investment category.";
     }
-    if (s === 2) {
+    if (logical === 2) {
       const nameError = validateTextField(name, "Investment name", 100);
       if (nameError) newErrors.name = nameError;
       if (!isLoanGiven && !investmentMode) newErrors.investmentMode = "Please select investment mode.";
       if (isLoanGiven && (!borrowerName || !borrowerName.trim())) newErrors.borrowerName = "Borrower name is required.";
     }
-    if (s === 3) {
+    if (logical === 3) {
       if (investmentFrequency && investmentFrequency !== "") {
         if (principal !== "" && principal !== null && principal !== undefined) {
           const val = parseFloat(principal);
@@ -420,7 +421,7 @@ const InvestmentForm = () => {
   // ─── STEP 1: Category ───
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-category">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>What type of investment?</p>
         <p className="text-xs mt-1" style={mutedStyle}>Select investment category</p>
       </div>
@@ -441,7 +442,7 @@ const InvestmentForm = () => {
   // ─── STEP 2: Name & Details ───
   const step2Content = (
     <div className="space-y-6" data-testid="step-2-name">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>{isLoanGiven ? "Loan Details" : "Investment Details"}</p>
         <p className="text-xs mt-1" style={mutedStyle}>{isLoanGiven ? "Tell us about the loan" : "Name and specifics"}</p>
       </div>
@@ -645,7 +646,7 @@ const InvestmentForm = () => {
   // ─── STEP 3: Amount & Financials ───
   const step3Content = (
     <div className="space-y-6" data-testid="step-3-amount">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Amount & Schedule</p>
         <p className="text-xs mt-1" style={mutedStyle}>Financial details of your investment</p>
       </div>
@@ -949,7 +950,7 @@ const InvestmentForm = () => {
   // ─── STEP 4: Extra Options ───
   const step4Content = (
     <div className="space-y-6" data-testid="step-4-options">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Final Details</p>
         <p className="text-xs mt-1" style={mutedStyle}>Optional settings and notes</p>
       </div>
@@ -1061,10 +1062,20 @@ const InvestmentForm = () => {
       errorContent={errorContent} dialogContent={dialogContent}
       onClose={() => navigate("/my-investments")}
     >
-      {step === 1 && step1Content}
-      {step === 2 && step2Content}
-      {step === 3 && step3Content}
-      {step === 4 && step4Content}
+      {isCategoryLocked ? (
+        <>
+          {step === 1 && step2Content}
+          {step === 2 && step3Content}
+          {step === 3 && step4Content}
+        </>
+      ) : (
+        <>
+          {step === 1 && step1Content}
+          {step === 2 && step2Content}
+          {step === 3 && step3Content}
+          {step === 4 && step4Content}
+        </>
+      )}
     </WizardShell>
   );
 };

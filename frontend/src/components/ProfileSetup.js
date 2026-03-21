@@ -511,7 +511,10 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
             return (
               <button
                 key={cat.key}
-                onClick={() => { setSearchParams({ module: cat.key }); }}
+                onClick={() => {
+                  const routes = { income: "/add-income", expenses: "/add-expense", assets: "/add-asset", liabilities: "/add-loan", investments: "/add-investment" };
+                  navigate(routes[cat.key] || "/");
+                }}
                 className="w-full flex items-center gap-4 p-4 rounded-2xl text-left transition-all active:scale-[0.98]"
                 style={{ backgroundColor: "var(--bg-card)", border: `1px solid ${isComplete ? cat.color + "40" : "var(--border-light)"}` }}
                 data-testid={`category-card-${cat.key}`}

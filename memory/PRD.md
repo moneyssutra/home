@@ -66,7 +66,13 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Added `/api/dashboard/summary` — Single endpoint returning ALL financial data
 - Added Pydantic field validators to Investment, Loan, Expense models
 
-### Bug Fixes
+### Wizard Form Step Layout Updates (Mar 2026)
+- InvestmentForm: Empty category-only page removed when locked (3 steps). Name + Mode merged into "Investment Details" step.
+- LoanForm: Step 1 heading renamed to "Loan & Lender Name"
+- InsuranceForm: Step 1 heading renamed to "Policy Details"
+- All forms: Improved padding (WizardShell pt-6, step headings mb-5) for better breathing room
+- ProfileSetup: Category cards now link to dedicated Add Forms (/add-income, /add-expense, /add-asset, /add-loan, /add-investment)
+
 - iOS Safe Area, FamilyToggle visibility, Notification dot, Clipboard API fallback
 - Bottom nav on all Add pages, Smart back navigation
 - Health page zeros for family members, Badges/Challenges empty for family views

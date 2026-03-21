@@ -256,7 +256,7 @@ const AssetForm = () => {
   // ─── STEP 1: Type & Name ───
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-type">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Asset Type & Name</p>
         <p className="text-xs mt-1" style={mutedStyle}>What kind of asset is this?</p>
       </div>
@@ -296,7 +296,7 @@ const AssetForm = () => {
   // ─── STEP 2: Valuation ───
   const step2Content = (
     <div className="space-y-6" data-testid="step-2-valuation">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Valuation</p>
         <p className="text-xs mt-1" style={mutedStyle}>Purchase price and current market value</p>
       </div>
@@ -342,7 +342,7 @@ const AssetForm = () => {
   // ─── STEP 3: Income & Financing ───
   const step3Content = (
     <div className="space-y-6" data-testid="step-3-finance">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Financing & Income</p>
         <p className="text-xs mt-1" style={mutedStyle}>Loan linked? Generates rental income?</p>
       </div>
@@ -433,7 +433,7 @@ const AssetForm = () => {
   // ─── STEP 4: Insurance & Notes ───
   const step4Content = (
     <div className="space-y-6" data-testid="step-4-extras">
-      <div className="text-center mb-2">
+      <div className="text-center mb-5">
         <p className="text-base font-semibold" style={labelStyle}>Insurance & Notes</p>
         <p className="text-xs mt-1" style={mutedStyle}>Optional coverage and details</p>
       </div>
