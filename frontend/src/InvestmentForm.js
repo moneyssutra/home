@@ -281,11 +281,11 @@ const InvestmentForm = () => {
     const newErrors = {};
     if (s === 1) {
       if (!investmentCategory) newErrors.investmentCategory = "Please select investment category.";
-      if (!isLoanGiven && !investmentMode) newErrors.investmentMode = "Please select investment mode.";
     }
     if (s === 2) {
       const nameError = validateTextField(name, "Investment name", 100);
       if (nameError) newErrors.name = nameError;
+      if (!isLoanGiven && !investmentMode) newErrors.investmentMode = "Please select investment mode.";
       if (isLoanGiven && (!borrowerName || !borrowerName.trim())) newErrors.borrowerName = "Borrower name is required.";
     }
     if (s === 3) {
@@ -417,12 +417,12 @@ const InvestmentForm = () => {
   const labelStyle = { color: "var(--text-primary)" };
   const mutedStyle = { color: "var(--text-muted)" };
 
-  // ─── STEP 1: Category & Mode ───
+  // ─── STEP 1: Category ───
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-category">
       <div className="text-center mb-2">
         <p className="text-base font-semibold" style={labelStyle}>What type of investment?</p>
-        <p className="text-xs mt-1" style={mutedStyle}>Select category and investment mode</p>
+        <p className="text-xs mt-1" style={mutedStyle}>Select investment category</p>
       </div>
       {!isCategoryLocked && (
         <div>
@@ -435,6 +435,31 @@ const InvestmentForm = () => {
           {errors.investmentCategory && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.investmentCategory}</p>}
         </div>
       )}
+    </div>
+  );
+
+  // ─── STEP 2: Name & Details ───
+  const step2Content = (
+    <div className="space-y-6" data-testid="step-2-name">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={labelStyle}>{isLoanGiven ? "Loan Details" : "Investment Details"}</p>
+        <p className="text-xs mt-1" style={mutedStyle}>{isLoanGiven ? "Tell us about the loan" : "Name and specifics"}</p>
+      </div>
+      {/* Investment Name */}
+      <div>
+        <label className={labelCls} style={labelStyle}>{isLoanGiven ? "Loan Label / Reference Name" : "Investment Name"}</label>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)}
+          placeholder={isLoanGiven ? "e.g., Loan to Rahul" : "e.g., SBI FD 2025"} maxLength={100}
+          className={inputCls} style={inputStyle(errors.name)} data-testid="name-input" />
+        {errors.name && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.name}</p>}
+        {duplicateWarning && (
+          <div className="flex items-start gap-2 mt-2 p-2.5 rounded-lg" style={{ backgroundColor: "#F59E0B15", border: "1px solid #F59E0B30" }} data-testid="duplicate-income-warning">
+            <Info className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: "#F59E0B" }} />
+            <p className="text-xs font-medium" style={{ color: "#F59E0B" }}>{duplicateWarning}</p>
+          </div>
+        )}
+      </div>
+      {/* Investment Mode */}
       {!isLoanGiven && (
         <div>
           <label className={labelCls} style={labelStyle}>Investment Mode</label>
@@ -465,30 +490,6 @@ const InvestmentForm = () => {
           </p>
         </div>
       )}
-    </div>
-  );
-
-  // ─── STEP 2: Name & Details ───
-  const step2Content = (
-    <div className="space-y-6" data-testid="step-2-name">
-      <div className="text-center mb-2">
-        <p className="text-base font-semibold" style={labelStyle}>{isLoanGiven ? "Loan Details" : "Investment Details"}</p>
-        <p className="text-xs mt-1" style={mutedStyle}>{isLoanGiven ? "Tell us about the loan" : "Name and specifics"}</p>
-      </div>
-      {/* Investment Name */}
-      <div>
-        <label className={labelCls} style={labelStyle}>{isLoanGiven ? "Loan Label / Reference Name" : "Investment Name"}</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)}
-          placeholder={isLoanGiven ? "e.g., Loan to Rahul" : "e.g., SBI FD 2025"} maxLength={100}
-          className={inputCls} style={inputStyle(errors.name)} data-testid="name-input" />
-        {errors.name && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.name}</p>}
-        {duplicateWarning && (
-          <div className="flex items-start gap-2 mt-2 p-2.5 rounded-lg" style={{ backgroundColor: "#F59E0B15", border: "1px solid #F59E0B30" }} data-testid="duplicate-income-warning">
-            <Info className="h-4 w-4 flex-shrink-0 mt-0.5" style={{ color: "#F59E0B" }} />
-            <p className="text-xs font-medium" style={{ color: "#F59E0B" }}>{duplicateWarning}</p>
-          </div>
-        )}
-      </div>
       {/* Loan Given specific fields */}
       {isLoanGiven && (
         <div className="space-y-4 p-4 rounded-xl" style={{ backgroundColor: "#FFF7ED", border: "1px solid rgba(245,158,11,0.2)" }} data-testid="loan-given-section">

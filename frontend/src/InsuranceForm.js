@@ -305,7 +305,7 @@ const InsuranceForm = () => {
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-type">
       <div className="text-center mb-2">
-        <p className="text-base font-semibold" style={labelStyle}>Insurance Type & Policy</p>
+        <p className="text-base font-semibold" style={labelStyle}>Policy Details</p>
         <p className="text-xs mt-1" style={mutedStyle}>Select type and name your policy</p>
       </div>
       {!isTypeLocked && (

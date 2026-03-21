@@ -268,7 +268,7 @@ const LoanIncome = () => {
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-type">
       <div className="text-center mb-2">
-        <p className="text-base font-semibold" style={labelStyle}>Loan Type & Name</p>
+        <p className="text-base font-semibold" style={labelStyle}>Loan & Lender Name</p>
         <p className="text-xs mt-1" style={mutedStyle}>Basic loan identification</p>
       </div>
       {!isTypeLocked && (
