@@ -72,6 +72,14 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Cache auto-invalidated on create/update/delete across all 8 financial routes
 - MongoDB indexes already comprehensive (userId, id, compound indexes for frequency/category queries)
 
+### Family View Data Consistency Fix (Mar 2026)
+- Fixed bug where list pages (MyExpenses, MyIncome, MyInvestments, MyLoans, MyAssets, MyInsurance) showed personal data instead of combined family data when dashboard was toggled to Family View
+- Backend `get_effective_user_filter` in utils.py accepts `?family=true` and builds `$in` filter for all family members
+- Updated `useExpenseList` hook in useApi.js to support `family` filter parameter
+- Fixed MyExpenses.js `fetchMonthExpenses` to correctly pass `family=true` to by-month endpoint
+- All 6 list pages correctly construct `?family=true` query param when `isFamilyView` is active
+- Tested: 19/19 backend API tests passed, 6/6 frontend pages verified (iteration_179)
+
 ### Rule-Based Financial Insights Engine (Mar 2026)
 - Replaced AI/GPT-based ai_insights.py with deterministic rule engine
 - 10 financial rules: expense ratio, savings rate, emergency fund, investments, debt burden, insurance gaps, credit utilization, loan exposure, overall health
@@ -118,6 +126,7 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Refactoring: `ProfileSetup.js` (>1500 lines), `Dashboard.js` (>700 lines)
 
 ## Test Reports
+- iteration_179: Family View data consistency fix - backend 100% (19/19 API tests), frontend 100% (6/6 pages)
 - iteration_177: Wizard form step structure revert - frontend 100% (all 6 forms: correct step counts, hidden type/category when locked, validation, save button on final step)
 - iteration_176: Code review of locked category removal
 - iteration_175: Investment/Loan/Insurance wizard forms
