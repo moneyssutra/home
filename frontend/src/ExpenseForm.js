@@ -278,23 +278,30 @@ const ExpenseForm = () => {
   useEffect(() => { if (oneTimeDate && errors.oneTimeDate) setErrors(prev => { const n = {...prev}; delete n.oneTimeDate; return n; }); }, [oneTimeDate]);
 
   // ─── WIZARD STEP MANAGEMENT ───
-  const TOTAL_STEPS = 3;
+  const TOTAL_STEPS = categoryLocked ? 2 : 3;
   const [step, setStep] = useState(1);
 
   const validateStep = (s) => {
     const newErrors = {};
-    if (s === 1) {
+    const getLogicalSteps = (ds) => {
+      if (!categoryLocked) return [ds];
+      if (ds === 1) return [1, 2];
+      if (ds === 2) return [3];
+      return [ds];
+    };
+    const logicalSteps = getLogicalSteps(s);
+    if (logicalSteps.includes(1)) {
       const nameError = validateTextField(expenseName, "Expense name", 50);
       if (nameError) newErrors.expenseName = nameError;
       if (isExpenseNameUnique === false) newErrors.expenseName = expenseNameUniqueError || "An entry with this name already exists.";
       if (!category) newErrors.category = "Please select a category.";
     }
-    if (s === 2) {
+    if (logicalSteps.includes(2)) {
       const amountError = validatePositiveAmount(expectedAmount, "Expected amount");
       if (amountError) newErrors.expectedAmount = amountError;
       if (!frequency) newErrors.frequency = "Please select a frequency.";
     }
-    if (s === 3) {
+    if (logicalSteps.includes(3)) {
       if (frequency === "Weekly" && !selectedDay) newErrors.selectedDay = "Please select a day.";
       if (frequency === "Monthly" && !selectedDate) newErrors.selectedDate = "Please select a date.";
       if (frequency === "Quarterly") { if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter."; if (!selectedDate) newErrors.selectedDate = "Please select a date."; }
@@ -761,6 +768,14 @@ const ExpenseForm = () => {
     </>
   );
 
+  // ─── MERGED STEP 1 (when locked): Category Chip + Name + Amount ───
+  const mergedStep1Content = (
+    <div className="space-y-6" data-testid="step-1-merged">
+      {step1Content}
+      {step2Content}
+    </div>
+  );
+
   return (
     <WizardShell
       title={id ? "Edit Expense" : "Add Expense"}
@@ -772,9 +787,18 @@ const ExpenseForm = () => {
       errorContent={errorContent} dialogContent={dialogContent}
       onClose={() => navigate(-1)}
     >
-      {step === 1 && step1Content}
-      {step === 2 && step2Content}
-      {step === 3 && step3Content}
+      {categoryLocked ? (
+        <>
+          {step === 1 && mergedStep1Content}
+          {step === 2 && step3Content}
+        </>
+      ) : (
+        <>
+          {step === 1 && step1Content}
+          {step === 2 && step2Content}
+          {step === 3 && step3Content}
+        </>
+      )}
     </WizardShell>
   );
 };

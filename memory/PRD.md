@@ -153,8 +153,9 @@ All 10 financial data entry forms converted to step-by-step wizards using Wizard
 
 ### Confetti Animation + Category Lock (Mar 2026)
 - All wizard forms fire canvas-confetti on successful save via `/app/frontend/src/lib/confetti.js`
-- Category/Type fields are locked (disabled) when pre-selected from category picker pages
-- Applies to: InvestmentForm, LoanForm, InsuranceForm, AssetForm, AccountForm, ExpenseForm
+- Category/Type fields shown as static chip (no dropdown) when pre-selected from category picker pages
+- Steps are merged (reduced by 1) when category is locked — user goes straight to name + details
+- Applies to: InvestmentForm (4→3 steps), LoanForm (4→3), InsuranceForm (4→3), AssetForm (4→3), AccountForm (2→1), ExpenseForm (3→2)
 
 ### Backend Phase 1 Refactoring (Mar 2026)
 - Created `/backend/services/financial_engine.py` — Central FinancialSnapshot class with net worth, cash flow, savings rate, EMI ratio, emergency fund, breakdowns

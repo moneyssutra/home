@@ -65,7 +65,7 @@ const InsuranceForm = () => {
   const [premiumEndCalendarOpen, setPremiumEndCalendarOpen] = useState(false);
 
   // ─── WIZARD STATE ───
-  const TOTAL_STEPS = 4;
+  const TOTAL_STEPS = isTypeLocked ? 3 : 4;
   const [step, setStep] = useState(1);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
@@ -177,22 +177,31 @@ const InsuranceForm = () => {
   useEffect(() => { if (endDate && errors.endDate) setErrors(prev => { const n = {...prev}; delete n.endDate; return n; }); }, [endDate]);
 
   // ─── PER-STEP VALIDATION ───
+  const getLogicalSteps = (displayedStep) => {
+    if (!isTypeLocked) return [displayedStep];
+    if (displayedStep === 1) return [1, 2];
+    if (displayedStep === 2) return [3];
+    if (displayedStep === 3) return [4];
+    return [displayedStep];
+  };
+
   const validateStep = (s) => {
     const newErrors = {};
-    if (s === 1) {
+    const logicalSteps = getLogicalSteps(s);
+    if (logicalSteps.includes(1)) {
       if (!insuranceType) newErrors.insuranceType = "Please select insurance type.";
       const nameError = validateTextField(policyName, "Policy name", 100);
       if (nameError) newErrors.policyName = nameError;
       if (isPolicyNameUnique === false) newErrors.policyName = policyNameUniqueError || "An entry with this name already exists.";
     }
-    if (s === 2) {
+    if (logicalSteps.includes(2)) {
       const ce = validatePositiveAmount(coverageAmount, "Coverage amount"); if (ce) newErrors.coverageAmount = ce;
       const pe = validatePositiveAmount(premiumAmount, "Premium amount");
       if (pe) newErrors.premiumAmount = pe;
       else if (parseFloat(premiumAmount) >= parseFloat(coverageAmount)) newErrors.premiumAmount = "Premium amount must be less than coverage amount.";
       if (!premiumFrequency) newErrors.premiumFrequency = "Please select premium frequency.";
     }
-    if (s === 3) {
+    if (logicalSteps.includes(3)) {
       if (!startDate) newErrors.startDate = "Policy start date is required.";
       else if (new Date(startDate) > today) newErrors.startDate = "Policy start date cannot be in the future.";
       if (endDate && startDate) { const de = validateDateRange(startDate, endDate, "Policy Start Date", "Policy End Date"); if (de) newErrors.endDate = de; }
@@ -676,6 +685,37 @@ const InsuranceForm = () => {
     </>
   );
 
+  // ─── MERGED STEP 1 (when locked): Type Chip + Name + Coverage ───
+  const mergedStep1Content = (
+    <div className="space-y-6" data-testid="step-1-merged">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={labelStyle}>Insurance Details</p>
+      </div>
+      <div>
+        <label className={labelCls} style={labelStyle}>Insurance Type</label>
+        <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#00D09C10", borderColor: "#00D09C", color: "#00D09C" }} data-testid="type-locked">
+          <span className="font-semibold text-sm">{insuranceType}</span>
+        </div>
+      </div>
+      <div>
+        <label className={labelCls} style={labelStyle}>Policy Name *</label>
+        <div className="relative">
+          <input type="text" value={policyName} onChange={(e) => { setPolicyName(e.target.value); if (errors.policyName) setErrors(prev => ({...prev, policyName: null})); }}
+            onBlur={() => checkPolicyNameUnique(policyName)} placeholder="e.g., HDFC Life Term Plan" maxLength={100}
+            className={`${inputCls} pr-10`}
+            style={{ backgroundColor: "var(--bg-subtle)", borderColor: errors.policyName || policyNameUniqueError ? "var(--status-error)" : isPolicyNameUnique === true && policyName.trim() ? "var(--status-success)" : "var(--border-light)", color: "var(--text-primary)" }}
+            data-testid="policy-name-input" />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            {isCheckingPolicyName && <Loader2 className="h-5 w-5 animate-spin" style={mutedStyle} />}
+            {!isCheckingPolicyName && isPolicyNameUnique === true && policyName.trim() && <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />}
+          </div>
+        </div>
+        {errors.policyName && <p className="text-sm mt-1 flex items-center gap-1" style={{ color: "var(--status-error)" }}><AlertCircle className="h-3.5 w-3.5" />{errors.policyName}</p>}
+      </div>
+      {step2Content}
+    </div>
+  );
+
   return (
     <WizardShell
       title={id ? "Edit Insurance" : "Add Insurance"}
@@ -687,10 +727,20 @@ const InsuranceForm = () => {
       errorContent={errorContent} dialogContent={dialogContent}
       onClose={() => navigate("/my-insurance")}
     >
-      {step === 1 && step1Content}
-      {step === 2 && step2Content}
-      {step === 3 && step3Content}
-      {step === 4 && step4Content}
+      {isTypeLocked ? (
+        <>
+          {step === 1 && mergedStep1Content}
+          {step === 2 && step3Content}
+          {step === 3 && step4Content}
+        </>
+      ) : (
+        <>
+          {step === 1 && step1Content}
+          {step === 2 && step2Content}
+          {step === 3 && step3Content}
+          {step === 4 && step4Content}
+        </>
+      )}
     </WizardShell>
   );
 };

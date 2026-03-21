@@ -83,7 +83,7 @@ const InvestmentForm = () => {
   const [maturityCalendarOpen, setMaturityCalendarOpen] = useState(false);
 
   // ─── WIZARD STATE ───
-  const TOTAL_STEPS = 4;
+  const TOTAL_STEPS = isCategoryLocked ? 3 : 4;
   const [step, setStep] = useState(1);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
@@ -277,18 +277,28 @@ const InvestmentForm = () => {
   const showFrequencyField = investmentCategory && !isSGB && !isSWP && !isLoanGiven;
 
   // ─── PER-STEP VALIDATION ───
+  // When locked, steps are remapped: displayed 1→logical 1+2, displayed 2→logical 3, displayed 3→logical 4
+  const getLogicalSteps = (displayedStep) => {
+    if (!isCategoryLocked) return [displayedStep];
+    if (displayedStep === 1) return [1, 2];
+    if (displayedStep === 2) return [3];
+    if (displayedStep === 3) return [4];
+    return [displayedStep];
+  };
+
   const validateStep = (s) => {
     const newErrors = {};
-    if (s === 1) {
+    const logicalSteps = getLogicalSteps(s);
+    if (logicalSteps.includes(1)) {
       if (!investmentCategory) newErrors.investmentCategory = "Please select investment category.";
       if (!isLoanGiven && !investmentMode) newErrors.investmentMode = "Please select investment mode.";
     }
-    if (s === 2) {
+    if (logicalSteps.includes(2)) {
       const nameError = validateTextField(name, "Investment name", 100);
       if (nameError) newErrors.name = nameError;
       if (isLoanGiven && (!borrowerName || !borrowerName.trim())) newErrors.borrowerName = "Borrower name is required.";
     }
-    if (s === 3) {
+    if (logicalSteps.includes(3)) {
       if (investmentFrequency && investmentFrequency !== "") {
         if (principal !== "" && principal !== null && principal !== undefined) {
           const val = parseFloat(principal);
@@ -1055,6 +1065,33 @@ const InvestmentForm = () => {
     </>
   );
 
+  // ─── MERGED STEP 1 (when locked): Category Chip + Name/Details ───
+  const mergedStep1Content = (
+    <div className="space-y-6" data-testid="step-1-merged">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={labelStyle}>{isLoanGiven ? "Loan Details" : "Investment Details"}</p>
+      </div>
+      <div>
+        <label className={labelCls} style={labelStyle}>Investment Category</label>
+        <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#14B8A610", borderColor: "#14B8A6", color: "#14B8A6" }} data-testid="category-locked">
+          <span className="font-semibold text-sm">{investmentCategory}</span>
+        </div>
+      </div>
+      {!isLoanGiven && (
+        <div>
+          <label className={labelCls} style={labelStyle}>Investment Mode</label>
+          <select value={investmentMode} onChange={(e) => setInvestmentMode(e.target.value)}
+            className={inputCls} style={inputStyle(errors.investmentMode)} data-testid="mode-select">
+            <option value="">Select Mode</option>
+            {modeOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+          </select>
+          {errors.investmentMode && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.investmentMode}</p>}
+        </div>
+      )}
+      {step2Content}
+    </div>
+  );
+
   return (
     <WizardShell
       title={id ? "Edit Investment" : "Add Investment"}
@@ -1066,10 +1103,20 @@ const InvestmentForm = () => {
       errorContent={errorContent} dialogContent={dialogContent}
       onClose={() => navigate("/my-investments")}
     >
-      {step === 1 && step1Content}
-      {step === 2 && step2Content}
-      {step === 3 && step3Content}
-      {step === 4 && step4Content}
+      {isCategoryLocked ? (
+        <>
+          {step === 1 && mergedStep1Content}
+          {step === 2 && step3Content}
+          {step === 3 && step4Content}
+        </>
+      ) : (
+        <>
+          {step === 1 && step1Content}
+          {step === 2 && step2Content}
+          {step === 3 && step3Content}
+          {step === 4 && step4Content}
+        </>
+      )}
     </WizardShell>
   );
 };
