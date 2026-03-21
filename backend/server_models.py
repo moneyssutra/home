@@ -1,5 +1,5 @@
 """All Pydantic models for the MoneySsutra application."""
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import List, Optional
 from datetime import datetime, timezone
 import uuid
@@ -179,6 +179,27 @@ class IncomeSourceCreate(BaseModel):
     lastEntryDate: Optional[str] = None
     nextDueDate: Optional[str] = None
 
+    @field_validator("expectedAmount")
+    @classmethod
+    def validate_amount(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Expected amount must be positive")
+        return v
+
+    @field_validator("principal")
+    @classmethod
+    def validate_principal(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Principal amount cannot be negative")
+        return v
+
+    @field_validator("securityDeposit")
+    @classmethod
+    def validate_deposit(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Security deposit cannot be negative")
+        return v
+
 
 # ============ ACCOUNT MODEL ============
 class Account(BaseModel):
@@ -210,6 +231,20 @@ class AccountCreate(BaseModel):
     outstandingAmount: Optional[float] = None
     dueDate: Optional[str] = None
     minimumDue: Optional[float] = None
+
+    @field_validator("creditLimit")
+    @classmethod
+    def validate_credit_limit(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Credit limit must be positive")
+        return v
+
+    @field_validator("outstandingAmount")
+    @classmethod
+    def validate_outstanding(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Outstanding amount cannot be negative")
+        return v
 
 
 # ============ EXPENSE MODEL ============
@@ -265,6 +300,12 @@ class ExpenseCreate(BaseModel):
     dueDate: Optional[str] = None
     linkedPaymentId: Optional[str] = None
 
+    @field_validator("expectedAmount")
+    @classmethod
+    def validate_amount(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Expense amount must be positive")
+        return v
 
 # ============ INSURANCE MODEL ============
 class Insurance(BaseModel):
@@ -308,6 +349,27 @@ class InsuranceCreate(BaseModel):
     premiumPaymentTerm: Optional[str] = None
     notes: Optional[str] = None
 
+    @field_validator("coverageAmount")
+    @classmethod
+    def validate_coverage(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Coverage amount must be positive")
+        return v
+
+    @field_validator("premiumAmount")
+    @classmethod
+    def validate_premium(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Premium amount must be positive")
+        return v
+
+    @field_validator("expectedMaturityAmount")
+    @classmethod
+    def validate_maturity(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Expected maturity amount cannot be negative")
+        return v
+
 
 # ============ LOAN MODEL ============
 class Loan(BaseModel):
@@ -349,6 +411,27 @@ class LoanCreate(BaseModel):
     autoCreateExpense: bool = True
     emiSelectedDate: Optional[str] = None
     sharedWithMembers: Optional[list] = None
+
+    @field_validator("principalAmount")
+    @classmethod
+    def validate_principal(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Principal amount must be positive")
+        return v
+
+    @field_validator("interestRate")
+    @classmethod
+    def validate_rate(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Interest rate cannot be negative")
+        return v
+
+    @field_validator("emiAmount")
+    @classmethod
+    def validate_emi(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("EMI amount must be positive")
+        return v
 
 
 # ============ ASSET MODEL ============
@@ -395,6 +478,27 @@ class AssetCreate(BaseModel):
     linkedInsuranceId: Optional[str] = None
     location: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator("purchaseValue")
+    @classmethod
+    def validate_purchase(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Purchase value cannot be negative")
+        return v
+
+    @field_validator("currentValue")
+    @classmethod
+    def validate_current(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Current value cannot be negative")
+        return v
+
+    @field_validator("incomeAmount")
+    @classmethod
+    def validate_income(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Income amount cannot be negative")
+        return v
 
 
 # ============ INVESTMENT MODEL ============
@@ -493,6 +597,27 @@ class InvestmentCreate(BaseModel):
     loanStatus: Optional[str] = None
     lastRepaymentDate: Optional[str] = None
 
+    @field_validator("principal")
+    @classmethod
+    def validate_principal(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Principal amount cannot be negative")
+        return v
+
+    @field_validator("returnRate")
+    @classmethod
+    def validate_return_rate(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Return rate cannot be negative")
+        return v
+
+    @field_validator("sipAmount")
+    @classmethod
+    def validate_sip(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("SIP amount cannot be negative")
+        return v
+
 
 # ============ CREDIT CARD MODEL ============
 class CreditCard(BaseModel):
@@ -520,6 +645,27 @@ class CreditCardCreate(BaseModel):
     minimumDue: Optional[float] = None
     interestRate: Optional[float] = None
     linkedAccountId: Optional[str] = None
+
+    @field_validator("creditLimit")
+    @classmethod
+    def validate_credit_limit(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Credit limit must be positive")
+        return v
+
+    @field_validator("outstandingAmount")
+    @classmethod
+    def validate_outstanding(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Outstanding amount cannot be negative")
+        return v
+
+    @field_validator("interestRate")
+    @classmethod
+    def validate_rate(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Interest rate cannot be negative")
+        return v
 
 
 # ============ GOAL MODEL ============
@@ -606,6 +752,13 @@ class OtherIncomeCreate(BaseModel):
     selectedQuarter: Optional[str] = None
     notes: Optional[str] = None
     isReceived: bool = False
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Amount must be positive")
+        return v
 
 
 # ============ PROFILE MODELS ============
