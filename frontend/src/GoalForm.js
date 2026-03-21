@@ -404,7 +404,7 @@ const GoalForm = () => {
   );
 
   /* ─── STEP 1: Goal Type ─── */
-  const Step1 = () => (
+  const step1Content = (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300" data-testid="wizard-step-1">
       <div className="text-center mb-2">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>What's your dream?</h2>
@@ -471,7 +471,7 @@ const GoalForm = () => {
   );
 
   /* ─── STEP 2: Goal Name ─── */
-  const Step2 = () => (
+  const step2Content = (
     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300" data-testid="wizard-step-2">
       <div className="text-center mb-2">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Name your dream</h2>
@@ -505,7 +505,7 @@ const GoalForm = () => {
   );
 
   /* ─── STEP 3: Goal Image ─── */
-  const Step3 = () => (
+  const step3Content = (
     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300" data-testid="wizard-step-3">
       <div className="text-center mb-2">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Visualize your dream</h2>
@@ -556,7 +556,7 @@ const GoalForm = () => {
   );
 
   /* ─── STEP 4: Target Amount + Date ─── */
-  const Step4 = () => (
+  const step4Content = (
     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300" data-testid="wizard-step-4">
       <div className="text-center mb-2">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Set your target</h2>
@@ -653,7 +653,7 @@ const GoalForm = () => {
   );
 
   /* ─── STEP 5: Link Sources + Notes ─── */
-  const Step5 = () => (
+  const step5Content = (
     <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300" data-testid="wizard-step-5">
       <div className="text-center mb-2">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>Final details</h2>
@@ -866,7 +866,7 @@ const GoalForm = () => {
               <span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold" style={{ color: "#7C3AED" }}>1</span>
               Goal Type
             </h3>
-            <Step1 />
+            {step1Content}
           </div>
           {/* Goal Name */}
           <div>
@@ -874,7 +874,7 @@ const GoalForm = () => {
               <span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold" style={{ color: "#7C3AED" }}>2</span>
               Goal Name
             </h3>
-            <Step2 />
+            {step2Content}
           </div>
           {/* Goal Image */}
           <div>
@@ -882,7 +882,7 @@ const GoalForm = () => {
               <span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold" style={{ color: "#7C3AED" }}>3</span>
               Goal Image
             </h3>
-            <Step3 />
+            {step3Content}
           </div>
           {/* Target */}
           <div>
@@ -890,7 +890,7 @@ const GoalForm = () => {
               <span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold" style={{ color: "#7C3AED" }}>4</span>
               Target
             </h3>
-            <Step4 />
+            {step4Content}
           </div>
           {/* Details */}
           <div>
@@ -898,17 +898,17 @@ const GoalForm = () => {
               <span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold" style={{ color: "#7C3AED" }}>5</span>
               Details
             </h3>
-            <Step5 />
+            {step5Content}
           </div>
         </div>
       );
     }
     switch (step) {
-      case 1: return <Step1 />;
-      case 2: return <Step2 />;
-      case 3: return <Step3 />;
-      case 4: return <Step4 />;
-      case 5: return <Step5 />;
+      case 1: return step1Content;
+      case 2: return step2Content;
+      case 3: return step3Content;
+      case 4: return step4Content;
+      case 5: return step5Content;
       default: return null;
     }
   };

@@ -4,6 +4,7 @@ import { Users, UserPlus, Copy, Trash2, Crown, ChevronRight, Wallet, TrendingUp,
 import axios from "axios";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -33,6 +34,7 @@ const FamilyPage = () => {
   const navigate = useNavigate();
   const [family, setFamily] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const [creating, setCreating] = useState(false);
   const [familyName, setFamilyName] = useState("");
   const [showAddMember, setShowAddMember] = useState(false);
@@ -426,7 +428,8 @@ const FamilyPage = () => {
         )}
       </div>
 
-      <BottomNav />
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

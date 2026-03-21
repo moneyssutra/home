@@ -4,6 +4,7 @@ import { Download, Upload, FileSpreadsheet, Check, AlertCircle, Loader2 } from "
 import axios from "axios";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -12,6 +13,7 @@ const DataImport = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const [results, setResults] = useState(null);
 
   const handleDownloadTemplate = async () => {
@@ -215,7 +217,8 @@ const DataImport = () => {
         )}
       </div>
 
-      <BottomNav />
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };

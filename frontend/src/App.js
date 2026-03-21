@@ -66,7 +66,7 @@ import AssetBreakdown from "@/AssetBreakdown";
 import CategoryAsset from "@/CategoryAsset";
 import AccountForm from "@/AccountForm";
 import AddAccount from "@/pages/AddAccount";
-import MyAccounts from "@/MyAccounts";
+// Old pages removed - redirected to new experimental versions
 import ExpenseForm from "@/ExpenseForm";
 import MyExpenses from "@/MyExpenses";
 import ExpenseBreakdown from "@/ExpenseBreakdown";
@@ -87,7 +87,7 @@ import InvestmentBreakdown from "@/InvestmentBreakdown";
 import CategoryInvestment from "@/CategoryInvestment";
 import InvestmentDetail from "@/pages/InvestmentDetail";
 import CreditCardForm from "@/CreditCardForm";
-import MyCreditCards from "@/MyCreditCards";
+// MyCreditCards removed - redirected to CreditCardsExperimental
 import MyLiabilities from "@/MyLiabilities";
 import CreditCardDetail from "@/pages/CreditCardDetail";
 import InsuranceDetail from "@/pages/InsuranceDetail";
@@ -105,7 +105,7 @@ import AddExpense from "@/pages/AddExpense";
 import AddInsurance from "@/pages/AddInsurance";
 
 // Goal Pages
-import MyGoals from "@/MyGoals";
+// MyGoals removed - redirected to MyGoalsVisual
 import MyGoalsVisual from "@/pages/MyGoalsVisual";
 import GoalForm from "@/GoalForm";
 import GoalDetail from "@/GoalDetail";

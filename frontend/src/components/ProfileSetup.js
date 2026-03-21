@@ -10,6 +10,7 @@ import {
   Building2, CircleDollarSign, BarChart3, Plus, Calendar, Percent
 } from "lucide-react";
 import BottomNav from "./BottomNav";
+import AddActionSheet from "./AddActionSheet";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -121,6 +122,7 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
   const [saving, setSaving] = useState(false);
   const [completionData, setCompletionData] = useState(null);
   const [loadingGrid, setLoadingGrid] = useState(true);
+  const [showAddSheet, setShowAddSheet] = useState(false);
 
   // Income state
   const [selectedSource, setSelectedSource] = useState(null);
@@ -558,10 +560,14 @@ export default function ProfileSetup({ onComplete, onDismiss }) {
           </div>
         )}
         {isStandalonePage ? (
-          <BottomNav />
+          <>
+            <BottomNav onAddClick={() => setShowAddSheet(true)} />
+            <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
+          </>
         ) : onDismiss ? (
           <div onClickCapture={() => onDismiss()}>
-            <BottomNav />
+            <BottomNav onAddClick={() => setShowAddSheet(true)} />
+            <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
           </div>
         ) : null}
       </div>
