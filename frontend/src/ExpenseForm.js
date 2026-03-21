@@ -484,17 +484,23 @@ const ExpenseForm = () => {
       </div>
       <div className="w-full">
         <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Category</label>
-        <div className="grid grid-cols-2 gap-2">
-          {categoryOptions.map((opt) => (
-            <button key={opt} type="button" onClick={() => { if (!categoryLocked) setCategory(opt); }}
-              disabled={categoryLocked && category !== opt}
-              className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] text-left ${category === opt ? "border-[#FF4D4D] bg-[#FF4D4D]/10 text-[#FF4D4D] ring-1 ring-[#FF4D4D]/30" : ""} ${categoryLocked && category !== opt ? "opacity-40 cursor-not-allowed" : ""} ${categoryLocked && category === opt ? "cursor-not-allowed" : ""}`}
-              style={category !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
-              data-testid={`category-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
-          ))}
-        </div>
-        {categoryLocked && <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Pre-selected from category picker</p>}
-        {errors.category && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.category}</p>}
+        {categoryLocked ? (
+          <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#FF4D4D10", borderColor: "#FF4D4D", color: "#FF4D4D" }} data-testid="category-locked">
+            <span className="font-semibold text-sm">{category}</span>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              {categoryOptions.map((opt) => (
+                <button key={opt} type="button" onClick={() => setCategory(opt)}
+                  className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] text-left ${category === opt ? "border-[#FF4D4D] bg-[#FF4D4D]/10 text-[#FF4D4D] ring-1 ring-[#FF4D4D]/30" : ""}`}
+                  style={category !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+                  data-testid={`category-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
+              ))}
+            </div>
+            {errors.category && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.category}</p>}
+          </>
+        )}
       </div>
     </div>
   );

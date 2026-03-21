@@ -262,12 +262,20 @@ const AssetForm = () => {
       </div>
       <div>
         <label className={labelCls} style={labelStyle}>Asset Type *</label>
-        <select value={assetType} onChange={(e) => setAssetType(e.target.value)}
-          className={inputCls} style={inputStyle(errors.assetType)} data-testid="asset-type-select">
-          <option value="">Select Asset Type</option>
-          {assetTypes.map((type) => <option key={type} value={type}>{type}</option>)}
-        </select>
-        {errors.assetType && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.assetType}</p>}
+        {isTypeLocked ? (
+          <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#14B8A610", borderColor: "#14B8A6", color: "#14B8A6" }} data-testid="type-locked">
+            <span className="font-semibold text-sm">{assetType}</span>
+          </div>
+        ) : (
+          <>
+            <select value={assetType} onChange={(e) => setAssetType(e.target.value)}
+              className={inputCls} style={inputStyle(errors.assetType)} data-testid="asset-type-select">
+              <option value="">Select Asset Type</option>
+              {assetTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+            </select>
+            {errors.assetType && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.assetType}</p>}
+          </>
+        )}
       </div>
       <div>
         <label className={labelCls} style={labelStyle}>Asset Name *</label>

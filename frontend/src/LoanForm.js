@@ -273,14 +273,20 @@ const LoanIncome = () => {
       </div>
       <div>
         <label className={labelCls} style={labelStyle}>Loan Type</label>
-        <select value={loanType} onChange={(e) => { if (!isTypeLocked) setLoanType(e.target.value); }}
-          disabled={isTypeLocked}
-          className={`${inputCls} ${isTypeLocked ? "opacity-70 cursor-not-allowed" : ""}`} style={inputStyle(errors.loanType)} data-testid="loan-type-select">
-          <option value="">Select Loan Type</option>
-          {loanTypeOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-        </select>
-        {isTypeLocked && <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "var(--text-muted)" }}>Pre-selected from category picker</p>}
-        {errors.loanType && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.loanType}</p>}
+        {isTypeLocked ? (
+          <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#00D09C10", borderColor: "#00D09C", color: "#00D09C" }} data-testid="type-locked">
+            <span className="font-semibold text-sm">{loanType}</span>
+          </div>
+        ) : (
+          <>
+            <select value={loanType} onChange={(e) => setLoanType(e.target.value)}
+              className={inputCls} style={inputStyle(errors.loanType)} data-testid="loan-type-select">
+              <option value="">Select Loan Type</option>
+              {loanTypeOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+            {errors.loanType && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.loanType}</p>}
+          </>
+        )}
       </div>
       <div>
         <label className={labelCls} style={labelStyle}>Loan Name</label>

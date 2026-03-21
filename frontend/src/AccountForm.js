@@ -262,17 +262,23 @@ const AccountForm = () => {
       </div>
       <div>
         <label className="block text-sm font-medium mb-3" style={{ color: "var(--text-primary)" }}>Account Type</label>
-        <div className="grid grid-cols-2 gap-2">
-          {accountTypeOptions.map((opt) => (
-            <button key={opt} type="button" onClick={() => { if (!isTypeLocked) setAccountType(opt); }}
-              disabled={isTypeLocked && accountType !== opt}
-              className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all active:scale-[0.97] ${accountType === opt ? "border-[#3B82F6] bg-[#3B82F6]/10 text-[#3B82F6] ring-1 ring-[#3B82F6]/30" : ""} ${isTypeLocked && accountType !== opt ? "opacity-40 cursor-not-allowed" : ""} ${isTypeLocked && accountType === opt ? "cursor-not-allowed" : ""}`}
-              style={accountType !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
-              data-testid={`type-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
-          ))}
-        </div>
-        {isTypeLocked && <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Pre-selected from category picker</p>}
-        {errors.accountType && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.accountType}</p>}
+        {isTypeLocked ? (
+          <div className="flex items-center gap-2 rounded-xl border px-4 py-3" style={{ backgroundColor: "#3B82F610", borderColor: "#3B82F6", color: "#3B82F6" }} data-testid="type-locked">
+            <span className="font-semibold text-sm">{accountType}</span>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              {accountTypeOptions.map((opt) => (
+                <button key={opt} type="button" onClick={() => setAccountType(opt)}
+                  className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all active:scale-[0.97] ${accountType === opt ? "border-[#3B82F6] bg-[#3B82F6]/10 text-[#3B82F6] ring-1 ring-[#3B82F6]/30" : ""}`}
+                  style={accountType !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+                  data-testid={`type-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
+              ))}
+            </div>
+            {errors.accountType && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.accountType}</p>}
+          </>
+        )}
       </div>
     </div>
   );
