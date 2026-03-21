@@ -84,6 +84,14 @@ async def get_networth_summary(request: Request):
     monthly_income = income_received + income_expected
     monthly_expenses = expenses_done + upcoming_expenses
 
+    # EMI and effective funds for Health page
+    total_emi = sum(ln.get("emiAmount", 0) or 0 for ln in loans)
+    semi_liquid_value = sum(
+        inv.get("currentValue", 0) or 0 for inv in investments
+        if (inv.get("investmentCategory", "") or "").lower() in ("mutual fund", "fixed deposit", "fd", "recurring deposit", "rd")
+    )
+    effective_funds = liquid_balance + (semi_liquid_value * 0.6)
+
     return {
         "netWorth": net_worth, "totalAssets": total_assets, "totalInvestments": total_investments,
         "liquidBalance": liquid_balance, "totalLiabilities": total_liabilities,
@@ -103,6 +111,8 @@ async def get_networth_summary(request: Request):
         "assetCount": len(assets), "investmentCount": len(investments),
         "accountCount": len(accounts), "loanCount": len(loans),
         "creditCardCount": len(credit_cards), "incomeCount": len(incomes), "expenseCount": len(expenses),
+        "totalEMI": total_emi,
+        "effectiveFunds": round(effective_funds, 0),
         # Loan Given snapshot
         "loanGivenTotal": sum(inv.get('outstandingAmount', 0) or 0 for inv in investments if inv.get('investmentCategory') == 'Loan Given'),
         "loanGivenAtRisk": sum(inv.get('outstandingAmount', 0) or 0 for inv in investments if inv.get('investmentCategory') == 'Loan Given' and inv.get('loanStatus') == 'default_risk'),

@@ -112,6 +112,13 @@ export function useIntelligenceData() {
     if (sr < 20) challs.push({ code: "save_20", name: "Save 20% Challenge", description: "Increase savings rate to 20%", type: "active", difficulty: "medium" });
     if (survivalDays < 90) challs.push({ code: "build_buffer", name: "3-Month Buffer", description: "Build 3 months emergency fund", type: "available", difficulty: "hard" });
     if (emiRatio > 30) challs.push({ code: "reduce_emi", name: "EMI Reduction", description: "Reduce EMI to under 30%", type: "available", difficulty: "hard" });
+    // Always-available growth challenges
+    if (sr >= 20 && sr < 30) challs.push({ code: "save_30", name: "Super Saver Challenge", description: "Push savings rate to 30%", type: "available", difficulty: "medium" });
+    if (survivalDays >= 90 && survivalDays < 180) challs.push({ code: "build_6m_buffer", name: "6-Month Safety Net", description: "Extend emergency fund to 6 months", type: "available", difficulty: "hard" });
+    if (totalInvestments === 0) challs.push({ code: "first_investment", name: "First Investment", description: "Start your investment journey", type: "available", difficulty: "easy" });
+    if (incomeSources <= 1) challs.push({ code: "diversify_income", name: "Income Diversification", description: "Add a second income source", type: "available", difficulty: "hard" });
+    if (finalScore < 75) challs.push({ code: "health_75", name: "Health Star", description: "Reach 75+ financial health score", type: "available", difficulty: "medium" });
+    if (finalScore >= 75) challs.push({ code: "maintain_health", name: "Consistency King", description: "Maintain 75+ health score for 3 months", type: "active", difficulty: "medium" });
     const challData = { active: challs.filter(c => c.type === "active"), available: challs.filter(c => c.type === "available"), completed: [] };
 
     return { gamData, challData };
@@ -214,20 +221,20 @@ export function useIntelligenceData() {
       return;
     }
     if (!isPersonalView) {
-      // Individual family member view — fetch their specific data
+      // Individual family member view — fetch their specific data using the networth API
       setLoading(true);
       try {
-        const res = await axios.get(`${backendUrl}/api/family/member/${activeViewId}/summary`, { withCredentials: true });
-        const s = res.data.summary || {};
-        const monthlyIncome = s.monthlyIncome || 0;
-        const monthlyExpenses = s.monthlyExpenses || 0;
-        const liquidBalance = s.liquidBalance || 0;
-        const totalInvestments = s.totalInvestments || 0;
-        const netWorth = s.netWorth || 0;
-        const totalEMI = s.totalEMI || 0;
-        const effectiveFunds = s.effectiveFunds || liquidBalance;
-        const survivalDays = s.survivalDays || (monthlyExpenses > 0 ? Math.round(effectiveFunds / (monthlyExpenses / 30)) : 0);
-        const savingsRate = s.savingsRate || (monthlyIncome > 0 ? Math.round(((monthlyIncome - monthlyExpenses) / monthlyIncome) * 100) : 0);
+        const nwRes = await axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}&memberId=${activeViewId}`, { withCredentials: true });
+        const nw = nwRes.data;
+        const monthlyIncome = nw.monthlyIncome || 0;
+        const monthlyExpenses = nw.monthlyExpenses || 0;
+        const liquidBalance = nw.liquidBalance || 0;
+        const totalInvestments = nw.totalInvestments || 0;
+        const netWorth = nw.netWorth || 0;
+        const totalEMI = nw.totalEMI || 0;
+        const effectiveFunds = nw.effectiveFunds || liquidBalance;
+        const survivalDays = monthlyExpenses > 0 ? Math.round(effectiveFunds / (monthlyExpenses / 30)) : 0;
+        const savingsRate = monthlyIncome > 0 ? Math.round(((monthlyIncome - monthlyExpenses) / monthlyIncome) * 100) : 0;
 
         const clock = buildSurvivalClock(survivalDays, effectiveFunds, monthlyExpenses, liquidBalance, netWorth);
         clock.monthlyIncome = monthlyIncome;
@@ -275,7 +282,7 @@ export function useIntelligenceData() {
 
         setSurvivalClock(clock);
         setControlScore(controlScoreData);
-        const { gamData: mGam, challData: mChall } = generateBadgesAndChallenges(survivalDays, sr, finalScore, emiRatio, totalInvestments, s.counts?.income || 0);
+        const { gamData: mGam, challData: mChall } = generateBadgesAndChallenges(survivalDays, sr, finalScore, emiRatio, totalInvestments, nw.incomeCount || 0);
         setGamification(mGam);
         setChallenges(mChall);
         setBehaviorAlerts(null);
