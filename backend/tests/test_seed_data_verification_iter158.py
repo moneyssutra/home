@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://dashboard-opt.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://mpin-dashboard.preview.emergentagent.com').rstrip('/')
 SESSION_TOKEN = "499bab99-960a-49fe-934c-43f1b202872f"
 
 @pytest.fixture
