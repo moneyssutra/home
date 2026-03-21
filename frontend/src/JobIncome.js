@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Trash2, Check, Loader2, Calendar, PlusCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2, Check, Loader2, Calendar, PlusCircle, X } from "lucide-react";
 import axios from "axios";
 import { mutate } from "swr";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
@@ -248,6 +248,70 @@ const JobIncome = () => {
     return getDateRangeForMonth(selectedMonth);
   }, [selectedMonth]);
 
+  const TOTAL_STEPS = 3;
+  const [step, setStep] = useState(1);
+
+  const validateStep = (s) => {
+    const newErrors = {};
+    if (s === 1) {
+      const nameError = validateTextField(companyName, "Company name", 50);
+      if (nameError) newErrors.companyName = nameError;
+      if (isCompanyNameUnique === false) newErrors.companyName = companyNameUniqueError || "An entry with this name already exists.";
+    }
+    if (s === 2) {
+      const amountError = validatePositiveAmount(expectedAmount, "Expected amount");
+      if (amountError) newErrors.expectedAmount = amountError;
+      if (!frequency) newErrors.frequency = "Please select a frequency.";
+    }
+    if (s === 3) {
+      if (frequency === "Weekly" && !selectedDay) newErrors.selectedDay = "Please select a day.";
+      if (frequency === "Monthly" && !selectedDate) newErrors.selectedDate = "Please select a date.";
+      if (frequency === "Quarterly") {
+        if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter.";
+        if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+        if (!selectedDate) newErrors.selectedDate = "Please select a date.";
+      }
+      if (frequency === "Half-Yearly") {
+        if (!selectedHalf) newErrors.selectedHalf = "Please select a half.";
+        if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+        if (!selectedDate) newErrors.selectedDate = "Please select a date.";
+      }
+      if (frequency === "Yearly") {
+        if (!selectedMonth) newErrors.selectedMonth = "Please select a month.";
+        if (!selectedDate) newErrors.selectedDate = "Please select a date.";
+      }
+      if (frequency === "Others") {
+        if (!customFrequency.trim()) newErrors.customFrequency = "Please enter custom frequency.";
+        if (!customDate) newErrors.customDate = "Please select a date.";
+      }
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) scrollToFirstError(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateStep(step)) setStep(Math.min(step + 1, TOTAL_STEPS));
+  };
+  const handlePrev = () => setStep(Math.max(step - 1, 1));
+
+  const stepLabels = ["Source", "Amount", "Schedule"];
+
+  const StepIndicator = () => (
+    <div className="flex items-center justify-center gap-1 py-3">
+      {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map((s) => (
+        <div key={s} className="flex items-center gap-1">
+          <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+            s < step ? "bg-[#00D09C] text-white" : s === step ? "bg-[#00D09C] text-white ring-2 ring-[#00D09C]/30 ring-offset-1" : "text-[#94A3B8]"
+          }`} style={s > step ? { backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" } : {}}>
+            {s < step ? <Check className="h-3.5 w-3.5" /> : s}
+          </div>
+          {s < TOTAL_STEPS && <div className={`w-8 h-0.5 rounded ${s < step ? "bg-[#00D09C]" : "bg-gray-200"}`} />}
+        </div>
+      ))}
+    </div>
+  );
+
   const handleAmountChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
     setExpectedAmount(value);
@@ -414,617 +478,392 @@ const JobIncome = () => {
     }
   };
 
+  // ─── STEP CONTENT (JSX variables, not components, to avoid remount on re-render) ───
+
+  const step1Content = (
+    <div className="space-y-6" data-testid="step-1-source">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Who pays you?</p>
+        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Tell us about your employer</p>
+      </div>
+      {/* Company Name */}
+      <div className="w-full">
+        <label htmlFor="companyName" className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Company Name</label>
+        <div className="relative">
+          <input id="companyName" type="text" value={companyName}
+            onChange={(e) => { setCompanyName(e.target.value); if (errors.companyName) setErrors(prev => ({ ...prev, companyName: null })); }}
+            onBlur={() => checkCompanyNameUnique(companyName)}
+            placeholder="Enter Company Name" maxLength={50}
+            className="w-full rounded-xl border px-4 py-3 pr-10 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+            style={{ backgroundColor: "var(--bg-subtle)", borderColor: errors.companyName || companyNameUniqueError ? "var(--status-error)" : isCompanyNameUnique === true && companyName.trim() ? "var(--status-success)" : "var(--border-light)", color: "var(--text-primary)" }}
+            data-testid="company-name-input" />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+            {isCheckingCompanyName && <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />}
+            {!isCheckingCompanyName && isCompanyNameUnique === true && companyName.trim() && <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />}
+          </div>
+        </div>
+        {errors.companyName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.companyName}</p>}
+        {!errors.companyName && companyNameUniqueError && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{companyNameUniqueError}</p>}
+        {!errors.companyName && !companyNameUniqueError && isCompanyNameUnique === true && companyName.trim() && <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>}
+      </div>
+      {/* Income Type Toggle */}
+      <IncomeTypeToggle value={incomeType} onChange={setIncomeType} testId="income-type-toggle" />
+      {/* Reminder Time - Variable only */}
+      {incomeType === "variable" && <ReminderTimePicker value={reminderTime} onChange={setReminderTime} testId="reminder-time-picker" />}
+    </div>
+  );
+
+  const step2Content = (
+    <div className="space-y-6" data-testid="step-2-amount">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>How much & how often?</p>
+        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Set your expected earnings</p>
+      </div>
+      {/* Expected Amount */}
+      <div className="w-full">
+        <label htmlFor="expectedAmount" className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Expected Amount</label>
+        <div className="relative">
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 font-medium" style={{ color: "var(--text-primary)" }}>₹</span>
+          <input id="expectedAmount" type="text" value={expectedAmount} onChange={handleAmountChange} placeholder="0"
+            className="w-full rounded-xl border pl-10 pr-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+            style={{ backgroundColor: "var(--bg-subtle)", borderColor: errors.expectedAmount ? "var(--status-error)" : "var(--border-light)", color: "var(--text-primary)" }}
+            data-testid="expected-amount-input" />
+        </div>
+        {parseFloat(expectedAmount) > 0 && <p className="mt-1.5 text-xs italic" style={{ color: "var(--text-muted)" }}>{numberToWords(parseFloat(expectedAmount))}</p>}
+        {errors.expectedAmount && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.expectedAmount}</p>}
+      </div>
+      {/* Frequency */}
+      <div className="w-full">
+        <label className="block text-sm font-medium mb-3" style={{ color: "var(--text-primary)" }}>Payment Frequency</label>
+        <div className="grid grid-cols-2 gap-2">
+          {frequencyOptions.map((opt) => (
+            <button key={opt} type="button" onClick={() => setFrequency(opt)}
+              className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all active:scale-[0.97] ${frequency === opt ? "border-[#00D09C] bg-[#00D09C]/10 text-[#00D09C] ring-1 ring-[#00D09C]/30" : ""}`}
+              style={frequency !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+              data-testid={`freq-${opt.toLowerCase().replace(/\s+/g, '-')}`}>
+              {opt}
+            </button>
+          ))}
+        </div>
+        {errors.frequency && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.frequency}</p>}
+      </div>
+    </div>
+  );
+
+  const step3Content = (
+    <div className="space-y-6" data-testid="step-3-schedule">
+      <div className="text-center mb-2">
+        <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>When to expect?</p>
+        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Set your payment schedule</p>
+      </div>
+
+      {/* Weekly */}
+      {frequency === "Weekly" && (
+        <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="weekly-fields">
+          <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Day</label>
+          <div className="grid grid-cols-2 gap-2">
+            {weekDays.map((day) => (
+              <button key={day} type="button" onClick={() => setSelectedDay(day)}
+                className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${selectedDay === day ? "border-[#00D09C] bg-[#00D09C]/10 text-[#00D09C]" : ""}`}
+                style={selectedDay !== day ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+                data-testid={`day-${day.toLowerCase()}`}>
+                {day}
+              </button>
+            ))}
+          </div>
+          {errors.selectedDay && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.selectedDay}</p>}
+        </div>
+      )}
+
+      {/* Monthly */}
+      {frequency === "Monthly" && (
+        <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300" data-testid="monthly-fields">
+          <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Date</label>
+          <RestrictedDatePicker value={selectedDate} onChange={(date) => setSelectedDate(date)} placeholder="Select payment date" error={!!errors.selectedDate} testId="date-select" />
+          {errors.selectedDate && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.selectedDate}</p>}
+        </div>
+      )}
+
+      {/* Quarterly */}
+      {frequency === "Quarterly" && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="quarterly-fields">
+          <div className="w-full">
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Quarter</label>
+            <div className="grid grid-cols-2 gap-2">
+              {quarters.map((q) => (
+                <button key={q.id} type="button" onClick={() => { setSelectedQuarter(q.label); setSelectedMonth(""); setSelectedDate(""); }}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${selectedQuarter === q.label ? "border-[#00D09C] bg-[#00D09C]/10 text-[#00D09C]" : ""}`}
+                  style={selectedQuarter !== q.label ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}>
+                  {q.label}
+                </button>
+              ))}
+            </div>
+            {errors.selectedQuarter && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.selectedQuarter}</p>}
+          </div>
+          {selectedQuarter && (
+            <div className="w-full">
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Month</label>
+              <div className="grid grid-cols-3 gap-2">
+                {quarterMonths.map((month) => (
+                  <button key={month} type="button" onClick={() => { setSelectedMonth(month); setSelectedDate(""); }}
+                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${selectedMonth === month ? "border-[#00D09C] bg-[#00D09C]/10 text-[#00D09C]" : ""}`}
+                    style={selectedMonth !== month ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}>
+                    {month}
+                  </button>
+                ))}
+              </div>
+              {errors.selectedMonth && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.selectedMonth}</p>}
+            </div>
+          )}
+          {selectedMonth && (
+            <div className="w-full">
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Date</label>
+              <RestrictedDatePicker value={selectedDate} onChange={(date) => setSelectedDate(date)} restrictedMonth={getMonthIndex(selectedMonth)} placeholder="Select date" error={!!errors.selectedDate} testId="date-select" />
+              {errors.selectedDate && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.selectedDate}</p>}
+            </div>
+          )}
+          {calculateQuarterlyDates.length > 0 && (
+            <div className="w-full rounded-xl p-4" style={{ backgroundColor: "#00D09C10", border: "1px solid #00D09C30" }}>
+              <div className="flex items-start gap-2">
+                <Calendar className="h-5 w-5 text-[#00D09C] mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Next Recurring Dates:</p>
+                  <div className="text-sm space-y-1" style={{ color: "var(--text-muted)" }}>
+                    {calculateQuarterlyDates.map((date, idx) => <div key={idx}>• {date}</div>)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Half-Yearly */}
+      {frequency === "Half-Yearly" && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="half-yearly-fields">
+          <div className="w-full">
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Half</label>
+            <div className="grid grid-cols-2 gap-2">
+              {halves.map((h) => (
+                <button key={h.id} type="button" onClick={() => { setSelectedHalf(h.label); setSelectedMonth(""); setSelectedDate(""); }}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${selectedHalf === h.label ? "border-[#00D09C] bg-[#00D09C]/10 text-[#00D09C]" : ""}`}
+                  style={selectedHalf !== h.label ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}>
+                  {h.label}
+                </button>
+              ))}
+            </div>
+            {errors.selectedHalf && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.selectedHalf}</p>}
+          </div>
+          {selectedHalf && (
+            <div className="w-full">
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Month</label>
+              <div className="grid grid-cols-3 gap-2">
+                {halfMonths.map((month) => (
+                  <button key={month} type="button" onClick={() => { setSelectedMonth(month); setSelectedDate(""); }}
+                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${selectedMonth === month ? "border-[#00D09C] bg-[#00D09C]/10 text-[#00D09C]" : ""}`}
+                    style={selectedMonth !== month ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}>
+                    {month}
+                  </button>
+                ))}
+              </div>
+              {errors.selectedMonth && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.selectedMonth}</p>}
+            </div>
+          )}
+          {selectedMonth && (
+            <div className="w-full">
+              <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Date</label>
+              <RestrictedDatePicker value={selectedDate} onChange={(date) => setSelectedDate(date)} restrictedMonth={getMonthIndex(selectedMonth)} placeholder="Select date" error={!!errors.selectedDate} testId="date-select" />
+              {errors.selectedDate && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.selectedDate}</p>}
+            </div>
+          )}
+          {calculateHalfYearlyDate && (
+            <div className="w-full rounded-xl p-4" style={{ backgroundColor: "#00D09C10", border: "1px solid #00D09C30" }}>
+              <div className="flex items-start gap-2">
+                <Calendar className="h-5 w-5 text-[#00D09C] mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium mb-1" style={{ color: "var(--text-primary)" }}>Next Recurring Date:</p>
+                  <div className="text-sm" style={{ color: "var(--text-muted)" }}>• {calculateHalfYearlyDate}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Yearly */}
+      {frequency === "Yearly" && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="yearly-fields">
+          <div className="w-full">
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Month</label>
+            <div className="grid grid-cols-3 gap-2">
+              {allMonths.map((m) => (
+                <button key={m} type="button" onClick={() => setSelectedMonth(m)}
+                  className={`rounded-xl border px-3 py-2 text-sm font-medium transition-all active:scale-[0.97] ${selectedMonth === m ? "border-[#00D09C] bg-[#00D09C]/10 text-[#00D09C]" : ""}`}
+                  style={selectedMonth !== m ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}>
+                  {m.slice(0, 3)}
+                </button>
+              ))}
+            </div>
+            {errors.selectedMonth && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.selectedMonth}</p>}
+          </div>
+          <div className="w-full">
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Date</label>
+            <RestrictedDatePicker value={selectedDate} onChange={(date) => setSelectedDate(date)} restrictedMonth={getMonthIndex(selectedMonth)} placeholder="Select date" error={!!errors.selectedDate} testId="date-select" />
+            {errors.selectedDate && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.selectedDate}</p>}
+          </div>
+        </div>
+      )}
+
+      {/* Others */}
+      {frequency === "Others" && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300" data-testid="others-fields">
+          <div className="w-full">
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Custom Frequency</label>
+            <input type="text" value={customFrequency} onChange={(e) => setCustomFrequency(e.target.value)} placeholder="e.g., Every 2 weeks"
+              className="w-full rounded-xl border px-4 py-3 placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+              style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+              data-testid="custom-frequency-input" />
+            {errors.customFrequency && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.customFrequency}</p>}
+          </div>
+          <div className="w-full">
+            <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Select Date</label>
+            <RestrictedDatePicker value={customDate} onChange={(date) => setCustomDate(date)} placeholder="Select next expected date" error={!!errors.customDate} testId="custom-date-input" />
+            {errors.customDate && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.customDate}</p>}
+          </div>
+        </div>
+      )}
+
+      {/* Start Date */}
+      <div className="w-full">
+        <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>
+          Start Date <span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>(optional)</span>
+        </label>
+        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+          className="w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#00D09C]/20"
+          style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" }}
+          data-testid="start-date-input" />
+        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>When did this income start?</p>
+      </div>
+    </div>
+  );
+
+  const renderStep = () => {
+    if (id) {
+      // Edit mode: show all fields at once
+      return (
+        <div className="space-y-8" data-testid="income-edit-all-fields">
+          <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}><span className="w-6 h-6 rounded-full bg-[#00D09C]/10 flex items-center justify-center text-xs font-bold text-[#00D09C]">1</span>Source</h3>{step1Content}</div>
+          <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}><span className="w-6 h-6 rounded-full bg-[#00D09C]/10 flex items-center justify-center text-xs font-bold text-[#00D09C]">2</span>Amount</h3>{step2Content}</div>
+          <div><h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}><span className="w-6 h-6 rounded-full bg-[#00D09C]/10 flex items-center justify-center text-xs font-bold text-[#00D09C]">3</span>Schedule</h3>{step3Content}</div>
+        </div>
+      );
+    }
+    switch (step) {
+      case 1: return step1Content;
+      case 2: return step2Content;
+      case 3: return step3Content;
+      default: return null;
+    }
+  };
+
   return (
-    <div
-      className="min-h-screen honeycomb-bg flex flex-col"
-      data-testid="job-income-page"
-    >
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "var(--bg-app)" }} data-testid="job-income-page">
       {/* Header */}
-      <header className="flex items-center px-6 pt-8 pb-6 flex-shrink-0">
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#334155] bg-[#1E293B] text-[#334155] transition-colors hover:bg-[#0F172A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14B8A6]"
-          onClick={() => window.history.length > 2 ? navigate(-1) : navigate("/my-income")}
-          aria-label="Go back"
-          data-testid="back-button"
-        >
-          <ChevronLeft className="h-5 w-5" />
+      <header className="flex items-center px-5 pt-6 pb-2 flex-shrink-0">
+        <button type="button" onClick={() => id ? navigate(-1) : (step > 1 ? handlePrev() : navigate(-1))}
+          className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
+          data-testid="back-button">
+          <ChevronLeft className="h-4 w-4" style={{ color: "var(--text-primary)" }} />
         </button>
-        <h1
-          className="flex-1 text-center text-[32px] font-semibold tracking-tight text-[#334155]"
-          style={{ fontFamily: "'Manrope', sans-serif" }}
-          data-testid="page-title"
-        >
-          Job Income
+        <h1 className="flex-1 text-center text-lg font-bold" style={{ color: "var(--text-primary)" }} data-testid="page-title">
+          {id ? "Edit Job Income" : "Add Job Income"}
         </h1>
-        <div className="h-10 w-10" aria-hidden="true" />
+        {!id && (
+          <button type="button" onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid="close-button">
+            <X className="h-4 w-4" style={{ color: "var(--text-primary)" }} />
+          </button>
+        )}
+        {id && <div className="h-9 w-9" />}
       </header>
 
+      {/* Step Indicator - only for create mode */}
+      {!id && (
+        <div className="px-5">
+          <StepIndicator />
+        </div>
+      )}
+
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto pb-48">
-        <div className="mx-auto w-full max-w-[620px] px-6">
-          <div className="space-y-6">
-            {/* Company Name */}
-            <div className="w-full">
-              <label
-                htmlFor="companyName"
-                className="block text-sm font-medium text-[#334155] mb-2"
-              >
-                Company Name
-              </label>
-              <div className="relative">
-                <input
-                  id="companyName"
-                  type="text"
-                  value={companyName}
-                  onChange={(e) => {
-                    setCompanyName(e.target.value);
-                    if (errors.companyName) {
-                      setErrors(prev => ({ ...prev, companyName: null }));
-                    }
-                  }}
-                  onBlur={() => checkCompanyNameUnique(companyName)}
-                  placeholder="Enter Company Name"
-                  maxLength={50}
-                  className="w-full rounded-xl border px-4 py-3 pr-10 text-[#334155] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                  style={{
-                    backgroundColor: "var(--bg-subtle)",
-                    borderColor: errors.companyName || companyNameUniqueError 
-                      ? "var(--status-error)" 
-                      : isCompanyNameUnique === true && companyName.trim() 
-                        ? "var(--status-success)" 
-                        : "var(--border-light)"
-                  }}
-                  data-testid="company-name-input"
-                />
-                {/* Status indicator */}
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  {isCheckingCompanyName && (
-                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--text-muted)" }} />
-                  )}
-                  {!isCheckingCompanyName && isCompanyNameUnique === true && companyName.trim() && (
-                    <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />
-                  )}
+      <div className="flex-1 overflow-y-auto pb-40">
+        <div className="mx-auto w-full max-w-[540px] px-5 pt-4">
+          {renderStep()}
+
+          {/* Income Ledger - Edit Mode Only */}
+          {id && (
+            <div className="mt-6 p-4 rounded-xl" style={{ backgroundColor: "#00D09C08", border: "1px solid #00D09C20" }}>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h3 className="font-medium" style={{ color: "var(--text-primary)" }}>Income Ledger</h3>
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
+                    {incomeType === "variable" ? "Track your variable earnings" : "Auto-recorded based on frequency"}
+                  </p>
                 </div>
+                {incomeType === "variable" && (
+                  <button type="button" onClick={() => setShowIncomeModal(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#00D09C] text-white text-xs font-medium" data-testid="add-todays-income-btn">
+                    <PlusCircle className="h-3.5 w-3.5" /> Add Income
+                  </button>
+                )}
               </div>
-              {errors.companyName && (
-                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.companyName}</p>
-              )}
-              {!errors.companyName && companyNameUniqueError && (
-                <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{companyNameUniqueError}</p>
-              )}
-              {!errors.companyName && !companyNameUniqueError && isCompanyNameUnique === true && companyName.trim() && (
-                <p className="text-sm mt-1" style={{ color: "var(--status-success)" }}>Name is available</p>
-              )}
+              <TransactionHistoryPanel key={transactionRefreshKey} entityId={id} entityType="income"
+                fetchHistory={getIncomeTransactionHistory} deleteTransaction={deleteIncomeTransaction}
+                onTransactionDeleted={() => setTransactionRefreshKey(k => k + 1)}
+                onEditTransaction={(txn) => { setEditingTransaction(txn); setShowRecordModal(true); }} />
             </div>
+          )}
 
-            {/* Income Type Toggle (Fixed/Variable) */}
-            <IncomeTypeToggle 
-              value={incomeType} 
-              onChange={setIncomeType}
-              testId="income-type-toggle"
-            />
-
-            {/* Reminder Time - Only show when Variable is selected */}
-            {incomeType === "variable" && (
-              <ReminderTimePicker
-                value={reminderTime}
-                onChange={setReminderTime}
-                testId="reminder-time-picker"
-              />
-            )}
-
-            {/* Start Date (optional) */}
-            <div className="w-full">
-              <label htmlFor="startDate" className="block text-sm font-medium text-[#334155] mb-2">
-                Start Date <span className="text-xs text-[#94A3B8] font-normal">(optional)</span>
-              </label>
-              <input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full rounded-xl border px-4 py-3 text-[#334155] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                style={{ backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)" }}
-                data-testid="start-date-input"
-              />
-              <p className="text-xs text-[#94A3B8] mt-1">When did this income source start? Helps track received vs pending accurately.</p>
-            </div>
-
-            {/* Expected Amount */}
-            <div className="w-full">
-              <label
-                htmlFor="expectedAmount"
-                className="block text-sm font-medium text-[#334155] mb-2"
-              >
-                Expected Amount
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#334155] font-medium">
-                  ₹
-                </span>
-                <input
-                  id="expectedAmount"
-                  type="text"
-                  value={expectedAmount}
-                  onChange={handleAmountChange}
-                  placeholder="0"
-                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] pl-10 pr-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                  data-testid="expected-amount-input"
-                />
-              </div>
-              {parseFloat(expectedAmount) > 0 && (
-                <p className="mt-1.5 text-xs text-[#334155]/50 italic" data-testid="expected-amount-words">
-                  {numberToWords(parseFloat(expectedAmount))}
-                </p>
-              )}
-              {errors.expectedAmount && (
-                <p className="text-sm text-red-500 mt-1">{errors.expectedAmount}</p>
-              )}
-            </div>
-
-            {/* Frequency */}
-            <div className="w-full">
-              <label
-                htmlFor="frequency"
-                className="block text-sm font-medium text-[#334155] mb-2"
-              >
-                Frequency
-              </label>
-              <select
-                id="frequency"
-                value={frequency}
-                onChange={(e) => setFrequency(e.target.value)}
-                className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                data-testid="frequency-select"
-              >
-                <option value="">Select Frequency</option>
-                {frequencyOptions.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
-              {errors.frequency && (
-                <p className="text-sm text-red-500 mt-1">{errors.frequency}</p>
-              )}
-            </div>
-
-            {/* Conditional Fields - Weekly */}
-            {frequency === "Weekly" && (
-              <div
-                className="w-full animate-in fade-in slide-in-from-top-2 duration-300"
-                data-testid="weekly-fields"
-              >
-                <label htmlFor="weekDay" className="block text-sm font-medium text-[#334155] mb-2">
-                  Select Day
-                </label>
-                <select
-                  id="weekDay"
-                  value={selectedDay}
-                  onChange={(e) => setSelectedDay(e.target.value)}
-                  className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                  data-testid="day-select"
-                >
-                  <option value="">Select Day</option>
-                  {weekDays.map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                    </option>
-                  ))}
-                </select>
-                {errors.selectedDay && (
-                  <p className="text-sm text-red-500 mt-1">{errors.selectedDay}</p>
-                )}
-              </div>
-            )}
-
-            {/* Conditional Fields - Monthly */}
-            {frequency === "Monthly" && (
-              <div
-                className="w-full animate-in fade-in slide-in-from-top-2 duration-300"
-                data-testid="monthly-fields"
-              >
-                <label className="block text-sm font-medium text-[#334155] mb-2">
-                  Select Date
-                </label>
-                <RestrictedDatePicker
-                  value={selectedDate}
-                  onChange={(date) => setSelectedDate(date)}
-                  placeholder="Select payment date"
-                  error={!!errors.selectedDate}
-                  testId="date-select"
-                />
-                {errors.selectedDate && (
-                  <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>
-                )}
-              </div>
-            )}
-
-            {/* Conditional Fields - Quarterly */}
-            {frequency === "Quarterly" && (
-              <div
-                className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300"
-                data-testid="quarterly-fields"
-              >
-                {/* Quarter Selection */}
-                <div className="w-full">
-                  <label htmlFor="quarter" className="block text-sm font-medium text-[#334155] mb-2">
-                    Select Quarter
-                  </label>
-                  <select
-                    id="quarter"
-                    value={selectedQuarter}
-                    onChange={(e) => {
-                      setSelectedQuarter(e.target.value);
-                      setSelectedMonth("");
-                      setSelectedDate("");
-                    }}
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                    data-testid="quarter-select"
-                  >
-                    <option value="">Select Quarter</option>
-                    {quarters.map((q) => (
-                      <option key={q.id} value={q.label}>
-                        {q.label}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.selectedQuarter && (
-                    <p className="text-sm text-red-500 mt-1">{errors.selectedQuarter}</p>
-                  )}
-                </div>
-
-                {/* Month Selection (based on quarter) */}
-                {selectedQuarter && (
-                  <div className="w-full">
-                    <label htmlFor="quarterMonth" className="block text-sm font-medium text-[#334155] mb-2">
-                      Select Month
-                    </label>
-                    <select
-                      id="quarterMonth"
-                      value={selectedMonth}
-                      onChange={(e) => {
-                        setSelectedMonth(e.target.value);
-                        setSelectedDate("");
-                      }}
-                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="month-select"
-                    >
-                      <option value="">Select Month</option>
-                      {quarterMonths.map((month) => (
-                        <option key={month} value={month}>
-                          {month}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.selectedMonth && (
-                      <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Date Selection */}
-                {selectedMonth && (
-                  <div className="w-full">
-                    <label className="block text-sm font-medium text-[#334155] mb-2">
-                      Select Date
-                    </label>
-                    <RestrictedDatePicker
-                      value={selectedDate}
-                      onChange={(date) => setSelectedDate(date)}
-                      restrictedMonth={getMonthIndex(selectedMonth)}
-                      placeholder="Select date in selected month"
-                      error={!!errors.selectedDate}
-                      testId="date-select"
-                    />
-                    {errors.selectedDate && (
-                      <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Show Next Recurring Dates */}
-                {calculateQuarterlyDates.length > 0 && (
-                  <div className="w-full rounded-xl bg-[#E8F8F4] border border-[#14B8A6]/30 p-4">
-                    <div className="flex items-start gap-2">
-                      <Calendar className="h-5 w-5 text-[#14B8A6] mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-[#334155] mb-1">
-                          Next Recurring Dates:
-                        </p>
-                        <div className="text-sm text-[#334155]/80 space-y-1">
-                          {calculateQuarterlyDates.map((date, idx) => (
-                            <div key={idx}>• {date}</div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Conditional Fields - Half-Yearly */}
-            {frequency === "Half-Yearly" && (
-              <div
-                className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300"
-                data-testid="half-yearly-fields"
-              >
-                {/* Half Selection */}
-                <div className="w-full">
-                  <label htmlFor="half" className="block text-sm font-medium text-[#334155] mb-2">
-                    Select Half
-                  </label>
-                  <select
-                    id="half"
-                    value={selectedHalf}
-                    onChange={(e) => {
-                      setSelectedHalf(e.target.value);
-                      setSelectedMonth("");
-                      setSelectedDate("");
-                    }}
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                    data-testid="half-select"
-                  >
-                    <option value="">Select Half</option>
-                    {halves.map((h) => (
-                      <option key={h.id} value={h.label}>
-                        {h.label}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.selectedHalf && (
-                    <p className="text-sm text-red-500 mt-1">{errors.selectedHalf}</p>
-                  )}
-                </div>
-
-                {/* Month Selection (based on half) */}
-                {selectedHalf && (
-                  <div className="w-full">
-                    <label htmlFor="halfMonth" className="block text-sm font-medium text-[#334155] mb-2">
-                      Select Month
-                    </label>
-                    <select
-                      id="halfMonth"
-                      value={selectedMonth}
-                      onChange={(e) => {
-                        setSelectedMonth(e.target.value);
-                        setSelectedDate("");
-                      }}
-                      className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                      data-testid="month-select"
-                    >
-                      <option value="">Select Month</option>
-                      {halfMonths.map((month) => (
-                        <option key={month} value={month}>
-                          {month}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.selectedMonth && (
-                      <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Date Selection */}
-                {selectedMonth && (
-                  <div className="w-full">
-                    <label className="block text-sm font-medium text-[#334155] mb-2">
-                      Select Date
-                    </label>
-                    <RestrictedDatePicker
-                      value={selectedDate}
-                      onChange={(date) => setSelectedDate(date)}
-                      restrictedMonth={getMonthIndex(selectedMonth)}
-                      placeholder="Select date in selected month"
-                      error={!!errors.selectedDate}
-                      testId="date-select"
-                    />
-                    {errors.selectedDate && (
-                      <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Show Next Recurring Date */}
-                {calculateHalfYearlyDate && (
-                  <div className="w-full rounded-xl bg-[#E8F8F4] border border-[#14B8A6]/30 p-4">
-                    <div className="flex items-start gap-2">
-                      <Calendar className="h-5 w-5 text-[#14B8A6] mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-[#334155] mb-1">
-                          Next Recurring Date:
-                        </p>
-                        <div className="text-sm text-[#334155]/80">
-                          • {calculateHalfYearlyDate}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Conditional Fields - Yearly */}
-            {frequency === "Yearly" && (
-              <div
-                className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300"
-                data-testid="yearly-fields"
-              >
-                <div className="w-full">
-                  <label htmlFor="yearlyMonth" className="block text-sm font-medium text-[#334155] mb-2">
-                    Select Month
-                  </label>
-                  <select
-                    id="yearlyMonth"
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                    data-testid="month-select"
-                  >
-                    <option value="">Select Month</option>
-                    {allMonths.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.selectedMonth && (
-                    <p className="text-sm text-red-500 mt-1">{errors.selectedMonth}</p>
-                  )}
-                </div>
-                <div className="w-full">
-                  <label className="block text-sm font-medium text-[#334155] mb-2">
-                    Select Date
-                  </label>
-                  <RestrictedDatePicker
-                    value={selectedDate}
-                    onChange={(date) => setSelectedDate(date)}
-                    restrictedMonth={getMonthIndex(selectedMonth)}
-                    placeholder="Select date in selected month"
-                    error={!!errors.selectedDate}
-                    testId="date-select"
-                  />
-                  {errors.selectedDate && (
-                    <p className="text-sm text-red-500 mt-1">{errors.selectedDate}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Conditional Fields - Others */}
-            {frequency === "Others" && (
-              <div
-                className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300"
-                data-testid="others-fields"
-              >
-                <div className="w-full">
-                  <label htmlFor="customFreq" className="block text-sm font-medium text-[#334155] mb-2">
-                    Enter Custom Frequency
-                  </label>
-                  <input
-                    id="customFreq"
-                    type="text"
-                    value={customFrequency}
-                    onChange={(e) => setCustomFrequency(e.target.value)}
-                    placeholder="e.g., Every 2 weeks"
-                    className="w-full rounded-xl border border-[#334155] bg-[#1E293B] px-4 py-3 text-[#334155] placeholder-[#94A3B8] focus:border-[#14B8A6] focus:outline-none focus:ring-2 focus:ring-[#14B8A6]/20"
-                    data-testid="custom-frequency-input"
-                  />
-                  {errors.customFrequency && (
-                    <p className="text-sm text-red-500 mt-1">{errors.customFrequency}</p>
-                  )}
-                </div>
-                <div className="w-full">
-                  <label className="block text-sm font-medium text-[#334155] mb-2">
-                    Select Date
-                  </label>
-                  <RestrictedDatePicker
-                    value={customDate}
-                    onChange={(date) => setCustomDate(date)}
-                    placeholder="Select next expected date"
-                    error={!!errors.customDate}
-                    testId="custom-date-input"
-                  />
-                  {errors.customDate && (
-                    <p className="text-sm text-red-500 mt-1">{errors.customDate}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Income Ledger Section - Only shown in Edit Mode */}
-            {id && (
-              <div className="mt-6 p-4 rounded-xl bg-[#00D09C]/5 border border-[#00D09C]/20">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="font-medium text-[#334155]">Income Ledger</h3>
-                    <p className="text-xs text-[#64748B] mt-0.5">
-                      {incomeType === "variable" 
-                        ? "Track your variable earnings" 
-                        : "Auto-recorded based on frequency"}
-                    </p>
-                  </div>
-                  {/* Add Today's Income - Only for Variable income */}
-                  {incomeType === "variable" && (
-                    <button
-                      type="button"
-                      onClick={() => setShowIncomeModal(true)}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00D09C] text-white text-sm font-medium hover:bg-[#00B88A] transition-colors"
-                      data-testid="add-todays-income-btn"
-                    >
-                      <PlusCircle className="h-4 w-4" />
-                      Add Today's Income
-                    </button>
-                  )}
-                </div>
-                
-                {/* Transaction History Panel (Ledger) */}
-                <TransactionHistoryPanel
-                  key={transactionRefreshKey}
-                  entityId={id}
-                  entityType="income"
-                  fetchHistory={getIncomeTransactionHistory}
-                  deleteTransaction={deleteIncomeTransaction}
-                  onTransactionDeleted={() => setTransactionRefreshKey(k => k + 1)}
-                  onEditTransaction={(txn) => {
-                    setEditingTransaction(txn);
-                    setShowRecordModal(true);
-                  }}
-                />
-              </div>
-            )}
-
-            {errors.submit && (
-              <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600">
-                {errors.submit}
-              </div>
-            )}
-          </div>
+          {errors.submit && <div className="rounded-xl bg-red-50 p-4 text-sm text-red-600 mt-4">{errors.submit}</div>}
         </div>
       </div>
 
-      {/* Sticky Action Buttons - Mobile Optimized */}
-      <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-40">
-        <div className="mx-auto max-w-[620px]">
+      {/* Sticky Action Buttons */}
+      <div className="fixed bottom-0 left-0 right-0 border-t px-4 py-3 z-40" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-light)" }}>
+        <div className="mx-auto max-w-[540px] flex gap-3">
           {id ? (
-            /* Edit Mode - Show Update and Delete side-by-side */
-            <div className="flex flex-row gap-3">
-              {/* Delete Button - Ghost Style (flex: 1 = 30%) */}
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={isSubmitting}
-                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border border-[#FF4D4D] bg-transparent text-[#FF4D4D] text-sm font-semibold transition-all hover:bg-red-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                data-testid="delete-button"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
+            <>
+              <button type="button" onClick={() => setShowDeleteConfirm(true)} disabled={isSubmitting}
+                className="flex-1 flex items-center justify-center gap-2 h-12 rounded-xl border text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50"
+                style={{ borderColor: "var(--status-error)", color: "var(--status-error)" }} data-testid="delete-button">
+                <Trash2 className="h-4 w-4" /> Delete
               </button>
-              {/* Update Button - Primary Style (flex: 2 = 70%) */}
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={isSubmitting}
-                className="flex-[2] h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                data-testid="update-button"
-              >
+              <button type="button" onClick={handleSave} disabled={isSubmitting}
+                className="flex-[2] h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all active:scale-[0.98] disabled:opacity-50 shadow-sm" data-testid="update-button">
                 {isSubmitting ? "Updating..." : "Update Job Income"}
               </button>
-            </div>
+            </>
           ) : (
-            /* Create Mode - Show Save Only */
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSubmitting}
-              className="w-full h-12 rounded-xl bg-[#00D09C] text-white text-sm font-semibold transition-all hover:bg-[#00B88A] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-              data-testid="save-button"
-            >
-              {isSubmitting ? "Saving..." : "Save Job Income"}
-            </button>
+            <>
+              {step > 1 && (
+                <button type="button" onClick={handlePrev}
+                  className="flex items-center justify-center gap-1.5 h-12 px-5 rounded-xl border font-medium text-sm transition-all active:scale-[0.98]"
+                  style={{ borderColor: "var(--border-light)", color: "var(--text-primary)" }} data-testid="prev-step-btn">
+                  <ChevronLeft className="h-4 w-4" /> Back
+                </button>
+              )}
+              {step < TOTAL_STEPS ? (
+                <button type="button" onClick={handleNext}
+                  className="flex-1 flex items-center justify-center gap-1.5 h-12 rounded-xl text-white font-semibold text-sm transition-all active:scale-[0.98] shadow-sm"
+                  style={{ backgroundColor: "#00D09C" }} data-testid="next-step-btn">
+                  Next <ChevronRight className="h-4 w-4" />
+                </button>
+              ) : (
+                <button type="button" onClick={handleSave} disabled={isSubmitting}
+                  className="flex-1 h-12 rounded-xl text-white font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-50 shadow-sm"
+                  style={{ backgroundColor: "#00D09C" }} data-testid="save-button">
+                  {isSubmitting ? "Saving..." : "Save Job Income"}
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
