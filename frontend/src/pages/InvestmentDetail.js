@@ -430,7 +430,7 @@ export default function InvestmentDetail() {
             </div>
             <div className="text-right">
               <p className="text-white/60 text-xs mb-0.5">Invested</p>
-              <p className="text-lg font-semibold text-white/80">₹{fmtCompact(data.principal)}</p>
+              <p className="text-lg font-semibold text-white/80">₹{fmtCompact(m.totalInvested || data.principal)}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -452,7 +452,7 @@ export default function InvestmentDetail() {
         <div className="grid grid-cols-2 gap-3" data-testid="investment-metrics">
           {[
             { label: "CAGR", value: `${m.cagr}%`, sub: `${m.yearsHeld} years held`, icon: BarChart3, color: "#8B5CF6" },
-            { label: data.sipAmount ? "Monthly SIP" : "Invested", value: data.sipAmount ? `₹${fmt(data.sipAmount)}` : `₹${fmtCompact(data.principal)}`, sub: data.frequency || "Lump Sum", icon: Calendar, color: "#F59E0B" },
+            { label: data.sipAmount ? `${data.frequency || "Monthly"} SIP` : "Invested", value: data.sipAmount ? `₹${fmt(data.sipAmount)}` : `₹${fmtCompact(m.totalInvested || data.principal)}`, sub: data.frequency || "Lump Sum", icon: Calendar, color: "#F59E0B" },
             { label: "Expected Return", value: `${data.expectedReturn}%`, sub: "per annum", icon: Target, color: "#059669" },
             { label: "Duration", value: `${m.daysHeld}d`, sub: `Since ${formatDate(data.startDate)}`, icon: Clock, color: "#3B82F6" },
           ].map((item, i) => {
@@ -583,7 +583,7 @@ export default function InvestmentDetail() {
                 />
               </div>
               <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                Current invested: ₹{fmt(data.principal)} | Value: ₹{fmt(data.currentValue)}
+                Current invested: ₹{fmt(m.totalInvested || data.principal)} | Value: ₹{fmt(data.currentValue)}
               </p>
               <button
                 onClick={handleContribution}

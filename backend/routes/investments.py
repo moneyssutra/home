@@ -479,7 +479,21 @@ async def get_investment_detail(investment_id: str, request: Request):
     months_held = max(1, int(days_held / 30.44))
 
     # Calculate returns
+    # For SIP investments, calculate total invested dynamically from start date
     total_invested = principal
+    if sip_amount and frequency and days_held > 0:
+        if frequency == "Daily":
+            total_invested = sip_amount * days_held
+        elif frequency == "Weekly":
+            total_invested = sip_amount * max(1, days_held // 7)
+        elif frequency == "Monthly":
+            total_invested = sip_amount * max(1, months_held)
+        elif frequency == "Quarterly":
+            total_invested = sip_amount * max(1, months_held // 3)
+        elif frequency == "Half-Yearly":
+            total_invested = sip_amount * max(1, months_held // 6)
+        elif frequency == "Yearly":
+            total_invested = sip_amount * max(1, int(years_held))
     gain_loss = current_value - total_invested
     gain_loss_pct = round((gain_loss / total_invested * 100), 2) if total_invested > 0 else 0
 
@@ -502,8 +516,55 @@ async def get_investment_detail(investment_id: str, request: Request):
     else:
         # Auto-generate ledger entries from SIP schedule
         if sip_amount and frequency:
-            period_months = {"Daily": 0, "Weekly": 0, "Monthly": 1, "Quarterly": 3, "Half-Yearly": 6, "Yearly": 12}.get(frequency, 1)
-            if period_months > 0:
+            if frequency == "Daily":
+                # Group daily SIPs by month to avoid too many entries
+                from collections import defaultdict
+                monthly_buckets = defaultdict(lambda: {"count": 0, "total": 0})
+                cursor_date = start_date
+                while cursor_date <= now:
+                    key = cursor_date.strftime("%Y-%m")
+                    monthly_buckets[key]["count"] += 1
+                    monthly_buckets[key]["total"] += sip_amount
+                    monthly_buckets[key]["last_date"] = cursor_date
+                    cursor_date += timedelta(days=1)
+                running = 0
+                for key in sorted(monthly_buckets.keys()):
+                    bucket = monthly_buckets[key]
+                    running += bucket["total"]
+                    entry_date = bucket["last_date"]
+                    remaining_days = (now - entry_date).days
+                    daily_return = expected_return / 365 / 100
+                    entry_value = bucket["total"] * math.pow(1 + daily_return, remaining_days) if daily_return > 0 else bucket["total"]
+                    ledger.append({
+                        "date": entry_date.strftime("%Y-%m-%d"),
+                        "contribution": bucket["total"],
+                        "totalInvested": round(running, 2),
+                        "estimatedValue": round(entry_value, 2),
+                        "gainLoss": round(entry_value - bucket["total"], 2),
+                        "type": "sip",
+                        "label": f"{bucket['count']} days × ₹{sip_amount}"
+                    })
+                ledger.reverse()
+            elif frequency == "Weekly":
+                running = 0
+                cursor_date = start_date
+                while cursor_date <= now:
+                    running += sip_amount
+                    remaining_days = (now - cursor_date).days
+                    weekly_return = expected_return / 52 / 100
+                    entry_value = sip_amount * math.pow(1 + weekly_return, remaining_days / 7) if weekly_return > 0 else sip_amount
+                    ledger.append({
+                        "date": cursor_date.strftime("%Y-%m-%d"),
+                        "contribution": sip_amount,
+                        "totalInvested": round(running, 2),
+                        "estimatedValue": round(entry_value, 2),
+                        "gainLoss": round(entry_value - sip_amount, 2),
+                        "type": "sip"
+                    })
+                    cursor_date += timedelta(weeks=1)
+                ledger.reverse()
+            else:
+                period_months = {"Monthly": 1, "Quarterly": 3, "Half-Yearly": 6, "Yearly": 12}.get(frequency, 1)
                 running_invested = 0
                 for i in range(1, months_held // period_months + 1):
                     entry_date = start_date + relativedelta(months=period_months * i)
