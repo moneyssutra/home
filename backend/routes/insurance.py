@@ -4,7 +4,7 @@ from typing import List
 from datetime import datetime, timezone
 import uuid
 
-from database import db
+from database import db, dashboard_cache
 from server_models import Insurance, InsuranceCreate
 from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_effective_user_filter
@@ -23,6 +23,7 @@ async def create_insurance(input: InsuranceCreate, request: Request):
     doc = insurance_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
     await db.insurances.insert_one(doc)
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
 
     maturity_types_needing_asset = ["Market Linked", "Returns on Maturity"]
     if insurance_obj.maturityType in maturity_types_needing_asset:

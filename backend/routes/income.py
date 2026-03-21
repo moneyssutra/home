@@ -4,7 +4,7 @@ from typing import List, Optional
 from datetime import datetime, timedelta
 import calendar as cal
 
-from database import db
+from database import db, dashboard_cache
 from server_models import IncomeSource, IncomeSourceCreate
 from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_effective_user_filter, get_user_now, count_weekday_occurrences
@@ -89,6 +89,7 @@ async def create_income_source(input: IncomeSourceCreate, request: Request):
     doc = income_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
     await db.income_sources.insert_one(doc)
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
     return income_obj
 
 

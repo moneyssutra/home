@@ -9,7 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from database import db
+from database import db, dashboard_cache
 from server_models import Investment, InvestmentCreate, Expense
 from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_effective_user_filter
@@ -112,6 +112,7 @@ async def create_investment(input: InvestmentCreate, request: Request):
         investment_obj.createdAt = datetime.fromisoformat(doc['createdAt'])
 
     await db.investments.insert_one(doc)
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
 
     # For backdated Loan Given with fixed repayment: auto-process past installments
     if input.investmentCategory == "Loan Given" and input.repaymentType == "fixed" and input.startDate and input.installmentAmount:

@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 import uuid
 import math
 
-from database import db
+from database import db, dashboard_cache
 from server_models import Loan, LoanCreate
 from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_effective_user_filter
@@ -33,6 +33,7 @@ async def create_loan(input: LoanCreate, request: Request):
     doc['sharedWithMembers'] = shared_members
     doc['primaryOwnerId'] = user.get('user_id')
     await db.loans.insert_one(doc)
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
 
     if loan_obj.autoCreateExpense:
         existing_expense = await db.expenses.find_one({"linkedLoanId": loan_obj.id}, {"_id": 0})

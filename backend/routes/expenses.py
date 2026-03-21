@@ -4,7 +4,7 @@ from typing import List, Optional
 from datetime import datetime, timezone, timedelta
 from calendar import monthrange
 
-from database import db
+from database import db, dashboard_cache
 from server_models import Expense, ExpenseCreate
 from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_effective_user_filter, get_user_now, get_weekly_multiplier, count_weekday_occurrences, parse_due_day
@@ -105,6 +105,7 @@ async def create_expense(input: ExpenseCreate, request: Request):
     doc = expense_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
     await db.expenses.insert_one(doc)
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
     return expense_obj
 
 
@@ -2126,6 +2127,7 @@ async def update_expense(expense_id: str, input: ExpenseCreate, request: Request
     expense_dict['userId'] = user.get('user_id')
     expense_dict['createdAt'] = existing['createdAt']
     await db.expenses.replace_one({"id": expense_id}, expense_dict)
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
     if isinstance(expense_dict.get('createdAt'), str):
         expense_dict['createdAt'] = datetime.fromisoformat(expense_dict['createdAt'])
     return expense_dict
@@ -2142,6 +2144,7 @@ async def delete_expense(expense_id: str, request: Request):
     if not existing:
         raise HTTPException(status_code=404, detail="Expense not found")
     await db.expenses.delete_one({"id": expense_id})
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
     return {"message": "Expense deleted successfully", "id": expense_id}
 
 

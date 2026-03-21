@@ -4,7 +4,7 @@ from typing import List
 from datetime import datetime, timezone
 import uuid
 
-from database import db
+from database import db, dashboard_cache
 from server_models import Asset, AssetCreate
 from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_effective_user_filter
@@ -41,6 +41,7 @@ async def create_asset(input: AssetCreate, request: Request):
     doc = asset_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
     await db.assets.insert_one(doc)
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
     return asset_obj
 
 

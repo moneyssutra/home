@@ -66,6 +66,12 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Added `/api/dashboard/summary` — Single endpoint returning ALL financial data
 - Added Pydantic field validators to Investment, Loan, Expense models
 
+### Dashboard Performance Optimizations (Mar 2026)
+- Single `/api/dashboard/combined` endpoint already in place (5-7 API calls → 1)
+- Added 30-second TTL in-memory cache (TTLCache in database.py) for dashboard responses
+- Cache auto-invalidated on create/update/delete across all 8 financial routes
+- MongoDB indexes already comprehensive (userId, id, compound indexes for frequency/category queries)
+
 ### Rule-Based Financial Insights Engine (Mar 2026)
 - Replaced AI/GPT-based ai_insights.py with deterministic rule engine
 - 10 financial rules: expense ratio, savings rate, emergency fund, investments, debt burden, insurance gaps, credit utilization, loan exposure, overall health

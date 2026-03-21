@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Request
 from typing import List
 from datetime import datetime
 
-from database import db
+from database import db, dashboard_cache
 from server_models import Account, AccountCreate
 from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_effective_user_filter
@@ -22,6 +22,7 @@ async def create_account(input: AccountCreate, request: Request):
     doc = account_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
     await db.accounts.insert_one(doc)
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
     return account_obj
 
 

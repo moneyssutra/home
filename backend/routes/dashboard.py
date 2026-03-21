@@ -7,6 +7,7 @@ from database import db
 from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_effective_user_filter, get_user_now, count_weekday_occurrences, get_weekly_multiplier, parse_due_day
 from services.financial_engine import build_snapshot
+from database import dashboard_cache
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -755,10 +756,16 @@ def _split_other_income(other_incomes, current_day, current_month, current_year)
 
 @router.get("/combined")
 async def get_combined_dashboard(request: Request):
-    """Single endpoint that returns all data needed by the Dashboard page."""
+    """Single endpoint that returns all data needed by the Dashboard page.
+    Cached for 30s per user to avoid repeated heavy queries."""
     user = await get_current_user(request)
     user_filter = await get_effective_user_filter(user, request)
     user_id = user["user_id"]
+
+    cache_key = f"combined:{user_id}"
+    cached = dashboard_cache.get(cache_key)
+    if cached:
+        return cached
 
     from routes.onboarding import _get_profile_completion
     from routes.goals import calculate_goal_progress
@@ -789,10 +796,12 @@ async def get_combined_dashboard(request: Request):
     # --- Preferences ---
     prefs = preferences_doc or {}
 
-    return {
+    result = {
         "networth": networth_data,
         "profile": profile_doc or {},
         "goals": goals_summary,
         "completion": completion_data,
         "preferences": {"is_premium": prefs.get("is_premium", False)},
     }
+    dashboard_cache.set(cache_key, result)
+    return result

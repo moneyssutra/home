@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException, Request, UploadFile, File
 from typing import List
 from datetime import datetime, timezone
 
-from database import db
+from database import db, dashboard_cache
 from server_models import Goal, GoalCreate, GoalPriorityUpdate
 from routes.auth import get_current_user
 from routes.utils import get_user_filter
@@ -212,6 +212,7 @@ async def create_goal(input: GoalCreate, request: Request):
     doc = goal_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
     await db.goals.insert_one(doc)
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
     return goal_obj
 
 
