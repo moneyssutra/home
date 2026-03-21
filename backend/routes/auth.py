@@ -713,7 +713,7 @@ async def check_user(request: Request):
 
 @router.post("/mpin-direct-login")
 async def mpin_direct_login(request: Request, response: Response):
-    """Login directly with email + MPIN (no OTP required)."""
+    """Login directly with email + MPIN (no OTP required). Max 3 attempts then 5-min lockout."""
     body = await request.json()
     email = (body.get("email") or "").strip().lower()
     mpin = body.get("mpin", "")
@@ -722,6 +722,18 @@ async def mpin_direct_login(request: Request, response: Response):
         raise HTTPException(status_code=400, detail="Email and MPIN are required")
     if len(mpin) != 4 or not mpin.isdigit():
         raise HTTPException(status_code=400, detail="MPIN must be 4 digits")
+
+    # Check lockout
+    lockout_key = f"mpin_lockout:{email}"
+    lockout = await db.rate_limits.find_one({"key": lockout_key}, {"_id": 0})
+    if lockout:
+        locked_until = datetime.fromisoformat(lockout["locked_until"])
+        if locked_until.tzinfo is None:
+            locked_until = locked_until.replace(tzinfo=timezone.utc)
+        if locked_until > datetime.now(timezone.utc):
+            remaining_secs = int((locked_until - datetime.now(timezone.utc)).total_seconds())
+            remaining_mins = max(1, (remaining_secs + 59) // 60)
+            raise HTTPException(status_code=429, detail=f"Too many failed attempts. Try again in {remaining_mins} min.")
 
     user = await db.users.find_one(
         {"email": {"$regex": f"^{email}$", "$options": "i"}},
@@ -732,8 +744,31 @@ async def mpin_direct_login(request: Request, response: Response):
 
     import bcrypt as _bcrypt
     if not _bcrypt.checkpw(mpin.encode(), user["mpin_hash"].encode()):
-        raise HTTPException(status_code=401, detail="Invalid MPIN. Try again.")
+        # Track failed attempt
+        attempt_key = f"mpin_attempts:{email}"
+        attempt_rec = await db.rate_limits.find_one({"key": attempt_key}, {"_id": 0})
+        current_attempts = (attempt_rec.get("count", 0) if attempt_rec else 0) + 1
 
+        if current_attempts >= 3:
+            # Lock for 5 minutes
+            await db.rate_limits.update_one(
+                {"key": lockout_key},
+                {"$set": {"locked_until": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat()}},
+                upsert=True
+            )
+            await db.rate_limits.delete_one({"key": attempt_key})
+            raise HTTPException(status_code=429, detail="Too many failed attempts. Try again in 5 min.")
+
+        await db.rate_limits.update_one(
+            {"key": attempt_key},
+            {"$set": {"count": current_attempts, "updated_at": datetime.now(timezone.utc).isoformat()}},
+            upsert=True
+        )
+        remaining = 3 - current_attempts
+        raise HTTPException(status_code=401, detail=f"Invalid MPIN. {remaining} attempt(s) left.")
+
+    # Success — clear attempts
+    await db.rate_limits.delete_many({"key": {"$in": [f"mpin_attempts:{email}", f"mpin_lockout:{email}"]}})
     return await _create_session_and_respond(user, response)
 
 

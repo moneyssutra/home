@@ -180,8 +180,15 @@ const Login = () => {
       setStep("success"); await checkAuth();
       setTimeout(goHome, 1200);
     } catch (err) {
-      setError(err.response?.data?.detail || "Invalid MPIN. Try again.");
-      setMpin(["", "", "", ""]); mpinRefs.current[0]?.focus();
+      const status = err.response?.status;
+      const detail = err.response?.data?.detail || "Invalid MPIN. Try again.";
+      setError(detail);
+      if (status === 429) {
+        // Locked out — show forgot MPIN option prominently
+        setMpin(["", "", "", ""]);
+      } else {
+        setMpin(["", "", "", ""]); mpinRefs.current[0]?.focus();
+      }
     } finally { setIsSubmitting(false); }
   };
 
