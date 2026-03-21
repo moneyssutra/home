@@ -12,6 +12,47 @@ from routes.utils import get_user_filter, get_user_now, count_weekday_occurrence
 router = APIRouter(prefix="/income", tags=["Income"])
 
 
+def _count_variable_windows(freq, selected_day, year, month, current_day, expected_amount, txn_by_date_list, days_in_month):
+    """For variable income, count actual vs unrecorded windows and return received amount.
+    Uses the same weekly/daily window logic as the schedule to ensure consistency.
+    Returns (received_amount, num_past_windows)."""
+    if freq == "Weekly":
+        # Generate past schedule dates (e.g. Tuesdays)
+        from datetime import date, timedelta
+        day_map = {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3,
+                   "Friday": 4, "Saturday": 5, "Sunday": 6}
+        target_wd = day_map.get(selected_day, 0)
+        first = date(year, month, 1)
+        offset = (target_wd - first.weekday()) % 7
+        cursor = first + timedelta(days=offset)
+        
+        total_received = 0
+        past_windows = 0
+        while cursor.month == month and cursor.day <= current_day:
+            past_windows += 1
+            window_start = cursor.strftime("%Y-%m-%d")
+            next_cursor = cursor + timedelta(weeks=1)
+            window_end = next_cursor.strftime("%Y-%m-%d")
+            # Check if any transaction falls in this window
+            matched = sum(amt for tdate, amt in txn_by_date_list if window_start <= tdate < window_end)
+            total_received += matched if matched > 0 else expected_amount
+            cursor = next_cursor
+        return total_received, past_windows
+    elif freq == "Daily":
+        from datetime import date
+        total_received = 0
+        txn_map = dict(txn_by_date_list)
+        for day in range(1, current_day + 1):
+            d = date(year, month, day).strftime("%Y-%m-%d")
+            actual = txn_map.get(d, 0)
+            total_received += actual if actual > 0 else expected_amount
+        return total_received, current_day
+    else:
+        # Monthly / other: just check if any transaction this month
+        matched = sum(amt for _, amt in txn_by_date_list)
+        return matched if matched > 0 else expected_amount, 1
+
+
 def _parse_selected_date(sd_str, current_year, current_month, days_in_month):
     """Parse selectedDate and determine if income applies this month.
     Returns (applies_this_month: bool, day_of_month: int)
@@ -107,22 +148,23 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
             "lastTransaction": stat["lastTransaction"]
         }
 
-    # Fetch current month transactions for variable income override
+    # Fetch current month transactions for variable income window-based calculation
     import calendar
     now = get_user_now(request)
     days_in_month = calendar.monthrange(now.year, now.month)[1]
     month_start = f"{now.year}-{now.month:02d}-01"
     month_end = f"{now.year}-{now.month:02d}-{days_in_month}"
-    monthly_txn_sums = {}
-    monthly_txn_counts = {}
+    monthly_txn_details = {}  # entityId -> [(date, amount), ...]
     if entity_ids:
-        monthly_pipeline = [
-            {"$match": {"entityId": {"$in": entity_ids}, "transactionDate": {"$gte": month_start, "$lte": month_end}}},
-            {"$group": {"_id": "$entityId", "totalAmount": {"$sum": "$amount"}, "count": {"$sum": 1}}}
-        ]
-        async for stat in db.income_transactions.aggregate(monthly_pipeline):
-            monthly_txn_sums[stat["_id"]] = stat["totalAmount"]
-            monthly_txn_counts[stat["_id"]] = stat["count"]
+        txn_cursor = db.income_transactions.find(
+            {"entityId": {"$in": entity_ids}, "transactionDate": {"$gte": month_start, "$lte": month_end}},
+            {"_id": 0, "entityId": 1, "transactionDate": 1, "amount": 1}
+        )
+        async for txn in txn_cursor:
+            eid = txn["entityId"]
+            if eid not in monthly_txn_details:
+                monthly_txn_details[eid] = []
+            monthly_txn_details[eid].append((txn.get("transactionDate", ""), txn.get("amount", 0)))
 
     for source in income_sources:
         stats = transaction_stats.get(source["id"], {})
@@ -177,12 +219,16 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
                 source["monthlyReceived"] = 0
                 source["monthlyPending"] = amount
 
-        # For variable income: use actual recorded transactions only
+        # For variable income: use window-based calculation (actual + default for unrecorded windows)
         is_variable = source.get('incomeType', '').lower() == 'variable'
-        actual_this_month = monthly_txn_sums.get(source["id"], 0)
-        if is_variable and actual_this_month > 0:
-            source["monthlyReceived"] = actual_this_month
-            source["monthlyTotal"] = actual_this_month + source["monthlyPending"]
+        if is_variable and source["id"] in monthly_txn_details:
+            txn_list = monthly_txn_details[source["id"]]
+            window_received, _ = _count_variable_windows(
+                freq, source.get('selectedDay', ''), now.year, now.month,
+                now.day, amount, txn_list, days_in_month
+            )
+            source["monthlyReceived"] = window_received
+            source["monthlyTotal"] = window_received + source["monthlyPending"]
 
     return income_sources
 
@@ -206,23 +252,23 @@ async def get_income_monthly_summary(request: Request):
     incomes = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
     other_incomes = await db.other_income.find(user_filter, {"_id": 0}).to_list(1000)
 
-    # For variable income, fetch actual transactions this month (sum + count)
+    # For variable income, fetch individual transaction dates+amounts this month
     month_start = f"{current_year}-{current_month:02d}-01"
     month_end = f"{current_year}-{current_month:02d}-{days_in_month}"
     entity_ids = [inc.get('id') for inc in incomes if inc.get('id')]
     variable_txn_sums = {}
-    variable_txn_counts = {}
+    variable_txn_details = {}  # entityId -> [(date, amount), ...]
     if entity_ids:
-        pipeline = [
-            {"$match": {
-                "entityId": {"$in": entity_ids},
-                "transactionDate": {"$gte": month_start, "$lte": month_end}
-            }},
-            {"$group": {"_id": "$entityId", "totalAmount": {"$sum": "$amount"}, "count": {"$sum": 1}}}
-        ]
-        async for stat in db.income_transactions.aggregate(pipeline):
-            variable_txn_sums[stat["_id"]] = stat["totalAmount"]
-            variable_txn_counts[stat["_id"]] = stat["count"]
+        txn_cursor = db.income_transactions.find(
+            {"entityId": {"$in": entity_ids}, "transactionDate": {"$gte": month_start, "$lte": month_end}},
+            {"_id": 0, "entityId": 1, "transactionDate": 1, "amount": 1}
+        )
+        async for txn in txn_cursor:
+            eid = txn["entityId"]
+            variable_txn_sums[eid] = variable_txn_sums.get(eid, 0) + txn.get("amount", 0)
+            if eid not in variable_txn_details:
+                variable_txn_details[eid] = []
+            variable_txn_details[eid].append((txn.get("transactionDate", ""), txn.get("amount", 0)))
 
     month_map = {"January":1,"February":2,"March":3,"April":4,"May":5,"June":6,
                  "July":7,"August":8,"September":9,"October":10,"November":11,"December":12}
@@ -375,9 +421,14 @@ async def get_income_monthly_summary(request: Request):
                 rec = 0
                 pend = month_amt
 
-        # For variable income: use actual recorded transactions only
-        if is_variable and actual_received > 0:
-            rec = actual_received
+        # For variable income: use window-based calculation (actual + default for unrecorded windows)
+        if is_variable and entity_id in variable_txn_details:
+            txn_list = variable_txn_details[entity_id]
+            window_received, _ = _count_variable_windows(
+                freq, inc.get('selectedDay', ''), current_year, current_month,
+                current_day, amount, txn_list, days_in_month
+            )
+            rec = window_received
             month_amt = rec + pend
 
         total_income += month_amt
@@ -665,13 +716,14 @@ async def get_income_detail(income_id: str, request: Request):
     total_received = sum(s["amount"] for s in schedule if s["status"] == "received")
 
     # For variable income: update past entries without actual transactions to "missed" status
+    # But "missed" entries still count toward received (using default expected amount)
     is_variable = inc.get('incomeType', '').lower() == 'variable'
     if is_variable:
         for entry in schedule:
             if entry["status"] == "received" and not entry.get("isActual", False):
                 entry["status"] = "missed"
-        # Recalculate: total_received only includes entries with actual transactions
-        total_received = sum(s["amount"] for s in schedule if s["status"] == "received")
+        # total_received includes both "received" (actual) and "missed" (default expected)
+        total_received = sum(s["amount"] for s in schedule if s["status"] in ("received", "missed"))
 
     # Calculate current month's received/pending with hybrid logic for variable income
     import calendar as cal
@@ -703,17 +755,21 @@ async def get_income_detail(income_id: str, request: Request):
         monthly_received = expected * past_count
         monthly_total = expected * total_count
         monthly_pending = expected * (total_count - past_count)
-        # Variable income: use actual recorded transactions only
-        if is_variable and actual_received_this_month > 0:
-            monthly_received = actual_received_this_month
+        # Variable income: window-based (actual + default for unrecorded weeks)
+        if is_variable and current_month_txns:
+            txn_list = [(t.get('transactionDate', ''), t.get('amount', 0)) for t in current_month_txns]
+            window_received, _ = _count_variable_windows('Weekly', day_name, current_year, current_month, current_day, expected, txn_list, days_in_month)
+            monthly_received = window_received
             monthly_total = monthly_received + monthly_pending
     elif freq == "Daily":
         monthly_received = expected * current_day
         monthly_total = expected * days_in_month
         monthly_pending = expected * (days_in_month - current_day)
-        # Variable income: use actual recorded transactions only
-        if is_variable and actual_received_this_month > 0:
-            monthly_received = actual_received_this_month
+        # Variable income: window-based (actual + default for unrecorded days)
+        if is_variable and current_month_txns:
+            txn_list = [(t.get('transactionDate', ''), t.get('amount', 0)) for t in current_month_txns]
+            window_received, _ = _count_variable_windows('Daily', '', current_year, current_month, current_day, expected, txn_list, days_in_month)
+            monthly_received = window_received
             monthly_total = monthly_received + monthly_pending
     else:
         sd_str = inc.get("selectedDate")

@@ -4,6 +4,7 @@ import { ArrowLeft, Edit3, DollarSign, Calendar, TrendingUp, Repeat, CheckCircle
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import IncomeAmountModal from "@/components/IncomeAmountModal";
 import { toast } from "sonner";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
@@ -18,6 +19,8 @@ export default function IncomeDetail() {
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [expandedSchedule, setExpandedSchedule] = useState(false);
+  const [recordModalOpen, setRecordModalOpen] = useState(false);
+  const [recordingEntry, setRecordingEntry] = useState(null);
 
   useEffect(() => { window.scrollTo(0, 0); fetchDetail(); }, [id]);
   const fetchDetail = async () => {
@@ -25,6 +28,28 @@ export default function IncomeDetail() {
     try { const r = await axios.get(`${backendUrl}/api/income/${id}/detail`, { withCredentials: true }); setData(r.data); }
     catch { toast.error("Failed to load income details"); }
     finally { setLoading(false); }
+  };
+
+  const handleRecordMissed = (entry) => {
+    setRecordingEntry(entry);
+    setRecordModalOpen(true);
+  };
+
+  const handleRecordSubmit = async ({ amount, transactionDate }) => {
+    if (!data) return;
+    try {
+      await axios.post(`${backendUrl}/api/transactions/income-transactions`, {
+        entityId: id,
+        amount,
+        transactionDate: transactionDate || (recordingEntry?.dueDate),
+        notes: recordingEntry ? `Recorded for ${formatDate(recordingEntry.dueDate)}` : ""
+      }, { withCredentials: true });
+      setRecordModalOpen(false);
+      setRecordingEntry(null);
+      fetchDetail();
+    } catch {
+      toast.error("Failed to record income");
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}><Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--brand-primary)" }} /></div>;
@@ -106,7 +131,7 @@ const getEditRoute = (incomeType, id) => {
                         <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
                       </div>
                     )}
-                    <div className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)", opacity: isMissed ? 0.55 : 1 }}>
+                    <div className="px-4 py-2.5 flex justify-between items-center text-xs" style={{ borderBottom: "1px solid var(--border-light)", opacity: isMissed ? 0.7 : 1 }}>
                       <span style={{ color: isMissed ? "var(--text-muted)" : "var(--text-secondary)" }}>{formatDate(s.dueDate)}</span>
                       <div className="flex items-center gap-2">
                         <span className={isActual ? "font-bold" : ""} style={{ color: isActual ? "#059669" : isMissed ? "var(--text-muted)" : "var(--text-primary)" }}>₹{fmt(s.amount)}</span>
@@ -119,9 +144,14 @@ const getEditRoute = (incomeType, id) => {
                             <CheckCircle2 className="h-3 w-3" /> Recorded
                           </span>
                         ) : isMissed ? (
-                          <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: "#EF444415", color: "#EF4444" }}>
-                            <Clock className="h-3 w-3" /> Not Recorded
-                          </span>
+                          <button
+                            data-testid={`record-missed-${i}`}
+                            onClick={() => handleRecordMissed(s)}
+                            className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold cursor-pointer border-0"
+                            style={{ backgroundColor: "#F59E0B20", color: "#F59E0B" }}
+                          >
+                            <Edit3 className="h-3 w-3" /> Record
+                          </button>
                         ) : (
                           <span className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold" style={{ backgroundColor: "#05966915", color: "#059669" }}>
                             <CheckCircle2 className="h-3 w-3" /> Received
@@ -172,6 +202,16 @@ const getEditRoute = (incomeType, id) => {
       </div>
       <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
       <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      {recordModalOpen && data && (
+        <IncomeAmountModal
+          isOpen={recordModalOpen}
+          onClose={() => { setRecordModalOpen(false); setRecordingEntry(null); }}
+          entityId={data.source?.id || id}
+          entityName={data.source?.name || "Income"}
+          expectedAmount={data.source?.expectedAmount || 0}
+          onSubmit={handleRecordSubmit}
+        />
+      )}
     </div>
   );
 }
