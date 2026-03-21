@@ -213,10 +213,10 @@ async def seed():
         {"insuranceType": "Term Insurance", "policyName": "HDFC Click2Protect", "coverageAmount": 10000000, "premiumAmount": 12000, "premiumFrequency": "Yearly", "startDate": "2020-06-01", "endDate": "2050-06-01", "premiumPaymentDate": "15", "coveredPerson": "Self"},
         {"insuranceType": "Vehicle Insurance", "policyName": "Bajaj Allianz Car Insurance", "coverageAmount": 1800000, "premiumAmount": 12000, "premiumFrequency": "Yearly", "startDate": "2025-09-01", "endDate": "2026-09-01", "premiumPaymentDate": "1", "coveredPerson": "Self"},
     ]
-    await db.insurance.delete_many({"userId": USER_ID})
+    await db.insurances.delete_many({"userId": USER_ID})
     for ins in insurances:
         doc = {"id": uid(), "userId": USER_ID, "createdAt": NOW, **ins}
-        await db.insurance.insert_one(doc)
+        await db.insurances.insert_one(doc)
     print(f"Insurance: {len(insurances)} added")
 
     # ============================================================
@@ -297,9 +297,9 @@ async def seed():
         await db.loans.insert_one({"id": uid(), "userId": WIFE_USER_ID, "createdAt": NOW, **loan})
 
     wife_insurance = [{"insuranceType": "Health Insurance", "policyName": "Niva Bupa Health", "coverageAmount": 500000, "premiumAmount": 8000, "premiumFrequency": "Yearly", "startDate": "2023-01-01", "endDate": "2028-01-01", "premiumPaymentDate": "15", "coveredPerson": "Self"}]
-    await db.insurance.delete_many({"userId": WIFE_USER_ID})
+    await db.insurances.delete_many({"userId": WIFE_USER_ID})
     for ins in wife_insurance:
-        await db.insurance.insert_one({"id": uid(), "userId": WIFE_USER_ID, "createdAt": NOW, **ins})
+        await db.insurances.insert_one({"id": uid(), "userId": WIFE_USER_ID, "createdAt": NOW, **ins})
 
     print("Wife data seeded")
 

@@ -1,0 +1,170 @@
+{
+  "summary": "Seed data verification complete for moneyssutra@gmail.com. All 19 backend API tests passed (100%). All frontend pages render correctly with seed data: Dashboard (Net Worth ₹2.34Cr, Income ₹3L, Expenses ₹87.7K), Income (10 sources), Expenses (15 items), Wealth (10 assets, 16 investments, 10 loans, 4 insurances, 5 accounts, 3 credit cards), Bank Accounts Experimental (5 accounts), Credit Cards Experimental (3 cards), Family Hub (4 members - Sharma Family).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Family Hub",
+        "issues": ["Route is /family not /family-hub as mentioned in requirements - this is a documentation issue, not a bug"]
+      }
+    ]
+  },
+  "features_tested": {
+    "dashboard_api": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/dashboard/combined returns 200",
+        "Net Worth ~₹2.34Cr (23,487,000)",
+        "Income Received ₹3L (300,000)",
+        "Expenses Done ₹87.7K (87,700)"
+      ]
+    },
+    "income_api": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/income/list/summary returns 10 income sources",
+        "All 10 income types present: Job, Business, Rental, Interest, Dividend, Pension, Commission, Royalty, Gift, Other",
+        "GET /api/income/monthly-summary returns correct totals"
+      ]
+    },
+    "expenses_api": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/expenses returns 15 expenses"
+      ]
+    },
+    "wealth_api": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/combined/wealth returns 200",
+        "Assets: 10 items",
+        "Investments: 16 items",
+        "Loans: 10 items",
+        "Insurances: 4 items",
+        "Accounts: 5 items",
+        "Credit Cards: 3 items"
+      ]
+    },
+    "family_api": {
+      "status": "PASS",
+      "tests": [
+        "GET /api/family returns 200",
+        "Family name: Sharma Family",
+        "4 members: Rahul, Priya, Aarav, Ananya"
+      ]
+    },
+    "frontend_dashboard": {
+      "status": "PASS",
+      "tests": [
+        "Dashboard loads with Net Worth ₹2,34,87,000",
+        "Income Received ₹3L displayed",
+        "Expected Income ₹11K displayed",
+        "Expenses Spent ₹87.7K displayed",
+        "Net Balance +₹2.12L displayed"
+      ]
+    },
+    "frontend_income": {
+      "status": "PASS",
+      "tests": [
+        "My Income page loads at /my-income",
+        "Shows 10 income sources",
+        "All income types displayed: Job (₹2L), Business (₹50K), Rental (₹25K), Pension (₹15K), Commission (₹10K), Other (₹8K), Royalty (₹3K), Interest, Dividend, Gift"
+      ]
+    },
+    "frontend_expenses": {
+      "status": "PASS",
+      "tests": [
+        "My Expenses page loads at /my-expenses",
+        "Shows ₹87.7K total expenses",
+        "13 expenses this month (some quarterly/yearly not due)",
+        "Expense breakdown by category displayed"
+      ]
+    },
+    "frontend_wealth": {
+      "status": "PASS",
+      "tests": [
+        "Wealth page loads at /wealth",
+        "Income: 10 sources, ₹3.11L",
+        "Expenses: 15 this month, ₹87.7K",
+        "Assets: 10 items, ₹2.36Cr",
+        "Investments: 16 items, ₹64.83L",
+        "Loans: 10 loans, -₹83.05L",
+        "Credit Cards: 3 cards, -₹1.35L",
+        "Insurance: 4 coverage, ₹1.78Cr",
+        "Accounts: 5 accounts, ₹18.7L"
+      ]
+    },
+    "frontend_bank_accounts_experimental": {
+      "status": "PASS",
+      "tests": [
+        "Bank Accounts page loads at /bank-accounts-experimental",
+        "Total Balance: ₹18,70,000 across 5 accounts",
+        "All 5 accounts displayed: SBI Savings (₹2.45L), HDFC Salary (₹5.20L), ICICI Current (₹1.80L), Kotak 811 (₹35K), Axis Bank Joint (₹8.90L)"
+      ]
+    },
+    "frontend_credit_cards_experimental": {
+      "status": "PASS",
+      "tests": [
+        "Credit Cards page loads at /credit-cards-experimental",
+        "Total Outstanding: ₹1,35,500 of ₹10L limit (3 cards)",
+        "All 3 cards displayed: HDFC Regalia Gold (₹45K), SBI Simply Click (₹18.5K), Axis Flipkart (₹72K)",
+        "Credit Utilization: 13.6%"
+      ]
+    },
+    "frontend_family_hub": {
+      "status": "PASS",
+      "tests": [
+        "Family Hub page loads at /family (not /family-hub)",
+        "Sharma Family — Combined displayed",
+        "Family Net Worth: ₹2.67Cr",
+        "4 members displayed: Rahul (Self), Priya (Wife), Aarav (Son), Ananya (Daughter)",
+        "Invite Code displayed"
+      ]
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_seed_data_verification_iter158.py",
+    "/app/test_reports/pytest/seed_data_verification_iter158_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "All seed data renders correctly across all pages",
+    "Backend APIs return correct counts and values",
+    "Frontend displays data in proper Indian currency format (₹)",
+    "Family Hub route is /family not /family-hub - documentation should be updated"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_seed_data_verification_iter158.py"
+  ],
+  "success_rate": {
+    "backend": "100% (19/19 tests passed)",
+    "frontend": "100% (all pages render correctly with seed data)"
+  },
+  "test_credentials": {
+    "session_token": "499bab99-960a-49fe-934c-43f1b202872f",
+    "user_email": "moneyssutra@gmail.com",
+    "user_id": "user_50103ba5a65a"
+  },
+  "seed_data_verification": {
+    "income_sources": "10 (Job, Business, Rental, Interest, Dividend, Pension, Commission, Royalty, Gift, Other)",
+    "expenses": "15 items",
+    "assets": "10 items",
+    "investments": "16 items",
+    "loans": "10 items",
+    "insurances": "4 items",
+    "bank_accounts": "5 accounts",
+    "credit_cards": "3 cards",
+    "family_members": "4 (Rahul, Priya, Aarav, Ananya)"
+  },
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Seed data for moneyssutra@gmail.com fully verified. All counts match: 10 income sources, 15 expenses, 10 assets, 16 investments, 10 loans, 4 insurances, 5 bank accounts, 3 credit cards, 4 family members. Dashboard shows Net Worth ~₹2.34Cr, Income ₹3L, Expenses ₹87.7K. Family Hub route is /family not /family-hub. Finvu SDK is MOCKED (Coming Soon button on bank accounts page).",
+  "mocked_api": {
+    "Finvu Account Aggregator SDK": "MOCKED - represented by disabled 'Coming Soon' button on bank accounts page"
+  }
+}
