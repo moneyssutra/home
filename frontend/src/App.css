@@ -2,4 +2,6 @@
     min-height: 100vh;
     background-color: #F5F7FA;
     color: #1F2937;
+    /* iOS safe area — push content below status bar (clock/wifi/battery) */
+    padding-top: env(safe-area-inset-top, 0px);
 }

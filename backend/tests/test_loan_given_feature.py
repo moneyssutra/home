@@ -19,7 +19,7 @@ import sys
 # Add backend path for database access
 sys.path.insert(0, '/app/backend')
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://money-sutra-dev.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://wealth-vision-9.preview.emergentagent.com').rstrip('/')
 
 
 def create_test_session():

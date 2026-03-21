@@ -4,12 +4,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* iOS Safe Area — push content below the status bar on mobile only */
+/* iOS Safe Area — toast notifications below the status bar */
 @media (max-width: 768px) {
-  header {
-    padding-top: max(1.25rem, env(safe-area-inset-top, 1.25rem));
-  }
-  /* Push toast notifications below the status bar on mobile */
   [data-sonner-toaster] {
     top: env(safe-area-inset-top, 0px) !important;
   }

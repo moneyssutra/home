@@ -491,18 +491,19 @@ const NotificationBell = () => {
                         
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <h4 className={`text-sm break-words ${
+                          <div className="flex items-start gap-2">
+                            <h4 className={`text-sm break-words flex-1 min-w-0 ${
                               !notification.isRead ? "font-semibold text-gray-800" : "font-medium text-gray-700"
                             }`}>
                               {notification.title}
                             </h4>
-                            {!notification.isRead && (
-                              <div className="w-2.5 h-2.5 rounded-full bg-[#00D09C] flex-shrink-0 mt-1"></div>
-                            )}
-                            <button
-                              className="p-1 rounded-full hover:bg-gray-200 transition-colors flex-shrink-0 ml-1"
-                              onClick={(e) => {
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {!notification.isRead && (
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#00D09C]"></div>
+                              )}
+                              <button
+                                className="p-1 rounded-full hover:bg-gray-200 transition-colors"
+                                onClick={(e) => {
                                 e.stopPropagation();
                                 const id = notification.id;
                                 setDismissingId(id);
@@ -512,6 +513,7 @@ const NotificationBell = () => {
                             >
                               <X className="h-3.5 w-3.5 text-gray-400" />
                             </button>
+                            </div>
                           </div>
                           
                           <p className="text-sm text-gray-600 mt-1 break-words" style={{ wordWrap: 'break-word' }}>
