@@ -68,6 +68,7 @@ Financial management app with profile completion/onboarding flow, income/expense
 - Fixed insurance collection name bug (`insurance` → `insurances`)
 - Added 5 goals (1 per type) with proper investment/account/loan linking
 - All verified: 100% pass rate on backend + frontend tests (iteration_158.json)
+- **BUGFIX: Dashboard combined endpoint 500 error** — `calculate_goal_progress(g, user)` was called with 2 args but function only takes 1. Fixed to `calculate_goal_progress(g)`. Also fixed goal summary field names (`name`/`type` → `goalName`/`goalType`). This caused ALL users with goals to see empty dashboards.
 
 ## Pending / Upcoming Tasks
 ### P1 - Finvu SDK Integration

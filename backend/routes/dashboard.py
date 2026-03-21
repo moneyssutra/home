@@ -754,11 +754,14 @@ async def get_combined_dashboard(request: Request):
     # --- Goals summary ---
     goals_summary = {"totalActiveGoals": len(goals), "completedGoals": completed_goals_count, "goals": []}
     for g in goals[:5]:
-        progress = await calculate_goal_progress(g, user)
+        progress = await calculate_goal_progress(g)
+        t = g.get("targetAmount", 0)
+        c = progress.get("currentAmount", 0)
         goals_summary["goals"].append({
-            "id": g.get("id"), "name": g.get("name"), "type": g.get("type"),
-            "targetAmount": g.get("targetAmount", 0), "currentAmount": progress.get("currentAmount", 0),
-            "progressPercent": progress.get("progressPercent", 0), "targetDate": g.get("targetDate"),
+            "id": g.get("id"), "goalName": g.get("goalName"), "goalType": g.get("goalType"),
+            "targetAmount": t, "currentAmount": c,
+            "progressPercent": round((c / t) * 100, 1) if t > 0 else 0, "targetDate": g.get("targetDate"),
+            "priority": g.get("priority", 1),
         })
 
     # --- Preferences ---
