@@ -21,7 +21,7 @@ const AddActionSheet = ({ isOpen, onClose }) => {
     { label: "Add Loan", icon: Landmark, color: "from-amber-500 to-orange-600", path: "/add-loan" },
     { label: "Add Credit Card", icon: CreditCard, color: "from-red-500 to-rose-600", path: "/credit-card" },
     { label: "Add Insurance", icon: Shield, color: "from-cyan-500 to-blue-600", path: "/add-insurance" },
-    { label: "Add Account", icon: Wallet, color: "from-slate-500 to-gray-600", path: "/account" },
+    { label: "Add Account", icon: Wallet, color: "from-slate-500 to-gray-600", path: "/add-account" },
     { label: "Add Goal", icon: Target, color: "from-fuchsia-500 to-pink-600", path: "/goal" },
   ];
 

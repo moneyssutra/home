@@ -65,6 +65,7 @@ import MyAssets from "@/MyAssets";
 import AssetBreakdown from "@/AssetBreakdown";
 import CategoryAsset from "@/CategoryAsset";
 import AccountForm from "@/AccountForm";
+import AddAccount from "@/pages/AddAccount";
 import MyAccounts from "@/MyAccounts";
 import ExpenseForm from "@/ExpenseForm";
 import MyExpenses from "@/MyExpenses";
@@ -228,8 +229,9 @@ function AppRouter() {
       <Route path="/asset/:id" element={<ProtectedRoute><AssetForm /></ProtectedRoute>} />
       
       {/* Accounts */}
-      <Route path="/my-accounts" element={<ProtectedRoute><MyAccounts /></ProtectedRoute>} />
+      <Route path="/my-accounts" element={<Navigate to="/bank-accounts-experimental" replace />} />
       <Route path="/wealth/accounts/:id" element={<ProtectedRoute><AccountDetail /></ProtectedRoute>} />
+      <Route path="/add-account" element={<ProtectedRoute><AddAccount /></ProtectedRoute>} />
       <Route path="/account" element={<ProtectedRoute><AccountForm /></ProtectedRoute>} />
       <Route path="/account/:id" element={<ProtectedRoute><AccountForm /></ProtectedRoute>} />
       
@@ -265,7 +267,7 @@ function AppRouter() {
       <Route path="/investment/:id" element={<ProtectedRoute><InvestmentForm /></ProtectedRoute>} />
       
       {/* Credit Cards */}
-      <Route path="/my-credit-cards" element={<ProtectedRoute><MyCreditCards /></ProtectedRoute>} />
+      <Route path="/my-credit-cards" element={<Navigate to="/credit-cards-experimental" replace />} />
       <Route path="/wealth/credit-cards/:id" element={<ProtectedRoute><CreditCardDetail /></ProtectedRoute>} />
       <Route path="/credit-card" element={<ProtectedRoute><CreditCardForm /></ProtectedRoute>} />
       <Route path="/credit-card/:id" element={<ProtectedRoute><CreditCardForm /></ProtectedRoute>} />

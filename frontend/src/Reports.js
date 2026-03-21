@@ -26,7 +26,7 @@ const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const Reports = () => {
   const navigate = useNavigate();
-  const { isPersonalView, isFamilyView, activeViewLabel } = useFamilyContext();
+  const { isPersonalView, isFamilyView, activeViewId, activeViewLabel } = useFamilyContext();
   const [showAddSheet, setShowAddSheet] = useState(false);
   
   // Scroll to top on mount
@@ -120,7 +120,10 @@ const Reports = () => {
         : 'application/pdf';
       
       // Build the URL with query parameters
-      const url = `${backendUrl}/api/reports/generate/${reportId}?format=${exportFormat}&from_date=${dateRange.from}&to_date=${dateRange.to}`;
+      let url = `${backendUrl}/api/reports/generate/${reportId}?format=${exportFormat}&from_date=${dateRange.from}&to_date=${dateRange.to}`;
+      if (!isPersonalView && activeViewId) {
+        url += `&memberId=${activeViewId}`;
+      }
       
       // Fetch as blob
       const response = await fetch(url, {

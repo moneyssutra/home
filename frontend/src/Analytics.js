@@ -83,11 +83,31 @@ const Analytics = () => {
         setSnapshots(snapshotData.sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month));
         setInvestmentPerf({ totalInvested: 0, currentValue: cs.totalInvestments || 0, totalGains: 0, gainPercent: 0, byCategory: {} });
       } else if (!isPersonalView) {
-        // Individual member view: show zeroed data
+        // Individual member view: fetch data using networth endpoint with memberId
+        const [networthRes, snapshotsRes] = await Promise.all([
+          axios.get(`${backendUrl}/api/dashboard/networth?tz_offset=${new Date().getTimezoneOffset()}&memberId=${activeViewId}`, { withCredentials: true, signal: controller.signal }),
+          axios.get(`${backendUrl}/api/analytics/snapshots?period=${timeFilter}&memberId=${activeViewId}`, { withCredentials: true, signal: controller.signal }).catch(() => ({ data: [] }))
+        ]);
         clearTimeout(timeoutId);
-        setData({ netWorth: 0, totalAssets: 0, totalInvestments: 0, totalLoans: 0, totalCreditCards: 0, liquidBalance: 0, monthlyIncome: 0, monthlyExpense: 0, savingsRate: 0 });
-        setSnapshots([]);
-        setInvestmentPerf({ totalInvested: 0, currentValue: 0, totalGains: 0, gainPercent: 0, byCategory: {} });
+        const nw = networthRes.data;
+        const monthlyIncome = nw.monthlyIncome || 0;
+        const monthlyExpense = nw.monthlyExpenses || nw.monthlyExpense || 0;
+        const surplus = monthlyIncome - monthlyExpense;
+        const savingsRate = monthlyIncome > 0 ? ((surplus / monthlyIncome) * 100).toFixed(1) : 0;
+        setData({
+          netWorth: nw.netWorth || 0,
+          totalAssets: nw.totalAssets || 0,
+          totalInvestments: nw.totalInvestments || 0,
+          totalLoans: nw.totalLiabilities || 0,
+          totalCreditCards: nw.creditCardOutstanding || 0,
+          liquidBalance: nw.liquidBalance || 0,
+          monthlyIncome,
+          monthlyExpense,
+          savingsRate
+        });
+        const snapshotData = Array.isArray(snapshotsRes.data) ? snapshotsRes.data : [];
+        setSnapshots(snapshotData.sort((a, b) => a.year !== b.year ? a.year - b.year : a.month - b.month));
+        setInvestmentPerf({ totalInvested: 0, currentValue: nw.totalInvestments || 0, totalGains: 0, gainPercent: 0, byCategory: {} });
       } else {
         // Personal view: original logic
         const [networthRes, investmentRes, snapshotsRes] = await Promise.all([

@@ -39,7 +39,7 @@ async def get_networth_summary(request: Request):
     credit_card_outstanding = sum(card.get('outstandingAmount', 0) for card in credit_cards)
     credit_card_limit = sum(card.get('creditLimit', 0) for card in credit_cards)
     total_liabilities = sum(loan.get('outstandingAmount', 0) or loan.get('principalAmount', 0) for loan in loans) + credit_outstanding + credit_card_outstanding
-    total_insurance_coverage = sum(ins.get('coverAmount', 0) or ins.get('sumAssured', 0) or 0 for ins in insurances)
+    total_insurance_coverage = sum(ins.get('coverageAmount', 0) or ins.get('coverAmount', 0) or ins.get('sumAssured', 0) or 0 for ins in insurances)
 
     current_month = get_user_now(request).month
     current_year = get_user_now(request).year

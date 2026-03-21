@@ -856,6 +856,53 @@ const GoalForm = () => {
   );
 
   const renderStep = () => {
+    if (isEditMode) {
+      // Edit mode: show all fields in a single scrollable form
+      return (
+        <div className="space-y-8" data-testid="goal-edit-all-fields">
+          {/* Goal Type */}
+          <div>
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
+              <span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold" style={{ color: "#7C3AED" }}>1</span>
+              Goal Type
+            </h3>
+            <Step1 />
+          </div>
+          {/* Goal Name */}
+          <div>
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
+              <span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold" style={{ color: "#7C3AED" }}>2</span>
+              Goal Name
+            </h3>
+            <Step2 />
+          </div>
+          {/* Goal Image */}
+          <div>
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
+              <span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold" style={{ color: "#7C3AED" }}>3</span>
+              Goal Image
+            </h3>
+            <Step3 />
+          </div>
+          {/* Target */}
+          <div>
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
+              <span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold" style={{ color: "#7C3AED" }}>4</span>
+              Target
+            </h3>
+            <Step4 />
+          </div>
+          {/* Details */}
+          <div>
+            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
+              <span className="w-6 h-6 rounded-full bg-[#7C3AED]/10 flex items-center justify-center text-xs font-bold" style={{ color: "#7C3AED" }}>5</span>
+              Details
+            </h3>
+            <Step5 />
+          </div>
+        </div>
+      );
+    }
     switch (step) {
       case 1: return <Step1 />;
       case 2: return <Step2 />;
@@ -873,7 +920,7 @@ const GoalForm = () => {
         <button type="button"
           className="flex h-10 w-10 items-center justify-center rounded-full transition-colors"
           style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-primary)" }}
-          onClick={() => step > 1 ? handlePrev() : navigate(-1)}
+          onClick={() => isEditMode ? navigate(-1) : (step > 1 ? handlePrev() : navigate(-1))}
           data-testid="back-button"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -901,10 +948,12 @@ const GoalForm = () => {
         )}
       </header>
 
-      {/* Step Indicator */}
-      <div className="px-5">
-        <StepIndicator />
-      </div>
+      {/* Step Indicator - only for new goal wizard */}
+      {!isEditMode && (
+        <div className="px-5">
+          <StepIndicator />
+        </div>
+      )}
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto pb-32">
@@ -920,7 +969,7 @@ const GoalForm = () => {
       {/* Sticky Action Buttons */}
       <div className="fixed bottom-0 left-0 right-0 border-t px-4 py-3 z-40" style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-light)" }}>
         <div className="mx-auto max-w-[540px] flex gap-3">
-          {step > 1 && (
+          {!isEditMode && step > 1 && (
             <button type="button" onClick={handlePrev}
               className="flex items-center justify-center gap-1.5 h-12 px-5 rounded-xl border font-medium text-sm transition-all active:scale-[0.98]"
               style={{ borderColor: "var(--border-light)", color: "var(--text-primary)" }}
@@ -930,7 +979,15 @@ const GoalForm = () => {
               Back
             </button>
           )}
-          {step < TOTAL_STEPS ? (
+          {isEditMode ? (
+            <button type="button" onClick={handleSave} disabled={isSubmitting}
+              className="flex-1 h-12 rounded-xl text-white font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-50 shadow-sm"
+              style={{ backgroundColor: "#7C3AED" }}
+              data-testid="save-button"
+            >
+              {isSubmitting ? "Updating..." : "Update Dream"}
+            </button>
+          ) : step < TOTAL_STEPS ? (
             <button type="button" onClick={handleNext}
               className="flex-1 flex items-center justify-center gap-1.5 h-12 rounded-xl text-white font-semibold text-sm transition-all active:scale-[0.98] shadow-sm"
               style={{ backgroundColor: "#7C3AED" }}
@@ -945,7 +1002,7 @@ const GoalForm = () => {
               style={{ backgroundColor: "#7C3AED" }}
               data-testid="save-button"
             >
-              {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Dream" : "Create Dream")}
+              {isSubmitting ? "Creating..." : "Create Dream"}
             </button>
           )}
         </div>

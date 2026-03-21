@@ -12,6 +12,7 @@ import sys
 sys.path.insert(0, '/app/backend')
 from database import db
 from routes.auth import get_current_user
+from routes.utils import get_effective_user_filter
 
 RUPEE = "\u20b9"
 import os
@@ -89,7 +90,7 @@ async def generate_report(
     user_id = user.get('user_id')
     user_name = user.get('name', 'User')
     user_email = user.get('email', '')
-    user_filter = {"userId": user_id}
+    user_filter = await get_effective_user_filter(user, request)
 
     try:
         start_date = datetime.strptime(from_date, "%Y-%m-%d") if from_date else datetime.now(timezone.utc).replace(day=1)
@@ -636,7 +637,7 @@ async def generate_pdf_report(report_type, data, ctx):
     elif report_type == "insurance":
         insurances = data.get("insurances", [])
         total_premium = sum(i.get('premiumAmount', 0) or 0 for i in insurances)
-        total_cover = sum(i.get('sumAssured', 0) or 0 for i in insurances)
+        total_cover = sum(i.get('coverageAmount', 0) or i.get('coverAmount', 0) or i.get('sumAssured', 0) or 0 for i in insurances)
 
         _build_summary_boxes(elements, [
             ("Annual Premium", fmt_amount(total_premium), DARK_GRAY),
@@ -648,7 +649,7 @@ async def generate_pdf_report(report_type, data, ctx):
         _build_section_header(elements, "Policy Details", count=len(insurances))
         rows = []
         for ins in insurances:
-            rows.append([ins.get('policyName', 'N/A')[:22], ins.get('insuranceType', 'N/A'), fmt_amount(ins.get('premiumAmount', 0)), fmt_amount(ins.get('sumAssured', 0))])
+            rows.append([ins.get('policyName', 'N/A')[:22], ins.get('insuranceType', 'N/A'), fmt_amount(ins.get('premiumAmount', 0)), fmt_amount(ins.get('coverageAmount', 0) or ins.get('coverAmount', 0) or ins.get('sumAssured', 0))])
         _build_statement_table(elements,
             ["Policy", "Type", "Premium", "Sum Assured"],
             rows,
@@ -916,11 +917,11 @@ async def generate_excel_report(report_type, data, ctx):
     elif report_type == "insurance":
         insurances = data.get("insurances", [])
         total_premium = sum(i.get('premiumAmount', 0) or 0 for i in insurances)
-        total_cover = sum(i.get('sumAssured', 0) or 0 for i in insurances)
+        total_cover = sum(i.get('coverageAmount', 0) or i.get('coverAmount', 0) or i.get('sumAssured', 0) or 0 for i in insurances)
         write_summary([("ANNUAL PREMIUM", fmt_amount(total_premium)), ("TOTAL COVERAGE", fmt_amount(total_cover)), ("POLICIES", str(len(insurances)))])
         write_table_header(["#", "Policy", "Type", "Premium", "Sum Assured"])
         for idx, ins in enumerate(insurances, 1):
-            write_data_row([idx, ins.get('policyName', 'N/A'), ins.get('insuranceType', 'N/A'), ins.get('premiumAmount', 0) or 0, ins.get('sumAssured', 0) or 0], idx % 2 == 0)
+            write_data_row([idx, ins.get('policyName', 'N/A'), ins.get('insuranceType', 'N/A'), ins.get('premiumAmount', 0) or 0, ins.get('coverageAmount', 0) or ins.get('coverAmount', 0) or ins.get('sumAssured', 0) or 0], idx % 2 == 0)
         write_total_row(["", "TOTAL", "", total_premium, total_cover])
 
     # Footer disclaimer

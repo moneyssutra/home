@@ -87,39 +87,64 @@ export function useIntelligenceData() {
   };
 
   // Generate badges and challenges from financial metrics (used for family combined + individual member views)
-  const generateBadgesAndChallenges = (survivalDays, sr, finalScore, emiRatio, totalInvestments, incomeSources) => {
+  // Matches backend ACHIEVEMENTS structure: 30 badges in 8 categories
+  const generateBadgesAndChallenges = (survivalDays, sr, finalScore, emiRatio, totalInvestments, incomeSources, extraData = {}) => {
     const badges = [];
-    // Emergency fund badges
-    if (survivalDays >= 180) badges.push({ id: "survivor_6m", name: "6-Month Survivor", icon: "shield", description: "Emergency fund covers 6+ months", unlocked: true, tier: "gold" });
-    else badges.push({ id: "survivor_6m", name: "6-Month Survivor", icon: "shield", description: "Build 6 months emergency fund", unlocked: false, tier: "gold" });
-    if (survivalDays >= 90) badges.push({ id: "survivor_3m", name: "3-Month Buffer", icon: "shield", description: "3+ months emergency fund", unlocked: true, tier: "silver" });
-    else badges.push({ id: "survivor_3m", name: "3-Month Buffer", icon: "shield", description: "Build 3 months emergency fund", unlocked: false, tier: "silver" });
-    // Savings badges
-    if (sr >= 30) badges.push({ id: "super_saver", name: "Super Saver", icon: "piggy-bank", description: "Saving 30%+ of income", unlocked: true, tier: "gold" });
-    else badges.push({ id: "super_saver", name: "Super Saver", icon: "piggy-bank", description: "Save 30% of income to unlock", unlocked: false, tier: "gold" });
-    if (sr >= 20) badges.push({ id: "good_saver", name: "Smart Saver", icon: "piggy-bank", description: "Saving 20%+ of income", unlocked: true, tier: "silver" });
-    else badges.push({ id: "good_saver", name: "Smart Saver", icon: "piggy-bank", description: "Save 20% of income to unlock", unlocked: false, tier: "silver" });
-    // Health score
-    if (finalScore >= 75) badges.push({ id: "health_star", name: "Health Star", icon: "star", description: "Financial health score 75+", unlocked: true, tier: "gold" });
-    else badges.push({ id: "health_star", name: "Health Star", icon: "star", description: "Reach 75+ health score", unlocked: false, tier: "gold" });
-    // Debt
-    if (emiRatio <= 20) badges.push({ id: "debt_free", name: "Low Debt Champion", icon: "trending-down", description: "EMI under 20% of income", unlocked: true, tier: "silver" });
-    else badges.push({ id: "debt_free", name: "Low Debt Champion", icon: "trending-down", description: "Keep EMI under 20%", unlocked: false, tier: "silver" });
-    // Investments
-    if (totalInvestments > 0) badges.push({ id: "investor", name: "Active Investor", icon: "trending-up", description: "Has active investments", unlocked: true, tier: "bronze" });
-    else badges.push({ id: "investor", name: "Active Investor", icon: "trending-up", description: "Start investing to unlock", unlocked: false, tier: "bronze" });
-    // Income
-    if (incomeSources > 1) badges.push({ id: "multi_income", name: "Multi-Income", icon: "layers", description: "Multiple income sources", unlocked: true, tier: "silver" });
-    else badges.push({ id: "multi_income", name: "Multi-Income", icon: "layers", description: "Add multiple income sources", unlocked: false, tier: "silver" });
-    // Aspirational (always locked unless extreme conditions)
-    if (sr >= 50) badges.push({ id: "frugal_master", name: "Frugal Master", icon: "award", description: "Saving 50%+ of income", unlocked: true, tier: "diamond" });
-    else badges.push({ id: "frugal_master", name: "Frugal Master", icon: "award", description: "Save 50% of income", unlocked: false, tier: "diamond" });
-    if (survivalDays >= 365) badges.push({ id: "fortress", name: "Financial Fortress", icon: "castle", description: "1 year+ emergency fund", unlocked: true, tier: "diamond" });
-    else badges.push({ id: "fortress", name: "Financial Fortress", icon: "castle", description: "Build 12 months safety net", unlocked: false, tier: "diamond" });
+    const liquidBalance = extraData.liquidBalance || 0;
+    const totalLoans = extraData.totalLoans || 0;
+    const investmentCategories = extraData.investmentCategories || 0;
+
+    // ═══ CATEGORY 1: Survival & Liquidity (6 Badges) ═══
+    badges.push({ id: "FIRST_STEP", name: "First Step", icon: "rocket", description: "Started tracking your finances", unlocked: true, tier: "bronze", category: "survival" });
+    badges.push({ id: "BUFFER_30D", name: "30-Day Shield", icon: "shield", description: survivalDays >= 30 ? "1 month of emergency runway" : "Build 1 month emergency fund", unlocked: survivalDays >= 30, tier: "bronze", category: "survival" });
+    badges.push({ id: "BUFFER_90D", name: "90-Day Fortress", icon: "shield-check", description: survivalDays >= 90 ? "3 months of safety net" : "Build 3 months emergency fund", unlocked: survivalDays >= 90, tier: "silver", category: "survival" });
+    badges.push({ id: "BUFFER_180D", name: "180-Day Defender", icon: "castle", description: survivalDays >= 180 ? "6 months of financial safety" : "Build 6 months emergency fund", unlocked: survivalDays >= 180, tier: "silver", category: "survival" });
+    badges.push({ id: "BUFFER_365D", name: "365-Day Stronghold", icon: "crown", description: survivalDays >= 365 ? "Full year of emergency funds!" : "Build 12 months emergency fund", unlocked: survivalDays >= 365, tier: "gold", category: "survival" });
+    badges.push({ id: "FINANCIAL_FORTRESS", name: "Financial Fortress", icon: "castle", description: survivalDays >= 510 ? "Reached Fortified zone" : "Reach 17+ months emergency fund", unlocked: survivalDays >= 510, tier: "platinum", category: "survival" });
+
+    // ═══ CATEGORY 2: Financial Control Score (4 Badges) ═══
+    badges.push({ id: "SCORE_60", name: "Score 60 Club", icon: "gauge", description: finalScore >= 60 ? "Financial Score reached 60+" : "Reach 60+ financial score", unlocked: finalScore >= 60, tier: "bronze", category: "score" });
+    badges.push({ id: "SCORE_75", name: "Score 75 Performer", icon: "target", description: finalScore >= 75 ? "Financial Score reached 75+" : "Reach 75+ financial score", unlocked: finalScore >= 75, tier: "silver", category: "score" });
+    badges.push({ id: "SCORE_90", name: "Score 90 Champion", icon: "award", description: finalScore >= 90 ? "Financial Score above 90!" : "Reach 90+ financial score", unlocked: finalScore >= 90, tier: "gold", category: "score" });
+    badges.push({ id: "SCORE_100", name: "Perfect 100", icon: "star", description: finalScore >= 100 ? "Achieved a perfect Financial Score" : "Achieve perfect 100 score", unlocked: finalScore >= 100, tier: "platinum", category: "score" });
+
+    // ═══ CATEGORY 3: Behavior Intelligence (4 Badges) ═══
+    badges.push({ id: "OVERSPEND_SLAYER", name: "Overspending Slayer", icon: "trending-down", description: "Reduced overspending by 20%", unlocked: sr >= 10, tier: "bronze", category: "behavior" });
+    badges.push({ id: "SMART_SPENDER", name: "Smart Spender", icon: "check-circle", description: sr >= 20 ? "Wants ratio below 20% of income" : "Keep wants below 20%", unlocked: sr >= 20, tier: "bronze", category: "behavior" });
+    badges.push({ id: "DISCIPLINE_PRO", name: "Financial Discipline Pro", icon: "list-checks", description: "All expense categories within budget", unlocked: sr >= 30 && emiRatio <= 30, tier: "silver", category: "behavior" });
+    badges.push({ id: "BEHAVIORAL_CHAMPION", name: "Behavioral Champion", icon: "crown", description: "Zero alerts + positive patterns", unlocked: sr >= 40 && emiRatio <= 20 && survivalDays >= 180, tier: "platinum", category: "behavior" });
+
+    // ═══ CATEGORY 4: Savings & Cash Discipline (4 Badges) ═══
+    badges.push({ id: "SAVED_10K", name: "First 10K Saved", icon: "piggy-bank", description: liquidBalance >= 10000 ? "Savings crossed 10,000" : "Save 10,000 to unlock", unlocked: liquidBalance >= 10000, tier: "bronze", category: "savings" });
+    badges.push({ id: "SAVED_1L", name: "1L Saver", icon: "piggy-bank", description: liquidBalance >= 100000 ? "Savings crossed 1,00,000" : "Save 1 lakh to unlock", unlocked: liquidBalance >= 100000, tier: "silver", category: "savings" });
+    badges.push({ id: "SAVINGS_RATE_30", name: "30% Savings Rate", icon: "trending-up", description: sr >= 30 ? "Saving 30%+ of monthly income" : "Save 30% of income", unlocked: sr >= 30, tier: "silver", category: "savings" });
+    badges.push({ id: "CASH_FLOW_KING", name: "Cash Flow King", icon: "crown", description: "Positive cash flow mastery", unlocked: sr >= 40 && survivalDays >= 365, tier: "platinum", category: "savings" });
+
+    // ═══ CATEGORY 5: Debt Control (3 Badges) ═══
+    badges.push({ id: "FIRST_EMI_CLOSED", name: "First EMI Closed", icon: "x-circle", description: "Paid off a loan completely", unlocked: totalLoans === 0 && emiRatio === 0, tier: "bronze", category: "debt" });
+    badges.push({ id: "DEBT_DESTROYER_50", name: "50% Debt Destroyer", icon: "trending-down", description: emiRatio <= 15 ? "Half your debt is gone!" : "Reduce debt by 50%", unlocked: emiRatio <= 15, tier: "gold", category: "debt" });
+    badges.push({ id: "FREEDOM_BUILDER", name: "Freedom Builder", icon: "crown", description: "Completely debt-free!", unlocked: emiRatio === 0 && totalLoans === 0, tier: "platinum", category: "debt" });
+
+    // ═══ CATEGORY 6: Investment Growth (3 Badges) ═══
+    badges.push({ id: "FIRST_SIP", name: "First SIP", icon: "bar-chart-3", description: totalInvestments > 0 ? "Started investing" : "Start your first investment", unlocked: totalInvestments > 0, tier: "bronze", category: "investment" });
+    badges.push({ id: "DIVERSIFIED_PORTFOLIO", name: "Diversified Portfolio", icon: "pie-chart", description: investmentCategories >= 5 ? "5+ different investment types" : "Diversify to 5+ types", unlocked: investmentCategories >= 5, tier: "silver", category: "investment" });
+    badges.push({ id: "INVESTMENT_STRATEGIST", name: "Investment Strategist", icon: "crown", description: "Investment value exceeds annual income", unlocked: totalInvestments > 0 && sr >= 30, tier: "platinum", category: "investment" });
+
+    // ═══ CATEGORY 7: Streak & Consistency (3 Badges) ═══
+    badges.push({ id: "STREAK_4W", name: "4-Week Streak", icon: "flame", description: "1 month of consistency", unlocked: false, tier: "bronze", category: "streak" });
+    badges.push({ id: "STREAK_12W", name: "12-Week Streak", icon: "trophy", description: "3 months of financial discipline!", unlocked: false, tier: "silver", category: "streak" });
+    badges.push({ id: "STREAK_52W", name: "52-Week Discipline", icon: "medal", description: "Full year of financial discipline!", unlocked: false, tier: "platinum", category: "streak" });
+
+    // ═══ CATEGORY 8: Power & Elite Status (3 Badges) ═══
+    const level = Math.min(Math.floor(survivalDays / 30), 20);
+    badges.push({ id: "FINANCIAL_CLIMBER", name: "Financial Climber", icon: "trending-up", description: level >= 5 ? "Reached Level 5" : "Reach Level 5", unlocked: level >= 5, tier: "bronze", category: "elite" });
+    badges.push({ id: "WEALTH_WARRIOR", name: "Wealth Warrior", icon: "award", description: level >= 15 ? "Reached Level 15" : "Reach Level 15", unlocked: level >= 15, tier: "gold", category: "elite" });
+    const allUnlocked = badges.filter(b => b.unlocked).length;
+    badges.push({ id: "MONEYSUTRA_LEGEND", name: "MoneySutra Legend", icon: "star", description: "All badges, Level 20, Score 95+", unlocked: allUnlocked >= 29 && level >= 20 && finalScore >= 95, tier: "platinum", category: "elite" });
 
     const unlocked = badges.filter(b => b.unlocked);
     const gamData = {
-      level: Math.min(Math.floor(survivalDays / 30), 20), xp: survivalDays * 10 + finalScore * 5,
+      level, xp: survivalDays * 10 + finalScore * 5,
       achievements: unlocked, activeChallenges: [], allAchievements: badges,
       achievementCount: unlocked.length, totalBadges: badges.length,
     };
@@ -222,7 +247,11 @@ export function useIntelligenceData() {
         setControlScore(controlScoreData);
         const totalInvestments = cs.totalInvestments || 0;
         const incomeSources = 1; // Default for family combined view
-        const { gamData: fGam, challData: fChall } = generateBadgesAndChallenges(survivalDays, sr, finalScore, emiRatio, totalInvestments, incomeSources);
+        const { gamData: fGam, challData: fChall } = generateBadgesAndChallenges(survivalDays, sr, finalScore, emiRatio, totalInvestments, incomeSources, {
+          liquidBalance: liquidBalance,
+          totalLoans: cs.totalLoans || 0,
+          investmentCategories: 0
+        });
         setGamification(fGam);
         setChallenges(fChall);
         setBehaviorAlerts(null);
@@ -305,7 +334,11 @@ export function useIntelligenceData() {
 
         setSurvivalClock(clock);
         setControlScore(controlScoreData);
-        const { gamData: mGam, challData: mChall } = generateBadgesAndChallenges(survivalDays, sr, finalScore, emiRatio, totalInvestments, nw.incomeCount || 0);
+        const { gamData: mGam, challData: mChall } = generateBadgesAndChallenges(survivalDays, sr, finalScore, emiRatio, totalInvestments, nw.incomeCount || 0, {
+          liquidBalance: liquidBalance,
+          totalLoans: nw.totalLiabilities || 0,
+          investmentCategories: nw.investmentCategories || 0
+        });
         setGamification(mGam);
         setChallenges(mChall);
         setBehaviorAlerts(null);
