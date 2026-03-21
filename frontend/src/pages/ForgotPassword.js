@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Wallet, Mail, AlertCircle, CheckCircle, ArrowLeft, Send, Loader2, Lock, Eye, EyeOff, KeyRound, LinkIcon } from "lucide-react";
 import axios from "axios";
 
@@ -7,7 +7,9 @@ const backendUrl = process.env.REACT_APP_BACKEND_URL;
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
-  const [identifier, setIdentifier] = useState("");
+  const location = useLocation();
+  const emailFromLogin = location.state?.email || localStorage.getItem("moneyssutra_last_email") || "";
+  const [identifier, setIdentifier] = useState(emailFromLogin);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);

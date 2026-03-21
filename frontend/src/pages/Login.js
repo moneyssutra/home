@@ -315,7 +315,7 @@ const Login = () => {
             </div>
             <PrimaryBtn disabled={isSubmitting} testId="pw-login-btn">{isSubmitting ? <><Loader2 className="h-5 w-5 animate-spin" /> Signing In...</> : "Login"}</PrimaryBtn>
           </form>
-          <button onClick={() => navigate("/forgot-password")} className="block w-full text-center mt-3 text-sm" style={{ color: "var(--brand-primary)" }} data-testid="pw-forgot-link">Forgot Password?</button>
+          <button onClick={() => navigate("/forgot-password", { state: { email: identifier.trim() } })} className="block w-full text-center mt-3 text-sm" style={{ color: "var(--brand-primary)" }} data-testid="pw-forgot-link">Forgot Password?</button>
         </Card>
       </PageShell>
     );
@@ -338,7 +338,7 @@ const Login = () => {
           <SecondaryLinks>
             <button onClick={() => setShowPasswordFallback(true)} className="hover:underline" data-testid="use-password-link">Use Password</button>
             <span>|</span>
-            <button onClick={() => navigate("/forgot-password")} className="hover:underline" data-testid="need-help-link">Need Help?</button>
+            <button onClick={() => navigate("/forgot-password", { state: { email: identifier.trim() } })} className="hover:underline" data-testid="need-help-link">Need Help?</button>
           </SecondaryLinks>
           <p className="text-sm text-center" style={{ color: "var(--text-secondary)" }}>
             New here? <button onClick={() => setIsRegisterMode(true)} className="font-semibold hover:underline" style={{ color: "var(--brand-primary)" }} data-testid="create-account-link">Create Account</button>

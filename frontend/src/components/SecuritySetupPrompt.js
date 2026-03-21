@@ -33,6 +33,9 @@ const SecuritySetupPrompt = ({ onDismiss }) => {
   const confirmRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
 
   useEffect(() => {
+    // Check if biometric was permanently dismissed
+    const bioDismissed = localStorage.getItem("moneyssutra_biometric_dismissed") === "true";
+
     (async () => {
       try {
         const res = await axios.get(`${backendUrl}/api/auth/security-status`, { withCredentials: true });
@@ -43,7 +46,7 @@ const SecuritySetupPrompt = ({ onDismiss }) => {
         }
         // Start with whichever is missing
         if (!res.data.has_mpin) setStep("mpin");
-        else if (!res.data.has_biometric) setStep("biometric");
+        else if (!res.data.has_biometric && !bioDismissed) setStep("biometric");
         else onDismiss?.();
       } catch {
         onDismiss?.();
@@ -84,8 +87,9 @@ const SecuritySetupPrompt = ({ onDismiss }) => {
     setSaving(true);
     try {
       await axios.post(`${backendUrl}/api/mpin/set`, { mpin: pin }, { withCredentials: true });
-      // Move to biometric if not set
-      if (!status?.has_biometric) {
+      // Move to biometric if not set and not permanently dismissed
+      const bioDismissed = localStorage.getItem("moneyssutra_biometric_dismissed") === "true";
+      if (!status?.has_biometric && !bioDismissed) {
         setStep("biometric");
         setError("");
       } else {
@@ -237,7 +241,8 @@ const SecuritySetupPrompt = ({ onDismiss }) => {
             </div>
 
             <button onClick={() => {
-              if (!status?.has_biometric) setStep("biometric");
+              const bioDismissed = localStorage.getItem("moneyssutra_biometric_dismissed") === "true";
+              if (!status?.has_biometric && !bioDismissed) setStep("biometric");
               else onDismiss?.();
             }} className="w-full mt-2 py-2 text-xs font-medium flex items-center justify-center gap-1"
               style={{ color: "var(--text-muted)" }} data-testid="skip-mpin-setup">
@@ -280,7 +285,10 @@ const SecuritySetupPrompt = ({ onDismiss }) => {
               Skip for now
             </button>
 
-            <button onClick={onDismiss}
+            <button onClick={() => {
+              localStorage.setItem("moneyssutra_biometric_dismissed", "true");
+              onDismiss?.();
+            }}
               className="w-full mt-1.5 py-2 text-xs"
               style={{ color: "var(--text-muted)" }}
               data-testid="biometric-from-settings">
