@@ -134,3 +134,18 @@ Comprehensive financial management app with precise data intake, complex financi
 - iteration_172: 8 fixes - 100% (Edit Goal single form, page redirects, Add Account type picker, insurance coverage field, 30 badges, Analytics for members, Reports for members)
 - iteration_173: 3 fixes - 100% (GoalForm keystroke fix, Profile Health + button, old pages deleted, Add button on all pages)
 - iteration_174: Job Income wizard - 100% (9/9: 3-step wizard, step indicator, conditional fields, save flow, edit mode, no keystroke refresh)
+- iteration_175: Investment/Loan/Insurance wizard forms - frontend 100% (all 3 forms: 4-step wizards, step navigation, per-step validation, save on final step, edit mode)
+
+### Wizard Form Conversions Complete (Mar 2026)
+All 10 financial data entry forms converted to step-by-step wizards using WizardShell.js:
+1. JobIncome - 3-step wizard (Company/Type -> Amount/Frequency -> Schedule)
+2. BusinessIncome - wizard pattern
+3. SelfEmployedIncome - wizard pattern
+4. CommissionIncome - wizard pattern
+5. OtherIncomeForm - wizard pattern
+6. ExpenseForm - wizard pattern
+7. AccountForm - wizard pattern
+8. CreditCardForm - wizard pattern
+9. InvestmentForm - 4-step wizard (Category/Mode -> Name/Details -> Amount/Schedule -> Options)
+10. LoanForm - 4-step wizard (Type/Name -> Amounts -> Schedule -> Options)
+11. InsuranceForm - 4-step wizard (Type/Name -> Coverage/Premium -> Dates -> Details)
