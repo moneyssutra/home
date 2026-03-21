@@ -257,7 +257,7 @@ const AssetForm = () => {
   const step1Content = (
     <div className="space-y-6" data-testid="step-1-type">
       <div className="text-center mb-5">
-        <p className="text-base font-semibold" style={labelStyle}>Asset Type & Name</p>
+        <p className="text-base font-semibold" style={labelStyle}>Asset Name</p>
         <p className="text-xs mt-1" style={mutedStyle}>What kind of asset is this?</p>
       </div>
       {!isTypeLocked && (
