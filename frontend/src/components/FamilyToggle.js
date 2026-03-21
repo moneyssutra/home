@@ -29,7 +29,7 @@ const FamilyToggle = () => {
     }
   }, [open]);
 
-  if (!family || !family.members || family.members.length <= 1) return null;
+  if (!family || !family.members || family.members.length < 1) return null;
 
   const dropdown = open ? createPortal(
     <div
