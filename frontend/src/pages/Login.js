@@ -405,8 +405,9 @@ const Login = () => {
           <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>Enter the 6-digit code sent to <strong className="break-all">{identifier}</strong></p>
           <ErrorBanner message={error} />
           <OtpInputRow refs={otpRefs} state={otp} onChange={(i, v) => {
-            handleOtpChange(i, v);
-            const next = [...otp]; next[i] = v;
+            if (!/^\d?$/.test(v)) return;
+            const next = [...otp]; next[i] = v; setOtp(next);
+            if (v && i < 5) otpRefs.current[i + 1]?.focus();
             if (v && i === 5 && next.join("").length === 6) submitForgotMpinOtp(next.join(""));
           }} onKeyDown={handleOtpKey} onPaste={(e) => {
             const p = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
