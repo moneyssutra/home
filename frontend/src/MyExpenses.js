@@ -73,7 +73,10 @@ const MyExpenses = () => {
   const isNextMonth = monthOffset === 1;
 
   // Fetch summary for totals (all expenses)
-  const { data: allExpenses = [] } = useExpenseList({ memberId: memberParam ? activeViewId : undefined });
+  const { data: allExpenses = [] } = useExpenseList({
+    family: isFamilyView || undefined,
+    memberId: (!isPersonalView && !isFamilyView && activeViewId) ? activeViewId : undefined,
+  });
   // Fetch month-specific data with direct axios (avoid SWR caching issues)
   const [monthExpenses, setMonthExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -81,9 +84,11 @@ const MyExpenses = () => {
   const fetchMonthExpenses = useCallback(async () => {
     try {
       setLoading(true);
-      const extraParams = memberParam ? `&${memberParam}` : "";
+      const params = { month: currentMonthKey };
+      if (isFamilyView) params.family = "true";
+      else if (!isPersonalView && activeViewId) params.memberId = activeViewId;
       const res = await axios.get(`${API}/api/expenses/by-month`, {
-        params: { month: currentMonthKey, ...((!isPersonalView && !isFamilyView && activeViewId) ? { memberId: activeViewId } : {}) },
+        params,
         withCredentials: true,
       });
       setMonthExpenses(Array.isArray(res.data) ? res.data : []);
@@ -92,7 +97,7 @@ const MyExpenses = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentMonthKey, activeViewId]);
+  }, [currentMonthKey, activeViewId, isFamilyView, isPersonalView]);
 
   useEffect(() => { fetchMonthExpenses(); }, [fetchMonthExpenses]);
 
