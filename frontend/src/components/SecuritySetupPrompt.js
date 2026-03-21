@@ -274,9 +274,17 @@ const SecuritySetupPrompt = ({ onDismiss }) => {
             </button>
 
             <button onClick={onDismiss}
-              className="w-full mt-2 py-2 text-xs font-medium flex items-center justify-center gap-1"
-              style={{ color: "var(--text-muted)" }} data-testid="skip-biometric-setup">
-              Skip <ChevronRight className="h-3 w-3" />
+              className="w-full mt-3 py-2.5 rounded-xl text-sm font-medium border"
+              style={{ color: "var(--text-primary)", borderColor: "var(--border-light)" }}
+              data-testid="skip-biometric-setup">
+              Skip for now
+            </button>
+
+            <button onClick={onDismiss}
+              className="w-full mt-1.5 py-2 text-xs"
+              style={{ color: "var(--text-muted)" }}
+              data-testid="biometric-from-settings">
+              I'll set it up from Settings
             </button>
           </>
         )}

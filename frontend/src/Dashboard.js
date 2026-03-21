@@ -631,7 +631,7 @@ const Dashboard = () => {
         <div 
           className="rounded-2xl p-5 cursor-pointer transition-all hover:shadow-md shadow-card"
           style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }}
-          onClick={() => navigate("/my-goals")}
+          onClick={() => navigate("/dream-goals")}
           data-testid="goals-widget"
         >
           <div className="flex items-center justify-between mb-4">

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "@/App.css";
 import "@/styles/goals-visual.css";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 
 // Auth & Context
@@ -274,7 +274,7 @@ function AppRouter() {
       <Route path="/my-liabilities" element={<ProtectedRoute><MyLiabilities /></ProtectedRoute>} />
       
       {/* Goals */}
-      <Route path="/my-goals" element={<ProtectedRoute><MyGoals /></ProtectedRoute>} />
+      <Route path="/my-goals" element={<Navigate to="/dream-goals" replace />} />
       <Route path="/dream-goals" element={<ProtectedRoute><MyGoalsVisual /></ProtectedRoute>} />
       <Route path="/goal" element={<ProtectedRoute><GoalForm /></ProtectedRoute>} />
       <Route path="/goal/:id" element={<ProtectedRoute><GoalDetail /></ProtectedRoute>} />

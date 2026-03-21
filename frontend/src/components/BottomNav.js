@@ -10,7 +10,7 @@ const BottomNav = ({ onAddClick }) => {
     { id: "wealth", label: "Wealth", icon: TrendingUp, path: "/wealth" },
     { id: "add", label: "Add", icon: Plus, path: null },
     { id: "health", label: "Health", icon: HeartPulse, path: "/health" },
-    { id: "goals", label: "Goals", icon: Target, path: "/my-goals" },
+    { id: "goals", label: "Goals", icon: Target, path: "/dream-goals" },
   ];
 
   const isActive = (path) => {

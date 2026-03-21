@@ -178,7 +178,7 @@ const GoalDetail = () => {
         <div className="text-center">
           <p className="text-[#334155]/60 mb-4">Goal not found</p>
           <button
-            onClick={() => navigate("/my-goals")}
+            onClick={() => navigate("/dream-goals")}
             className="text-[#7C3AED] font-medium"
           >
             Go back to My Goals

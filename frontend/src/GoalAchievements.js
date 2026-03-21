@@ -223,7 +223,7 @@ const GoalAchievements = () => {
         
         <div className="relative">
           <div className="flex items-center gap-4 mb-6">
-            <BackButton fallbackPath="/my-goals" forceNavigate={true} className="bg-[#1E293B]/20 border-white/30 text-white hover:bg-[#1E293B]/30" />
+            <BackButton fallbackPath="/dream-goals" forceNavigate={true} className="bg-[#1E293B]/20 border-white/30 text-white hover:bg-[#1E293B]/30" />
             <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
               Goal Achievements
             </h1>
@@ -274,7 +274,7 @@ const GoalAchievements = () => {
               Complete your first goal to see it celebrated here!
             </p>
             <button
-              onClick={() => navigate("/my-goals")}
+              onClick={() => navigate("/dream-goals")}
               className="flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-white font-medium transition-all hover:bg-amber-600 active:scale-[0.98]"
               data-testid="view-active-goals-btn"
             >

@@ -23,8 +23,8 @@ const GoalForm = () => {
   const { id } = useParams();
   const isEditMode = !!id;
   
-  // Wizard step
-  const [step, setStep] = useState(1);
+  // Wizard step — edit mode starts at step 4 (Amount/Date) so user sees key fields first
+  const [step, setStep] = useState(isEditMode ? 4 : 1);
 
   // Form fields
   const [goalName, setGoalName] = useState("");

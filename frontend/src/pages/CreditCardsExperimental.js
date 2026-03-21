@@ -6,6 +6,7 @@ import {
   Receipt, DollarSign, BarChart3, Banknote,
 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import AddActionSheet from "@/components/AddActionSheet";
 import { useFamilyContext } from "@/context/FamilyContext";
 
 const API = process.env.REACT_APP_BACKEND_URL;
@@ -337,6 +338,7 @@ const CreditCardsExperimental = () => {
   const [refreshingId, setRefreshingId] = useState(null);
   const [syncNotif, setSyncNotif] = useState({ visible: false, message: "" });
   const [data, setData] = useState({ cards: [], payments: [], summary: {} });
+  const [showAddSheet, setShowAddSheet] = useState(false);
   const tabBarRef = useRef(null);
   const notifTimer = useRef(null);
 
@@ -422,7 +424,8 @@ const CreditCardsExperimental = () => {
         .animate-fadeIn { animation: fadeIn 0.35s ease-out; }
       `}</style>
 
-      <BottomNav />
+      <BottomNav onAddClick={() => setShowAddSheet(true)} />
+      <AddActionSheet isOpen={showAddSheet} onClose={() => setShowAddSheet(false)} />
     </div>
   );
 };
