@@ -10,6 +10,7 @@ import sys
 sys.path.insert(0, '/app/backend')
 from database import db
 from routes.auth import get_current_user
+from routes.utils import get_effective_user_filter
 
 
 @router.get("")
@@ -20,7 +21,7 @@ async def get_financial_health(request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     user_id = user.get('user_id')
-    user_filter = {"userId": user_id}
+    user_filter = await get_effective_user_filter(user, request)
     
     # Fetch all required data in parallel
     (
@@ -35,9 +36,9 @@ async def get_financial_health(request: Request):
         db.income_sources.find(user_filter, {"_id": 0}).to_list(1000),
         db.expenses.find(user_filter, {"_id": 0}).to_list(1000),
         db.insurances.find(user_filter, {"_id": 0}).to_list(1000),
-        db.profiles.find_one({"userId": user_id}, {"_id": 0}),
+        db.profiles.find_one(user_filter, {"_id": 0}),
         db.analytics_snapshots.find(user_filter, {"_id": 0}).sort([("year", -1), ("month", -1)]).to_list(2),
-        db.financial_health_wizard.find_one({"userId": user_id}, {"_id": 0})
+        db.financial_health_wizard.find_one(user_filter, {"_id": 0})
     )
     
     # Wizard data supplements when primary data is missing

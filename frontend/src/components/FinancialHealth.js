@@ -470,34 +470,20 @@ const FinancialHealth = () => {
       return;
     }
     if (!isPersonalView) {
-      // For member views, show 0 score with zeroed metric structure so cards are visible
-      const emptyHealth = {
-        overallScore: 0,
-        emergencyFund: { current: 0, target: 0, gap: 0, status: "No Data", action: "No financial data available for this member." },
-        lifeInsurance: { current: 0, target: 0, gap: 0, status: "No Data", action: "No life insurance data for this member." },
-        healthInsurance: { current: 0, target: 0, gap: 0, status: "No Data", action: "No health insurance data for this member." },
-        investmentAllocation: { actualEquity: 0, recommendedEquity: 0, gap: 0, status: "No Data", action: "No investment data for this member." },
-        creditUtilization: { utilization: 0, status: "No Data", action: "No credit card data for this member." },
-        loanBurden: { emiRatio: 0, totalEmi: 0, status: "No Data", action: "No loan data for this member." },
-        savingsRate: { rate: 0, surplus: 0, status: "No Data", action: "No income/expense data for this member." },
-        debtToAsset: { ratio: 0, totalDebt: 0, totalWorth: 0, status: "No Data", action: "No debt data for this member." },
-        netWorthTrend: { currentNetWorth: 0, previousNetWorth: 0, growthPercent: 0, status: "No Data", action: "No net worth data for this member." },
-        retirementReadiness: { status: "No Data", action: "No retirement data for this member." },
-        contributions: {
-          emergencyFund: { rawScore: 0, weight: 18, contribution: 0, maxContribution: 17.5 },
-          lifeInsurance: { rawScore: 0, weight: 8, contribution: 0, maxContribution: 7.5 },
-          healthInsurance: { rawScore: 0, weight: 8, contribution: 0, maxContribution: 7.5 },
-          savingsRate: { rawScore: 0, weight: 13, contribution: 0, maxContribution: 12.5 },
-          loanBurden: { rawScore: 0, weight: 13, contribution: 0, maxContribution: 12.5 },
-          creditUtilization: { rawScore: 0, weight: 10, contribution: 0, maxContribution: 10 },
-          investmentAllocation: { rawScore: 0, weight: 13, contribution: 0, maxContribution: 12.5 },
-          retirementReadiness: { rawScore: 0, weight: 10, contribution: 0, maxContribution: 10 },
-          debtToAsset: { rawScore: 0, weight: 10, contribution: 0, maxContribution: 10 },
-        }
-      };
-      setHealthData(emptyHealth);
-      setOverallScore(0);
-      setLoading(false);
+      // For individual member views, fetch their financial health data with memberId
+      setLoading(true);
+      try {
+        const memberParam = activeViewId ? `?memberId=${activeViewId}` : "";
+        const response = await axios.get(`${backendUrl}/api/financial-health${memberParam}`, { withCredentials: true });
+        setHealthData(response.data);
+        setOverallScore(response.data.overallScore || 0);
+      } catch (error) {
+        console.error("Error fetching member financial health:", error);
+        setHealthData(null);
+        setOverallScore(0);
+      } finally {
+        setLoading(false);
+      }
       return;
     }
     setLoading(true);
