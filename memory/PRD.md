@@ -92,6 +92,17 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - All email templates updated with correct "MoneySSutra" branding (username reminder, password reset, password changed)
 - Tested: iteration_180 - env vars and template branding verified
 
+### OTP Email System with Resend (Mar 2026)
+- Switched email service from EMERGENT_LLM_KEY to real RESEND_API_KEY (user-provided `re_8TeLoGxG_*`)
+- Domain `moneyssutra.com` verified in Resend for sender `noreply@moneyssutra.com`
+- Added 3 new auth endpoints: `/api/auth/send-otp`, `/api/auth/verify-otp`, `/api/auth/reset-password-otp`
+- OTP features: 6-digit code, 5-minute expiry, max 3 attempts, 60-second cooldown, SHA-256 hashed storage
+- Branded HTML OTP email template matching MoneySSutra design
+- Frontend ForgotPassword.js rewritten: mode selector (OTP vs Link), OTP input with 6 digit boxes, password reset form
+- Both Reset Link and OTP flows fully working
+- Email enumeration prevented (same success message for existing/non-existing emails)
+- Tested: iteration_181 - 15/15 backend tests, all frontend UI flows verified
+
 ### Rule-Based Financial Insights Engine (Mar 2026)
 - Replaced AI/GPT-based ai_insights.py with deterministic rule engine
 - 10 financial rules: expense ratio, savings rate, emergency fund, investments, debt burden, insurance gaps, credit utilization, loan exposure, overall health
@@ -138,6 +149,7 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Refactoring: `ProfileSetup.js` (>1500 lines), `Dashboard.js` (>700 lines)
 
 ## Test Reports
+- iteration_181: OTP email system - backend 100% (15/15), frontend 100% (all UI flows verified)
 - iteration_180: Family quick summary badge + email branding - backend 100% (7/7), frontend 100%
 - iteration_179: Family View data consistency fix - backend 100% (19/19 API tests), frontend 100% (6/6 pages)
 - iteration_177: Wizard form step structure revert - frontend 100% (all 6 forms: correct step counts, hidden type/category when locked, validation, save button on final step)
