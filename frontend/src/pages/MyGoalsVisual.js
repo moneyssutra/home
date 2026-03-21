@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Target, Clock, CheckCircle2, AlertCircle, Sparkles, ChevronRight } from "lucide-react";
+import { Plus, Target, Clock, CheckCircle2, AlertCircle, Sparkles, ChevronRight, ChevronLeft } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -254,6 +254,14 @@ const MyGoalsVisual = () => {
       <header className="gv-header">
         <div className="gv-header__row">
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <button
+              type="button"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+              onClick={() => navigate(-1)}
+              data-testid="back-button"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
             <ProfileMenu userName={null} userPicture={null} />
             <FamilyToggle />
           </div>

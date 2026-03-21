@@ -29,6 +29,32 @@ def get_user_filter(user):
     user_id = user.get('user_id')
     return {"userId": user_id}
 
+async def get_effective_user_filter(user, request: Request):
+    """Get filter that supports family member view via ?memberId query param.
+    If memberId is provided and the requesting user is in the same family, 
+    returns filter for that member. Otherwise returns the logged-in user's filter."""
+    member_id = request.query_params.get("memberId")
+    user_id = user.get("user_id")
+    
+    if not member_id or member_id == user_id:
+        return {"userId": user_id}
+    
+    # Verify the requesting user is in the same family as the member
+    family = await db.families.find_one(
+        {"$or": [{"createdBy": user_id}, {"members.id": user_id}]},
+        {"_id": 0, "members": 1}
+    )
+    if not family:
+        return {"userId": user_id}
+    
+    member_ids = [m["id"] for m in family.get("members", [])]
+    if member_id in member_ids:
+        return {"userId": member_id}
+    
+    return {"userId": user_id}
+
+
+
 
 def get_workspace_filter(workspace_id: str, user_id: str = None, user_email: str = None):
     """Get the appropriate MongoDB filter for workspace data isolation"""

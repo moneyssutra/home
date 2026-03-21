@@ -6,7 +6,7 @@ from datetime import datetime
 from database import db
 from server_models import OtherIncome, OtherIncomeCreate
 from routes.auth import get_current_user
-from routes.utils import get_user_filter
+from routes.utils import get_user_filter, get_effective_user_filter
 
 router = APIRouter(prefix="/other-income", tags=["Other Income"])
 
@@ -30,7 +30,7 @@ async def get_other_incomes(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
     incomes = await db.other_income.find(user_filter, {"_id": 0}).to_list(1000)
     for income in incomes:
         if isinstance(income.get('createdAt'), str):

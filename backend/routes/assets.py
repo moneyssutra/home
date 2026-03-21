@@ -7,7 +7,7 @@ import uuid
 from database import db
 from server_models import Asset, AssetCreate
 from routes.auth import get_current_user
-from routes.utils import get_user_filter
+from routes.utils import get_user_filter, get_effective_user_filter
 
 router = APIRouter(prefix="/assets", tags=["Assets"])
 
@@ -49,7 +49,7 @@ async def get_assets(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
     assets = await db.assets.find(user_filter, {"_id": 0}).to_list(1000)
     for asset in assets:
         if isinstance(asset.get('createdAt'), str):

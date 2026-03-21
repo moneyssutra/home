@@ -11,6 +11,7 @@ import { normalizeToMonthly } from "@/lib/formatters";
 import ExpenseWeekly from "@/ExpenseWeekly";
 import ExpenseMonthly from "@/ExpenseMonthly";
 import ExpenseCalendar from "@/ExpenseCalendar";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -58,6 +59,9 @@ const MyExpenses = () => {
   const [monthOffset, setMonthOffset] = useState(0);
   const [actionLoading, setActionLoading] = useState(null);
   const [activeView, setActiveView] = useState(searchParams.get("tab") || "list");
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
+
+  const memberParam = (!isPersonalView && !isFamilyView && activeViewId) ? `memberId=${activeViewId}` : "";
 
   const handleViewChange = (view) => {
     setActiveView(view);
@@ -69,7 +73,7 @@ const MyExpenses = () => {
   const isNextMonth = monthOffset === 1;
 
   // Fetch summary for totals (all expenses)
-  const { data: allExpenses = [] } = useExpenseList();
+  const { data: allExpenses = [] } = useExpenseList({ memberId: memberParam ? activeViewId : undefined });
   // Fetch month-specific data with direct axios (avoid SWR caching issues)
   const [monthExpenses, setMonthExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,8 +81,9 @@ const MyExpenses = () => {
   const fetchMonthExpenses = useCallback(async () => {
     try {
       setLoading(true);
+      const extraParams = memberParam ? `&${memberParam}` : "";
       const res = await axios.get(`${API}/api/expenses/by-month`, {
-        params: { month: currentMonthKey },
+        params: { month: currentMonthKey, ...((!isPersonalView && !isFamilyView && activeViewId) ? { memberId: activeViewId } : {}) },
         withCredentials: true,
       });
       setMonthExpenses(Array.isArray(res.data) ? res.data : []);
@@ -87,7 +92,7 @@ const MyExpenses = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentMonthKey]);
+  }, [currentMonthKey, activeViewId]);
 
   useEffect(() => { fetchMonthExpenses(); }, [fetchMonthExpenses]);
 
@@ -98,7 +103,8 @@ const MyExpenses = () => {
   useEffect(() => {
     if (activeView === "skipped" && !skippedHistory) {
       setSkippedLoading(true);
-      axios.get(`${API}/api/expenses/skipped-history`, { withCredentials: true })
+      const skippedParams = memberParam ? `?${memberParam}` : "";
+      axios.get(`${API}/api/expenses/skipped-history${skippedParams}`, { withCredentials: true })
         .then(res => setSkippedHistory(res.data))
         .catch(() => setSkippedHistory({ history: [], grandTotal: 0 }))
         .finally(() => setSkippedLoading(false));

@@ -1,141 +1,160 @@
-<analysis>original_problem_statement: The user is refining a comprehensive financial management app called MoneySutra. The primary focus is ensuring precise data intake, calculating complex financial data, building modern CRED-style UI modules for Bank Accounts and Credit Cards, generating comprehensive test data to simulate edge cases, and transforming the Goals section into a highly visual, emotionally engaging Dream Tracker with image cards and progress tracking.
+<analysis>original_problem_statement: The user is refining a comprehensive financial management app called MoneySutra. The primary focus is ensuring precise data intake, building modern CRED-style UI modules, generating test data, transforming the Goals section into a Dream Tracker, and building robust Family Hub functionalities including invite systems, shared loans, and accurate financial health filtering per family member.
 
 PRODUCT REQUIREMENTS:
-1. Ensure precise financial calculations.
-2. Refine app navigation (rolling buttons).
-3. Visual Goal Cards (Dream-Based UI) with keyword-based default images and user upload capabilities.
-4. Comprehensive seed data for test users including Family Hub functionalities.
+1. Ensure precise financial calculations and frequency normalizations.
+2. Visual Goal Cards (Dream-Based UI) with keyword-based default images.
+3. Family Member Invite system (via SMS/WhatsApp with invite links/codes).
+4. Granular Category Pickers for adding all financial entities (Income, Asset, Expense, Loan, Investment, Insurance).
+5. Accurate isolated data views for individual family members vs combined family views.
 
 **User's preferred language**: English
 *(Note to next agent: You MUST respond in English only)*
 
 **what currently exists?** 
-A full-stack React/FastAPI app using MongoDB. It features a financial tracking dashboard, gamified Financial Health system, highly polished CRED-style Bank Accounts and Credit Cards pages, and a newly implemented Dream Tracker visual goals page. Comprehensive seed data has been successfully injected into the database.
+A full-stack React/FastAPI/MongoDB app. It features a polished dashboard, gamified Financial Health, CRED-style lists, visual goals page, and a robust Family Hub. The app supports inviting family members via referral codes (UI built, notifications mocked), category-picker flow for adding entries, and shared loans (husband/wife). 
 
 **Last working item**:
-- Last item agent was working: Fixing the alignment of the unread notification green dot in the  component so it sits in a straight line with the notification text. 
-- Status: USER VERIFICATION PENDING
-- Agent Testing Done: Y
-- Which testing method agent to use?: NA (Agent already took a screenshot to verify the fix).
+- Last item agent was working: The agent was actively updating the frontend listing pages (, , , , etc.) to pass  to the backend API calls. This ensures that when a user switches to a specific family member (e.g., Priya Sharma), the list pages show *only* that member's data instead of the combined/owner's data. The agent successfully updated the backend logic and  /  but ran out of tokens before finishing the rest of the pages, adding the missing back button to Dreams, and refactoring the Goal Form.
+- Status: IN PROGRESS
+- Agent Testing Done: N
+- Which testing method agent to use?: testing_agent_v3_fork (Backend and Frontend both affected by these wide-reaching changes).
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-Issue 1: Verify Notification UI Fix (P0)
-   - Attempted fixes: Extracted the green dot from the flex container holding the title in  to ensure consistent absolute/flex alignment regardless of text length.
-   - Next debug checklist: Await user confirmation on whether the visual alignment meets their expectation based on the latest screenshot.
-   - Why fix this issue and what will be achieved with the fix?: Ensures UI polish and visual consistency in the notification dropdown.
-   - Status: USER VERIFICATION PENDING
+Issue 1: Filter List Pages by Family Member (P0 - HIGHEST PRIORITY)
+   - Attempted fixes: The agent successfully created  in the backend  and updated all backend GET endpoints to accept . Frontend files  and  were updated.
+   - Next debug checklist: You MUST finish updating the remaining frontend list views (, , , , and any liquid funds views) to import  and append  to their respective API calls.
+   - Why fix this issue and what will be achieved with the fix?: Fixes data bleed where individual family member views incorrectly display the main owner's raw data.
+   - Status: IN PROGRESS
+   - Is recurring issue?: N
+   - Should Test frontend/backend/both after fix?: Both
+
+Issue 2: Back Button missing in My Dreams Page (P1)
+   - Attempted fixes: None yet.
+   - Next debug checklist: Add a standard back button (using ) to the header of .
+   - Why fix this issue?: Improves navigation flow.
+   - Status: NOT STARTED
    - Is recurring issue?: N
    - Should Test frontend/backend/both after fix?: Frontend
-   - Blocked on other issue: None
 
 **In progress Task List**:
-*(None active)*
+Task 1: Goal Form Restructure into Wizard (P1)
+   - Where to resume: Modify . The user wants to change it from a single long form into a step-by-step wizard (Step 1: Goal Type -> Step 2: Goal Name -> Step 3: Goal Image -> Step 4: Target Amount, etc.). 
+   - What will be achieved with this?: Better UX and cognitive load reduction for users creating dreams.
+   - Status: NOT STARTED
+   - Should Test frontend/backend/both after fix?: Frontend
+   - Blocked on something: Finish Issue 1 (Family Member List Filtering) first.
 
 **Upcoming and Future Tasks**
 Upcoming Tasks:
-- (P1) Finvu SDK Integration: Integrate the Finvu Account Aggregator SDK into the Bank Accounts flow once the user provides credentials.
-- (P1) Transaction Linking Design: Allow users to link fetched bank transactions to specific expenses/incomes.
+- (P0) Link real Twilio credentials for SMS/WhatsApp (currently mocked via ).
+- (P1) Finvu SDK Integration for Account Aggregator.
+- (P1) Transaction Linking Design (link fetched bank transactions to expenses/incomes).
+- (P1) Phone-based login architecture.
 
 Future Tasks:
-- (P2) Phase 2 of Goals: Auto AI Image generation for goals based on goal names.
+- (P2) Auto AI Image generation for goals based on goal names.
 - (P2) Monthly financial summary email/notification.
 - (P2) Profile Health Score (combining completion % and data freshness).
 - (P2) Monthly Financial Report PDF generation.
 - (P2) Refactoring: Break down  (>1500 lines) into smaller components.
+- (P2) Referral rewards system (assigning points/badges for invited family members).
 
 **Completed work in this session**
-- Executed and validated comprehensive Seed Data Script for  including Family Hub data.
-- Fixed  vs  collection naming bug in the seed script.
-- Seeded 5 active Goals linked to corresponding investments/accounts.
-- Fixed 500 Internal Server Error on  for specific users (caused by  receiving too many arguments).
-- Built completely new Visual Goals Page () featuring CRED-style horizontal scrolling cards, progress bars, and status badges.
-- Implemented Goal Image mapping (assigning stock images based on keywords like car, home, emergency).
-- Added Image Upload API () and frontend integration in .
-- Refined UI themes: Updated Goals page from blue to green, then to a user-requested dusty rose/mauve pink gradient theme.
-- Added  dropdown to the Visual Goals page header.
-- Updated  to display the goal image as a full-bleed hero banner.
-- Fixed Notification unread dot alignment in .
+- Fixed global iOS safe area overlap (iPhone clock/WiFi overriding app content).
+- Fixed  so it displays even if the family has only 1 member (the owner).
+- Built Family Invite flow: API endpoints, InviteCode lookup, UI for joining via code, and a mocked Twilio SMS/WhatsApp notification service.
+- Fixed clipboard copy bug in  (added fallback).
+- Added EPF to Investment Categories.
+- Restructured Add flows: Created Category Picker pages for Asset, Investment, Loan, Expense, and Insurance. Updated  to route correctly.
+- Fixed  returning 0s for individual family members; fixed backend  frequency normalizations.
+- Added Gamification logic (badges/challenges) to individual member views.
+- Added Shared Loan feature (allows sharing a loan with a family member without double-counting in the combined family view).
 
 **Earlier issues found/mentioned but not fixed**
 *(None)*
 
 **Known issue recurrence from previous fork**
-- Issue recurrence in previous fork: External image loading failures (CORS/Hotlinking blocks from Unsplash/Pexels).
+- Issue recurrence in previous fork: External image loading failures (CORS/Hotlinking blocks from Unsplash/Pexels for Goal Images).
 - Recurrence count: 3
-- Status: RESOLVED (Agent manually sourced reliable Pexels/Unsplash URLs or used the Image Generation tool to create permanent images when stock URLs failed).
-Note: If default goal images break in the future, check if the external URL is blocking the request and replace it with a generated image.
+- Status: RESOLVED (Fallback implemented). Note: Use Image Gen tool if standard stock URLs break in the future.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Visual Goals Image Logic**: The system checks if  exists (user uploaded). If not, it falls back to a predefined dictionary of image URLs mapped to keywords (e.g., car, home, emergency).
-- **Family Context**:  controls global state via . The  determines if the user is looking at personal data, a family member's data, or the combined family net worth.
+- **Family Context & Filtering**:  in  dictates what the user is looking at. To fetch data for a specific member, frontend lists append  to API calls. The backend uses  to validate and apply this filter.
+- **Shared Loans**:  and  models now have a  array. The  endpoint mathematically prevents double-counting these liabilities for the family total.
 
 **key DB schema**
-- : Added  field to store file paths of uploaded images.
-- : Always plural. (Previous bug used singular ).
+- : Added  (List of strings/user IDs).
+- /: Accept  during registration to auto-link to a family.
 
 **changes in tech stack**
 *(None)*
 
 **All files of reference**
--  (Created for new UI)
--  (Created for styling)
--  (Updated for uploads)
--  (Updated for hero image)
--  (Updated for image upload endpoint)
--  (Bug fix on line 757)
--  (UI bug fix)
+- 
+-  &  (Examples of correctly updated list views).
+- , , , etc. (Need to be updated next).
+- 
+- 
 
 **Areas that need refactoring**
--  is over 1500 lines and handles all wizard logic. It could be broken down into sub-components per module.
+-  (Tasked by user to become a step-by-step wizard).
+-  (>1500 lines).
 
 **key api endpoints**
--  (Core endpoint for rendering dashboard)
--  (POST/GET)
--  (POST - New endpoint for image uploads)
+- 
+-  (Assets, Loans, Expenses, etc.)
+- 
 
 **Critical Info for New Agent**
-- **Goal Images**: Be mindful when testing visual goals. If the testing agent uploads a dummy 1kb file, it will override the beautiful stock fallbacks and render a blank square. You may need to manually clear the  field in the database if this happens during testing.
-- **Color Theme**: The user specifically requested the current dusty rose/mauve pink gradient () for the Goals page. Do not revert this to standard pink, blue, or green.
+- **DO NOT start new features immediately.** You must first finish updating the remaining frontend listing pages to pass the  parameter to the backend. The previous agent stopped midway through this operation. Look at  or  to see the pattern the previous agent used, and apply it to , , , etc.
+- When adding Back buttons, strictly use  rather than hardcoding paths (e.g., do not use ).
 
 **documents and test reports created in this job**
 - 
--  (Seed data verification)
--  (Goals Visual V1)
--  (Goals Visual V2)
--  (Goals Bug Fixes)
+- 
+- 
+- 
 
 **Last 10 User Messages and any pending HUMAN messages** 
-1. **User**: yes (Approval to run seed data testing) (COMPLETED)
-2. **User**: add goals as well all types 1 for each (COMPLETED)
-3. **User**: for user Sandeepdash24@gmail.com data is coming empty why is this happening ( in prod) (COMPLETED - Fixed 500 error in dashboard combined endpoint)
-4. **User**: Provided massive PRD to convert Goals page to Visual Goal Cards (Dream-Based UI). (COMPLETED)
-5. **User**: Make Goals Page scroll left to right like Bank Accounts, add image upload to Add Goals, change blue to light pink/brown, change progress ring to horizontal bar. (COMPLETED)
-6. **User**: Edit goals missing image upload, change brown header to pink gradient, Completed tab behavior bug, Emergency fund image missing, Goal detail needs hero image. (COMPLETED)
-7. **User**: Cruise party image got changed, pink color not looking good (change to soothing color), Switch profile option missing. (COMPLETED - Used Dusty Rose theme, restored image, added FamilyToggle).
-8. **User**: the green dot in notification is. not in straight line (with image) (COMPLETED - Awaiting verification).
+1. **User**: requested iOS iPhone safe area overlap fix. (COMPLETED)
+2. **User**: Switch profile missing for single-owner families. (COMPLETED)
+3. **User**: Asked for referral code/invite flow via SMS/WhatsApp with fresh logins. (COMPLETED)
+4. **User**: Clarified invite flow requirements (App link + invite code field during registration). (COMPLETED)
+5. **User**: Requested Clipboard copy bug fix, EPF added to investments, and Category Picker pages for all entity Add buttons. (COMPLETED)
+6. **User**: Pointed out bottom  navigation menu was not pointing to new category pages. (COMPLETED)
+7. **User**: Pointed out Bottom Nav was missing on new Category pages, and back buttons were broken. (COMPLETED)
+8. **User**: Reported Wife's (Priya Sharma) Health page data was all 0s or wrong. (COMPLETED)
+9. **User**: Reported Badges/Challenges missing for Priya, Liabilities listing showing combined data instead of Priya's data, and requested Shared Loans logic. (COMPLETED shared loans and badges. WIP on list data).
+10. **User**: 1. Same problem is in My Assets, Investments, Liquid funds fix everywhere. 2. Back Button missing in. My Dreams Page. 3. Can we restructure Create Goal page like first lets show only Goal Type... (PENDING - Agent was midway through fixing #1 when context ran out).
 
 **Project Health Check:**
-- Broken: None.
-- Mocked: Finvu SDK.
+- Broken: Frontend Listing pages for Loans, Expenses, Insurance, etc., are currently fetching combined data instead of specific family member data because they haven't been updated to pass the  parameter yet.
+- Mocked: Twilio Notification Service, Finvu SDK.
 
 **3rd Party Integrations**
 - MongoDB Atlas — uses User-provided Cluster
+- Twilio SMS/WhatsApp — Mocked (Requires User API Key)
 - Emergent-managed Google Auth — Emergent Auth
 
 **Testing status**
-- Testing agent used after significant changes: YES (iterations 158 through 161)
+- Testing agent used after significant changes: YES
 - Troubleshoot agent used after agent stuck in loop: NO
-- Test files created: None
+- Test files created: , , 
 - Known regressions: None
 
 **Credentials to test flow:**
+- Test User:  / 
 - Google Login: , 
 - JWT Login (Dev/Seed Data target):  / 
 - Admin Login:  / 
 
 **What agent forgot to execute**
-Nothing. The agent successfully addressed the final UI adjustment for the notification dot. Await user confirmation on the fix before moving to the upcoming P1 tasks (Finvu SDK / Transaction Linking).</analysis>
+The agent did not finish completing the user's very last message. Specifically:
+1. Did not finish updating ALL listing pages to pass  (Only finished Assets and Investments).
+2. Did not add the Back Button to My Dreams page.
+3. Did not restructure  into a wizard. 
+*Start here.*</analysis>

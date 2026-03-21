@@ -12,6 +12,7 @@ import {
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const MyLiabilities = () => {
   const navigate = useNavigate();
@@ -20,19 +21,21 @@ const MyLiabilities = () => {
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [activeTab, setActiveTab] = useState("all"); // "all", "loans", "cards"
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [activeViewId]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      const params = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
       const [loansRes, cardsRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/loans`),
-        axios.get(`${backendUrl}/api/credit-cards`)
+        axios.get(`${backendUrl}/api/loans${params}`),
+        axios.get(`${backendUrl}/api/credit-cards${params}`)
       ]);
       setLoans(loansRes.data || []);
       setCreditCards(cardsRes.data || []);

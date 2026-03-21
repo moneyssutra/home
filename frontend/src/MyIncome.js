@@ -6,6 +6,7 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 const fetcher = (url) => axios.get(url, { withCredentials: true }).then(res => res.data);
@@ -13,16 +14,19 @@ const fetcher = (url) => axios.get(url, { withCredentials: true }).then(res => r
 const MyIncome = () => {
   const navigate = useNavigate();
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
+
+  const memberParam = (!isPersonalView && !isFamilyView && activeViewId) ? `memberId=${activeViewId}` : "";
 
   // Use SWR for data fetching with caching
   const { data: incomes = [], isLoading: incomeLoading } = useSWR(
-    `${backendUrl}/api/income/list/summary`,
+    `${backendUrl}/api/income/list/summary${memberParam ? `?${memberParam}` : ""}`,
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
   
   const { data: otherIncomes = [], isLoading: otherLoading } = useSWR(
-    `${backendUrl}/api/other-income`,
+    `${backendUrl}/api/other-income${memberParam ? `?${memberParam}` : ""}`,
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );
@@ -30,7 +34,7 @@ const MyIncome = () => {
   // Fetch received/pending from backend (same logic as dashboard for consistency)
   const tzOffset = new Date().getTimezoneOffset();
   const { data: incomeSummary, isLoading: summaryLoading } = useSWR(
-    `${backendUrl}/api/income/monthly-summary?tz_offset=${tzOffset}`,
+    `${backendUrl}/api/income/monthly-summary?tz_offset=${tzOffset}${memberParam ? `&${memberParam}` : ""}`,
     fetcher,
     { revalidateOnFocus: false, dedupingInterval: 60000 }
   );

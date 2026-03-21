@@ -66,6 +66,7 @@ export function useExpenseList(filters = {}, options = {}) {
   const params = new URLSearchParams();
   if (filters.category) params.append('category', filters.category);
   if (filters.expenseType) params.append('expense_type', filters.expenseType);
+  if (filters.memberId) params.append('memberId', filters.memberId);
   
   const queryString = params.toString();
   const url = queryString 

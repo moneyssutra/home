@@ -7,7 +7,7 @@ from calendar import monthrange
 from database import db
 from server_models import Expense, ExpenseCreate
 from routes.auth import get_current_user
-from routes.utils import get_user_filter, get_user_now, get_weekly_multiplier, count_weekday_occurrences, parse_due_day
+from routes.utils import get_user_filter, get_effective_user_filter, get_user_now, get_weekly_multiplier, count_weekday_occurrences, parse_due_day
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
@@ -113,7 +113,7 @@ async def get_expenses(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
     expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(1000)
     for expense in expenses:
         if isinstance(expense.get('createdAt'), str):
@@ -126,7 +126,7 @@ async def get_expense_list_summary(request: Request, category: Optional[str] = N
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
     if category:
         user_filter["category"] = category
     if expense_type:
@@ -215,7 +215,7 @@ async def get_expenses_by_month(request: Request, month: Optional[str] = None):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
 
     now = get_user_now(request)
     target_month = month or f"{now.year}-{now.month:02d}"
@@ -355,7 +355,7 @@ async def get_monthly_summary(request: Request, last: int = 6):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
 
     all_expenses = await db.expenses.find(user_filter, {"_id": 0}).to_list(5000)
     # Also get income for % of income calculation
@@ -1286,7 +1286,7 @@ async def get_skipped_history(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
 
     # Find all expenses that have any skipped months
     expenses = await db.expenses.find(

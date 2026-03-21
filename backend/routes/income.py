@@ -7,7 +7,7 @@ import calendar as cal
 from database import db
 from server_models import IncomeSource, IncomeSourceCreate
 from routes.auth import get_current_user
-from routes.utils import get_user_filter, get_user_now, count_weekday_occurrences
+from routes.utils import get_user_filter, get_effective_user_filter, get_user_now, count_weekday_occurrences
 
 router = APIRouter(prefix="/income", tags=["Income"])
 
@@ -97,7 +97,7 @@ async def get_income_sources(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
     income_sources = await db.income_sources.find(user_filter, {"_id": 0}).to_list(1000)
     for source in income_sources:
         if isinstance(source.get('createdAt'), str):
@@ -110,7 +110,7 @@ async def get_income_list_summary(request: Request, type: Optional[str] = None):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
     if type:
         # Treat synonymous types: Job↔Salary, Self-Employed↔Freelance
         type_synonyms = {
@@ -240,7 +240,7 @@ async def get_income_monthly_summary(request: Request):
     user = await get_current_user(request)
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    user_filter = get_user_filter(user)
+    user_filter = await get_effective_user_filter(user, request)
 
     import calendar
     now = get_user_now(request)

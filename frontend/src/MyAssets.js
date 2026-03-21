@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Plus, Building2, Home, Car, Tractor, Package
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const MyAssets = () => {
   const navigate = useNavigate();
@@ -11,19 +12,21 @@ const MyAssets = () => {
   const [loans, setLoans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [activeViewId]);
 
   const fetchData = async () => {
     try {
       setLoading(true);
+      const params = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
       const [assetsRes, loansRes] = await Promise.all([
-        axios.get(`${backendUrl}/api/assets`),
-        axios.get(`${backendUrl}/api/loans`)
+        axios.get(`${backendUrl}/api/assets${params}`),
+        axios.get(`${backendUrl}/api/loans${params}`)
       ]);
       setAssets(assetsRes.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
       setLoans(loansRes.data);

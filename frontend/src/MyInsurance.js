@@ -5,23 +5,26 @@ import axios from "axios";
 import { addMonths, addQuarters, addYears, format, isAfter, isBefore } from "date-fns";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import { useFamilyContext } from "@/context/FamilyContext";
 
 const MyInsurance = () => {
   const navigate = useNavigate();
   const [insurances, setInsurances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
+  const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
 
   useEffect(() => {
     fetchInsurances();
-  }, []);
+  }, [activeViewId]);
 
   const fetchInsurances = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/insurances`);
+      const params = (!isPersonalView && !isFamilyView && activeViewId) ? `?memberId=${activeViewId}` : "";
+      const response = await axios.get(`${backendUrl}/api/insurances${params}`);
       const sortedInsurances = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setInsurances(sortedInsurances);
     } catch (error) {
