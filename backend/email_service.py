@@ -22,10 +22,10 @@ logger = logging.getLogger(__name__)
 # Email Provider Configuration
 EMAIL_PROVIDER = os.environ.get("EMAIL_PROVIDER", "resend")  # resend, sendgrid, mailgun
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@moneyssutra.app")
-SENDER_NAME = os.environ.get("SENDER_NAME", "Moneyssutra")
+SENDER_NAME = os.environ.get("SENDER_NAME", "MoneySSutra Support")
 APP_URL = os.environ.get("APP_URL", "https://goal-tracker-prod.emergent.host")
 
-# Moneyssutra Brand Colors
+# MoneySSutra Brand Colors
 BRAND_PRIMARY = "#00D09C"  # Mint Green
 BRAND_DARK = "#0B8F70"
 BRAND_BG = "#F8FAF9"
@@ -38,7 +38,7 @@ def get_email_header():
     return f"""
     <div style="background: linear-gradient(135deg, {BRAND_PRIMARY} 0%, {BRAND_DARK} 100%); padding: 30px 20px; text-align: center;">
         <h1 style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 28px; font-weight: bold; color: white; letter-spacing: 1px;">
-            Moneyssutra
+            MoneySSutra
         </h1>
         <p style="margin: 5px 0 0 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: rgba(255,255,255,0.8);">
             Your Personal Finance Tracker
@@ -53,7 +53,7 @@ def get_email_footer():
     <div style="background-color: #f5f5f5; padding: 20px; text-align: center; border-top: 1px solid #e0e0e0;">
         <p style="margin: 0 0 10px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: {TEXT_PRIMARY};">
             Stay Wealthy,<br>
-            <strong style="color: {BRAND_PRIMARY};">Team Moneyssutra</strong>
+            <strong style="color: {BRAND_PRIMARY};">Team MoneySSutra</strong>
         </p>
         <p style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #999;">
             This is an automated message, please do not reply.
@@ -66,7 +66,7 @@ def get_username_recovery_email(username: str) -> dict:
     """
     Generate Username Recovery Email
     """
-    subject = "Your Moneyssutra Username"
+    subject = "Your MoneySSutra Username"
     
     html_content = f"""
     <!DOCTYPE html>
@@ -88,7 +88,7 @@ def get_username_recovery_email(username: str) -> dict:
                         Hello,
                     </h2>
                     <p style="margin: 0 0 25px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; color: {TEXT_SECONDARY}; line-height: 1.6;">
-                        We received a request to remind you of the username associated with your Moneyssutra account.
+                        We received a request to remind you of the username associated with your MoneySSutra account.
                     </p>
                     
                     <div style="background-color: {BRAND_BG}; border-left: 4px solid {BRAND_PRIMARY}; padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0;">
@@ -128,7 +128,7 @@ def get_password_reset_email(username: str, reset_link: str) -> dict:
     """
     Generate Password Reset Email
     """
-    subject = "Reset your Moneyssutra Password"
+    subject = "Reset your MoneySSutra Password"
     
     html_content = f"""
     <!DOCTYPE html>
@@ -150,7 +150,7 @@ def get_password_reset_email(username: str, reset_link: str) -> dict:
                         Hello {username},
                     </h2>
                     <p style="margin: 0 0 25px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; color: {TEXT_SECONDARY}; line-height: 1.6;">
-                        You recently requested to reset your password for your Moneyssutra account. Click the button below to choose a new one:
+                        You recently requested to reset your password for your MoneySSutra account. Click the button below to choose a new one:
                     </p>
                     
                     <div style="text-align: center; margin: 35px 0;">
@@ -192,7 +192,7 @@ def get_password_changed_email(username: str) -> dict:
     """
     Generate Password Changed Security Notification Email
     """
-    subject = "Your Moneyssutra Password Has Been Changed"
+    subject = "Your MoneySSutra Password Has Been Changed"
     
     html_content = f"""
     <!DOCTYPE html>
@@ -221,7 +221,7 @@ def get_password_changed_email(username: str) -> dict:
                     </h2>
                     
                     <p style="margin: 0 0 25px 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; color: {TEXT_SECONDARY}; line-height: 1.6; text-align: center;">
-                        Hello {username}, your Moneyssutra account password has been successfully changed.
+                        Hello {username}, your MoneySSutra account password has been successfully changed.
                     </p>
                     
                     <div style="background-color: #FFEBEE; border: 1px solid #FFCDD2; padding: 20px; border-radius: 8px; margin: 25px 0;">
@@ -233,7 +233,7 @@ def get_password_changed_email(username: str) -> dict:
                     
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="{APP_URL}" style="display: inline-block; background-color: {BRAND_PRIMARY}; color: white; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-family: 'Segoe UI', Arial, sans-serif; font-size: 16px; font-weight: 600;">
-                            Go to Moneyssutra
+                            Go to MoneySSutra
                         </a>
                     </div>
                 </td>

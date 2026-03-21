@@ -3,8 +3,18 @@ import { createPortal } from "react-dom";
 import { Users, ChevronDown, User, Check, Home } from "lucide-react";
 import { useFamilyContext } from "@/context/FamilyContext";
 
+const formatCompact = (amount) => {
+  if (!amount || amount === 0) return "₹0";
+  const abs = Math.abs(amount);
+  const sign = amount < 0 ? "-" : "";
+  if (abs >= 10000000) return `${sign}₹${(abs / 10000000).toFixed(1)}Cr`;
+  if (abs >= 100000) return `${sign}₹${(abs / 100000).toFixed(1)}L`;
+  if (abs >= 1000) return `${sign}₹${(abs / 1000).toFixed(1)}K`;
+  return `${sign}₹${Math.round(abs).toLocaleString("en-IN")}`;
+};
+
 const FamilyToggle = () => {
-  const { family, activeViewId, activeViewLabel, isPersonalView, isFamilyView, switchToPersonal, switchToMember, switchToFamily } = useFamilyContext();
+  const { family, activeViewId, activeViewLabel, isPersonalView, isFamilyView, quickSummary, switchToPersonal, switchToMember, switchToFamily } = useFamilyContext();
   const [open, setOpen] = useState(false);
   const btnRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -91,7 +101,10 @@ const FamilyToggle = () => {
             </div>
             <div className="flex-1 text-left">
               <span className="text-sm text-gray-700 block">{family.familyName || "Family"}</span>
-              <span className="text-[10px] text-gray-400">Combined Net Worth</span>
+              <span className="text-[10px] text-gray-400" data-testid="family-summary-badge">
+                {quickSummary ? `${quickSummary.memberCount} members` : "Combined Net Worth"}
+                {quickSummary?.combinedNetworth ? `, ${formatCompact(quickSummary.combinedNetworth)} combined` : ""}
+              </span>
             </div>
             {isFamilyView && <Check className="h-4 w-4 text-green-500" />}
           </button>
@@ -116,7 +129,9 @@ const FamilyToggle = () => {
           data-testid="family-toggle-btn"
         >
           {isPersonalView ? <User className="h-3.5 w-3.5" /> : isFamilyView ? <Home className="h-3.5 w-3.5" /> : <Users className="h-3.5 w-3.5" />}
-          <span className="max-w-[80px] truncate">{activeViewLabel}</span>
+          <span className="max-w-[100px] truncate">
+            {isFamilyView && quickSummary ? `${activeViewLabel} (${quickSummary.memberCount})` : activeViewLabel}
+          </span>
           <ChevronDown className="h-3 w-3" style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 200ms" }} />
         </button>
       </div>

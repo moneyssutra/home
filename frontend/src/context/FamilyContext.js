@@ -13,16 +13,22 @@ export const FamilyProvider = ({ children }) => {
   const [family, setFamily] = useState(null);
   const [activeViewId, setActiveViewId] = useState(null); // null = personal (self)
   const [loading, setLoading] = useState(false);
+  const [quickSummary, setQuickSummary] = useState(null);
 
   const fetchFamily = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const res = await axios.get(`${API}/api/family`, { withCredentials: true });
-      const data = res.data.family !== undefined ? (res.data.family || null) : (res.data?.id ? res.data : null);
+      const [famRes, summaryRes] = await Promise.all([
+        axios.get(`${API}/api/family`, { withCredentials: true }),
+        axios.get(`${API}/api/family/quick-summary`, { withCredentials: true }).catch(() => ({ data: null })),
+      ]);
+      const data = famRes.data.family !== undefined ? (famRes.data.family || null) : (famRes.data?.id ? famRes.data : null);
       setFamily(data);
+      setQuickSummary(summaryRes.data);
     } catch {
       setFamily(null);
+      setQuickSummary(null);
     } finally {
       setLoading(false);
     }
@@ -64,6 +70,7 @@ export const FamilyProvider = ({ children }) => {
       activeViewLabel,
       isPersonalView,
       isFamilyView,
+      quickSummary,
       switchToPersonal,
       switchToMember,
       switchToFamily,

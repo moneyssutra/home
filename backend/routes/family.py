@@ -80,6 +80,50 @@ async def get_family(request: Request):
     return family
 
 
+@router.get("/quick-summary")
+async def get_family_quick_summary(request: Request):
+    """Lightweight endpoint returning member count and combined net worth for badge display."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    user_id = user.get("user_id")
+    family = await db.families.find_one(
+        {"$or": [{"createdBy": user_id}, {"members.id": user_id}]},
+        {"_id": 0, "members": 1}
+    )
+    if not family:
+        return {"memberCount": 0, "combinedNetworth": 0}
+
+    member_ids = [m["id"] for m in family.get("members", [])]
+    family_filter = {"userId": {"$in": member_ids}}
+
+    # Parallel fetch just totals
+    import asyncio
+    assets_cursor = db.assets.find(family_filter, {"_id": 0, "currentValue": 1})
+    investments_cursor = db.investments.find(family_filter, {"_id": 0, "currentValue": 1})
+    loans_cursor = db.loans.find(family_filter, {"_id": 0, "outstandingAmount": 1})
+    accounts_cursor = db.accounts.find(family_filter, {"_id": 0, "balance": 1})
+
+    assets, investments, loans, accounts = await asyncio.gather(
+        assets_cursor.to_list(1000),
+        investments_cursor.to_list(1000),
+        loans_cursor.to_list(1000),
+        accounts_cursor.to_list(1000),
+    )
+
+    total_assets = sum(a.get("currentValue", 0) for a in assets)
+    total_investments = sum(i.get("currentValue", 0) for i in investments)
+    total_loans = sum(ln.get("outstandingAmount", 0) for ln in loans)
+    total_accounts = sum(a.get("balance", 0) for a in accounts)
+    combined = total_assets + total_investments + total_accounts - total_loans
+
+    return {
+        "memberCount": len(member_ids),
+        "combinedNetworth": round(combined, 2),
+    }
+
+
 @router.post("/add-member")
 async def add_family_member(input: FamilyMemberCreate, request: Request):
     """Manually add a family member with optional smart-link to existing account."""
