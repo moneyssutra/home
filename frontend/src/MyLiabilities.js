@@ -411,7 +411,7 @@ const MyLiabilities = () => {
             </p>
             <div className="flex gap-3 justify-center">
               <button
-                onClick={() => navigate("/loan")}
+                onClick={() => navigate("/add-loan")}
                 className="px-4 py-2 rounded-xl text-white font-medium text-sm"
                 style={{ backgroundColor: "#D97706" }}
               >
@@ -433,7 +433,7 @@ const MyLiabilities = () => {
             <Landmark className="h-12 w-12 mx-auto mb-3" style={{ color: "var(--text-muted)" }} />
             <p className="text-sm mb-3" style={{ color: "var(--text-secondary)" }}>No loans added yet</p>
             <button
-              onClick={() => navigate("/loan")}
+              onClick={() => navigate("/add-loan")}
               className="px-4 py-2 rounded-xl text-white font-medium text-sm"
               style={{ backgroundColor: "#D97706" }}
             >

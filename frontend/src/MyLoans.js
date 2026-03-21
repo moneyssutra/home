@@ -180,7 +180,7 @@ const MyLoans = () => {
             </p>
             <button
               type="button"
-              onClick={() => navigate("/loan")}
+              onClick={() => navigate("/add-loan")}
               className="flex items-center gap-2 rounded-xl px-6 py-3 text-white font-medium transition-all active:scale-[0.98]"
               style={{ backgroundColor: "var(--status-warning)", boxShadow: "0 4px 12px rgba(245, 158, 11, 0.3)" }}
               data-testid="add-loan-empty-button"
@@ -393,7 +393,7 @@ const MyLoans = () => {
             <div className="pt-4">
               <button
                 type="button"
-                onClick={() => navigate("/loan")}
+                onClick={() => navigate("/add-loan")}
                 className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-4 font-semibold transition-all active:scale-[0.98]"
                 style={{ borderColor: "var(--status-warning)", color: "var(--status-warning)" }}
                 data-testid="add-loan-button"

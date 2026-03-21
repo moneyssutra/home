@@ -159,7 +159,27 @@ const FamilyPage = () => {
   };
 
   const copyInviteCode = () => {
-    navigator.clipboard.writeText(family?.inviteCode || "");
+    const code = family?.inviteCode || "";
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(code).then(() => {
+        toast.success("Invite code copied!");
+      }).catch(() => {
+        fallbackCopy(code);
+      });
+    } else {
+      fallbackCopy(code);
+    }
+  };
+
+  const fallbackCopy = (text) => {
+    const el = document.createElement("textarea");
+    el.value = text;
+    el.style.position = "fixed";
+    el.style.left = "-9999px";
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
     toast.success("Invite code copied!");
   };
 

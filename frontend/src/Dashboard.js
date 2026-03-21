@@ -688,14 +688,14 @@ const Dashboard = () => {
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <button
-                onClick={() => navigate("/asset")}
+                onClick={() => navigate("/add-asset")}
                 className="px-4 py-2 rounded-xl text-white font-medium text-sm transition-all hover:opacity-90 active:scale-95"
                 style={{ backgroundColor: "var(--brand-primary)" }}
               >
                 Add Asset
               </button>
               <button
-                onClick={() => navigate("/investment")}
+                onClick={() => navigate("/add-investment")}
                 className="px-4 py-2 rounded-xl font-medium text-sm transition-all active:scale-95"
                 style={{ backgroundColor: "var(--bg-subtle)", color: "var(--text-primary)" }}
               >

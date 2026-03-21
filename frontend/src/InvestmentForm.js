@@ -102,6 +102,7 @@ const InvestmentForm = () => {
     "ULIP",
     "Crypto",
     "PPF",
+    "EPF",
     "NPS",
     "Loan Given",
     "Other"

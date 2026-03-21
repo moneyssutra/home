@@ -97,6 +97,11 @@ import AccountDetail from "@/pages/AccountDetail";
 import Opportunities from "@/pages/Opportunities";
 
 import InviteLanding from "@/pages/InviteLanding";
+import AddInvestment from "@/pages/AddInvestment";
+import AddAsset from "@/pages/AddAsset";
+import AddLoan from "@/pages/AddLoan";
+import AddExpense from "@/pages/AddExpense";
+import AddInsurance from "@/pages/AddInsurance";
 
 // Goal Pages
 import MyGoals from "@/MyGoals";
@@ -205,6 +210,7 @@ function AppRouter() {
       <Route path="/my-dividend" element={<ProtectedRoute><MyDividend /></ProtectedRoute>} />
       
       {/* Loans */}
+      <Route path="/add-loan" element={<ProtectedRoute><AddLoan /></ProtectedRoute>} />
       <Route path="/my-loans" element={<ProtectedRoute><MyLoans /></ProtectedRoute>} />
       <Route path="/loan-breakdown" element={<ProtectedRoute><LoanBreakdown /></ProtectedRoute>} />
       <Route path="/loans/:category" element={<ProtectedRoute><CategoryLoan /></ProtectedRoute>} />
@@ -213,6 +219,7 @@ function AppRouter() {
       <Route path="/loan/:id" element={<ProtectedRoute><LoanForm /></ProtectedRoute>} />
       
       {/* Assets */}
+      <Route path="/add-asset" element={<ProtectedRoute><AddAsset /></ProtectedRoute>} />
       <Route path="/my-assets" element={<ProtectedRoute><MyAssets /></ProtectedRoute>} />
       <Route path="/asset-breakdown" element={<ProtectedRoute><AssetBreakdown /></ProtectedRoute>} />
       <Route path="/assets/:category" element={<ProtectedRoute><CategoryAsset /></ProtectedRoute>} />
@@ -227,6 +234,7 @@ function AppRouter() {
       <Route path="/account/:id" element={<ProtectedRoute><AccountForm /></ProtectedRoute>} />
       
       {/* Expenses */}
+      <Route path="/add-expense" element={<ProtectedRoute><AddExpense /></ProtectedRoute>} />
       <Route path="/my-expenses" element={<ProtectedRoute><MyExpenses /></ProtectedRoute>} />
       <Route path="/expense-calendar" element={<ProtectedRoute><ExpenseCalendar /></ProtectedRoute>} />
       <Route path="/expense-breakdown" element={<ProtectedRoute><ExpenseBreakdown /></ProtectedRoute>} />
@@ -239,6 +247,7 @@ function AppRouter() {
       <Route path="/expense/:id" element={<ProtectedRoute><ExpenseForm /></ProtectedRoute>} />
       
       {/* Insurance */}
+      <Route path="/add-insurance" element={<ProtectedRoute><AddInsurance /></ProtectedRoute>} />
       <Route path="/my-insurance" element={<ProtectedRoute><MyInsurance /></ProtectedRoute>} />
       <Route path="/insurance-breakdown" element={<ProtectedRoute><InsuranceBreakdown /></ProtectedRoute>} />
       <Route path="/insurances/:category" element={<ProtectedRoute><CategoryInsurance /></ProtectedRoute>} />
@@ -248,6 +257,7 @@ function AppRouter() {
       
       {/* Investments */}
       <Route path="/my-investments" element={<ProtectedRoute><MyInvestments /></ProtectedRoute>} />
+      <Route path="/add-investment" element={<ProtectedRoute><AddInvestment /></ProtectedRoute>} />
       <Route path="/investment-breakdown" element={<ProtectedRoute><InvestmentBreakdown /></ProtectedRoute>} />
       <Route path="/investments/:category" element={<ProtectedRoute><CategoryInvestment /></ProtectedRoute>} />
       <Route path="/wealth/investments/:id" element={<ProtectedRoute><InvestmentDetail /></ProtectedRoute>} />

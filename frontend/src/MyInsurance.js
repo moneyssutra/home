@@ -162,7 +162,7 @@ const MyInsurance = () => {
             </p>
             <button
               type="button"
-              onClick={() => navigate("/insurance")}
+              onClick={() => navigate("/add-insurance")}
               className="flex items-center gap-2 rounded-xl px-6 py-3 text-white font-medium transition-all active:scale-[0.98]"
               style={{ backgroundColor: "#06B6D4", boxShadow: "0 4px 12px rgba(6, 182, 212, 0.3)" }}
               data-testid="add-insurance-empty-button"
@@ -352,7 +352,7 @@ const MyInsurance = () => {
             <div className="pt-4">
               <button
                 type="button"
-                onClick={() => navigate("/insurance")}
+                onClick={() => navigate("/add-insurance")}
                 className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-4 font-semibold transition-all active:scale-[0.98]"
                 style={{ borderColor: "#06B6D4", color: "#06B6D4" }}
                 data-testid="add-insurance-button"

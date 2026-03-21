@@ -216,7 +216,7 @@ const MyInvestments = () => {
             </p>
             <button
               type="button"
-              onClick={() => navigate("/investment")}
+              onClick={() => navigate("/add-investment")}
               className="flex items-center gap-2 rounded-xl px-6 py-3 text-white font-medium transition-all active:scale-[0.98]"
               style={{ backgroundColor: "#8B5CF6", boxShadow: "0 4px 12px rgba(139, 92, 246, 0.3)" }}
               data-testid="add-investment-empty-button"
@@ -337,7 +337,7 @@ const MyInvestments = () => {
             <div className="pt-4">
               <button
                 type="button"
-                onClick={() => navigate("/investment")}
+                onClick={() => navigate("/add-investment")}
                 className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-4 font-semibold transition-all active:scale-[0.98]"
                 style={{ borderColor: "#8B5CF6", color: "#8B5CF6" }}
                 data-testid="add-investment-button"

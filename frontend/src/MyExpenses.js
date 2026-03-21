@@ -587,7 +587,7 @@ const MyExpenses = () => {
             </p>
             {isCurrentMonth && (
               <button
-                onClick={() => navigate("/expense")}
+                onClick={() => navigate("/add-expense")}
                 className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-white font-medium transition-all active:scale-[0.98]"
                 style={{ backgroundColor: "var(--brand-primary)" }}
               >
@@ -769,7 +769,7 @@ const MyExpenses = () => {
       {allExpenses.length > 0 && isCurrentMonth && (
         <div className="px-6 mt-6">
           <button
-            onClick={() => navigate("/expense")}
+            onClick={() => navigate("/add-expense")}
             className="w-full flex items-center justify-center gap-2 rounded-xl border-2 border-dashed py-3 font-medium transition-all"
             style={{ borderColor: "var(--brand-primary)", color: "var(--brand-primary)" }}
             data-testid="add-expense-btn"

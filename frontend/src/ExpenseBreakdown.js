@@ -283,7 +283,7 @@ const ExpenseBreakdown = () => {
       {/* Add Expense Button */}
       <div className="px-6">
         <button
-          onClick={() => navigate("/expense")}
+          onClick={() => navigate("/add-expense")}
           className="w-full flex items-center justify-center gap-2 rounded-xl py-3 font-medium"
           style={{ 
             backgroundColor: "var(--brand-primary)",
