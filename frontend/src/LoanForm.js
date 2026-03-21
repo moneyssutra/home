@@ -60,7 +60,7 @@ const LoanIncome = () => {
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
   // ─── WIZARD STATE ───
-  const TOTAL_STEPS = isTypeLocked ? 3 : 4;
+  const TOTAL_STEPS = 4;
   const [step, setStep] = useState(1);
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -177,31 +177,22 @@ const LoanIncome = () => {
   useEffect(() => { if (endDate && errors.endDate) setErrors(prev => { const n = {...prev}; delete n.endDate; return n; }); }, [endDate]);
 
   // ─── PER-STEP VALIDATION ───
-  const getLogicalSteps = (displayedStep) => {
-    if (!isTypeLocked) return [displayedStep];
-    if (displayedStep === 1) return [1, 2];
-    if (displayedStep === 2) return [3];
-    if (displayedStep === 3) return [4];
-    return [displayedStep];
-  };
-
   const validateStep = (s) => {
     const newErrors = {};
-    const logicalSteps = getLogicalSteps(s);
-    if (logicalSteps.includes(1)) {
+    if (s === 1) {
       if (!loanType) newErrors.loanType = "Please select a loan type.";
       const nameError = validateTextField(loanName, "Loan name", 100);
       if (nameError) newErrors.loanName = nameError;
       if (isLoanNameUnique === false) newErrors.loanName = loanNameUniqueError || "An entry with this name already exists.";
     }
-    if (logicalSteps.includes(2)) {
+    if (s === 2) {
       const pe = validatePositiveAmount(principalAmount, "Principal amount"); if (pe) newErrors.principalAmount = pe;
       if (!outstandingAmount || parseFloat(outstandingAmount) < 0) newErrors.outstandingAmount = "Outstanding amount cannot be negative.";
       else { const oe = validateLoanOutstanding(outstandingAmount, principalAmount); if (oe) newErrors.outstandingAmount = oe; }
       const re = validatePositiveAmount(interestRate, "Interest rate"); if (re) newErrors.interestRate = re;
       const ee = validatePositiveAmount(emiAmount, "EMI amount"); if (ee) newErrors.emiAmount = ee;
     }
-    if (logicalSteps.includes(3)) {
+    if (s === 3) {
       if (!startDate) newErrors.startDate = "Start date is required.";
       if (startDate && endDate) { const de = validateDateRange(startDate, endDate, "Start Date", "End Date"); if (de) newErrors.endDate = de; }
     }
@@ -579,37 +570,6 @@ const LoanIncome = () => {
     </>
   );
 
-  // ─── MERGED STEP 1 (when locked): Type Chip + Name ───
-  const mergedStep1Content = (
-    <div className="space-y-6" data-testid="step-1-merged">
-      <div className="text-center mb-2">
-        <p className="text-base font-semibold" style={labelStyle}>Loan Details</p>
-      </div>
-      <div>
-        <label className={labelCls} style={labelStyle}>Loan Name</label>
-        <div className="relative">
-          <input type="text" value={loanName} onChange={(e) => { setLoanName(e.target.value); if (errors.loanName) setErrors(prev => ({...prev, loanName: null})); }}
-            onBlur={() => checkLoanNameUnique(loanName)} placeholder="e.g., HDFC Home Loan" maxLength={50}
-            className={`${inputCls} pr-10`}
-            style={{ backgroundColor: "var(--bg-subtle)", borderColor: errors.loanName || loanNameUniqueError ? "var(--status-error)" : isLoanNameUnique === true && loanName.trim() ? "var(--status-success)" : "var(--border-light)", color: "var(--text-primary)" }}
-            data-testid="loan-name-input" />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            {isCheckingLoanName && <Loader2 className="h-5 w-5 animate-spin" style={mutedStyle} />}
-            {!isCheckingLoanName && isLoanNameUnique === true && loanName.trim() && <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />}
-          </div>
-        </div>
-        {errors.loanName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.loanName}</p>}
-      </div>
-      <div>
-        <label className={labelCls} style={labelStyle}>Lender Name <span className="text-xs font-normal" style={mutedStyle}>(Optional)</span></label>
-        <input type="text" value={lenderName} onChange={(e) => setLenderName(e.target.value)} placeholder="e.g., HDFC Bank" maxLength={50}
-          className={inputCls} style={inputStyle()} data-testid="lender-name-input" />
-      </div>
-      {/* Amounts from step2Content */}
-      {step2Content}
-    </div>
-  );
-
   return (
     <WizardShell
       title={id ? "Edit Loan" : (isTypeLocked ? `Add ${loanType}` : "Add Loan")}
@@ -621,20 +581,10 @@ const LoanIncome = () => {
       errorContent={errorContent} dialogContent={dialogContent}
       onClose={() => navigate("/my-loans")}
     >
-      {isTypeLocked ? (
-        <>
-          {step === 1 && mergedStep1Content}
-          {step === 2 && step3Content}
-          {step === 3 && step4Content}
-        </>
-      ) : (
-        <>
-          {step === 1 && step1Content}
-          {step === 2 && step2Content}
-          {step === 3 && step3Content}
-          {step === 4 && step4Content}
-        </>
-      )}
+      {step === 1 && step1Content}
+      {step === 2 && step2Content}
+      {step === 3 && step3Content}
+      {step === 4 && step4Content}
     </WizardShell>
   );
 };

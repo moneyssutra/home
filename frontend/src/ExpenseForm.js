@@ -278,30 +278,23 @@ const ExpenseForm = () => {
   useEffect(() => { if (oneTimeDate && errors.oneTimeDate) setErrors(prev => { const n = {...prev}; delete n.oneTimeDate; return n; }); }, [oneTimeDate]);
 
   // ─── WIZARD STEP MANAGEMENT ───
-  const TOTAL_STEPS = categoryLocked ? 2 : 3;
+  const TOTAL_STEPS = 3;
   const [step, setStep] = useState(1);
 
   const validateStep = (s) => {
     const newErrors = {};
-    const getLogicalSteps = (ds) => {
-      if (!categoryLocked) return [ds];
-      if (ds === 1) return [1, 2];
-      if (ds === 2) return [3];
-      return [ds];
-    };
-    const logicalSteps = getLogicalSteps(s);
-    if (logicalSteps.includes(1)) {
+    if (s === 1) {
       const nameError = validateTextField(expenseName, "Expense name", 50);
       if (nameError) newErrors.expenseName = nameError;
       if (isExpenseNameUnique === false) newErrors.expenseName = expenseNameUniqueError || "An entry with this name already exists.";
       if (!category) newErrors.category = "Please select a category.";
     }
-    if (logicalSteps.includes(2)) {
+    if (s === 2) {
       const amountError = validatePositiveAmount(expectedAmount, "Expected amount");
       if (amountError) newErrors.expectedAmount = amountError;
-      if (!frequency) newErrors.frequency = "Please select a frequency.";
     }
-    if (logicalSteps.includes(3)) {
+    if (s === 3) {
+      if (!frequency) newErrors.frequency = "Please select a frequency.";
       if (frequency === "Weekly" && !selectedDay) newErrors.selectedDay = "Please select a day.";
       if (frequency === "Monthly" && !selectedDate) newErrors.selectedDate = "Please select a date.";
       if (frequency === "Quarterly") { if (!selectedQuarter) newErrors.selectedQuarter = "Please select a quarter."; if (!selectedDate) newErrors.selectedDate = "Please select a date."; }
@@ -524,18 +517,6 @@ const ExpenseForm = () => {
         {parseFloat(expectedAmount) > 0 && <p className="mt-1.5 text-xs italic" style={{ color: "var(--text-muted)" }}>{numberToWords(parseFloat(expectedAmount))}</p>}
         {errors.expectedAmount && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.expectedAmount}</p>}
       </div>
-      <div className="w-full">
-        <label className="block text-sm font-medium mb-3" style={{ color: "var(--text-primary)" }}>Payment Frequency</label>
-        <div className="grid grid-cols-2 gap-2">
-          {frequencyOptions.map((opt) => (
-            <button key={opt} type="button" onClick={() => setFrequency(opt)}
-              className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all active:scale-[0.97] ${frequency === opt ? "border-[#FF4D4D] bg-[#FF4D4D]/10 text-[#FF4D4D] ring-1 ring-[#FF4D4D]/30" : ""}`}
-              style={frequency !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
-              data-testid={`freq-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
-          ))}
-        </div>
-        {errors.frequency && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.frequency}</p>}
-      </div>
       {accounts.length > 0 && (
         <div className="w-full">
           <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Linked Account <span className="text-xs font-normal" style={{ color: "var(--text-muted)" }}>(optional)</span></label>
@@ -554,8 +535,20 @@ const ExpenseForm = () => {
   const step3Content = (
     <div className="space-y-6" data-testid="step-3-schedule">
       <div className="text-center mb-2">
-        <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>When to pay?</p>
-        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Set your payment schedule</p>
+        <p className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>Payment Schedule</p>
+        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Set frequency and payment schedule</p>
+      </div>
+      <div className="w-full">
+        <label className="block text-sm font-medium mb-3" style={{ color: "var(--text-primary)" }}>Payment Frequency</label>
+        <div className="grid grid-cols-2 gap-2">
+          {frequencyOptions.map((opt) => (
+            <button key={opt} type="button" onClick={() => setFrequency(opt)}
+              className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all active:scale-[0.97] ${frequency === opt ? "border-[#FF4D4D] bg-[#FF4D4D]/10 text-[#FF4D4D] ring-1 ring-[#FF4D4D]/30" : ""}`}
+              style={frequency !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+              data-testid={`freq-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
+          ))}
+        </div>
+        {errors.frequency && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.frequency}</p>}
       </div>
       {frequency === "Weekly" && (
         <div className="animate-in fade-in slide-in-from-top-2 duration-300">
@@ -762,14 +755,6 @@ const ExpenseForm = () => {
     </>
   );
 
-  // ─── MERGED STEP 1 (when locked): Category Chip + Name + Amount ───
-  const mergedStep1Content = (
-    <div className="space-y-6" data-testid="step-1-merged">
-      {step1Content}
-      {step2Content}
-    </div>
-  );
-
   return (
     <WizardShell
       title={id ? "Edit Expense" : (categoryLocked ? `Add ${category} Expense` : "Add Expense")}
@@ -781,18 +766,9 @@ const ExpenseForm = () => {
       errorContent={errorContent} dialogContent={dialogContent}
       onClose={() => navigate(-1)}
     >
-      {categoryLocked ? (
-        <>
-          {step === 1 && mergedStep1Content}
-          {step === 2 && step3Content}
-        </>
-      ) : (
-        <>
-          {step === 1 && step1Content}
-          {step === 2 && step2Content}
-          {step === 3 && step3Content}
-        </>
-      )}
+      {step === 1 && step1Content}
+      {step === 2 && step2Content}
+      {step === 3 && step3Content}
     </WizardShell>
   );
 };

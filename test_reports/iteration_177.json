@@ -1,0 +1,116 @@
+{
+  "summary": "Tested all wizard form step structures after the step reduction revert. All forms now maintain their full step count regardless of whether category/type is pre-selected via URL params. The type/category dropdown is correctly hidden when locked, but step count remains the same.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_177.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "email": "test@moneysutra.com",
+    "password": "Test@123"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All wizard forms tested and working correctly. Step counts: Account=2, Expense=3, Investment=4, Loan=4, Insurance=4, Asset=4. When type/category is pre-selected via URL params, the dropdown is hidden but step count remains the same. Step validation works correctly - forms stay on current step until required fields are filled.",
+  "verified_features": {
+    "expense_form_normal": {
+      "status": "PASS",
+      "details": {
+        "total_steps": 3,
+        "step_1": "Name + Type (Fixed/Variable) + Category grid",
+        "step_2": "Amount + Linked Account (NO frequency grid)",
+        "step_3": "Frequency grid + Schedule + Save button"
+      }
+    },
+    "expense_form_locked": {
+      "status": "PASS",
+      "details": {
+        "url": "/expense?category=Housing",
+        "title": "Add Housing Expense",
+        "total_steps": 3,
+        "step_1": "Name + Type (NO category grid - hidden when locked)",
+        "step_indicator": "Shows 3 dots"
+      }
+    },
+    "account_form_normal": {
+      "status": "PASS",
+      "details": {
+        "flow": "Type selection page -> 2-step wizard",
+        "total_steps": 2
+      }
+    },
+    "account_form_locked": {
+      "status": "PASS",
+      "details": {
+        "url": "/account?type=Cash",
+        "title": "Add Cash",
+        "total_steps": "2 (NOT reduced to 1)",
+        "step_1": "Account Name (NO type grid - hidden when locked)"
+      }
+    },
+    "loan_form_locked": {
+      "status": "PASS",
+      "details": {
+        "url": "/loan?type=Home%20Loan",
+        "title": "Add Home Loan",
+        "total_steps": "4 (NOT reduced to 3)",
+        "step_1": "Loan Name + Lender (NO type dropdown)",
+        "step_4": "Save button appears"
+      }
+    },
+    "insurance_form_locked": {
+      "status": "PASS",
+      "details": {
+        "url": "/insurance?type=Health%20Insurance",
+        "title": "Add Health Insurance",
+        "total_steps": 4,
+        "step_1": "Policy Name (NO type dropdown)"
+      }
+    },
+    "asset_form_locked": {
+      "status": "PASS",
+      "details": {
+        "url": "/asset?type=Residential%20Property",
+        "title": "Add Residential Property",
+        "total_steps": 4,
+        "step_1": "Asset Name (NO type dropdown)"
+      }
+    },
+    "investment_form_locked": {
+      "status": "PASS",
+      "details": {
+        "url": "/investment?category=Mutual%20Fund",
+        "title": "Add Mutual Fund",
+        "total_steps": 4,
+        "step_1": "Investment Mode (NO category dropdown)"
+      }
+    },
+    "step_validation": {
+      "status": "PASS",
+      "details": {
+        "expense_form": "Shows 'Expense name is required' and 'Please select a category' errors",
+        "account_form": "Shows 'Account name is required' error",
+        "behavior": "Form stays on current step until validation passes"
+      }
+    }
+  },
+  "mocked_apis": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}

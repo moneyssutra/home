@@ -62,7 +62,7 @@ const AssetForm = () => {
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
   // ─── WIZARD STATE ───
-  const TOTAL_STEPS = isTypeLocked ? 3 : 4;
+  const TOTAL_STEPS = 4;
   const [step, setStep] = useState(1);
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -156,32 +156,23 @@ const AssetForm = () => {
   useEffect(() => { if (rentalAmount && errors.rentalAmount) setErrors(prev => { const n = {...prev}; delete n.rentalAmount; return n; }); }, [rentalAmount]);
 
   // ─── PER-STEP VALIDATION ───
-  const getLogicalSteps = (displayedStep) => {
-    if (!isTypeLocked) return [displayedStep];
-    if (displayedStep === 1) return [1, 2];
-    if (displayedStep === 2) return [3];
-    if (displayedStep === 3) return [4];
-    return [displayedStep];
-  };
-
   const validateStep = (s) => {
     const newErrors = {};
-    const logicalSteps = getLogicalSteps(s);
-    if (logicalSteps.includes(1)) {
+    if (s === 1) {
       if (!assetType) newErrors.assetType = "Please select asset type.";
       const nameError = validateTextField(assetName, "Asset name", 100);
       if (nameError) newErrors.assetName = nameError;
       if (isAssetNameUnique === false) newErrors.assetName = assetNameUniqueError || "An entry with this name already exists.";
     }
-    if (logicalSteps.includes(2)) {
+    if (s === 2) {
       if (!purchaseValue || parseFloat(purchaseValue) <= 0) newErrors.purchaseValue = "Purchase value is required and must be greater than 0.";
       if (currentValue && parseFloat(currentValue) < 0) newErrors.currentValue = "Current market value cannot be negative.";
       if (purchaseDate) { const dateError = validatePastOrTodayDate(purchaseDate, "Purchase date"); if (dateError) newErrors.purchaseDate = dateError; }
     }
-    if (logicalSteps.includes(3)) {
+    if (s === 3) {
       if (generatesIncome) { const rentalError = validatePositiveAmount(rentalAmount, "Rental amount"); if (rentalError) newErrors.rentalAmount = rentalError; }
     }
-    if (logicalSteps.includes(4)) {
+    if (s === 4) {
       if (isInsured && !linkedInsuranceId) newErrors.linkedInsuranceId = "Please select an insurance policy or turn off the insurance toggle to save.";
     }
     setErrors(newErrors);
@@ -557,33 +548,6 @@ const AssetForm = () => {
     </>
   );
 
-  // ─── MERGED STEP 1 (when locked): Type Chip + Name + Valuation ───
-  const mergedStep1Content = (
-    <div className="space-y-6" data-testid="step-1-merged">
-      <div className="text-center mb-2">
-        <p className="text-base font-semibold" style={labelStyle}>Asset Details</p>
-      </div>
-      <div>
-        <label className={labelCls} style={labelStyle}>Asset Name *</label>
-        <div className="relative">
-          <input type="text" value={assetName}
-            onChange={(e) => { setAssetName(e.target.value); if (errors.assetName) setErrors(prev => ({...prev, assetName: null})); }}
-            onBlur={() => checkAssetNameUnique(assetName)}
-            placeholder="e.g., Green Villa – Flat 302" maxLength={100}
-            className={`${inputCls} pr-10`}
-            style={{ backgroundColor: "var(--bg-subtle)", borderColor: errors.assetName || assetNameUniqueError ? "var(--status-error)" : isAssetNameUnique === true && assetName.trim() ? "var(--status-success)" : "var(--border-light)", color: "var(--text-primary)" }}
-            data-testid="asset-name-input" />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            {isCheckingAssetName && <Loader2 className="h-5 w-5 animate-spin" style={mutedStyle} />}
-            {!isCheckingAssetName && isAssetNameUnique === true && assetName.trim() && <Check className="h-5 w-5" style={{ color: "var(--status-success)" }} />}
-          </div>
-        </div>
-        {errors.assetName && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.assetName}</p>}
-      </div>
-      {step2Content}
-    </div>
-  );
-
   return (
     <WizardShell
       title={id ? "Edit Asset" : (isTypeLocked ? `Add ${assetType}` : "Add Asset")}
@@ -595,20 +559,10 @@ const AssetForm = () => {
       errorContent={errorContent} dialogContent={dialogContent}
       onClose={() => handleBack()}
     >
-      {isTypeLocked ? (
-        <>
-          {step === 1 && mergedStep1Content}
-          {step === 2 && step3Content}
-          {step === 3 && step4Content}
-        </>
-      ) : (
-        <>
-          {step === 1 && step1Content}
-          {step === 2 && step2Content}
-          {step === 3 && step3Content}
-          {step === 4 && step4Content}
-        </>
-      )}
+      {step === 1 && step1Content}
+      {step === 2 && step2Content}
+      {step === 3 && step3Content}
+      {step === 4 && step4Content}
     </WizardShell>
   );
 };

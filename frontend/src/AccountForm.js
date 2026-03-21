@@ -215,16 +215,17 @@ const AccountForm = () => {
   const isCreditCard = accountType === "Credit Card";
 
   // ─── WIZARD STEP MANAGEMENT ───
-  const TOTAL_STEPS = isTypeLocked ? 1 : 2;
+  const TOTAL_STEPS = 2;
   const [step, setStep] = useState(1);
 
   const validateStep = (s) => {
     const newErrors = {};
-    if (isTypeLocked) {
-      // All in one step
+    if (s === 1) {
       const nameError = validateTextField(accountName, "Account name", 50);
       if (nameError) newErrors.accountName = nameError;
       if (!accountType) newErrors.accountType = "Please select an account type.";
+    }
+    if (s === 2) {
       if (isCreditCard) {
         const limitError = validatePositiveAmount(creditLimit, "Credit limit");
         if (limitError) newErrors.creditLimit = limitError;
@@ -234,24 +235,6 @@ const AccountForm = () => {
         const balanceError = validateNonNegativeAmount(currentBalance, "Opening balance");
         if (balanceError && currentBalance !== "") newErrors.currentBalance = balanceError;
         else if (currentBalance === "") newErrors.currentBalance = "Opening balance is required.";
-      }
-    } else {
-      if (s === 1) {
-        const nameError = validateTextField(accountName, "Account name", 50);
-        if (nameError) newErrors.accountName = nameError;
-        if (!accountType) newErrors.accountType = "Please select an account type.";
-      }
-      if (s === 2) {
-        if (isCreditCard) {
-          const limitError = validatePositiveAmount(creditLimit, "Credit limit");
-          if (limitError) newErrors.creditLimit = limitError;
-          if (outstandingAmount && parseFloat(outstandingAmount) < 0) newErrors.outstandingAmount = "Outstanding amount cannot be negative.";
-          else if (outstandingAmount && creditLimit) { const err = validateCreditCardOutstanding(outstandingAmount, creditLimit); if (err) newErrors.outstandingAmount = err; }
-        } else {
-          const balanceError = validateNonNegativeAmount(currentBalance, "Opening balance");
-          if (balanceError && currentBalance !== "") newErrors.currentBalance = balanceError;
-          else if (currentBalance === "") newErrors.currentBalance = "Opening balance is required.";
-        }
       }
     }
     setErrors(newErrors);
@@ -423,13 +406,7 @@ const AccountForm = () => {
     </>
   );
 
-  // ─── MERGED SINGLE STEP (when locked) ───
-  const mergedStepContent = (
-    <div className="space-y-6" data-testid="step-1-merged">
-      {step1Content}
-      {step2Content}
-    </div>
-  );
+  // ─── RENDER ───
 
   return (
     <WizardShell
@@ -442,14 +419,8 @@ const AccountForm = () => {
       errorContent={errorContent} dialogContent={dialogContent}
       onClose={() => navigate("/my-accounts")}
     >
-      {isTypeLocked ? (
-        <>{step === 1 && mergedStepContent}</>
-      ) : (
-        <>
-          {step === 1 && step1Content}
-          {step === 2 && step2Content}
-        </>
-      )}
+      {step === 1 && step1Content}
+      {step === 2 && step2Content}
     </WizardShell>
   );
 };
