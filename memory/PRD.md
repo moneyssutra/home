@@ -103,6 +103,15 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Email enumeration prevented (same success message for existing/non-existing emails)
 - Tested: iteration_181 - 15/15 backend tests, all frontend UI flows verified
 
+### Signup OTP Email Verification (Mar 2026)
+- New endpoints: `/api/auth/send-signup-otp`, `/api/auth/verify-signup-otp`
+- Registration now REQUIRES email verification via OTP before account creation
+- Separate MongoDB collection `signup_otp_tokens` for signup verification
+- Verification token valid 15 minutes after OTP verification
+- RegisterForm.js updated: inline OTP verification (Send OTP → enter 6-digit code → Verify → green badge → proceed)
+- Backend register endpoint checks `emailVerificationToken` - rejects unverified emails
+- Tested: iteration_182 - 13/13 backend tests, all frontend UI flows verified
+
 ### Rule-Based Financial Insights Engine (Mar 2026)
 - Replaced AI/GPT-based ai_insights.py with deterministic rule engine
 - 10 financial rules: expense ratio, savings rate, emergency fund, investments, debt burden, insurance gaps, credit utilization, loan exposure, overall health
@@ -149,6 +158,7 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Refactoring: `ProfileSetup.js` (>1500 lines), `Dashboard.js` (>700 lines)
 
 ## Test Reports
+- iteration_182: Signup OTP verification - backend 100% (13/13), frontend 100%
 - iteration_181: OTP email system - backend 100% (15/15), frontend 100% (all UI flows verified)
 - iteration_180: Family quick summary badge + email branding - backend 100% (7/7), frontend 100%
 - iteration_179: Family View data consistency fix - backend 100% (19/19 API tests), frontend 100% (6/6 pages)
