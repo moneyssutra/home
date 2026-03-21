@@ -23,9 +23,14 @@ from email_service import (
     send_password_changed_notification,
     send_otp_email
 )
+import jwt
+import os
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 logger = logging.getLogger(__name__)
+
+TEMP_TOKEN_SECRET = os.environ.get("JWT_SECRET", secrets.token_hex(32))
+TEMP_TOKEN_EXPIRY_MINUTES = 10
 
 
 def hash_password(password: str) -> str:
@@ -618,6 +623,258 @@ import random
 
 def generate_otp():
     return str(random.randint(100000, 999999))
+
+
+def _create_temp_token(user_id: str, email: str) -> str:
+    """Create a short-lived JWT temp token after OTP verification."""
+    payload = {
+        "user_id": user_id,
+        "email": email,
+        "type": "temp_auth",
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=TEMP_TOKEN_EXPIRY_MINUTES),
+        "iat": datetime.now(timezone.utc),
+    }
+    return jwt.encode(payload, TEMP_TOKEN_SECRET, algorithm="HS256")
+
+
+def _verify_temp_token(token: str) -> dict:
+    """Verify and decode temp token. Raises HTTPException on failure."""
+    try:
+        payload = jwt.decode(token, TEMP_TOKEN_SECRET, algorithms=["HS256"])
+        if payload.get("type") != "temp_auth":
+            raise HTTPException(status_code=401, detail="Invalid token type")
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Session expired. Please verify OTP again.")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+
+async def _create_session_and_respond(user: dict, response: Response, remember_me: bool = False) -> dict:
+    """Create session cookie and return user data."""
+    session_days = 30 if remember_me else 7
+    session_token = str(uuid.uuid4())
+    expires_at = datetime.now(timezone.utc) + timedelta(days=session_days)
+    session = {
+        "session_id": str(uuid.uuid4()),
+        "user_id": user["user_id"],
+        "session_token": session_token,
+        "expires_at": expires_at.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.user_sessions.insert_one(session)
+    response.set_cookie(
+        key="session_token", value=session_token, httponly=True,
+        secure=True, samesite="none", path="/", max_age=session_days * 24 * 60 * 60
+    )
+    await db.users.update_one(
+        {"user_id": user["user_id"]},
+        {"$set": {"lastLogin": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {
+        "user_id": user["user_id"],
+        "email": user.get("email", ""),
+        "name": user.get("name", ""),
+        "firstName": user.get("firstName", ""),
+        "picture": user.get("picture"),
+        "session_token": session_token,
+    }
+
+
+# ============================================================
+# STEP-BASED AUTH FLOW (CRED-style)
+# ============================================================
+
+@router.post("/start")
+async def auth_start(request: Request):
+    """Step 1: Enter identifier (email). Check user, send OTP."""
+    body = await request.json()
+    identifier = (body.get("identifier") or "").strip().lower()
+
+    if not identifier:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    is_email = bool(re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", identifier))
+    if not is_email:
+        raise HTTPException(status_code=400, detail="Please enter a valid email address")
+
+    user = await db.users.find_one(
+        {"email": {"$regex": f"^{identifier}$", "$options": "i"}},
+        {"_id": 0, "user_id": 1, "email": 1, "name": 1}
+    )
+
+    # Rate limit: 5 OTP requests per hour per email
+    one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    recent_count = await db.login_otp_tokens.count_documents({
+        "email": identifier,
+        "created_at": {"$gte": one_hour_ago}
+    })
+    if recent_count >= 5:
+        raise HTTPException(status_code=429, detail="Too many OTP requests. Please try again later.")
+
+    # Cooldown: 1 per 30 seconds
+    recent = await db.login_otp_tokens.find_one(
+        {"email": identifier, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()}},
+        {"_id": 0}
+    )
+    if recent:
+        return {"message": "OTP already sent", "user_exists": user is not None}
+
+    otp = generate_otp()
+    await db.login_otp_tokens.insert_one({
+        "otp_id": str(uuid.uuid4()),
+        "email": identifier,
+        "user_id": user["user_id"] if user else None,
+        "otp_hash": hash_password(otp),
+        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
+        "used": False,
+        "attempts": 0,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+    email_result = await send_otp_email(identifier, otp)
+    if not email_result.get("success"):
+        logger.error(f"Failed to send login OTP: {email_result.get('error')}")
+
+    return {"message": "OTP sent", "user_exists": user is not None}
+
+
+@router.post("/verify-login-otp")
+async def verify_login_otp(request: Request, response: Response):
+    """Step 2: Verify OTP. Returns temp_token + user state."""
+    body = await request.json()
+    identifier = (body.get("identifier") or "").strip().lower()
+    otp = (body.get("otp") or "").strip()
+
+    if not identifier or not otp:
+        raise HTTPException(status_code=400, detail="Email and OTP are required")
+
+    record = await db.login_otp_tokens.find_one(
+        {"email": identifier, "used": False},
+        {"_id": 0},
+        sort=[("created_at", -1)]
+    )
+    if not record:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+
+    if record.get("attempts", 0) >= 3:
+        await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+        raise HTTPException(status_code=400, detail="Too many attempts. Please request a new OTP.")
+
+    await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$inc": {"attempts": 1}})
+
+    expires_at = datetime.fromisoformat(record["expires_at"])
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
+
+    if not verify_password(otp, record["otp_hash"]):
+        remaining = 3 - record.get("attempts", 0) - 1
+        raise HTTPException(status_code=400, detail=f"Invalid code. Try again. ({remaining} left)")
+
+    # Mark OTP used
+    await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+
+    # Check if user exists
+    user = await db.users.find_one(
+        {"email": {"$regex": f"^{identifier}$", "$options": "i"}},
+        {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "picture": 1, "mpin_hash": 1, "biometric_enabled": 1}
+    )
+
+    if not user:
+        # New user — they need to register
+        return {
+            "status": "verified",
+            "user_exists": False,
+            "has_mpin": False,
+            "biometric_enabled": False,
+            "temp_token": None,
+        }
+
+    has_mpin = bool(user.get("mpin_hash"))
+    biometric = bool(user.get("biometric_enabled"))
+    temp_token = _create_temp_token(user["user_id"], user["email"])
+
+    # If user has no MPIN and no biometric, log them in directly
+    if not has_mpin and not biometric:
+        user_data = await _create_session_and_respond(user, response)
+        return {
+            "status": "authenticated",
+            "user_exists": True,
+            "has_mpin": False,
+            "biometric_enabled": False,
+            "temp_token": temp_token,
+            "needs_mpin_setup": True,
+            **user_data,
+        }
+
+    return {
+        "status": "verified",
+        "user_exists": True,
+        "has_mpin": has_mpin,
+        "biometric_enabled": biometric,
+        "temp_token": temp_token,
+    }
+
+
+@router.post("/mpin-login")
+async def mpin_login_with_temp(request: Request, response: Response):
+    """Step 3: Login with MPIN using temp_token."""
+    body = await request.json()
+    temp_token = body.get("temp_token", "")
+    mpin = body.get("mpin", "")
+
+    if not temp_token or not mpin:
+        raise HTTPException(status_code=400, detail="Token and MPIN are required")
+
+    payload = _verify_temp_token(temp_token)
+    user_id = payload["user_id"]
+
+    user = await db.users.find_one(
+        {"user_id": user_id},
+        {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "picture": 1, "mpin_hash": 1}
+    )
+    if not user or not user.get("mpin_hash"):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    import bcrypt as _bcrypt
+    if not _bcrypt.checkpw(mpin.encode(), user["mpin_hash"].encode()):
+        raise HTTPException(status_code=401, detail="Invalid MPIN. Try again.")
+
+    return await _create_session_and_respond(user, response)
+
+
+@router.post("/mpin-setup-login")
+async def mpin_setup_and_login(request: Request, response: Response):
+    """Step 3 (first time): Set MPIN + Login using temp_token."""
+    body = await request.json()
+    temp_token = body.get("temp_token", "")
+    mpin = body.get("mpin", "")
+
+    if not temp_token or not mpin:
+        raise HTTPException(status_code=400, detail="Token and MPIN are required")
+    if len(mpin) != 4 or not mpin.isdigit():
+        raise HTTPException(status_code=400, detail="MPIN must be exactly 4 digits")
+
+    payload = _verify_temp_token(temp_token)
+    user_id = payload["user_id"]
+
+    import bcrypt as _bcrypt
+    hashed = _bcrypt.hashpw(mpin.encode(), _bcrypt.gensalt()).decode()
+    await db.users.update_one(
+        {"user_id": user_id},
+        {"$set": {"mpin_hash": hashed, "mpin_set_at": datetime.now(timezone.utc).isoformat()}}
+    )
+
+    user = await db.users.find_one(
+        {"user_id": user_id},
+        {"_id": 0, "user_id": 1, "email": 1, "name": 1, "firstName": 1, "picture": 1}
+    )
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return await _create_session_and_respond(user, response)
 
 
 @router.post("/send-otp")

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Lock, Eye, EyeOff, AlertCircle, Mail, Loader2, ArrowLeft, Check, KeyRound, Fingerprint } from "lucide-react";
+import { AlertCircle, Mail, Loader2, ArrowLeft, Lock, Eye, EyeOff, Check } from "lucide-react";
 import RegisterForm from "@/components/RegisterForm";
 import { LogoFull } from "@/components/Logo";
 import axios from "axios";
@@ -11,43 +11,48 @@ const backendUrl = process.env.REACT_APP_BACKEND_URL;
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loginWithMpin, loginWithBiometric, loginWithGoogle, isAuthenticated, loading } = useAuth();
+  const { login, loginWithGoogle, isAuthenticated, loading, checkAuth } = useAuth();
 
-  // Extract invite code from URL params (e.g., /login?invite=ABC123)
   const urlParams = new URLSearchParams(location.search);
   const inviteCodeFromUrl = urlParams.get("invite") || "";
 
+  // Core step state: "enter" → "otp" → "mpin_setup" | "mpin" → "success"
+  const [step, setStep] = useState("enter");
   const [isRegisterMode, setIsRegisterMode] = useState(!!inviteCodeFromUrl);
-  const [isForgotPasswordMode, setIsForgotPasswordMode] = useState(false);
-  const [loginMode, setLoginMode] = useState("biometric"); // "biometric" | "mpin" | "password"
-  const [forgotPasswordStep, setForgotPasswordStep] = useState(1);
+  const [showPasswordFallback, setShowPasswordFallback] = useState(false);
+
+  // Form state
   const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
-  const [mpin, setMpin] = useState(["", "", "", ""]);
-  const mpinRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load remembered credentials on mount
+  // OTP state
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const otpRefs = useRef([]);
+  const [resendTimer, setResendTimer] = useState(0);
+
+  // MPIN state
+  const [mpin, setMpin] = useState(["", "", "", ""]);
+  const [mpinConfirm, setMpinConfirm] = useState(["", "", "", ""]);
+  const [mpinStep, setMpinStep] = useState("enter"); // "enter" | "confirm"
+  const mpinRefs = useRef([]);
+  const mpinConfirmRefs = useRef([]);
+
+  // Temp token from OTP verify
+  const [tempToken, setTempToken] = useState(null);
+  const [userState, setUserState] = useState(null);
+
+  // Password fallback
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Prefill last email
   useEffect(() => {
-    const saved = localStorage.getItem("moneyssutra_remember");
-    if (saved) {
-      try {
-        const { email, password: savedPw } = JSON.parse(saved);
-        if (email) setIdentifier(email);
-        if (savedPw) setPassword(savedPw);
-        setRememberMe(true);
-      } catch (e) {}
-    } else {
-      // Pre-fill last logged-in email
-      const lastEmail = localStorage.getItem("moneyssutra_last_email");
-      if (lastEmail) setIdentifier(lastEmail);
-    }
+    const lastEmail = localStorage.getItem("moneyssutra_last_email");
+    if (lastEmail) setIdentifier(lastEmail);
   }, []);
 
+  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && !loading) {
       const from = location.state?.from?.pathname || "/home";
@@ -55,723 +60,585 @@ const Login = () => {
     }
   }, [isAuthenticated, loading, navigate, location]);
 
+  // OTP resend timer
   useEffect(() => {
-    if (location.state?.error) {
-      setError(location.state.error);
-    }
-  }, [location.state]);
+    if (resendTimer <= 0) return;
+    const t = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendTimer]);
 
-  // Validate identifier (email or 10-digit mobile)
-  const isValidIdentifier = (value) => {
-    if (!value) return false;
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    const isMobile = /^\d{10}$/.test(value);
-    return isEmail || isMobile;
-  };
-
-  const handleSubmit = async (e) => {
+  // ============================================================
+  // STEP 1: ENTER EMAIL
+  // ============================================================
+  const handleStart = async (e) => {
     e.preventDefault();
     setError("");
-
-    // Read values directly from DOM inputs to handle browser autofill
-    // (browser autofill sets DOM value but may not trigger React onChange)
-    const form = e.target;
-    const domIdentifier = form.querySelector('[data-testid="identifier-input"]')?.value || "";
-    const domPassword = form.querySelector('[data-testid="password-input"]')?.value || "";
-    const finalIdentifier = domIdentifier || identifier;
-    const finalPassword = domPassword || password;
-
-    // Sync React state if DOM values differ
-    if (finalIdentifier !== identifier) setIdentifier(finalIdentifier);
-    if (finalPassword !== password) setPassword(finalPassword);
-
-    if (!finalIdentifier.trim()) {
-      setError("Please enter your email ID or mobile number");
+    const email = identifier.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("Please enter a valid email address");
       return;
     }
-    if (!finalPassword) {
-      setError("Please enter your password");
-      return;
-    }
-
-    setIsSubmitting(true);
-    const result = await login(finalIdentifier, finalPassword, rememberMe);
-    
-    if (result.success) {
-      if (rememberMe) {
-        localStorage.setItem("moneyssutra_remember", JSON.stringify({ email: finalIdentifier, password: finalPassword }));
-      } else {
-        localStorage.removeItem("moneyssutra_remember");
-      }
-      const from = location.state?.from?.pathname || "/home";
-      navigate(from, { replace: true });
-    } else {
-      setError(result.error);
-    }
-    
-    setIsSubmitting(false);
-  };
-
-  const toggleMode = () => {
-    setIsRegisterMode(!isRegisterMode);
-    setError("");
-    setIdentifier("");
-    setPassword("");
-  };
-
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccessMessage("");
-
-    if (!identifier.trim()) {
-      setError("Please enter your registered email ID or mobile number");
-      return;
-    }
-
-    if (!isValidIdentifier(identifier.trim())) {
-      setError("Please enter a valid email address or 10-digit mobile number");
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      const response = await axios.post(`${backendUrl}/api/auth/forgot-password`, {
-        username: identifier.trim()
-      });
-      setSuccessMessage(response.data.message);
-      setForgotPasswordStep(2);
+      const res = await axios.post(`${backendUrl}/api/auth/start`, { identifier: email });
+      setStep("otp");
+      setResendTimer(30);
+      setOtp(["", "", "", "", "", ""]);
+      setTimeout(() => otpRefs.current[0]?.focus(), 100);
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to process request. Please try again.");
+      setError(err.response?.data?.detail || "Something went wrong");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const resetForgotPassword = () => {
-    setIsForgotPasswordMode(false);
-    setForgotPasswordStep(1);
-    setIdentifier("");
-    setError("");
-    setSuccessMessage("");
-  };
-
-  const handleMpinChange = (index, value) => {
+  // ============================================================
+  // STEP 2: OTP VERIFY
+  // ============================================================
+  const handleOtpChange = (index, value) => {
     if (!/^\d?$/.test(value)) return;
-    const newMpin = [...mpin];
-    newMpin[index] = value;
-    setMpin(newMpin);
-    if (value && index < 3) {
-      mpinRefs[index + 1].current?.focus();
+    const next = [...otp];
+    next[index] = value;
+    setOtp(next);
+    if (value && index < 5) otpRefs.current[index + 1]?.focus();
+    // Auto-submit when all 6 digits entered
+    if (value && index === 5) {
+      const full = [...next].join("");
+      if (full.length === 6) handleOtpSubmit(full);
     }
   };
 
-  const handleMpinKeyDown = (index, e) => {
-    if (e.key === "Backspace" && !mpin[index] && index > 0) {
-      mpinRefs[index - 1].current?.focus();
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) otpRefs.current[index - 1]?.focus();
+  };
+
+  const handleOtpPaste = (e) => {
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (paste.length === 6) {
+      setOtp(paste.split(""));
+      otpRefs.current[5]?.focus();
+      handleOtpSubmit(paste);
     }
   };
 
-  const handleMpinSubmit = async (e) => {
-    e.preventDefault();
+  const handleOtpSubmit = async (otpStr) => {
+    const code = otpStr || otp.join("");
+    if (code.length !== 6) return;
     setError("");
-    const pinStr = mpin.join("");
-    if (pinStr.length !== 4) {
-      setError("Please enter all 4 digits");
-      return;
-    }
-    if (!identifier.trim()) {
-      setError("Please enter your email");
-      return;
-    }
     setIsSubmitting(true);
-    const result = await loginWithMpin(identifier.trim(), pinStr, rememberMe);
-    if (result.success) {
-      const from = location.state?.from?.pathname || "/home";
-      navigate(from, { replace: true });
-    } else {
-      setError(result.error);
+    try {
+      const res = await axios.post(`${backendUrl}/api/auth/verify-login-otp`, {
+        identifier: identifier.trim(),
+        otp: code,
+      }, { withCredentials: true });
+
+      const data = res.data;
+      setTempToken(data.temp_token);
+      setUserState(data);
+
+      if (!data.user_exists) {
+        // New user → redirect to register
+        setIsRegisterMode(true);
+        setStep("enter");
+        return;
+      }
+
+      if (data.status === "authenticated" && data.needs_mpin_setup) {
+        // Already logged in but needs MPIN setup
+        setStep("mpin_setup");
+        setMpinStep("enter");
+        setMpin(["", "", "", ""]);
+        setTimeout(() => mpinRefs.current[0]?.focus(), 100);
+        await checkAuth();
+        return;
+      }
+
+      if (data.has_mpin) {
+        setStep("mpin");
+        setMpin(["", "", "", ""]);
+        setTimeout(() => mpinRefs.current[0]?.focus(), 100);
+      } else {
+        // No MPIN, no biometric → should have been auto-logged in
+        setStep("success");
+        await checkAuth();
+        setTimeout(() => navigate(location.state?.from?.pathname || "/home", { replace: true }), 1200);
+      }
+    } catch (err) {
+      setError(err.response?.data?.detail || "Invalid code. Try again.");
+      setOtp(["", "", "", "", "", ""]);
+      otpRefs.current[0]?.focus();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setError("");
+    try {
+      await axios.post(`${backendUrl}/api/auth/start`, { identifier: identifier.trim() });
+      setResendTimer(30);
+      setOtp(["", "", "", "", "", ""]);
+      otpRefs.current[0]?.focus();
+    } catch (err) {
+      setError(err.response?.data?.detail || "Failed to resend OTP");
+    }
+  };
+
+  // ============================================================
+  // STEP 3: MPIN LOGIN
+  // ============================================================
+  const handleMpinChange = (refs, state, setState, index, value, onComplete) => {
+    if (!/^\d?$/.test(value)) return;
+    const next = [...state];
+    next[index] = value;
+    setState(next);
+    if (value && index < 3) refs.current[index + 1]?.focus();
+    if (value && index === 3) {
+      const full = next.join("");
+      if (full.length === 4 && onComplete) onComplete(full);
+    }
+  };
+
+  const handleMpinKeyDown = (refs, state, index, e) => {
+    if (e.key === "Backspace" && !state[index] && index > 0) refs.current[index - 1]?.focus();
+  };
+
+  const handleMpinLogin = async (pinStr) => {
+    const pin = pinStr || mpin.join("");
+    if (pin.length !== 4) return;
+    setError("");
+    setIsSubmitting(true);
+    try {
+      await axios.post(`${backendUrl}/api/auth/mpin-login`, {
+        temp_token: tempToken,
+        mpin: pin,
+      }, { withCredentials: true });
+      setStep("success");
+      await checkAuth();
+      setTimeout(() => navigate(location.state?.from?.pathname || "/home", { replace: true }), 1200);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Invalid MPIN. Try again.");
       setMpin(["", "", "", ""]);
-      mpinRefs[0].current?.focus();
+      mpinRefs.current[0]?.focus();
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
-  const handleBiometricSubmit = async (e) => {
+  // ============================================================
+  // STEP 3B: MPIN SETUP (first time)
+  // ============================================================
+  const handleMpinSetupComplete = (pinStr) => {
+    if (mpinStep === "enter") {
+      setMpinStep("confirm");
+      setMpinConfirm(["", "", "", ""]);
+      setTimeout(() => mpinConfirmRefs.current[0]?.focus(), 100);
+    } else {
+      const original = mpin.join("");
+      if (pinStr !== original) {
+        setError("PINs don't match. Try again.");
+        setMpinStep("enter");
+        setMpin(["", "", "", ""]);
+        setMpinConfirm(["", "", "", ""]);
+        setTimeout(() => mpinRefs.current[0]?.focus(), 100);
+        return;
+      }
+      submitMpinSetup(pinStr);
+    }
+  };
+
+  const submitMpinSetup = async (pinStr) => {
+    setError("");
+    setIsSubmitting(true);
+    try {
+      await axios.post(`${backendUrl}/api/auth/mpin-setup-login`, {
+        temp_token: tempToken,
+        mpin: pinStr,
+      }, { withCredentials: true });
+      setStep("success");
+      await checkAuth();
+      setTimeout(() => navigate(location.state?.from?.pathname || "/home", { replace: true }), 1200);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Failed to set MPIN");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // ============================================================
+  // PASSWORD FALLBACK
+  // ============================================================
+  const handlePasswordLogin = async (e) => {
     e.preventDefault();
     setError("");
-    if (!identifier.trim()) {
-      setError("Please enter your email first");
-      return;
-    }
-    if (!window.PublicKeyCredential) {
-      setError("Biometric login is not supported on this device/browser");
+    if (!identifier.trim() || !password) {
+      setError("Please enter email and password");
       return;
     }
     setIsSubmitting(true);
-    const result = await loginWithBiometric(identifier.trim(), rememberMe);
+    const result = await login(identifier.trim(), password);
     if (result.success) {
-      const from = location.state?.from?.pathname || "/home";
-      navigate(from, { replace: true });
+      navigate(location.state?.from?.pathname || "/home", { replace: true });
     } else {
       setError(result.error);
     }
     setIsSubmitting(false);
   };
 
+  // ============================================================
+  // UI COMPONENTS
+  // ============================================================
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "var(--bg-app)" }}>
-        <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: "var(--brand-primary-soft)", borderTopColor: "var(--brand-primary)" }}></div>
+        <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: "var(--brand-primary-soft)", borderTopColor: "var(--brand-primary)" }} />
       </div>
     );
   }
 
-  // Show Register Form
+  // Register mode
   if (isRegisterMode) {
     return (
       <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }} data-testid="register-page">
-        {/* Background decoration */}
-        <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
           <div className="absolute bottom-20 left-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
         </div>
-
-        {/* Content */}
         <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10 py-8">
-          {/* Logo */}
-          <div className="flex flex-col items-center mb-6">
-            <LogoFull height={100} className="mb-2" />
-          </div>
-          
-          <RegisterForm onBackToLogin={() => setIsRegisterMode(false)} initialInviteCode={inviteCodeFromUrl} />
-        </div>
-        
-        {/* Footer */}
-        <div className="relative z-10 pb-4">
-          <p className="text-center text-xs" style={{ color: "#333333" }}>
-            By signing in, you agree to our{" "}
-            <span className="underline font-medium cursor-pointer" style={{ color: "#1A1A1A" }}>Terms of Service</span>
-            {" "}and{" "}
-            <span className="underline font-medium cursor-pointer" style={{ color: "#1A1A1A" }}>Privacy Policy</span>
-          </p>
+          <div className="flex flex-col items-center mb-6"><LogoFull height={100} className="mb-2" /></div>
+          <RegisterForm onBackToLogin={() => { setIsRegisterMode(false); setStep("enter"); }} initialInviteCode={inviteCodeFromUrl} />
         </div>
       </div>
     );
   }
 
+  // Password fallback mode
+  if (showPasswordFallback) {
+    return (
+      <PageShell>
+        <Card>
+          <button onClick={() => { setShowPasswordFallback(false); setStep("enter"); setError(""); }} className="flex items-center gap-2 mb-4 text-sm" style={{ color: "var(--brand-primary)" }} data-testid="back-from-password">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <h2 className="text-xl font-bold mb-2 text-center" style={{ color: "var(--text-primary)" }}>Login with Password</h2>
+          <p className="text-sm text-center mb-5" style={{ color: "var(--text-muted)" }}>Enter your credentials</p>
+          <ErrorBanner message={error} />
+          <form onSubmit={handlePasswordLogin} className="space-y-4">
+            <InputField icon={<Mail className="h-5 w-5" />} value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Email ID" testId="pw-identifier-input" />
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
+              <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password"
+                className="w-full pl-11 pr-12 py-3 rounded-xl outline-none" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="pw-password-input" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }}>
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+              </button>
+            </div>
+            <button type="submit" disabled={isSubmitting} className="w-full py-3 rounded-xl font-semibold text-white disabled:opacity-50 flex items-center justify-center gap-2" style={{ backgroundColor: "var(--btn-primary-bg)" }} data-testid="pw-login-btn">
+              {isSubmitting ? <><Loader2 className="h-5 w-5 animate-spin" /> Signing In...</> : "Login"}
+            </button>
+          </form>
+          <button onClick={() => navigate("/forgot-password")} className="block w-full text-center mt-3 text-sm" style={{ color: "var(--brand-primary)" }} data-testid="pw-forgot-link">Forgot Password?</button>
+        </Card>
+      </PageShell>
+    );
+  }
+
+  // ============================================================
+  // STEP SCREENS
+  // ============================================================
+
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }} data-testid="login-page">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
-      </div>
+    <PageShell>
+      {/* STEP: ENTER */}
+      {step === "enter" && (
+        <Card>
+          <h2 className="text-2xl font-bold mb-1 text-center" style={{ color: "var(--text-primary)" }} data-testid="welcome-heading">
+            Welcome back
+          </h2>
+          <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
+            Control Your Money. Effortlessly.
+          </p>
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
-        {/* Logo & Title */}
-        <div className="flex flex-col items-center mb-8">
-          <LogoFull height={120} className="mb-3" />
-          <p className="text-sm font-medium" style={{ color: "#333333" }}>Your Financial Analytics Platform</p>
-        </div>
+          <ErrorBanner message={error} />
 
-        {/* Login Card */}
-        <div className="w-full max-w-sm rounded-3xl p-8 shadow-modal" style={{ backgroundColor: "var(--bg-card)" }}>
-          {/* Forgot Password Mode */}
-          {isForgotPasswordMode ? (
-            <>
-              {/* Back Button */}
-              <button
-                onClick={resetForgotPassword}
-                className="flex items-center gap-2 mb-4 text-sm hover:underline"
-                style={{ color: "#059669" }}
-                data-testid="back-to-login-btn"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Login
+          <form onSubmit={handleStart} className="space-y-4">
+            <InputField icon={<Mail className="h-5 w-5" />} value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Enter your email" testId="identifier-input" autoFocus />
+            <button type="submit" disabled={isSubmitting || !identifier.trim()} className="w-full py-3.5 rounded-xl font-semibold text-white disabled:opacity-50 transition-all flex items-center justify-center gap-2" style={{ backgroundColor: "var(--btn-primary-bg)" }} data-testid="continue-btn">
+              {isSubmitting ? <><Loader2 className="h-5 w-5 animate-spin" /> Sending OTP...</> : "Continue"}
+            </button>
+          </form>
+
+          {/* Secondary options */}
+          <div className="mt-5 space-y-2 text-center">
+            <div className="flex items-center justify-center gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
+              <button onClick={() => setShowPasswordFallback(true)} className="hover:underline" data-testid="use-password-link">Use Password</button>
+              <span>|</span>
+              <button onClick={() => navigate("/forgot-password")} className="hover:underline" data-testid="need-help-link">Need Help?</button>
+            </div>
+
+            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+              New here?{" "}
+              <button onClick={() => setIsRegisterMode(true)} className="font-semibold hover:underline" style={{ color: "var(--brand-primary)" }} data-testid="create-account-link">
+                Create Account
               </button>
+            </p>
+          </div>
 
-              <h2 className="text-xl font-bold mb-2 text-center" style={{ color: "var(--text-primary)" }}>
-                Forgot Password
-              </h2>
-              
-              {forgotPasswordStep === 1 ? (
-                <>
-                  <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
-                    Enter your registered email ID or mobile number to receive a password reset link.
-                  </p>
+          {/* Google login */}
+          <div className="flex items-center my-4">
+            <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
+            <span className="px-3 text-xs" style={{ color: "var(--text-muted)" }}>OR</span>
+            <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
+          </div>
+          <button onClick={() => loginWithGoogle(false)} className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-3 transition-all hover:shadow-sm" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }} data-testid="google-login-btn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+            Continue with Google
+          </button>
+        </Card>
+      )}
 
-                  {/* Error Message */}
-                  {error && (
-                    <div className="mb-4 p-3 rounded-xl flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)", border: "1px solid var(--status-error)" }}>
-                      <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: "var(--status-error)" }} />
-                      <p className="text-sm" style={{ color: "var(--status-error)" }}>{error}</p>
-                    </div>
-                  )}
+      {/* STEP: OTP */}
+      {step === "otp" && (
+        <Card>
+          <button onClick={() => { setStep("enter"); setError(""); setOtp(["","","","","",""]); }} className="flex items-center gap-2 mb-3 text-sm" style={{ color: "var(--brand-primary)" }} data-testid="otp-back-btn">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <h2 className="text-xl font-bold mb-1 text-center" style={{ color: "var(--text-primary)" }}>
+            Verify your email
+          </h2>
+          <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
+            Enter the 6-digit code sent to <strong className="break-all">{identifier}</strong>
+          </p>
 
-                  <form onSubmit={handleForgotPassword} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
-                        Email ID or Mobile Number
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
-                        <input
-                          type="text"
-                          value={identifier}
-                          onChange={(e) => setIdentifier(e.target.value)}
-                          placeholder="example@email.com or 10-digit mobile"
-                          className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
-                          style={{ 
-                            backgroundColor: "var(--bg-subtle)", 
-                            border: "1px solid var(--border-light)",
-                            color: "var(--text-primary)"
-                          }}
-                          data-testid="forgot-password-input"
-                        />
-                      </div>
-                    </div>
+          <ErrorBanner message={error} />
 
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || !identifier.trim()}
-                      className="w-full py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                      style={{ backgroundColor: "#047857" }}
-                      data-testid="forgot-password-submit"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="h-5 w-5 animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        "Send Reset Link"
-                      )}
-                    </button>
-                  </form>
-                </>
-              ) : (
-                /* Step 2: Success */
-                <div className="text-center py-4">
-                  <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: "var(--status-success-soft)" }}>
-                    <Check className="h-8 w-8" style={{ color: "var(--status-success)" }} />
-                  </div>
-                  <h3 className="font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
-                    Check Your Email
-                  </h3>
-                  <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
-                    {successMessage || "If an account exists, you will receive a password reset link shortly."}
-                  </p>
-                  <button
-                    onClick={resetForgotPassword}
-                    className="py-2 px-6 rounded-xl font-medium"
-                    style={{ backgroundColor: "#047857", color: "white" }}
-                    data-testid="back-to-login-success-btn"
-                  >
-                    Back to Login
-                  </button>
-                </div>
-              )}
-            </>
-          ) : loginMode === "biometric" ? (
-            /* Biometric Login Mode (DEFAULT) */
-            <>
-              <h2 className="text-xl font-bold mb-2 text-center" style={{ color: "var(--text-primary)" }}>
-                Welcome Back
-              </h2>
-              <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
-                Use your fingerprint or face to sign in
-              </p>
-
-              {error && (
-                <div className="mb-4 p-3 rounded-xl flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)", border: "1px solid var(--status-error)" }}>
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: "var(--status-error)" }} />
-                  <p className="text-sm" style={{ color: "var(--status-error)" }}>{error}</p>
-                </div>
-              )}
-
-              <form onSubmit={handleBiometricSubmit} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
-                    Email ID
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
-                    <input
-                      type="email"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="example@email.com"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
-                      style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
-                      data-testid="biometric-email-input"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-center py-4">
-                  <Fingerprint className="h-16 w-16 mb-3" style={{ color: "var(--brand-primary)", opacity: 0.8 }} />
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                    Your device will prompt for biometric verification
-                  </p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !identifier.trim()}
-                  className="w-full py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={{ backgroundColor: "#047857" }}
-                  data-testid="biometric-login-button"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    <>
-                      <Fingerprint className="h-5 w-5" />
-                      Authenticate with Biometric
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Alternative login methods */}
-              <div className="mt-4 space-y-2">
-                <button
-                  type="button"
-                  onClick={() => { setLoginMode("mpin"); setError(""); setMpin(["", "", "", ""]); }}
-                  className="w-full py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:shadow-sm"
-                  style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--brand-primary)" }}
-                  data-testid="switch-to-mpin-btn"
-                >
-                  <KeyRound className="h-4 w-4" />
-                  Login with MPIN
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setLoginMode("password"); setError(""); }}
-                  className="w-full py-2.5 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:shadow-sm"
-                  style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-secondary)" }}
-                  data-testid="switch-to-password-btn"
-                >
-                  <Lock className="h-4 w-4" />
-                  Login with Password
-                </button>
-              </div>
-
-              {/* Create Account & Google */}
-              <p className="text-sm text-center mt-4" style={{ color: "var(--text-secondary)" }}>
-                New to Moneyssutra?{" "}
-                <button
-                  onClick={() => { setIsRegisterMode(true); setError(""); }}
-                  className="font-semibold hover:underline"
-                  style={{ color: "var(--brand-primary)" }}
-                  data-testid="create-account-link"
-                >
-                  Create Account
-                </button>
-              </p>
-
-              <div className="flex items-center my-3">
-                <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
-                <span className="px-3 text-xs" style={{ color: "var(--text-muted)" }}>OR</span>
-                <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-light)" }} />
-              </div>
-
-              <button
-                type="button"
-                onClick={() => loginWithGoogle(rememberMe)}
-                className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-3 transition-all hover:shadow-sm"
-                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
-                data-testid="google-login-button"
-              >
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
-                Continue with Google
-              </button>
-            </>
-          ) : loginMode === "mpin" ? (
-            /* MPIN Login Mode */
-            <>
-              <button
-                onClick={() => { setLoginMode("biometric"); setError(""); setMpin(["", "", "", ""]); }}
-                className="flex items-center gap-2 mb-4 text-sm hover:underline"
-                style={{ color: "#059669" }}
-                data-testid="back-to-biometric-btn"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </button>
-
-              <h2 className="text-xl font-bold mb-2 text-center" style={{ color: "var(--text-primary)" }}>
-                Login with MPIN
-              </h2>
-              <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
-                Enter your 4-digit security PIN
-              </p>
-
-              {error && (
-                <div className="mb-4 p-3 rounded-xl flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)", border: "1px solid var(--status-error)" }}>
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: "var(--status-error)" }} />
-                  <p className="text-sm" style={{ color: "var(--status-error)" }}>{error}</p>
-                </div>
-              )}
-
-              <form onSubmit={handleMpinSubmit} className="space-y-5">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
-                    Email ID
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
-                    <input
-                      type="email"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="example@email.com"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
-                      style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
-                      data-testid="mpin-email-input"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-3 text-center" style={{ color: "var(--text-secondary)" }}>
-                    Enter MPIN
-                  </label>
-                  <div className="flex gap-3 justify-center">
-                    {mpin.map((digit, i) => (
-                      <input
-                        key={i}
-                        ref={mpinRefs[i]}
-                        type="password"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleMpinChange(i, e.target.value)}
-                        onKeyDown={(e) => handleMpinKeyDown(i, e)}
-                        className="w-14 h-14 text-center text-2xl font-bold rounded-xl outline-none transition-all focus:ring-2"
-                        style={{
-                          backgroundColor: "var(--bg-subtle)",
-                          border: "2px solid var(--border-light)",
-                          color: "var(--text-primary)",
-                          "--tw-ring-color": "var(--brand-primary)",
-                        }}
-                        data-testid={`mpin-digit-${i}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting || mpin.join("").length !== 4 || !identifier.trim()}
-                  className="w-full py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={{ backgroundColor: "#047857" }}
-                  data-testid="mpin-login-button"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    "Login with MPIN"
-                  )}
-                </button>
-              </form>
-            </>
-          ) : (
-            /* Password Login Form (Fallback) */
-            <>
-              <button
-                onClick={() => { setLoginMode("biometric"); setError(""); }}
-                className="flex items-center gap-2 mb-4 text-sm hover:underline"
-                style={{ color: "#059669" }}
-                data-testid="back-to-biometric-from-password"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </button>
-
-              <h2 className="text-xl font-bold mb-6 text-center" style={{ color: "var(--text-primary)" }}>
-                Login with Password
-              </h2>
-
-              {/* Error Message */}
-              {error && (
-                <div className="mb-4 p-3 rounded-xl flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)", border: "1px solid var(--status-error)" }}>
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: "var(--status-error)" }} />
-                  <p className="text-sm" style={{ color: "var(--status-error)" }}>{error}</p>
-                </div>
-              )}
-
-              {/* Login Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Email or Mobile */}
-                <div>
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
-                    Email ID or Mobile Number
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
-                    <input
-                      type="text"
-                      value={identifier}
-                      onChange={(e) => setIdentifier(e.target.value)}
-                      placeholder="example@email.com or 10-digit mobile"
-                      className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
-                      style={{ 
-                        backgroundColor: "var(--bg-subtle)", 
-                        border: "1px solid var(--border-light)",
-                        color: "var(--text-primary)"
-                      }}
-                      data-testid="identifier-input"
-                    />
-                  </div>
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label className="block text-sm font-medium mb-1.5" style={{ color: "var(--text-secondary)" }}>
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5" style={{ color: "var(--text-muted)" }} />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter password"
-                      className="w-full pl-11 pr-12 py-3 rounded-xl outline-none transition-all"
-                      style={{ 
-                        backgroundColor: "var(--bg-subtle)", 
-                        border: "1px solid var(--border-light)",
-                        color: "var(--text-primary)"
-                      }}
-                      data-testid="password-input"
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
-                      ) : (
-                        <Eye className="h-5 w-5" style={{ color: "var(--text-muted)" }} />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Remember Me & Forgot Password */}
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded border-2 cursor-pointer accent-[var(--brand-primary)]"
-                      style={{ borderColor: "var(--border-light)" }}
-                      data-testid="remember-me-checkbox"
-                    />
-                    <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                      Remember me
-                    </span>
-                  </label>
-                  <button 
-                    type="button"
-                    onClick={() => { setIsForgotPasswordMode(true); setError(""); }}
-                    className="text-sm hover:underline"
-                    style={{ color: "#059669" }}
-                    data-testid="forgot-password-link"
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !identifier.trim() || !password}
-                  className="w-full py-3 rounded-xl font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                  style={{ backgroundColor: "#047857" }}
-                  data-testid="login-button"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Signing In...
-                    </>
-                  ) : (
-                    "Login"
-                  )}
-                </button>
-              </form>
-
-              {/* Create Account Link */}
-              <p className="text-center mt-4 text-sm" style={{ color: "var(--text-secondary)" }}>
-                New to Moneyssutra?{" "}
-                <button
-                  onClick={toggleMode}
-                  className="font-semibold hover:underline"
-                  style={{ color: "#059669" }}
-                  data-testid="create-account-link"
-                >
-                  Create Account
-                </button>
-              </p>
-
-              {/* Divider */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t" style={{ borderColor: "var(--border-light)" }}></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2" style={{ backgroundColor: "var(--bg-card)", color: "var(--text-muted)" }}>OR</span>
-                </div>
-              </div>
-
-              {/* Google Login */}
-              <button
-                onClick={() => loginWithGoogle(rememberMe)}
-                className="w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-all hover:shadow-md"
-                style={{ 
-                  backgroundColor: "var(--bg-subtle)", 
-                  border: "1px solid var(--border-light)",
-                  color: "var(--text-primary)"
+          <div className="flex justify-center gap-2 mb-4" onPaste={handleOtpPaste}>
+            {otp.map((digit, i) => (
+              <input
+                key={i}
+                ref={(el) => (otpRefs.current[i] = el)}
+                type="text"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleOtpChange(i, e.target.value)}
+                onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                className="w-11 h-13 text-center text-xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                style={{
+                  backgroundColor: "var(--bg-subtle)",
+                  border: `2px solid ${digit ? "var(--brand-primary)" : "var(--border-light)"}`,
+                  color: "var(--text-primary)",
                 }}
-                data-testid="google-login-btn"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-                Continue with Google
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+                data-testid={`otp-digit-${i}`}
+              />
+            ))}
+          </div>
 
-      {/* Footer */}
-      <div className="relative z-10 pb-6">
-        <p className="text-center text-xs" style={{ color: "#333333" }}>
-          By signing in, you agree to our{" "}
-          <a href="/terms-of-service" className="underline font-medium" style={{ color: "#1A1A1A" }} data-testid="login-terms-link">Terms of Service</a>
-          {" "}and{" "}
-          <a href="/privacy-policy" className="underline font-medium" style={{ color: "#1A1A1A" }} data-testid="login-privacy-link">Privacy Policy</a>
-        </p>
+          {isSubmitting && (
+            <div className="flex justify-center mb-3">
+              <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--brand-primary)" }} />
+            </div>
+          )}
+
+          <div className="text-center">
+            {resendTimer > 0 ? (
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>Resend in {resendTimer}s</p>
+            ) : (
+              <button onClick={handleResend} className="text-xs font-semibold" style={{ color: "var(--brand-primary)" }} data-testid="resend-otp-btn">Resend OTP</button>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* STEP: MPIN (returning user) */}
+      {step === "mpin" && (
+        <Card>
+          <button onClick={() => { setStep("otp"); setError(""); setMpin(["","","",""]); }} className="flex items-center gap-2 mb-3 text-sm" style={{ color: "var(--brand-primary)" }} data-testid="mpin-back-btn">
+            <ArrowLeft className="h-4 w-4" /> Back
+          </button>
+          <h2 className="text-xl font-bold mb-1 text-center" style={{ color: "var(--text-primary)" }}>
+            Enter your secure PIN
+          </h2>
+          <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
+            Enter your 4-digit MPIN to continue
+          </p>
+
+          <ErrorBanner message={error} />
+
+          <div className="flex justify-center gap-3 mb-6">
+            {mpin.map((digit, i) => (
+              <input
+                key={i}
+                ref={(el) => (mpinRefs.current[i] = el)}
+                type="password"
+                inputMode="numeric"
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleMpinChange(mpinRefs, mpin, setMpin, i, e.target.value, handleMpinLogin)}
+                onKeyDown={(e) => handleMpinKeyDown(mpinRefs, mpin, i, e)}
+                className="w-14 h-14 text-center text-2xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                style={{
+                  backgroundColor: "var(--bg-subtle)",
+                  border: `2px solid ${digit ? "var(--brand-primary)" : "var(--border-light)"}`,
+                  color: "var(--text-primary)",
+                }}
+                data-testid={`mpin-digit-${i}`}
+              />
+            ))}
+          </div>
+
+          {isSubmitting && (
+            <div className="flex justify-center mb-3">
+              <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--brand-primary)" }} />
+            </div>
+          )}
+        </Card>
+      )}
+
+      {/* STEP: MPIN SETUP (first time) */}
+      {step === "mpin_setup" && (
+        <Card>
+          <h2 className="text-xl font-bold mb-1 text-center" style={{ color: "var(--text-primary)" }}>
+            {mpinStep === "enter" ? "Set up your MPIN" : "Confirm your MPIN"}
+          </h2>
+          <p className="text-sm text-center mb-6" style={{ color: "var(--text-muted)" }}>
+            {mpinStep === "enter"
+              ? "Create a 4-digit PIN for quick access"
+              : "Re-enter your PIN to confirm"}
+          </p>
+
+          <ErrorBanner message={error} />
+
+          {mpinStep === "enter" ? (
+            <div className="flex justify-center gap-3 mb-6">
+              {mpin.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={(el) => (mpinRefs.current[i] = el)}
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleMpinChange(mpinRefs, mpin, setMpin, i, e.target.value, handleMpinSetupComplete)}
+                  onKeyDown={(e) => handleMpinKeyDown(mpinRefs, mpin, i, e)}
+                  className="w-14 h-14 text-center text-2xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                  style={{ backgroundColor: "var(--bg-subtle)", border: `2px solid ${digit ? "var(--brand-primary)" : "var(--border-light)"}`, color: "var(--text-primary)" }}
+                  data-testid={`mpin-setup-digit-${i}`}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex justify-center gap-3 mb-6">
+              {mpinConfirm.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={(el) => (mpinConfirmRefs.current[i] = el)}
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleMpinChange(mpinConfirmRefs, mpinConfirm, setMpinConfirm, i, e.target.value, handleMpinSetupComplete)}
+                  onKeyDown={(e) => handleMpinKeyDown(mpinConfirmRefs, mpinConfirm, i, e)}
+                  className="w-14 h-14 text-center text-2xl font-bold rounded-xl outline-none transition-all focus:ring-2"
+                  style={{ backgroundColor: "var(--bg-subtle)", border: `2px solid ${digit ? "var(--brand-primary)" : "var(--border-light)"}`, color: "var(--text-primary)" }}
+                  data-testid={`mpin-confirm-digit-${i}`}
+                />
+              ))}
+            </div>
+          )}
+
+          {isSubmitting && (
+            <div className="flex justify-center mb-3">
+              <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--brand-primary)" }} />
+            </div>
+          )}
+
+          <div className="flex justify-center gap-2">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="w-2.5 h-2.5 rounded-full transition-all" style={{
+                backgroundColor: (mpinStep === "enter" ? mpin[i] : mpinConfirm[i]) ? "var(--brand-primary)" : "var(--border-light)",
+              }} />
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* STEP: SUCCESS */}
+      {step === "success" && (
+        <Card>
+          <div className="text-center py-6">
+            <div className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center animate-bounce" style={{ backgroundColor: "var(--status-success-soft)" }}>
+              <Check className="h-10 w-10" style={{ color: "var(--status-success)" }} />
+            </div>
+            <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--text-primary)" }} data-testid="success-heading">
+              You're in
+            </h2>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Redirecting to your dashboard...</p>
+          </div>
+        </Card>
+      )}
+    </PageShell>
+  );
+};
+
+// ============================================================
+// SHARED UI COMPONENTS
+// ============================================================
+
+const PageShell = ({ children }) => (
+  <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }} data-testid="login-page">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute top-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+    </div>
+    <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+      <div className="flex flex-col items-center mb-8">
+        <LogoFull height={120} className="mb-3" />
       </div>
+      {children}
+    </div>
+    <div className="relative z-10 pb-6">
+      <p className="text-center text-xs" style={{ color: "#333333" }}>
+        By signing in, you agree to our{" "}
+        <a href="/terms-of-service" className="underline font-medium" style={{ color: "#1A1A1A" }}>Terms</a>
+        {" "}and{" "}
+        <a href="/privacy-policy" className="underline font-medium" style={{ color: "#1A1A1A" }}>Privacy Policy</a>
+      </p>
+    </div>
+  </div>
+);
+
+const Card = ({ children }) => (
+  <div className="w-full max-w-sm rounded-3xl p-8 shadow-modal" style={{ backgroundColor: "var(--bg-card)" }}>
+    {children}
+  </div>
+);
+
+const ErrorBanner = ({ message }) => {
+  if (!message) return null;
+  return (
+    <div className="mb-4 p-3 rounded-xl flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)", border: "1px solid var(--status-error)" }} data-testid="error-banner">
+      <AlertCircle className="h-5 w-5 flex-shrink-0" style={{ color: "var(--status-error)" }} />
+      <p className="text-sm" style={{ color: "var(--status-error)" }}>{message}</p>
     </div>
   );
 };
+
+const InputField = ({ icon, value, onChange, placeholder, testId, autoFocus }) => (
+  <div className="relative">
+    <div className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }}>{icon}</div>
+    <input
+      type="text"
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      autoFocus={autoFocus}
+      className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
+      style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)", color: "var(--text-primary)" }}
+      data-testid={testId}
+    />
+  </div>
+);
 
 export default Login;

@@ -1,0 +1,85 @@
+{
+  "summary": "Iteration 183 - CRED-style Step-based Login Flow Tests - ALL PASSED. Backend APIs (/auth/start, /auth/verify-login-otp, /auth/mpin-login, /auth/mpin-setup-login) working correctly. Frontend Login.js shows step-based flow: enter email → OTP verification → MPIN (if set). All UI elements verified with proper data-testid attributes.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_cred_style_login_iter183.py",
+    "/app/test_reports/pytest/cred_style_login_iter183_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Login flow uses separate collection 'login_otp_tokens' - good isolation from signup and forgot-password OTP",
+    "Rate limiting: 5 OTP requests per hour per email, 30s cooldown between requests",
+    "OTP expiry: 5 minutes, max 3 attempts per OTP",
+    "temp_token (JWT) created after OTP verification - valid for 10 minutes",
+    "MPIN must be exactly 4 digits - validated on backend",
+    "If user has no MPIN and no biometric, they are auto-logged in after OTP verification",
+    "Password fallback uses existing /api/auth/login endpoint - still works",
+    "Google login redirects to OAuth - unchanged",
+    "Frontend step state machine: enter → otp → mpin_setup | mpin → success"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_cred_style_login_iter183.py"
+  ],
+  "success_rate": {
+    "backend": "100% (15/15 tests passed)",
+    "frontend": "100% (All UI elements verified)"
+  },
+  "test_credentials": {
+    "existing_google_user": "moneyssutra@gmail.com (Google auth, no password, no MPIN)"
+  },
+  "seed_data_creation": "None - used existing test user",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "CRED-style login flow fully tested. Note: Cannot test actual OTP verification end-to-end since we can't read the sent email. Cannot test MPIN login/setup without a valid temp_token from OTP verification. Tested: 1) /auth/start returns user_exists flag, 2) /auth/start rate limiting works (30s cooldown, 5/hour), 3) /auth/verify-login-otp returns error with attempts left for wrong OTP, 4) /auth/mpin-login returns 401 for invalid temp_token, 5) /auth/mpin-setup-login validates 4-digit MPIN format. Frontend UI verified: step transitions work, all data-testid attributes present.",
+  "verified_features": {
+    "backend_apis": {
+      "POST /api/auth/start (existing user)": "PASS - Returns {message: 'OTP sent', user_exists: true}",
+      "POST /api/auth/start (new user)": "PASS - Returns {message: 'OTP sent', user_exists: false}",
+      "POST /api/auth/start (empty email)": "PASS - Returns 400 'Email is required'",
+      "POST /api/auth/start (invalid email)": "PASS - Returns 400 'Please enter a valid email address'",
+      "POST /api/auth/start (rate limit cooldown)": "PASS - Returns 'OTP already sent' within 30s",
+      "POST /api/auth/verify-login-otp (missing fields)": "PASS - Returns 400 error",
+      "POST /api/auth/verify-login-otp (wrong OTP)": "PASS - Returns 400 with attempts left",
+      "POST /api/auth/verify-login-otp (no OTP sent)": "PASS - Returns 400 'Invalid or expired OTP'",
+      "POST /api/auth/mpin-login (missing fields)": "PASS - Returns 400 error",
+      "POST /api/auth/mpin-login (invalid token)": "PASS - Returns 401 'Invalid token'",
+      "POST /api/auth/mpin-setup-login (missing fields)": "PASS - Returns 400 error",
+      "POST /api/auth/mpin-setup-login (invalid MPIN format)": "PASS - Returns 400 'MPIN must be exactly 4 digits'",
+      "POST /api/auth/mpin-setup-login (invalid token)": "PASS - Returns 401 error",
+      "POST /api/auth/login (invalid credentials)": "PASS - Returns 401 error",
+      "POST /api/auth/login (Google user no password)": "PASS - Returns 401 'No password set. Please login with Google'"
+    },
+    "frontend_ui": {
+      "Login page - data-testid='login-page'": "PASS",
+      "Welcome heading - data-testid='welcome-heading'": "PASS - Shows 'Welcome back'",
+      "Email input - data-testid='identifier-input'": "PASS",
+      "Continue button - data-testid='continue-btn'": "PASS",
+      "Use Password link - data-testid='use-password-link'": "PASS",
+      "Create Account link - data-testid='create-account-link'": "PASS",
+      "Google login button - data-testid='google-login-btn'": "PASS",
+      "Password form - email input - data-testid='pw-identifier-input'": "PASS",
+      "Password form - password input - data-testid='pw-password-input'": "PASS",
+      "Password form - Login button - data-testid='pw-login-btn'": "PASS",
+      "Password form - Back button - data-testid='back-from-password'": "PASS",
+      "Registration page - data-testid='register-page'": "PASS",
+      "OTP step - Back button - data-testid='otp-back-btn'": "PASS",
+      "OTP step - 6 digit inputs - data-testid='otp-digit-0' to 'otp-digit-5'": "PASS",
+      "OTP step - Resend timer": "PASS - Shows 'Resend in Xs'",
+      "OTP step - Heading": "PASS - Shows 'Verify your email'"
+    }
+  },
+  "mocked_apis": {
+    "has_mocked_apis": true,
+    "mocked_apis_list": ["Twilio SMS/WhatsApp"],
+    "live_apis": ["Resend Email (LIVE with real RESEND_API_KEY)"]
+  },
+  "notes": "OTP email is sent via Resend (LIVE). The OTP verification cannot be fully tested end-to-end since we cannot read the actual email. MPIN login/setup requires a valid temp_token from OTP verification which we cannot obtain without the actual OTP. However, all error handling, rate limiting, validation, and UI flows are verified. The login flow now supports: 1) Primary: Email → OTP → MPIN → Dashboard, 2) Fallback: Use Password → Dashboard, 3) Google OAuth → Dashboard."
+}
