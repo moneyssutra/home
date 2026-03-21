@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { 
   User, Lock, Eye, EyeOff, AlertCircle, Mail, Phone, Calendar,
-  Check, X, Loader2, ChevronLeft, Users
+  Check, X, Loader2, ChevronLeft, Users, ShieldCheck
 } from "lucide-react";
 import axios from "axios";
 import { format } from "date-fns";
@@ -59,6 +59,17 @@ const RegisterForm = ({ onBackToLogin, initialInviteCode = "" }) => {
   const [inviteInfo, setInviteInfo] = useState(null);
   const [checkingInvite, setCheckingInvite] = useState(false);
   
+  // Email OTP verification state
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailOtp, setEmailOtp] = useState(["", "", "", "", "", ""]);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailVerificationToken, setEmailVerificationToken] = useState(null);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpVerifying, setOtpVerifying] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpResendTimer, setOtpResendTimer] = useState(0);
+  const otpRefs = useRef([]);
+  
   // Validation states
   const [emailAvailable, setEmailAvailable] = useState(null);
   const [checkingEmail, setCheckingEmail] = useState(false);
@@ -71,6 +82,77 @@ const RegisterForm = ({ onBackToLogin, initialInviteCode = "" }) => {
 
   // Today's date for DOB constraint
   const today = format(new Date(), "yyyy-MM-dd");
+
+  // OTP resend countdown timer
+  useEffect(() => {
+    if (otpResendTimer <= 0) return;
+    const t = setTimeout(() => setOtpResendTimer(otpResendTimer - 1), 1000);
+    return () => clearTimeout(t);
+  }, [otpResendTimer]);
+
+  // Reset verification when email changes
+  useEffect(() => {
+    setEmailOtpSent(false);
+    setEmailOtp(["", "", "", "", "", ""]);
+    setEmailVerified(false);
+    setEmailVerificationToken(null);
+    setOtpError("");
+  }, [email]);
+
+  // Send signup OTP
+  const handleSendSignupOtp = async () => {
+    if (!email.trim() || !isValidEmail(email)) return;
+    setOtpSending(true);
+    setOtpError("");
+    try {
+      await axios.post(`${backendUrl}/api/auth/send-signup-otp`, { email: email.trim().toLowerCase() });
+      setEmailOtpSent(true);
+      setOtpResendTimer(60);
+    } catch (err) {
+      setOtpError(err.response?.data?.detail || err.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setOtpSending(false);
+    }
+  };
+
+  // OTP input handlers
+  const handleOtpChange = (index, value) => {
+    if (!/^\d?$/.test(value)) return;
+    const next = [...emailOtp];
+    next[index] = value;
+    setEmailOtp(next);
+    if (value && index < 5) otpRefs.current[index + 1]?.focus();
+  };
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !emailOtp[index] && index > 0) otpRefs.current[index - 1]?.focus();
+  };
+  const handleOtpPaste = (e) => {
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (paste.length === 6) {
+      setEmailOtp(paste.split(""));
+      otpRefs.current[5]?.focus();
+    }
+  };
+
+  // Verify signup OTP
+  const handleVerifySignupOtp = async () => {
+    const otpString = emailOtp.join("");
+    if (otpString.length !== 6) return;
+    setOtpVerifying(true);
+    setOtpError("");
+    try {
+      const res = await axios.post(`${backendUrl}/api/auth/verify-signup-otp`, {
+        email: email.trim().toLowerCase(),
+        otp: otpString,
+      });
+      setEmailVerified(true);
+      setEmailVerificationToken(res.data.verification_token);
+    } catch (err) {
+      setOtpError(err.response?.data?.detail || "Verification failed");
+    } finally {
+      setOtpVerifying(false);
+    }
+  };
 
   // Lookup invite code when it changes
   useEffect(() => {
@@ -234,6 +316,8 @@ const RegisterForm = ({ onBackToLogin, initialInviteCode = "" }) => {
       email.trim() &&
       isValidEmail(email) &&
       emailAvailable === true &&
+      emailVerified &&
+      emailVerificationToken &&
       (!mobile || isValidMobile(mobile)) &&
       sex &&
       dateOfBirth &&
@@ -276,7 +360,8 @@ const RegisterForm = ({ onBackToLogin, initialInviteCode = "" }) => {
         sex: sex.toLowerCase(),
         dateOfBirth: dateOfBirth,
         password: password,
-        inviteCode: inviteCode.trim() || null
+        inviteCode: inviteCode.trim() || null,
+        emailVerificationToken: emailVerificationToken,
       });
       
       if (result.success) {
@@ -432,33 +517,98 @@ const RegisterForm = ({ onBackToLogin, initialInviteCode = "" }) => {
                 onBlur={() => handleBlur("email", email)}
                 placeholder="example@email.com"
                 className="w-full pl-10 pr-10 py-2.5 rounded-lg text-sm outline-none transition-all"
-                style={inputStyle("email", emailAvailable === true)}
+                style={inputStyle("email", emailVerified ? true : emailAvailable === true)}
                 data-testid="email-input"
+                disabled={emailVerified}
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                {checkingEmail && (
-                  <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--text-muted)" }} />
-                )}
-                {!checkingEmail && emailAvailable === true && (
-                  <Check className="h-4 w-4" style={{ color: "var(--status-success)" }} />
-                )}
-                {!checkingEmail && emailAvailable === false && (
-                  <X className="h-4 w-4" style={{ color: "var(--status-error)" }} />
-                )}
+                {checkingEmail && <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--text-muted)" }} />}
+                {!checkingEmail && emailVerified && <ShieldCheck className="h-4 w-4" style={{ color: "var(--status-success)" }} />}
+                {!checkingEmail && !emailVerified && emailAvailable === true && <Check className="h-4 w-4" style={{ color: "var(--brand-primary)" }} />}
+                {!checkingEmail && emailAvailable === false && <X className="h-4 w-4" style={{ color: "var(--status-error)" }} />}
               </div>
             </div>
             {touched.email && errors.email && (
               <p className="mt-1 text-xs" style={{ color: "var(--status-error)" }}>{errors.email}</p>
             )}
             {emailAvailable === false && (
-              <p className="mt-1 text-xs" style={{ color: "var(--status-error)" }}>
-                This email is already registered.
+              <p className="mt-1 text-xs" style={{ color: "var(--status-error)" }}>This email is already registered.</p>
+            )}
+            {emailVerified && (
+              <p className="mt-1 text-xs flex items-center gap-1" style={{ color: "var(--status-success)" }}>
+                <ShieldCheck className="h-3 w-3" /> Email verified
               </p>
             )}
-            {emailAvailable === true && (
-              <p className="mt-1 text-xs" style={{ color: "var(--status-success)" }}>
-                Email is available
-              </p>
+
+            {/* Send OTP button - show when email is available but not yet verified */}
+            {emailAvailable === true && !emailVerified && !emailOtpSent && (
+              <button
+                type="button"
+                onClick={handleSendSignupOtp}
+                disabled={otpSending}
+                className="mt-2 w-full py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 text-white disabled:opacity-50"
+                style={{ backgroundColor: "var(--brand-primary)" }}
+                data-testid="send-signup-otp-btn"
+              >
+                {otpSending ? <><Loader2 className="h-4 w-4 animate-spin" /> Sending...</> : "Verify Email with OTP"}
+              </button>
+            )}
+
+            {/* OTP Error */}
+            {otpError && (
+              <div className="mt-2 p-2 rounded-lg flex items-center gap-2" style={{ backgroundColor: "var(--status-error-soft)" }}>
+                <AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: "var(--status-error)" }} />
+                <p className="text-xs" style={{ color: "var(--status-error)" }}>{otpError}</p>
+              </div>
+            )}
+
+            {/* OTP Input - show when OTP sent but not verified */}
+            {emailOtpSent && !emailVerified && (
+              <div className="mt-3 p-3 rounded-xl" style={{ backgroundColor: "var(--bg-subtle)", border: "1px solid var(--border-light)" }}>
+                <p className="text-xs font-medium mb-2" style={{ color: "var(--text-secondary)" }}>
+                  Enter the 6-digit code sent to <strong>{email}</strong>
+                </p>
+                <div className="flex justify-center gap-1.5 mb-2" onPaste={handleOtpPaste}>
+                  {emailOtp.map((digit, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => (otpRefs.current[i] = el)}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(i, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      className="w-9 h-10 text-center text-lg font-bold rounded-lg outline-none transition-all"
+                      style={{
+                        backgroundColor: "var(--bg-card)",
+                        border: `2px solid ${digit ? "var(--brand-primary)" : "var(--border-light)"}`,
+                        color: "var(--text-primary)",
+                      }}
+                      data-testid={`signup-otp-input-${i}`}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={handleVerifySignupOtp}
+                    disabled={otpVerifying || emailOtp.join("").length !== 6}
+                    className="py-1.5 px-4 rounded-lg text-xs font-semibold text-white disabled:opacity-50 flex items-center gap-1.5"
+                    style={{ backgroundColor: "var(--brand-primary)" }}
+                    data-testid="verify-signup-otp-btn"
+                  >
+                    {otpVerifying ? <><Loader2 className="h-3 w-3 animate-spin" /> Verifying...</> : "Verify"}
+                  </button>
+                  {otpResendTimer > 0 ? (
+                    <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>Resend in {otpResendTimer}s</span>
+                  ) : (
+                    <button type="button" onClick={handleSendSignupOtp} disabled={otpSending} className="text-[10px] font-semibold" style={{ color: "var(--brand-primary)" }} data-testid="resend-signup-otp-btn">
+                      Resend OTP
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 

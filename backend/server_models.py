@@ -54,6 +54,7 @@ class RegisterRequest(BaseModel):
     dateOfBirth: str
     password: str
     inviteCode: Optional[str] = None
+    emailVerificationToken: Optional[str] = None
 
 class SetPasswordRequest(BaseModel):
     password: str
@@ -83,6 +84,10 @@ class ResetPasswordOTPRequest(BaseModel):
     email: str
     otp: str
     new_password: str
+
+class VerifySignupOTPRequest(BaseModel):
+    email: str
+    otp: str
 
 
 # ============ WORKSPACE MODELS ============
