@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Trash2, Search, Check, ChevronDown, Calendar
 import axios from "axios";
 import { mutate } from "swr";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
 import ReminderTimePicker from "@/components/ReminderTimePicker";
 import { ValidationMessage } from "@/components/ValidationMessage";
@@ -472,7 +473,8 @@ const SelfEmployedIncome = () => {
       // Invalidate SWR cache to ensure fresh data on list pages
       await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
       
-      navigate("/my-self-employed");
+      fireConfetti();
+      setTimeout(() => navigate("/my-self-employed"), 400);
     } catch (error) {
       console.error("Error saving self-employed income:", error);
       setErrors({ submit: "Failed to save. Please try again." });

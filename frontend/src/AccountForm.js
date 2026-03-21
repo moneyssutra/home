@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
 import axios from "axios";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import { numberToWords } from "@/lib/formatters";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { 
@@ -22,6 +23,7 @@ const AccountForm = () => {
   // Form fields
   const [accountName, setAccountName] = useState("");
   const [accountType, setAccountType] = useState(searchParams.get("type") || "");
+  const isTypeLocked = !!(searchParams.get("type")) && !id;
   const [currentBalance, setCurrentBalance] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [isPrimary, setIsPrimary] = useState(false);
@@ -183,7 +185,8 @@ const AccountForm = () => {
         await axios.post(`${backendUrl}/api/accounts`, payload);
       }
       
-      navigate("/my-accounts");
+      fireConfetti();
+      setTimeout(() => navigate("/my-accounts"), 400);
     } catch (error) {
       console.error("Error saving account:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -261,12 +264,14 @@ const AccountForm = () => {
         <label className="block text-sm font-medium mb-3" style={{ color: "var(--text-primary)" }}>Account Type</label>
         <div className="grid grid-cols-2 gap-2">
           {accountTypeOptions.map((opt) => (
-            <button key={opt} type="button" onClick={() => setAccountType(opt)}
-              className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all active:scale-[0.97] ${accountType === opt ? "border-[#3B82F6] bg-[#3B82F6]/10 text-[#3B82F6] ring-1 ring-[#3B82F6]/30" : ""}`}
+            <button key={opt} type="button" onClick={() => { if (!isTypeLocked) setAccountType(opt); }}
+              disabled={isTypeLocked && accountType !== opt}
+              className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all active:scale-[0.97] ${accountType === opt ? "border-[#3B82F6] bg-[#3B82F6]/10 text-[#3B82F6] ring-1 ring-[#3B82F6]/30" : ""} ${isTypeLocked && accountType !== opt ? "opacity-40 cursor-not-allowed" : ""} ${isTypeLocked && accountType === opt ? "cursor-not-allowed" : ""}`}
               style={accountType !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
               data-testid={`type-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
           ))}
         </div>
+        {isTypeLocked && <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Pre-selected from category picker</p>}
         {errors.accountType && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.accountType}</p>}
       </div>
     </div>

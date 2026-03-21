@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Trash2, Check, Loader2, Calendar, PlusCircle
 import axios from "axios";
 import { mutate } from "swr";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
 import ReminderTimePicker from "@/components/ReminderTimePicker";
 import { ValidationMessage } from "@/components/ValidationMessage";
@@ -428,7 +429,8 @@ const BusinessIncome = () => {
       // Invalidate SWR cache to ensure fresh data on list pages
       await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
       
-      navigate("/my-business");
+      fireConfetti();
+      setTimeout(() => navigate("/my-business"), 400);
     } catch (error) {
       console.error("Error saving business income:", error);
       setErrors({ submit: "Failed to save. Please try again." });

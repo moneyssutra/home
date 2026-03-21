@@ -149,3 +149,16 @@ All 10 financial data entry forms converted to step-by-step wizards using Wizard
 9. InvestmentForm - 4-step wizard (Category/Mode -> Name/Details -> Amount/Schedule -> Options)
 10. LoanForm - 4-step wizard (Type/Name -> Amounts -> Schedule -> Options)
 11. InsuranceForm - 4-step wizard (Type/Name -> Coverage/Premium -> Dates -> Details)
+12. AssetForm - 4-step wizard (Type/Name -> Valuation -> Financing/Income -> Insurance/Notes)
+
+### Confetti Animation + Category Lock (Mar 2026)
+- All wizard forms fire canvas-confetti on successful save via `/app/frontend/src/lib/confetti.js`
+- Category/Type fields are locked (disabled) when pre-selected from category picker pages
+- Applies to: InvestmentForm, LoanForm, InsuranceForm, AssetForm, AccountForm, ExpenseForm
+
+### Backend Phase 1 Refactoring (Mar 2026)
+- Created `/backend/services/financial_engine.py` — Central FinancialSnapshot class with net worth, cash flow, savings rate, EMI ratio, emergency fund, breakdowns
+- Created `/backend/services/financial_service.py` — Shared utilities (normalize_to_monthly, safe_sum, calculate_total, group_by_field, format_currency)
+- Added `/api/dashboard/summary` — Single endpoint returning ALL financial data in one call using Financial Engine
+- Added Pydantic field validators to Investment, Loan, Expense models (amount positivity, rate validation)
+- All data fetched via `asyncio.gather` — no DB-calls-in-loops

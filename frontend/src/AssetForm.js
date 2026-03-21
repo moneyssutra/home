@@ -8,6 +8,7 @@ import { RestrictedDatePicker } from "@/components/ui/date-picker";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import { 
   validatePositiveAmount, 
   validateNonNegativeAmount,
@@ -25,6 +26,7 @@ const AssetForm = () => {
   const [searchParams] = useSearchParams();
   
   const prefilledType = searchParams.get('type') || '';
+  const isTypeLocked = !!prefilledType && !id;
   
   // Form fields
   const [assetType, setAssetType] = useState(prefilledType);
@@ -225,7 +227,8 @@ const AssetForm = () => {
           return;
         }
       }
-      navigate("/my-assets");
+      fireConfetti();
+      setTimeout(() => navigate("/my-assets"), 400);
     } catch (error) { setErrors({ submit: "Failed to save. Please try again." }); }
     finally { setIsSubmitting(false); }
   };

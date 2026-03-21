@@ -11,6 +11,7 @@ import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
 import { toast } from "sonner";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import { 
   validatePositiveAmount, 
   validateDateRange,
@@ -26,6 +27,7 @@ const InsuranceForm = () => {
   const [searchParams] = useSearchParams();
   
   const prefilledType = searchParams.get('type') || '';
+  const isTypeLocked = !!prefilledType && !id;
   
   // Form fields
   const [insuranceType, setInsuranceType] = useState(prefilledType);
@@ -243,7 +245,10 @@ const InsuranceForm = () => {
       else { await axios.post(`${backendUrl}/api/insurances`, payload); toast.success("Insurance saved!"); }
       if (location.state?.returnTo === '/asset' && location.state?.assetFormData) {
         navigate('/asset', { state: { assetFormData: location.state.assetFormData } });
-      } else navigate("/my-insurance");
+      } else {
+        fireConfetti();
+        setTimeout(() => navigate("/my-insurance"), 400);
+      }
     } catch (error) { setErrors({ submit: "Failed to save. Please try again." }); toast.error("Failed to save insurance"); }
     finally { setIsSubmitting(false); }
   };
@@ -305,11 +310,13 @@ const InsuranceForm = () => {
       </div>
       <div>
         <label className={labelCls} style={labelStyle}>Insurance Type *</label>
-        <select value={insuranceType} onChange={(e) => { setInsuranceType(e.target.value); setLinkedAssetId(""); setCoveredPerson(""); }}
-          className={inputCls} style={inputStyle(errors.insuranceType)} data-testid="insurance-type-select">
+        <select value={insuranceType} onChange={(e) => { if (!isTypeLocked) { setInsuranceType(e.target.value); setLinkedAssetId(""); setCoveredPerson(""); } }}
+          disabled={isTypeLocked}
+          className={`${inputCls} ${isTypeLocked ? "opacity-70 cursor-not-allowed" : ""}`} style={inputStyle(errors.insuranceType)} data-testid="insurance-type-select">
           <option value="">Select Insurance Type</option>
           {insuranceTypeOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
+        {isTypeLocked && <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "var(--text-muted)" }}>Pre-selected from category picker</p>}
         {errors.insuranceType && <p className="text-sm mt-1 flex items-center gap-1" style={{ color: "var(--status-error)" }}><AlertCircle className="h-3.5 w-3.5" />{errors.insuranceType}</p>}
       </div>
       <div>

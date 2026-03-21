@@ -9,6 +9,7 @@ import { numberToWords } from "@/lib/formatters";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import { 
   validatePositiveAmount, 
   validateDateRange,
@@ -24,6 +25,7 @@ const InvestmentForm = () => {
   const [searchParams] = useSearchParams();
   
   const prefilledCategory = searchParams.get('category') || '';
+  const isCategoryLocked = !!prefilledCategory && !id;
   
   // Form fields
   const [investmentCategory, setInvestmentCategory] = useState(prefilledCategory);
@@ -388,7 +390,8 @@ const InvestmentForm = () => {
       };
       if (id) await axios.put(`${backendUrl}/api/investments/${id}`, payload);
       else await axios.post(`${backendUrl}/api/investments`, payload);
-      navigate("/my-investments");
+      fireConfetti();
+      setTimeout(() => navigate("/my-investments"), 400);
     } catch (error) { console.error("Error saving investment:", error); setErrors({ submit: "Failed to save. Please try again." }); }
     finally { setIsSubmitting(false); }
   };
@@ -423,11 +426,13 @@ const InvestmentForm = () => {
       </div>
       <div>
         <label className={labelCls} style={labelStyle}>Investment Category</label>
-        <select value={investmentCategory} onChange={(e) => { setInvestmentCategory(e.target.value); setInvestmentMode(""); }}
-          className={inputCls} style={inputStyle(errors.investmentCategory)} data-testid="category-select">
+        <select value={investmentCategory} onChange={(e) => { if (!isCategoryLocked) { setInvestmentCategory(e.target.value); setInvestmentMode(""); } }}
+          disabled={isCategoryLocked}
+          className={`${inputCls} ${isCategoryLocked ? "opacity-70 cursor-not-allowed" : ""}`} style={inputStyle(errors.investmentCategory)} data-testid="category-select">
           <option value="">Select Category</option>
           {categoryOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
+        {isCategoryLocked && <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "var(--text-muted)" }}>Pre-selected from category picker</p>}
         {errors.investmentCategory && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.investmentCategory}</p>}
       </div>
       {!isLoanGiven && (

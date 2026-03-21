@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { Check, Loader2, Trash2, ChevronRight, X } from "lucide-react";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import { numberToWords } from "@/lib/formatters";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
@@ -168,7 +169,8 @@ const CreditCardForm = () => {
       } else {
         await axios.post(`${backendUrl}/api/credit-cards`, payload);
       }
-      navigate("/my-credit-cards");
+      fireConfetti();
+      setTimeout(() => navigate("/my-credit-cards"), 400);
     } catch (error) {
       console.error("Error saving credit card:", error);
       setErrors({ submit: "Failed to save credit card. Please try again." });

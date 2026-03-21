@@ -1,7 +1,7 @@
 """
 Loan model
 """
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional
 from datetime import datetime, timezone
 import uuid
@@ -43,3 +43,24 @@ class LoanCreate(BaseModel):
     linkedAssetId: Optional[str] = None
     linkedAccountId: Optional[str] = None
     autoCreateExpense: bool = True
+
+    @field_validator("principalAmount")
+    @classmethod
+    def validate_principal(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Principal amount must be positive")
+        return v
+
+    @field_validator("interestRate")
+    @classmethod
+    def validate_interest_rate(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("Interest rate cannot be negative")
+        return v
+
+    @field_validator("emiAmount")
+    @classmethod
+    def validate_emi(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("EMI amount must be positive")
+        return v

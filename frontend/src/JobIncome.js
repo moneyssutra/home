@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Trash2, Check, Loader2, Calendar, PlusCircle
 import axios from "axios";
 import { mutate } from "swr";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
+import { fireConfetti } from "@/lib/confetti";
 import ReminderTimePicker from "@/components/ReminderTimePicker";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
@@ -448,7 +449,8 @@ const JobIncome = () => {
       // Invalidate SWR cache
       await mutate((key) => typeof key === 'string' && key.includes('/api/income'), undefined, { revalidate: true });
       
-      navigate("/my-job");
+      fireConfetti();
+      setTimeout(() => navigate("/my-job"), 400);
     } catch (error) {
       console.error("Error saving job income:", error);
       setErrors({ submit: "Failed to save. Please try again." });

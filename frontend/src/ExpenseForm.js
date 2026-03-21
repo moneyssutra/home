@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, Trash2, Check, 
 import axios from "axios";
 import { mutate } from "swr";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
@@ -44,6 +45,7 @@ const ExpenseForm = () => {
   const [expenseName, setExpenseName] = useState("");
   const [expenseType, setExpenseType] = useState("Variable");
   const [category, setCategory] = useState("");
+  const [categoryLocked, setCategoryLocked] = useState(false);
   const [expectedAmount, setExpectedAmount] = useState("");
   const [frequency, setFrequency] = useState("");
   const [linkedAccountId, setLinkedAccountId] = useState("");
@@ -151,6 +153,7 @@ const ExpenseForm = () => {
       const categoryParam = searchParams.get('category');
       if (categoryParam) {
         setCategory(decodeURIComponent(categoryParam));
+        setCategoryLocked(true);
         // Default to Fixed for certain categories
         if (['Housing', 'EMI', 'Insurance', 'Utilities', 'Subscriptions', 'Investments'].includes(decodeURIComponent(categoryParam))) {
           setExpenseType('Fixed');
@@ -411,7 +414,8 @@ const ExpenseForm = () => {
       // Invalidate SWR cache
       await mutate((key) => typeof key === 'string' && key.includes('/api/expenses'), undefined, { revalidate: true });
       
-      navigate(-1);
+      fireConfetti();
+      setTimeout(() => navigate(-1), 400);
     } catch (error) {
       console.error("Error saving expense:", error);
       setErrors({ submit: "Failed to save. Please try again." });
@@ -482,12 +486,14 @@ const ExpenseForm = () => {
         <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>Category</label>
         <div className="grid grid-cols-2 gap-2">
           {categoryOptions.map((opt) => (
-            <button key={opt} type="button" onClick={() => setCategory(opt)}
-              className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] text-left ${category === opt ? "border-[#FF4D4D] bg-[#FF4D4D]/10 text-[#FF4D4D] ring-1 ring-[#FF4D4D]/30" : ""}`}
+            <button key={opt} type="button" onClick={() => { if (!categoryLocked) setCategory(opt); }}
+              disabled={categoryLocked && category !== opt}
+              className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] text-left ${category === opt ? "border-[#FF4D4D] bg-[#FF4D4D]/10 text-[#FF4D4D] ring-1 ring-[#FF4D4D]/30" : ""} ${categoryLocked && category !== opt ? "opacity-40 cursor-not-allowed" : ""} ${categoryLocked && category === opt ? "cursor-not-allowed" : ""}`}
               style={category !== opt ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
               data-testid={`category-${opt.toLowerCase().replace(/\s+/g, '-')}`}>{opt}</button>
           ))}
         </div>
+        {categoryLocked && <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>Pre-selected from category picker</p>}
         {errors.category && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.category}</p>}
       </div>
     </div>

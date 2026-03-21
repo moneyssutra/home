@@ -8,6 +8,7 @@ import { RestrictedDatePicker } from "@/components/ui/date-picker";
 import { ValidationMessage } from "@/components/ValidationMessage";
 import { useEntityUniqueness } from "@/hooks/useEntityUniqueness";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import { 
   validatePositiveAmount, 
   validateLoanOutstanding, 
@@ -24,6 +25,7 @@ const LoanIncome = () => {
   const [searchParams] = useSearchParams();
   
   const prefilledType = searchParams.get('type') || '';
+  const isTypeLocked = !!prefilledType && !id;
   
   // Form fields
   const [loanType, setLoanType] = useState(prefilledType);
@@ -237,7 +239,10 @@ const LoanIncome = () => {
       else { const r = await axios.post(`${backendUrl}/api/loans`, payload); savedLoanId = r.data.id; }
       if (location.state?.returnTo && location.state?.assetFormData) {
         navigate(location.state.returnTo, { state: { assetFormData: location.state.assetFormData, newLoanId: savedLoanId } });
-      } else navigate("/my-loans");
+      } else {
+        fireConfetti();
+        setTimeout(() => navigate("/my-loans"), 400);
+      }
     } catch (error) { setErrors({ submit: "Failed to save. Please try again." }); }
     finally { setIsSubmitting(false); }
   };
@@ -268,11 +273,13 @@ const LoanIncome = () => {
       </div>
       <div>
         <label className={labelCls} style={labelStyle}>Loan Type</label>
-        <select value={loanType} onChange={(e) => setLoanType(e.target.value)}
-          className={inputCls} style={inputStyle(errors.loanType)} data-testid="loan-type-select">
+        <select value={loanType} onChange={(e) => { if (!isTypeLocked) setLoanType(e.target.value); }}
+          disabled={isTypeLocked}
+          className={`${inputCls} ${isTypeLocked ? "opacity-70 cursor-not-allowed" : ""}`} style={inputStyle(errors.loanType)} data-testid="loan-type-select">
           <option value="">Select Loan Type</option>
           {loanTypeOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
         </select>
+        {isTypeLocked && <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "var(--text-muted)" }}>Pre-selected from category picker</p>}
         {errors.loanType && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.loanType}</p>}
       </div>
       <div>

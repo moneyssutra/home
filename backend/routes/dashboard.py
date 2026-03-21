@@ -6,8 +6,20 @@ import asyncio
 from database import db
 from routes.auth import get_current_user
 from routes.utils import get_user_filter, get_effective_user_filter, get_user_now, count_weekday_occurrences, get_weekly_multiplier, parse_due_day
+from services.financial_engine import build_snapshot
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+
+
+@router.get("/summary")
+async def get_dashboard_summary(request: Request):
+    """Single endpoint returning full financial summary via the Financial Engine."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_filter = await get_effective_user_filter(user, request)
+    snapshot = await build_snapshot(db, user_filter)
+    return snapshot.summary()
 
 
 @router.get("/networth")

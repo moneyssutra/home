@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Trash2, PlusCircle, X, Check, Calendar } fro
 import axios from "axios";
 import { mutate } from "swr";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import IncomeTypeToggle from "@/components/IncomeTypeToggle";
 import ReminderTimePicker from "@/components/ReminderTimePicker";
 import { ValidationMessage } from "@/components/ValidationMessage";
@@ -340,7 +341,8 @@ const CommissionIncome = () => {
         await axios.post(`${backendUrl}/api/income`, payload);
       }
       
-      navigate("/my-income");
+      fireConfetti();
+      setTimeout(() => navigate("/my-income"), 400);
     } catch (error) {
       console.error("Error saving commission:", error);
       setErrors({ submit: "Failed to save. Please try again." });

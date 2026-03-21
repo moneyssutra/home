@@ -4,6 +4,7 @@ import { Save, Trash2, AlertCircle, CalendarDays, ChevronDown, Gift, Award, Tren
 import axios from "axios";
 import { mutate } from "swr";
 import WizardShell from "@/components/WizardShell";
+import { fireConfetti } from "@/lib/confetti";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -206,7 +207,8 @@ const OtherIncomeForm = () => {
       // Invalidate SWR cache
       await mutate((key) => typeof key === 'string' && key.includes('/api/other-income'), undefined, { revalidate: true });
       
-      navigate("/my-other-income");
+      fireConfetti();
+      setTimeout(() => navigate("/my-other-income"), 400);
     } catch (error) {
       console.error("Error saving income:", error);
       setError("Failed to save income. Please try again.");

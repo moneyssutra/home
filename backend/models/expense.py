@@ -1,7 +1,7 @@
 """
 Expense model
 """
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional
 from datetime import datetime, timezone
 import uuid
@@ -28,12 +28,11 @@ class Expense(BaseModel):
     oneTimeDate: Optional[str] = None
     isPaid: bool = False
     lastPaidDate: Optional[str] = None
-    # Prepayment & Future Expense fields
-    expenseMonth: Optional[str] = None  # YYYY-MM target month
-    dueDate: Optional[str] = None  # YYYY-MM-DD actual due date
-    paidDate: Optional[str] = None  # YYYY-MM-DD when actually paid
-    prepaidFlag: bool = False  # True if paid before due month
-    linkedPaymentId: Optional[str] = None  # Links to payment record
+    expenseMonth: Optional[str] = None
+    dueDate: Optional[str] = None
+    paidDate: Optional[str] = None
+    prepaidFlag: bool = False
+    linkedPaymentId: Optional[str] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -60,3 +59,10 @@ class ExpenseCreate(BaseModel):
     paidDate: Optional[str] = None
     prepaidFlag: bool = False
     linkedPaymentId: Optional[str] = None
+
+    @field_validator("expectedAmount")
+    @classmethod
+    def validate_amount(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("Expense amount must be positive")
+        return v
