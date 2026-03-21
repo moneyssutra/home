@@ -797,6 +797,13 @@ async def forgot_mpin(request: Request):
         return {"message": "OTP already sent. Please wait."}
 
     otp = generate_otp()
+
+    # Invalidate all previous unused OTPs for this email (prevents flooding)
+    await db.login_otp_tokens.update_many(
+        {"email": email, "purpose": "mpin_reset", "used": False},
+        {"$set": {"used": True}}
+    )
+
     await db.login_otp_tokens.insert_one({
         "otp_id": str(uuid.uuid4()),
         "email": email,
@@ -939,6 +946,13 @@ async def auth_start(request: Request):
         return {"message": "OTP already sent", "user_exists": user is not None}
 
     otp = generate_otp()
+
+    # Invalidate previous unused login OTPs for this email
+    await db.login_otp_tokens.update_many(
+        {"email": identifier, "used": False},
+        {"$set": {"used": True}}
+    )
+
     await db.login_otp_tokens.insert_one({
         "otp_id": str(uuid.uuid4()),
         "email": identifier,
