@@ -794,7 +794,7 @@ async def forgot_mpin(request: Request, background_tasks: BackgroundTasks):
         {"_id": 0, "user_id": 1}
     )
     cooldown_fut = db.login_otp_tokens.find_one(
-        {"email": email, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()}},
+        {"email": email, "purpose": "mpin_reset", "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()}},
         {"_id": 0, "otp_id": 1}
     )
     user, recent = await _aio.gather(user_fut, cooldown_fut)
