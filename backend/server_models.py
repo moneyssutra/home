@@ -291,6 +291,7 @@ class Expense(BaseModel):
     expenseMonth: Optional[str] = None
     dueDate: Optional[str] = None
     linkedPaymentId: Optional[str] = None
+    isEssential: Optional[bool] = None
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ExpenseCreate(BaseModel):
@@ -316,6 +317,7 @@ class ExpenseCreate(BaseModel):
     expenseMonth: Optional[str] = None
     dueDate: Optional[str] = None
     linkedPaymentId: Optional[str] = None
+    isEssential: Optional[bool] = None
 
     @field_validator("expectedAmount")
     @classmethod

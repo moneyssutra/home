@@ -115,11 +115,19 @@ async def _get_fund_breakdown(user_filter: dict) -> dict:
 
 
 async def _get_monthly_mandatory_expense(user_filter: dict) -> float:
-    """Calculate monthly mandatory expense from Fixed expenses."""
+    """Calculate monthly mandatory expense from Fixed expenses marked as essential.
+    Uses smart defaults: only categories like Housing, Utilities, Food, Medical, Education, Salary Paid, EMI.
+    SIPs, investments, and non-essential subscriptions are excluded unless user explicitly marks them essential.
+    """
+    from routes.expenses import compute_is_essential
     fixed_expenses = await db.expenses.find(
-        {**user_filter, "expenseType": "Fixed"}, {"_id": 0, "expectedAmount": 1, "frequency": 1}
+        {**user_filter, "expenseType": "Fixed"}, {"_id": 0, "expectedAmount": 1, "frequency": 1, "isEssential": 1, "expenseName": 1, "category": 1}
     ).to_list(1000)
-    return sum(_normalize_monthly(e.get("expectedAmount", 0), e.get("frequency", "Monthly")) for e in fixed_expenses)
+    total = 0
+    for e in fixed_expenses:
+        if compute_is_essential(e):
+            total += _normalize_monthly(e.get("expectedAmount", 0), e.get("frequency", "Monthly"))
+    return total
 
 
 async def _get_monthly_income(user_filter: dict) -> float:

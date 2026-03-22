@@ -50,6 +50,7 @@ const ExpenseForm = () => {
   const [expectedAmount, setExpectedAmount] = useState("");
   const [frequency, setFrequency] = useState("");
   const [linkedAccountId, setLinkedAccountId] = useState("");
+  const [isEssential, setIsEssential] = useState(null); // null = use smart default
   
   // Conditional date fields
   const [selectedDay, setSelectedDay] = useState("");
@@ -190,6 +191,9 @@ const ExpenseForm = () => {
       setSelectedHalf(data.selectedHalf || "");
       setSelectedMonth(data.selectedMonth || "");
       setOneTimeDate(data.oneTimeDate || "");
+      if (data.isEssential !== undefined && data.isEssential !== null) {
+        setIsEssential(data.isEssential);
+      }
     } catch (error) {
       console.error("Error fetching expense data:", error);
       setErrors({ submit: "Failed to load expense data" });
@@ -404,6 +408,7 @@ const ExpenseForm = () => {
         selectedHalf: selectedHalf || null,
         selectedMonth: selectedMonth || null,
         oneTimeDate: oneTimeDate || null,
+        isEssential: isEssential,
       };
 
       if (id) {
@@ -495,6 +500,32 @@ const ExpenseForm = () => {
             ))}
           </div>
           {errors.category && <p className="text-sm mt-1" style={{ color: "var(--status-error)" }}>{errors.category}</p>}
+        </div>
+      )}
+      {/* Essential toggle — only for Fixed expenses */}
+      {expenseType === "Fixed" && (
+        <div className="w-full">
+          <label className="block text-sm font-medium mb-2" style={{ color: "var(--text-primary)" }}>
+            Survival Essential?
+          </label>
+          <p className="text-xs mb-3" style={{ color: "var(--text-secondary)" }}>
+            Essential expenses count towards your Emergency Runway calculation. Non-essentials (like SIPs, investments) are excluded.
+          </p>
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setIsEssential(true)}
+              className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${isEssential === true ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/30" : ""}`}
+              style={isEssential !== true ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+              data-testid="essential-yes-btn">Yes, Essential</button>
+            <button type="button" onClick={() => setIsEssential(false)}
+              className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${isEssential === false ? "border-amber-500 bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/30" : ""}`}
+              style={isEssential !== false ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+              data-testid="essential-no-btn">No, Can Be Paused</button>
+          </div>
+          {isEssential === null && (
+            <p className="text-xs mt-2 italic" style={{ color: "var(--text-secondary)" }}>
+              Auto-detected based on category. Tap to override.
+            </p>
+          )}
         </div>
       )}
     </div>

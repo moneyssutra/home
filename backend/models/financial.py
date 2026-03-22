@@ -82,6 +82,7 @@ class ExpenseCreate(BaseModel):
     oneTimeDate: Optional[str] = None
     isPaid: bool = False
     lastPaidDate: Optional[str] = None
+    isEssential: Optional[bool] = None
 
 
 # Loan Model

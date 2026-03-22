@@ -11,6 +11,30 @@ from routes.utils import get_user_filter, get_effective_user_filter, get_user_no
 
 router = APIRouter(prefix="/expenses", tags=["Expenses"])
 
+# Smart default: categories considered "essential" for survival (if income stops)
+ESSENTIAL_CATEGORIES = {"Housing", "Utilities", "Food", "Medical", "Education", "Salary Paid", "EMI"}
+# Name patterns that override category-based defaults
+NON_ESSENTIAL_NAME_PATTERNS = ["sip", "mutual fund", "mf ", "ppf", "nps", "elss", "etf", "gold saving", "investment"]
+ESSENTIAL_NAME_PATTERNS = ["emi", "loan", "rent", "insurance premium", "premium", "petrol", "diesel", "fuel", "commute", "transport", "electricity", "water bill", "gas bill", "grocery", "medicine", "school fee", "tuition"]
+
+
+def compute_is_essential(expense: dict) -> bool:
+    """Determine if an expense is essential for survival based on category + name heuristics."""
+    # If user explicitly set it, respect that
+    if expense.get("isEssential") is not None:
+        return expense["isEssential"]
+    name = (expense.get("expenseName") or expense.get("name") or "").lower()
+    category = expense.get("category", "")
+    # Name-based overrides take priority
+    for pattern in NON_ESSENTIAL_NAME_PATTERNS:
+        if pattern in name:
+            return False
+    for pattern in ESSENTIAL_NAME_PATTERNS:
+        if pattern in name:
+            return True
+    # Fall back to category
+    return category in ESSENTIAL_CATEGORIES
+
 
 def calculate_next_deduction_date(expense: dict) -> Optional[str]:
     today = datetime.now(timezone.utc).date()
@@ -101,6 +125,9 @@ async def create_expense(input: ExpenseCreate, request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
     expense_dict = input.model_dump()
     expense_dict['userId'] = user.get('user_id')
+    # Auto-compute isEssential if not explicitly set
+    if expense_dict.get('isEssential') is None:
+        expense_dict['isEssential'] = compute_is_essential(expense_dict)
     expense_obj = Expense(**expense_dict)
     doc = expense_obj.model_dump()
     doc['createdAt'] = doc['createdAt'].isoformat()
@@ -137,7 +164,7 @@ async def get_expense_list_summary(request: Request, category: Optional[str] = N
         "expectedAmount": 1, "frequency": 1, "selectedDay": 1, "selectedDate": 1,
         "linkedLoanId": 1, "linkedInsuranceId": 1, "linkedInvestmentId": 1,
         "skippedMonths": 1, "selectedQuarter": 1, "selectedHalf": 1, "selectedMonth": 1,
-        "linkedPaymentId": 1, "oneTimeDate": 1
+        "linkedPaymentId": 1, "oneTimeDate": 1, "isEssential": 1
     }
     expenses = await db.expenses.find(user_filter, projection).to_list(1000)
     entity_ids = [e["id"] for e in expenses]
@@ -2126,6 +2153,9 @@ async def update_expense(expense_id: str, input: ExpenseCreate, request: Request
     expense_dict['id'] = expense_id
     expense_dict['userId'] = user.get('user_id')
     expense_dict['createdAt'] = existing['createdAt']
+    # Preserve user's explicit isEssential, or recompute if not set
+    if expense_dict.get('isEssential') is None:
+        expense_dict['isEssential'] = existing.get('isEssential') if existing.get('isEssential') is not None else compute_is_essential(expense_dict)
     await db.expenses.replace_one({"id": expense_id}, expense_dict)
     dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
     if isinstance(expense_dict.get('createdAt'), str):
@@ -2146,6 +2176,25 @@ async def delete_expense(expense_id: str, request: Request):
     await db.expenses.delete_one({"id": expense_id})
     dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
     return {"message": "Expense deleted successfully", "id": expense_id}
+
+
+@router.patch("/{expense_id}/essential")
+async def toggle_essential(expense_id: str, request: Request):
+    """Toggle whether an expense is counted as 'essential' for emergency runway calculation."""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    body = await request.json()
+    is_essential = body.get("isEssential")
+    if is_essential is None:
+        raise HTTPException(status_code=400, detail="isEssential field required")
+    user_filter = get_user_filter(user)
+    user_filter["id"] = expense_id
+    result = await db.expenses.update_one(user_filter, {"$set": {"isEssential": bool(is_essential)}})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Expense not found")
+    dashboard_cache.invalidate(f"combined:{user.get('user_id')}")
+    return {"success": True, "isEssential": bool(is_essential)}
 
 
 

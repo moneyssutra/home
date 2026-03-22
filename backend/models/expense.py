@@ -33,6 +33,7 @@ class Expense(BaseModel):
     paidDate: Optional[str] = None
     prepaidFlag: bool = False
     linkedPaymentId: Optional[str] = None
+    isEssential: Optional[bool] = None  # None = use smart default, True/False = user override
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -59,6 +60,7 @@ class ExpenseCreate(BaseModel):
     paidDate: Optional[str] = None
     prepaidFlag: bool = False
     linkedPaymentId: Optional[str] = None
+    isEssential: Optional[bool] = None  # None = use smart default, True/False = user override
 
     @field_validator("expectedAmount")
     @classmethod
