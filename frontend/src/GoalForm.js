@@ -15,6 +15,7 @@ import {
   formatAmountInput,
   scrollToFirstError
 } from "@/lib/validations";
+import API_BASE from './utils/apiConfig';
 
 const TOTAL_STEPS = 5;
 
@@ -67,7 +68,7 @@ const GoalForm = () => {
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
   const [targetCalendarOpen, setTargetCalendarOpen] = useState(false);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   const goalTypeOptions = [
     { value: "Wealth Creation", label: "Wealth Creation", description: "Save for a big purchase or milestone", icon: "star" },

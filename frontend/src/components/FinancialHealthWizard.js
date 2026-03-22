@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ChevronRight, ChevronLeft, Wallet, Receipt, PiggyBank, CreditCard, Shield, TrendingUp, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import API_BASE from '../utils/apiConfig';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const STEPS = [
   { id: "income", title: "Monthly Income", icon: Wallet, description: "Your total monthly earnings" },

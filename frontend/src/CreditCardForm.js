@@ -15,6 +15,7 @@ import {
   formatAmountInput,
   scrollToFirstError
 } from "@/lib/validations";
+import API_BASE from './utils/apiConfig';
 
 const CreditCardForm = () => {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ const CreditCardForm = () => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   // Entity uniqueness check for card name
   const {

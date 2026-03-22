@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { X, Shield, TrendingUp, Wallet, Heart, ChevronRight, Crown } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const CATEGORY_CONFIG = {
   Safety: { icon: Shield, color: "#059669", bg: "#05966912", border: "#05966930", label: "Safety Suggestion" },

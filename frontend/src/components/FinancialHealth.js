@@ -45,8 +45,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 // Status colors
 const STATUS_COLORS = {

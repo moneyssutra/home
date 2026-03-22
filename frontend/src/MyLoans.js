@@ -5,6 +5,7 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from './utils/apiConfig';
 
 const MyLoans = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const MyLoans = () => {
   const [activeFilter, setActiveFilter] = useState("active"); // "all", "active", "closed"
   const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   useEffect(() => {
     window.scrollTo(0, 0);

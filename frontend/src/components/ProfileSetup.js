@@ -7,8 +7,9 @@ import {
 } from "lucide-react";
 import BottomNav from "./BottomNav";
 import AddActionSheet from "./AddActionSheet";
+import API_BASE from '../utils/apiConfig';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 /* ─── Category Config ─── */
 const CATEGORIES = [

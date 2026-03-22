@@ -9,8 +9,9 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { toast } from "sonner";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const fmt = (n) => {
   if (!n && n !== 0) return "0";

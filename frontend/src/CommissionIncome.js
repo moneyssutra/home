@@ -24,6 +24,7 @@ import {
   dismissRelatedNotifications
 } from "@/utils/transactionApi";
 import { toast } from "sonner";
+import API_BASE from './utils/apiConfig';
 
 const CommissionIncome = () => {
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ const CommissionIncome = () => {
   const [showIncomeModal, setShowIncomeModal] = useState(false);
   const [transactionRefreshKey, setTransactionRefreshKey] = useState(0);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
   const today = new Date().toISOString().split('T')[0];
 
   // Fetch data if editing

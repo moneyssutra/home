@@ -8,10 +8,11 @@ import {
   Crown, Shield, Edit3, Eye, UserPlus, Check, X,
   Building2, User, Mail, ChevronLeft
 } from 'lucide-react';
+import API_BASE from '../utils/apiConfig';
 
 const WorkspaceSettings = () => {
   const navigate = useNavigate();
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
   const { user } = useAuth();
   const { 
     currentWorkspace, 

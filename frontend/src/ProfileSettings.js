@@ -23,8 +23,9 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
 import { toast } from "sonner";
+import API_BASE from './utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const ProfileSettings = () => {
   const navigate = useNavigate();

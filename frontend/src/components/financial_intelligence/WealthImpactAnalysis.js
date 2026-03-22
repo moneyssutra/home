@@ -4,8 +4,9 @@ import {
   ChevronUp, ChevronDown, TrendingUp, Shield, Target,
   Landmark, Smile, Frown, AlertTriangle, Award, ArrowRight
 } from "lucide-react";
+import API_BASE from '../../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const iconMap = {
   "trending-up": TrendingUp,

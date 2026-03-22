@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Users, Download, ArrowRight, Loader2, Smartphone } from "lucide-react";
 import axios from "axios";
+import API_BASE from '../utils/apiConfig';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const InviteLanding = () => {
   const { code } = useParams();

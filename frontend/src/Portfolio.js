@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from './utils/apiConfig';
 
 const Portfolio = () => {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ const Portfolio = () => {
     creditCards: [],
   });
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   useEffect(() => {
     fetchPortfolioData();

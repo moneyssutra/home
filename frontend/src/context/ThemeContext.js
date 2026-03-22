@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import API_BASE from '../utils/apiConfig';
 
 const ThemeContext = createContext();
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);

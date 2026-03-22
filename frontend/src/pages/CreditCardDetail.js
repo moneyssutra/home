@@ -5,8 +5,9 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { toast } from "sonner";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 const fmt = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n || 0));
 
 export default function CreditCardDetail() {

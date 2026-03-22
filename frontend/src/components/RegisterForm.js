@@ -8,8 +8,9 @@ import {
 import axios from "axios";
 import { format } from "date-fns";
 import { RestrictedDatePicker } from "@/components/ui/date-picker";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 // Password strength calculator
 const calculatePasswordStrength = (password) => {

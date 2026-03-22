@@ -5,6 +5,7 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from './utils/apiConfig';
 
 const MyInvestments = () => {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const MyInvestments = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const { activeViewId, activeViewLabel, isPersonalView, isFamilyView } = useFamilyContext();
   
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   useEffect(() => {
     fetchInvestments();

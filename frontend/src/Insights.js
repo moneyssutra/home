@@ -23,6 +23,7 @@ import {
   Gauge, Swords, ShieldCheck, Castle, ClipboardEdit
 } from "lucide-react";
 import axios from "axios";
+import API_BASE from './utils/apiConfig';
 
 // ─── HELPERS ───
 const fmt = (n) => { if (!n && n !== 0) return "0"; const a = Math.abs(n); if (a >= 10000000) return `${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `${(n/100000).toFixed(1)}L`; if (a >= 1000) return `${(n/1000).toFixed(0)}K`; return n.toFixed(0); };
@@ -675,7 +676,7 @@ const ShockTestWidget = ({ clockData }) => {
   const [testing, setTesting] = useState(false);
   const [activeId, setActiveId] = useState(null);
   const [customAmount, setCustomAmount] = useState("");
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
 
   const isFamilyData = clockData?.fundBreakdown?.extendedBuffer !== undefined;
 
@@ -1223,7 +1224,7 @@ const ActionSection = ({ clockData, scoreData, challenges }) => {
 // ─── MAIN INSIGHTS PAGE ───
 const Insights = () => {
   const navigate = useNavigate();
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
   const [showAddSheet, setShowAddSheet] = useState(false);
   const [showShareCard, setShowShareCard] = useState(false);
   const [openModule, setOpenModule] = useState(null);

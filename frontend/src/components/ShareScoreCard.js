@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { X, Download, Share2, Copy, Check } from "lucide-react";
 import html2canvas from "html2canvas";
 import axios from "axios";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const GRADE_META = {
   A: { color: "#10B981", label: "Excellent" },

@@ -21,6 +21,7 @@ import axios from "axios";
 import { useMilestoneNotification, MilestoneProgress } from "@/components/MilestoneNotification";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
+import API_BASE from './utils/apiConfig';
 
 /* ─── keyword → image mapping (shared logic) ─── */
 const GOAL_IMAGES = {
@@ -76,7 +77,7 @@ const GoalDetail = () => {
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
   
   // Milestone notification hook
   const { checkMilestones } = useMilestoneNotification(id, backendUrl);

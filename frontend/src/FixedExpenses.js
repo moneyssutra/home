@@ -7,6 +7,7 @@ import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
 import { normalizeToMonthly } from "@/lib/formatters";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from './utils/apiConfig';
 
 const FixedExpenses = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const FixedExpenses = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   useEffect(() => {
     fetchExpenses();

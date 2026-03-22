@@ -6,8 +6,9 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from './utils/apiConfig';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];

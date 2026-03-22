@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import axios from "axios";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 /**
  * Custom hook for checking entity name uniqueness

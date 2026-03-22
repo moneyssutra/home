@@ -6,8 +6,9 @@ import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
+import API_BASE from './utils/apiConfig';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const formatAmount = (amount) => {
   if (!amount) return "₹0";

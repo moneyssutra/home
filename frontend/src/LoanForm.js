@@ -17,6 +17,7 @@ import {
   formatAmountInput,
   scrollToFirstError
 } from "@/lib/validations";
+import API_BASE from './utils/apiConfig';
 
 const LoanIncome = () => {
   const navigate = useNavigate();
@@ -64,7 +65,7 @@ const LoanIncome = () => {
   const [step, setStep] = useState(1);
 
   const today = format(new Date(), "yyyy-MM-dd");
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   const {
     checkUniqueness: checkLoanNameUnique,

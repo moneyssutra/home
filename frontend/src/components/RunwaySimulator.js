@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Shield, TrendingUp, TrendingDown, Minus, ArrowRight, Info, Sliders } from "lucide-react";
 import axios from "axios";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 const fmt = (n) => { if (!n && n !== 0) return "0"; const a = Math.abs(n); if (a >= 10000000) return `${(n/10000000).toFixed(1)}Cr`; if (a >= 100000) return `${(n/100000).toFixed(1)}L`; if (a >= 1000) return `${(n/1000).toFixed(1)}K`; return n.toFixed(0); };
 
 const LEVEL_COLORS = { "CHAMPION": "#8B5CF6", "SECURE": "#3B82F6", "COMFORTABLE": "#10B981", "BUILDING": "#F59E0B", "NEEDS ATTENTION": "#EF4444" };

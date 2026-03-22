@@ -1,6 +1,7 @@
 import axios from "axios";
+import API_BASE from './apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const adminApi = axios.create({
   baseURL: `${backendUrl}/api`,

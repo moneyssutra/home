@@ -6,6 +6,7 @@ import { addMonths, addQuarters, addYears, format, isAfter, isBefore } from "dat
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from './utils/apiConfig';
 
 const MyInsurance = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const MyInsurance = () => {
   const [showAddSheet, setShowAddSheet] = useState(false);
   const { activeViewId, isPersonalView, isFamilyView } = useFamilyContext();
   
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   useEffect(() => {
     fetchInsurances();

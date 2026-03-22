@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { AlertTriangle, Shield, TrendingUp, Target, Zap, ChevronDown, ChevronUp, ArrowRight, PiggyBank, Scale, Brain } from "lucide-react";
+import API_BASE from '../utils/apiConfig';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const formatINR = (v) => `₹${Math.round(v).toLocaleString("en-IN")}`;
 const formatK = (v) => {

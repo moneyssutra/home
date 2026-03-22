@@ -7,8 +7,9 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from './utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+const backendUrl = API_BASE;
 const fetcher = (url) => axios.get(url, { withCredentials: true }).then(res => res.data);
 
 const MyIncome = () => {

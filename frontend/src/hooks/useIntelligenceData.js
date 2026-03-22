@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 export function useIntelligenceData() {
   const { isPersonalView, isFamilyView, activeViewId } = useFamilyContext();

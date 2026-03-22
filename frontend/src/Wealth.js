@@ -12,8 +12,9 @@ import ProfileMenu from "@/components/ProfileMenu";
 import FamilyToggle from "@/components/FamilyToggle";
 import { useAuth } from "@/context/AuthContext";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from './utils/apiConfig';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const formatAmount = (amount) => {
   if (amount >= 10000000) return `${parseFloat((amount / 10000000).toFixed(2))} Cr`;

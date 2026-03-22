@@ -5,8 +5,9 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { OpportunityCard } from "@/components/OpportunityCard";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const CATEGORY_META = {
   Safety: { icon: Shield, color: "#059669", description: "Secure your financial foundation" },

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
+import API_BASE from '../utils/apiConfig';
   Briefcase, Store, Home, ArrowRight, ArrowLeft, Check, X,
   CalendarDays, Wallet, Sparkles, ChevronDown, SkipForward,
   Loader2, Shield, Landmark, ChevronRight, Receipt,
@@ -9,7 +10,7 @@ import {
   PiggyBank, Utensils, Wifi
 } from "lucide-react";
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 /* ─── Projected Grade Logic ─── */
 const getProjectedGrade = (income, expenses) => {

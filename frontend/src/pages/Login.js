@@ -6,8 +6,9 @@ import RegisterForm from "@/components/RegisterForm";
 import { LogoFull } from "@/components/Logo";
 import axios from "axios";
 import { toast } from "sonner";
+import API_BASE from '../utils/apiConfig';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const Login = () => {
   const navigate = useNavigate();

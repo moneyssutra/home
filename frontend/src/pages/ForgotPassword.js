@@ -3,8 +3,9 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, AlertCircle, CheckCircle, ArrowLeft, Send, Loader2, Lock, Eye, EyeOff, KeyRound, LinkIcon } from "lucide-react";
 import axios from "axios";
 import { LogoFull } from "@/components/Logo";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 // Isolated timer component — ticking doesn't re-render parent form/inputs
 const ResendTimerRow = memo(function ResendTimerRow({ seconds, onResend }) {

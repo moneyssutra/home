@@ -7,8 +7,9 @@ import FinancialIntelligence from "@/components/FinancialIntelligence";
 import WealthImpactAnalysis from "@/components/financial_intelligence/WealthImpactAnalysis";
 import SpendingInsights from "@/components/financial_intelligence/SpendingInsights";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from './utils/apiConfig';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 const MONTH_NAMES_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const MONTH_NAMES_FULL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 

@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { KeyRound, Fingerprint, Loader2, X, Check, ChevronRight } from "lucide-react";
 import axios from "axios";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 // WebAuthn helpers
 function _base64urlToBuffer(base64url) {

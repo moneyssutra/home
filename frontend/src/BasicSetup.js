@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Check } from "lucide-react";
 import axios from "axios";
+import API_BASE from './utils/apiConfig';
 
 const BasicSetup = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const BasicSetup = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   const goals = [
     { id: "grow-wealth", label: "Grow Wealth" },

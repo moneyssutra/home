@@ -35,6 +35,7 @@ import { useFamilyContext } from "@/context/FamilyContext";
 import ProfileSetup from "@/components/ProfileSetup";
 import RollingButtons from "@/components/RollingButtons";
 import GoalCard from "@/components/GoalCard";
+import API_BASE from './utils/apiConfig';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ const Dashboard = () => {
     }
   }, [profileCompletion, isPersonalView]);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
 
   useEffect(() => {
     if (isFamilyView) {

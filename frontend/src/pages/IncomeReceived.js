@@ -5,8 +5,9 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const typeIcons = {
   Salary: Briefcase, Job: Briefcase, Business: Building2, "Self-Employed": Laptop,

@@ -25,6 +25,7 @@ import {
   dismissRelatedNotifications
 } from "@/utils/transactionApi";
 import { toast } from "sonner";
+import API_BASE from './utils/apiConfig';
 
 // Profession categories with options
 const PROFESSION_CATEGORIES = {
@@ -115,7 +116,7 @@ const SelfEmployedIncome = () => {
   const [editingTransaction, setEditingTransaction] = useState(null);
   const [showRecordModal, setShowRecordModal] = useState(false);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   // Fetch data if editing
   useEffect(() => {

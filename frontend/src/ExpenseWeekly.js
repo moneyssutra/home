@@ -4,8 +4,9 @@ import axios from "axios";
 import { TrendingUp, TrendingDown, Eye, Zap, ChevronLeft, ChevronRight, Wallet, ShoppingBag, PiggyBank } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from './utils/apiConfig';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const DK = {

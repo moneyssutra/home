@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { KeyRound, Loader2, X } from "lucide-react";
 import axios from "axios";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const SetMPINModal = ({ isOpen, onClose, onSuccess }) => {
   const [step, setStep] = useState(1); // 1=enter, 2=confirm

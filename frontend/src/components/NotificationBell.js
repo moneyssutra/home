@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import IncomeAmountModal from "@/components/IncomeAmountModal";
 import { recordIncomeTransaction, dismissRelatedNotifications } from "@/utils/transactionApi";
+import API_BASE from '../utils/apiConfig';
 
 const NotificationBell = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const NotificationBell = () => {
   const [selectedIncome, setSelectedIncome] = useState(null);
   const [confirmingId, setConfirmingId] = useState(null);
   
-  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+  const backendUrl = API_BASE;
   
   // Prevent body scroll when drawer is open
   useEffect(() => {

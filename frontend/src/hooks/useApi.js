@@ -1,7 +1,8 @@
 import useSWR from 'swr';
 import axios from 'axios';
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+const backendUrl = API_BASE;
 
 // Append user's timezone offset to URL for correct month calculations
 const TZ_OFFSET = new Date().getTimezoneOffset(); // IST = -330

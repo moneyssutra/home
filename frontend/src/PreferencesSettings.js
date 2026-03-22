@@ -13,8 +13,9 @@ import {
 import { toast } from "sonner";
 import axios from "axios";
 import { useTheme } from "@/context/ThemeContext";
+import API_BASE from './utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const PreferencesSettings = () => {
   const navigate = useNavigate();

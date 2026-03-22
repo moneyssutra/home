@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { TrendingUp, AlertTriangle, Scale, Wallet, Activity } from "lucide-react";
+import API_BASE from '../../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const ruleIcons = {
   A: TrendingUp,

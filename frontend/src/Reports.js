@@ -21,8 +21,9 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { useFamilyContext } from "@/context/FamilyContext";
 import { toast } from "sonner";
+import API_BASE from './utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const Reports = () => {
   const navigate = useNavigate();

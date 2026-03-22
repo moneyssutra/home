@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useTheme } from "@/context/ThemeContext";
+import API_BASE from '../utils/apiConfig';
 
 // WebAuthn helpers
 function _base64urlToBuffer(base64url) {
@@ -35,7 +36,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { syncThemeFromBackend } = useTheme();
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   // Check authentication status on mount
   useEffect(() => {

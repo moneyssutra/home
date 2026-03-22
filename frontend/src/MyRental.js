@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
 import { useIncomeList } from "@/hooks/useApi";
+import API_BASE from './utils/apiConfig';
 
 const MyRental = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const MyRental = () => {
   const [assets, setAssets] = useState([]);
   
   const { data: rentals = [], isLoading: loading, error } = useIncomeList("Rental");
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   useEffect(() => {
     axios.get(`${backendUrl}/api/assets`).then(res => setAssets(res.data)).catch(() => {});

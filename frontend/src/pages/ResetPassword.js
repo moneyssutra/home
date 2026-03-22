@@ -3,8 +3,9 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Lock, Eye, EyeOff, AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 import axios from "axios";
 import { LogoFull } from "@/components/Logo";
+import API_BASE from '../utils/apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL;
+const backendUrl = API_BASE;
 
 const ResetPassword = () => {
   const navigate = useNavigate();

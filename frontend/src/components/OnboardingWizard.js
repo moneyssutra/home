@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
+import API_BASE from '../utils/apiConfig';
   ArrowLeft, ArrowRight, Check, X, Plus, Trash2, SkipForward,
   Wallet, Receipt, Building2, CreditCard, TrendingUp, Landmark,
   Shield, ChevronRight, Loader2
 } from "lucide-react";
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = API_BASE;
 
 const STEPS = [
   { id: 1, name: "Income", icon: Wallet, color: "#10B981", fields: [

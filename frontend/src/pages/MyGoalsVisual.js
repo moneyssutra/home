@@ -8,6 +8,7 @@ import NotificationBell from "@/components/NotificationBell";
 import ProfileMenu from "@/components/ProfileMenu";
 import FamilyToggle from "@/components/FamilyToggle";
 import { useFamilyContext } from "@/context/FamilyContext";
+import API_BASE from '../utils/apiConfig';
 
 /* ─── keyword → image mapping ─── */
 const GOAL_IMAGES = {
@@ -55,7 +56,7 @@ const FALLBACK_IMG = "https://static.prod-images.emergentagent.com/jobs/01b891f9
 
 function getGoalImage(goal) {
   if (goal.goalImage) {
-    const backendUrl = process.env.REACT_APP_BACKEND_URL || "";
+    const backendUrl = API_BASE || "";
     return goal.goalImage.startsWith("/api") ? `${backendUrl}${goal.goalImage}` : goal.goalImage;
   }
   const lower = (goal.goalName || "").toLowerCase();
@@ -214,7 +215,7 @@ const MyGoalsVisual = () => {
   const [filter, setFilter] = useState("all");
   const [activeIdx, setActiveIdx] = useState(0);
   const scrollRef = useRef(null);
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "";
+  const backendUrl = API_BASE || "";
   const { isPersonalView, isFamilyView, activeViewLabel, activeViewId } = useFamilyContext();
 
   useEffect(() => { fetchGoals(); }, [activeViewId]);

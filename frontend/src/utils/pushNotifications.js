@@ -1,9 +1,10 @@
+import API_BASE from './apiConfig';
 /**
  * Push Notification Service
  * Handles service worker registration and push subscription management.
  */
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const backendUrl = API_BASE;
 
 /**
  * Check if push notifications are supported

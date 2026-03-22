@@ -18,6 +18,7 @@ import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import BackButton from "@/components/BackButton";
+import API_BASE from './utils/apiConfig';
 
 // Milestone Badge Component
 const MilestoneBadge = ({ milestone, reached }) => {
@@ -153,7 +154,7 @@ const GoalAchievements = () => {
   const [loading, setLoading] = useState(true);
   const [showAddSheet, setShowAddSheet] = useState(false);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   useEffect(() => {
     fetchAchievements();

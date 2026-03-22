@@ -14,6 +14,7 @@ import {
   formatAmountInput,
   scrollToFirstError
 } from "@/lib/validations";
+import API_BASE from './utils/apiConfig';
 
 const AccountForm = () => {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ const AccountForm = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpdateConfirm, setShowUpdateConfirm] = useState(false);
 
-  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+  const backendUrl = API_BASE;
 
   const accountTypeOptions = [
     "Cash",

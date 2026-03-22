@@ -1,6 +1,7 @@
 import axios from "axios";
+import API_BASE from './apiConfig';
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:8001";
+const backendUrl = API_BASE;
 
 /**
  * Record an income transaction

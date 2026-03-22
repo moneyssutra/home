@@ -7,8 +7,9 @@ MoneySutra is a comprehensive financial management app with CRED-style step-base
 - **Frontend**: React (CRA) + Tailwind + Shadcn UI
 - **Backend**: FastAPI + MongoDB Atlas
 - **Auth**: CRED-style state machine (Email → OTP → MPIN)
-- **Email**: Resend API (plain text for deliverability)
+- **Email**: Resend API (plain text, sync calls for reliability)
 - **SMS**: Twilio (disabled pending DLT compliance)
+- **API Config**: Centralized `apiConfig.js` using `window.location.origin` for deployment portability
 
 ## What's Been Implemented
 - Full CRED-style authentication (email check → OTP → MPIN setup/login)
@@ -38,14 +39,20 @@ MoneySutra is a comprehensive financial management app with CRED-style step-base
 - OTP validation accepts ANY unexpired/unused code for the email (not just latest)
 - Twilio SMS is code-complete but disabled via ENABLE_SMS_OTP=false
 - Cooldown checks MUST filter by purpose field to avoid cross-flow contamination
+- ALL email functions are sync (no async/asyncio.to_thread — causes silent failures)
+- Frontend uses `window.location.origin` for API base URL (not build-time env var)
 
-## Bug Fixes (Latest Session - March 2026)
-- Fixed `.gitignore` blocking `.env` files from deployment (root cause of OTP not working on deployed app)
-- Fixed forgot-mpin cooldown missing `purpose` filter (could block OTP if another flow sent one recently)
+## Bug Fixes (Current Session - March 2026)
+- Fixed `.gitignore` blocking `.env` files from deployment
+- Fixed forgot-mpin cooldown missing `purpose` filter
+- Removed all broken async/asyncio.to_thread wrappers from email_service.py
+- Fixed sms_service.py await on now-sync send_otp_email
+- Created centralized `apiConfig.js` using `window.location.origin` — fixes deployed app calling stale preview URL
+- Updated 90 frontend files to use API_BASE instead of build-time REACT_APP_BACKEND_URL
 
 ## Prioritized Backlog
 ### P0 (Immediate)
-- User must redeploy app after .gitignore fix for production OTP to work
+- User must redeploy app for production fixes to take effect
 
 ### P1 (Next Up)
 - Financial Level System UI (frontend dashboard visual for score/level)
@@ -66,4 +73,5 @@ MoneySutra is a comprehensive financial management app with CRED-style step-base
 
 ## Credentials
 - Test User: moneyssutra@gmail.com (has MPIN + family data)
+- Test User: kumaramarendra10@gmail.com (has MPIN, firstName: Amar)
 - Email Test: chandrashekhar.iter@gmail.com
