@@ -18,11 +18,19 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# Email Provider Configuration
-EMAIL_PROVIDER = os.environ.get("EMAIL_PROVIDER", "resend")  # resend, sendgrid, mailgun
-SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@moneyssutra.app")
-SENDER_NAME = os.environ.get("SENDER_NAME", "MoneySSutra Support")
-APP_URL = os.environ.get("APP_URL", "https://goal-tracker-prod.emergent.host")
+# Email Provider Configuration — NO unsafe fallbacks
+EMAIL_PROVIDER = os.environ.get("EMAIL_PROVIDER", "resend")
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL")
+SENDER_NAME = os.environ.get("SENDER_NAME")
+APP_URL = os.environ.get("APP_URL")
+
+if not SENDER_EMAIL:
+    logger.critical("SENDER_EMAIL is NOT set — emails will fail. Set it to noreply@moneyssutra.com")
+    raise RuntimeError("SENDER_EMAIL environment variable is required")
+if not SENDER_NAME:
+    SENDER_NAME = "MoneySSutra Support"
+if not APP_URL:
+    APP_URL = "https://moneyssutra.com"
 
 # MoneySSutra Brand Colors
 BRAND_PRIMARY = "#00D09C"  # Mint Green
@@ -34,9 +42,10 @@ TEXT_SECONDARY = "#666666"
 # ── Startup validation ──
 _resend_key = os.environ.get("RESEND_API_KEY")
 if not _resend_key:
-    logger.warning("RESEND_API_KEY is NOT set — all OTP and notification emails WILL FAIL")
-else:
-    logger.info(f"Email service ready: provider={EMAIL_PROVIDER}, sender={SENDER_EMAIL}, key=...{_resend_key[-6:]}")
+    logger.critical("RESEND_API_KEY is NOT set — all OTP and notification emails WILL FAIL")
+    raise RuntimeError("RESEND_API_KEY environment variable is required")
+
+logger.info(f"Email service ready: provider={EMAIL_PROVIDER}, sender={SENDER_EMAIL}, key=...{_resend_key[-6:]}")
 
 
 def get_email_header():
@@ -268,8 +277,11 @@ def send_email_resend(to_email: str, subject: str, html_content: str) -> dict:
             logger.error(msg)
             raise ValueError(msg)
 
+        sender = f"{SENDER_NAME} <{SENDER_EMAIL}>"
+        logger.info(f"Sending email: from={sender}, to={to_email}, subject={subject[:50]}")
+
         params = {
-            "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
+            "from": sender,
             "to": [to_email],
             "subject": subject,
             "html": html_content
@@ -279,11 +291,11 @@ def send_email_resend(to_email: str, subject: str, html_content: str) -> dict:
         email = resend.Emails.send(params)
         elapsed = round((time.time() - t0) * 1000)
 
-        logger.info(f"Email sent to {to_email} via Resend in {elapsed}ms, id={email.get('id')}")
+        logger.info(f"Email sent to {to_email} via Resend in {elapsed}ms, id={email.get('id')}, response={email}")
         return {"success": True, "email_id": email.get("id")}
 
     except Exception as e:
-        logger.error(f"Failed to send email via Resend to {to_email}: {str(e)}")
+        logger.error(f"Failed to send email via Resend to {to_email}: {str(e)}", exc_info=True)
         return {"success": False, "error": str(e)}
 
 
@@ -409,8 +421,11 @@ def send_otp_email_sync(to_email: str, otp: str):
         logger.error(f"[BG] {msg}")
         raise ValueError(msg)
 
+    sender = f"{SENDER_NAME} <{SENDER_EMAIL}>"
+    logger.info(f"[BG] Sending OTP email: from={sender}, to={to_email}")
+
     params = {
-        "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
+        "from": sender,
         "to": [to_email],
         "subject": f"Your MoneySSutra OTP: {otp}",
         "text": f"Your MoneySSutra verification code is: {otp}\n\nValid for 5 minutes. Do not share this code with anyone.\n\n- MoneySSutra Team",
@@ -421,10 +436,10 @@ def send_otp_email_sync(to_email: str, otp: str):
             t0 = __import__("time").time()
             result = _resend.Emails.send(params)
             elapsed = round((__import__("time").time() - t0) * 1000)
-            logger.info(f"[BG] OTP email sent to {to_email} in {elapsed}ms (id={result.get('id')})")
+            logger.info(f"[BG] OTP email sent to {to_email} in {elapsed}ms (id={result.get('id')}, response={result})")
             return
         except Exception as e:
-            logger.error(f"[BG] OTP email attempt {attempt+1} failed for {to_email}: {e}")
+            logger.error(f"[BG] OTP email attempt {attempt+1} failed for {to_email}: {e}", exc_info=True)
             if attempt == 0:
                 __import__("time").sleep(2)
 
