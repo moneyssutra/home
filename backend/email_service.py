@@ -12,13 +12,17 @@ To switch providers, change EMAIL_PROVIDER in .env
 import os
 import time
 import logging
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Fix 1: Explicit .env path — matches database.py
+# load_dotenv() with no arg searches CWD which differs in production
+_ROOT_DIR = Path(__file__).parent
+load_dotenv(_ROOT_DIR / ".env", override=True)
 
 logger = logging.getLogger(__name__)
 
-# Email Provider Configuration — verified domain fallbacks only
+# Fix 2: Verified domain fallback — moneyssutra.com (not .app)
 EMAIL_PROVIDER = os.environ.get("EMAIL_PROVIDER", "resend")
 SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@moneyssutra.com")
 SENDER_NAME = os.environ.get("SENDER_NAME", "MoneySSutra Support")
@@ -167,7 +171,7 @@ def get_password_reset_email(username: str, reset_link: str) -> dict:
                     
                     <div style="background-color: #FFF9E6; border: 1px solid #FFE082; padding: 15px 20px; border-radius: 8px; margin: 25px 0;">
                         <p style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #8B6914;">
-                            ⏱ For your security, this link will expire in <strong>30 minutes</strong>.
+                            For your security, this link will expire in <strong>30 minutes</strong>.
                         </p>
                     </div>
                     
@@ -218,7 +222,7 @@ def get_password_changed_email(username: str) -> dict:
                 <td style="padding: 40px 30px;">
                     <div style="text-align: center; margin-bottom: 25px;">
                         <div style="display: inline-block; background-color: #E8F5E9; border-radius: 50%; padding: 15px;">
-                            <span style="font-size: 32px;">🔐</span>
+                            <span style="font-size: 32px;">&#128274;</span>
                         </div>
                     </div>
                     
@@ -232,7 +236,7 @@ def get_password_changed_email(username: str) -> dict:
                     
                     <div style="background-color: #FFEBEE; border: 1px solid #FFCDD2; padding: 20px; border-radius: 8px; margin: 25px 0;">
                         <p style="margin: 0; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #C62828; line-height: 1.6;">
-                            <strong>⚠️ If you didn't make this change</strong><br>
+                            <strong>If you didn't make this change</strong><br>
                             Someone may have accessed your account. Please reset your password immediately and review your account activity.
                         </p>
                     </div>
@@ -268,7 +272,10 @@ def send_email_resend(to_email: str, subject: str, html_content: str) -> dict:
             logger.error(msg)
             raise ValueError(msg)
 
-        sender = f"{SENDER_NAME} <{SENDER_EMAIL}>"
+        # Fix 3/4: Read sender at call time, not from frozen module-level var
+        primary_email = os.environ.get("SENDER_EMAIL", "noreply@moneyssutra.com")
+        primary_name = os.environ.get("SENDER_NAME", "MoneySSutra Support")
+        sender = f"{primary_name} <{primary_email}>"
         logger.info(f"Sending email: from={sender}, to={to_email}, subject={subject[:50]}")
 
         params = {
@@ -296,8 +303,10 @@ def send_email_sendgrid(to_email: str, subject: str, html_content: str) -> dict:
         from sendgrid import SendGridAPIClient
         from sendgrid.helpers.mail import Mail
 
+        primary_email = os.environ.get("SENDER_EMAIL", "noreply@moneyssutra.com")
+
         message = Mail(
-            from_email=SENDER_EMAIL,
+            from_email=primary_email,
             to_emails=to_email,
             subject=subject,
             html_content=html_content
@@ -319,11 +328,14 @@ def send_email_mailgun(to_email: str, subject: str, html_content: str) -> dict:
     try:
         import requests
 
+        primary_email = os.environ.get("SENDER_EMAIL", "noreply@moneyssutra.com")
+        primary_name = os.environ.get("SENDER_NAME", "MoneySSutra Support")
+
         response = requests.post(
             f"https://api.mailgun.net/v3/{os.environ.get('MAILGUN_DOMAIN')}/messages",
             auth=("api", os.environ.get("MAILGUN_API_KEY")),
             data={
-                "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
+                "from": f"{primary_name} <{primary_email}>",
                 "to": to_email,
                 "subject": subject,
                 "html": html_content
@@ -366,7 +378,8 @@ def send_username_recovery_email(to_email: str, username: str) -> dict:
 
 def send_password_reset_email(to_email: str, username: str, reset_token: str) -> dict:
     """Send password reset email with reset link"""
-    reset_link = f"{APP_URL}/reset-password?token={reset_token}"
+    app_url = os.environ.get("APP_URL", "https://moneyssutra.com")
+    reset_link = f"{app_url}/reset-password?token={reset_token}"
     email_data = get_password_reset_email(username, reset_link)
     return send_email(to_email, email_data["subject"], email_data["html"])
 
@@ -404,16 +417,22 @@ def send_otp_email(to_email: str, otp: str) -> dict:
 
 
 def send_otp_email_sync(to_email: str, otp: str):
-    """Synchronous OTP email — plain text for maximum deliverability"""
+    """Synchronous OTP email — plain text for maximum deliverability.
+    Fix 3: Reads SENDER_EMAIL/SENDER_NAME from os.environ at call time
+    so we never use a frozen stale module-level value.
+    """
     import resend as _resend
     _resend.api_key = os.environ.get("RESEND_API_KEY")
     if not _resend.api_key:
         msg = f"RESEND_API_KEY not set. Cannot send OTP to {to_email}"
-        logger.error(f"[BG] {msg}")
+        logger.error(f"[BG-OTP] {msg}")
         raise ValueError(msg)
 
-    sender = f"{SENDER_NAME} <{SENDER_EMAIL}>"
-    logger.info(f"[BG] Sending OTP email: from={sender}, to={to_email}")
+    primary_email = os.environ.get("SENDER_EMAIL", "noreply@moneyssutra.com")
+    primary_name = os.environ.get("SENDER_NAME", "MoneySSutra Support")
+    sender = f"{primary_name} <{primary_email}>"
+
+    logger.info(f"[BG-OTP] Sending OTP to {to_email} | primary sender: {primary_email}")
 
     params = {
         "from": sender,
@@ -424,21 +443,23 @@ def send_otp_email_sync(to_email: str, otp: str):
 
     for attempt in range(2):
         try:
-            t0 = __import__("time").time()
+            t0 = time.time()
             result = _resend.Emails.send(params)
-            elapsed = round((__import__("time").time() - t0) * 1000)
-            logger.info(f"[BG] OTP email sent to {to_email} in {elapsed}ms (id={result.get('id')}, response={result})")
+            elapsed = round((time.time() - t0) * 1000)
+            logger.info(f"[BG-OTP] Sent to {to_email} via primary ({sender}) in {elapsed}ms (id={result.get('id')})")
             return
         except Exception as e:
-            logger.error(f"[BG] OTP email attempt {attempt+1} failed for {to_email}: {e}", exc_info=True)
+            logger.error(f"[BG-OTP] Attempt {attempt+1} failed for {to_email}: {e}", exc_info=True)
             if attempt == 0:
-                __import__("time").sleep(2)
+                time.sleep(2)
 
     raise RuntimeError(f"OTP email to {to_email} failed after 2 attempts")
 
 
 def send_email_sync(to_email: str, subject: str, html_content: str):
-    """Synchronous email send with retry — for background tasks"""
+    """Synchronous email send with retry — for background tasks.
+    Fix 4: Reads SENDER_EMAIL/SENDER_NAME from os.environ at call time.
+    """
     import resend as _resend
     _resend.api_key = os.environ.get("RESEND_API_KEY")
     if not _resend.api_key:
@@ -446,8 +467,14 @@ def send_email_sync(to_email: str, subject: str, html_content: str):
         logger.error(f"[BG] {msg}")
         raise ValueError(msg)
 
+    primary_email = os.environ.get("SENDER_EMAIL", "noreply@moneyssutra.com")
+    primary_name = os.environ.get("SENDER_NAME", "MoneySSutra Support")
+    sender = f"{primary_name} <{primary_email}>"
+
+    logger.info(f"[BG] Sending email to {to_email} | sender: {primary_email} | subject: {subject[:50]}")
+
     params = {
-        "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
+        "from": sender,
         "to": [to_email],
         "subject": subject,
         "html": html_content,
@@ -455,14 +482,14 @@ def send_email_sync(to_email: str, subject: str, html_content: str):
 
     for attempt in range(2):
         try:
-            t0 = __import__("time").time()
+            t0 = time.time()
             result = _resend.Emails.send(params)
-            elapsed = round((__import__("time").time() - t0) * 1000)
-            logger.info(f"[BG] Email sent to {to_email} in {elapsed}ms (id={result.get('id')})")
+            elapsed = round((time.time() - t0) * 1000)
+            logger.info(f"[BG] Email sent to {to_email} via ({sender}) in {elapsed}ms (id={result.get('id')})")
             return
         except Exception as e:
-            logger.error(f"[BG] Email attempt {attempt+1} failed for {to_email}: {e}")
+            logger.error(f"[BG] Email attempt {attempt+1} failed for {to_email}: {e}", exc_info=True)
             if attempt == 0:
-                __import__("time").sleep(2)
+                time.sleep(2)
 
     raise RuntimeError(f"Email to {to_email} failed after 2 attempts")
