@@ -15,10 +15,9 @@ import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Fix 1: Explicit .env path — matches database.py
-# load_dotenv() with no arg searches CWD which differs in production
+# Fix 1: Explicit .env path — matches database.py pattern exactly
 _ROOT_DIR = Path(__file__).parent
-load_dotenv(_ROOT_DIR / ".env", override=True)
+load_dotenv(_ROOT_DIR / ".env")
 
 logger = logging.getLogger(__name__)
 
