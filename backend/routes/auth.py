@@ -840,7 +840,7 @@ async def forgot_mpin(request: Request, background_tasks: BackgroundTasks):
 
 @router.post("/verify-forgot-mpin-otp")
 async def verify_forgot_mpin_otp(request: Request):
-    """Verify OTP for forgot-MPIN flow. Marks record as pre-verified so reset-mpin can proceed."""
+    """Verify OTP for forgot-MPIN flow. Checks ALL unexpired tokens (handles resend scenario)."""
     body = await request.json()
     email = (body.get("email") or "").strip().lower()
     otp = (body.get("otp") or "").strip()
@@ -848,34 +848,49 @@ async def verify_forgot_mpin_otp(request: Request):
     if not email or not otp:
         raise HTTPException(status_code=400, detail="Email and OTP are required")
 
-    record = await db.login_otp_tokens.find_one(
-        {"email": email, "used": False, "purpose": "mpin_reset"},
-        {"_id": 0},
-        sort=[("created_at", -1)]
-    )
-    if not record:
+    now = datetime.now(timezone.utc)
+
+    # Find ALL unexpired OTPs for this email (not just the latest)
+    cursor = db.login_otp_tokens.find(
+        {"email": email, "purpose": "mpin_reset", "expires_at": {"$gte": now.isoformat()}},
+        {"_id": 0}
+    ).sort("created_at", -1)
+
+    matched_record = None
+    async for record in cursor:
+        if record.get("used"):
+            continue
+        if record.get("attempts", 0) >= 3:
+            continue
+        if verify_password(otp, record["otp_hash"]):
+            matched_record = record
+            break
+
+    if not matched_record:
+        # Increment attempts on the latest record for rate limiting
+        latest = await db.login_otp_tokens.find_one(
+            {"email": email, "purpose": "mpin_reset", "used": False},
+            {"_id": 0},
+            sort=[("created_at", -1)]
+        )
+        if latest:
+            await db.login_otp_tokens.update_one({"otp_id": latest["otp_id"]}, {"$inc": {"attempts": 1}})
+            attempts = latest.get("attempts", 0) + 1
+            if attempts >= 3:
+                await db.login_otp_tokens.update_one({"otp_id": latest["otp_id"]}, {"$set": {"used": True}})
+                raise HTTPException(status_code=400, detail="Too many attempts. Request a new OTP.")
+            remaining = 3 - attempts
+            raise HTTPException(status_code=400, detail=f"Invalid code. {max(remaining, 0)} attempt(s) left.")
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
 
-    if record.get("attempts", 0) >= 3:
-        await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
-        raise HTTPException(status_code=400, detail="Too many attempts. Request a new OTP.")
-
-    await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$inc": {"attempts": 1}})
-
-    expires_at = datetime.fromisoformat(record["expires_at"])
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="OTP has expired. Request a new one.")
-
-    if not verify_password(otp, record["otp_hash"]):
-        remaining = 3 - record.get("attempts", 0) - 1
-        raise HTTPException(status_code=400, detail=f"Invalid code. {max(remaining, 0)} attempt(s) left.")
-
-    # Mark as pre-verified (not used — reset-mpin will consume it)
+    # Mark the matched record as pre-verified and invalidate all others
     await db.login_otp_tokens.update_one(
-        {"otp_id": record["otp_id"]},
+        {"otp_id": matched_record["otp_id"]},
         {"$set": {"verified": True}}
+    )
+    await db.login_otp_tokens.update_many(
+        {"email": email, "purpose": "mpin_reset", "otp_id": {"$ne": matched_record["otp_id"]}},
+        {"$set": {"used": True}}
     )
     return {"success": True, "message": "OTP verified"}
 
@@ -997,7 +1012,7 @@ async def auth_start(request: Request, background_tasks: BackgroundTasks):
 
 @router.post("/verify-login-otp")
 async def verify_login_otp(request: Request, response: Response):
-    """Step 2: Verify OTP. Returns temp_token + user state."""
+    """Step 2: Verify OTP. Checks ALL unexpired tokens (handles resend scenario)."""
     body = await request.json()
     identifier = (body.get("identifier") or "").strip().lower()
     otp = (body.get("otp") or "").strip()
@@ -1005,32 +1020,47 @@ async def verify_login_otp(request: Request, response: Response):
     if not identifier or not otp:
         raise HTTPException(status_code=400, detail="Email and OTP are required")
 
-    record = await db.login_otp_tokens.find_one(
-        {"email": identifier, "used": False},
-        {"_id": 0},
-        sort=[("created_at", -1)]
-    )
-    if not record:
+    now = datetime.now(timezone.utc)
+
+    # Check ALL unexpired OTPs for this email
+    cursor = db.login_otp_tokens.find(
+        {"email": identifier, "expires_at": {"$gte": now.isoformat()}},
+        {"_id": 0}
+    ).sort("created_at", -1)
+
+    matched_record = None
+    async for record in cursor:
+        if record.get("used"):
+            continue
+        if record.get("attempts", 0) >= 3:
+            continue
+        if verify_password(otp, record["otp_hash"]):
+            matched_record = record
+            break
+
+    if not matched_record:
+        # Increment attempts on latest record for rate limiting
+        latest = await db.login_otp_tokens.find_one(
+            {"email": identifier, "used": False},
+            {"_id": 0},
+            sort=[("created_at", -1)]
+        )
+        if latest:
+            await db.login_otp_tokens.update_one({"otp_id": latest["otp_id"]}, {"$inc": {"attempts": 1}})
+            attempts = latest.get("attempts", 0) + 1
+            if attempts >= 3:
+                await db.login_otp_tokens.update_one({"otp_id": latest["otp_id"]}, {"$set": {"used": True}})
+                raise HTTPException(status_code=400, detail="Too many attempts. Please request a new OTP.")
+            remaining = 3 - attempts
+            raise HTTPException(status_code=400, detail=f"Invalid code. Try again. ({remaining} left)")
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
 
-    if record.get("attempts", 0) >= 3:
-        await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
-        raise HTTPException(status_code=400, detail="Too many attempts. Please request a new OTP.")
-
-    await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$inc": {"attempts": 1}})
-
-    expires_at = datetime.fromisoformat(record["expires_at"])
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
-
-    if not verify_password(otp, record["otp_hash"]):
-        remaining = 3 - record.get("attempts", 0) - 1
-        raise HTTPException(status_code=400, detail=f"Invalid code. Try again. ({remaining} left)")
-
-    # Mark OTP used
-    await db.login_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+    # Mark matched OTP used and invalidate others
+    await db.login_otp_tokens.update_one({"otp_id": matched_record["otp_id"]}, {"$set": {"used": True}})
+    await db.login_otp_tokens.update_many(
+        {"email": identifier, "otp_id": {"$ne": matched_record["otp_id"]}, "used": False},
+        {"$set": {"used": True}}
+    )
 
     # Check if user exists
     user = await db.users.find_one(
@@ -1186,44 +1216,53 @@ async def send_otp(request: SendOTPRequest, background_tasks: BackgroundTasks):
 
 @router.post("/verify-otp")
 async def verify_otp(request: VerifyOTPRequest):
-    """Verify OTP code. Returns a one-time reset token on success."""
+    """Verify OTP code. Checks ALL unexpired tokens (handles resend scenario)."""
     email = request.email.strip().lower()
     otp = request.otp.strip()
 
     if not email or not otp:
         raise HTTPException(status_code=400, detail="Email and OTP are required")
 
-    record = await db.otp_tokens.find_one(
-        {"email": email, "used": False},
-        {"_id": 0},
-        sort=[("created_at", -1)]
-    )
+    now = datetime.now(timezone.utc)
 
-    if not record:
+    # Check ALL unexpired OTPs for this email
+    cursor = db.otp_tokens.find(
+        {"email": email, "expires_at": {"$gte": now.isoformat()}},
+        {"_id": 0}
+    ).sort("created_at", -1)
+
+    matched_record = None
+    async for record in cursor:
+        if record.get("used"):
+            continue
+        if record.get("attempts", 0) >= 3:
+            continue
+        if verify_password(otp, record["otp_hash"]):
+            matched_record = record
+            break
+
+    if not matched_record:
+        latest = await db.otp_tokens.find_one(
+            {"email": email, "used": False},
+            {"_id": 0},
+            sort=[("created_at", -1)]
+        )
+        if latest:
+            await db.otp_tokens.update_one({"otp_id": latest["otp_id"]}, {"$inc": {"attempts": 1}})
+            attempts = latest.get("attempts", 0) + 1
+            if attempts >= 3:
+                await db.otp_tokens.update_one({"otp_id": latest["otp_id"]}, {"$set": {"used": True}})
+                raise HTTPException(status_code=400, detail="Too many attempts. Please request a new OTP.")
+            remaining = 3 - attempts
+            raise HTTPException(status_code=400, detail=f"Invalid OTP. {remaining} attempt(s) remaining.")
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
 
-    # Max 3 attempts
-    if record.get("attempts", 0) >= 3:
-        await db.otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
-        raise HTTPException(status_code=400, detail="Too many attempts. Please request a new OTP.")
-
-    # Increment attempt counter
-    await db.otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$inc": {"attempts": 1}})
-
-    # Check expiry
-    expires_at = datetime.fromisoformat(record["expires_at"])
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
-
-    # Verify OTP hash
-    if not verify_password(otp, record["otp_hash"]):
-        remaining = 3 - record.get("attempts", 0) - 1
-        raise HTTPException(status_code=400, detail=f"Invalid OTP. {remaining} attempt(s) remaining.")
-
-    # Mark OTP as used and generate a reset token
-    await db.otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
+    # Mark matched OTP used and invalidate others
+    await db.otp_tokens.update_one({"otp_id": matched_record["otp_id"]}, {"$set": {"used": True}})
+    await db.otp_tokens.update_many(
+        {"email": email, "otp_id": {"$ne": matched_record["otp_id"]}, "used": False},
+        {"$set": {"used": True}}
+    )
 
     reset_token = secrets.token_urlsafe(32)
     await db.password_reset_tokens.insert_one({
@@ -1343,47 +1382,59 @@ async def send_signup_otp(request: SendOTPRequest, background_tasks: BackgroundT
 
 @router.post("/verify-signup-otp")
 async def verify_signup_otp(request: VerifySignupOTPRequest):
-    """Verify OTP for signup email verification. Returns a verification token."""
+    """Verify OTP for signup. Checks ALL unexpired tokens (handles resend scenario)."""
     email = request.email.strip().lower()
     otp = request.otp.strip()
 
     if not email or not otp:
         raise HTTPException(status_code=400, detail="Email and OTP are required")
 
-    record = await db.signup_otp_tokens.find_one(
-        {"email": email, "used": False, "verified": False},
-        {"_id": 0},
-        sort=[("created_at", -1)]
-    )
+    now = datetime.now(timezone.utc)
 
-    if not record:
+    cursor = db.signup_otp_tokens.find(
+        {"email": email, "verified": False, "expires_at": {"$gte": now.isoformat()}},
+        {"_id": 0}
+    ).sort("created_at", -1)
+
+    matched_record = None
+    async for record in cursor:
+        if record.get("used"):
+            continue
+        if record.get("attempts", 0) >= 3:
+            continue
+        if verify_password(otp, record["otp_hash"]):
+            matched_record = record
+            break
+
+    if not matched_record:
+        latest = await db.signup_otp_tokens.find_one(
+            {"email": email, "used": False, "verified": False},
+            {"_id": 0},
+            sort=[("created_at", -1)]
+        )
+        if latest:
+            await db.signup_otp_tokens.update_one({"otp_id": latest["otp_id"]}, {"$inc": {"attempts": 1}})
+            attempts = latest.get("attempts", 0) + 1
+            if attempts >= 3:
+                await db.signup_otp_tokens.update_one({"otp_id": latest["otp_id"]}, {"$set": {"used": True}})
+                raise HTTPException(status_code=400, detail="Too many attempts. Please request a new OTP.")
+            remaining = 3 - attempts
+            raise HTTPException(status_code=400, detail=f"Invalid OTP. {remaining} attempt(s) remaining.")
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
-
-    if record.get("attempts", 0) >= 3:
-        await db.signup_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$set": {"used": True}})
-        raise HTTPException(status_code=400, detail="Too many attempts. Please request a new OTP.")
-
-    await db.signup_otp_tokens.update_one({"otp_id": record["otp_id"]}, {"$inc": {"attempts": 1}})
-
-    expires_at = datetime.fromisoformat(record["expires_at"])
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
-
-    if not verify_password(otp, record["otp_hash"]):
-        remaining = 3 - record.get("attempts", 0) - 1
-        raise HTTPException(status_code=400, detail=f"Invalid OTP. {remaining} attempt(s) remaining.")
 
     # Mark as verified with a verification token (valid 15 min)
     verification_token = secrets.token_urlsafe(32)
     await db.signup_otp_tokens.update_one(
-        {"otp_id": record["otp_id"]},
+        {"otp_id": matched_record["otp_id"]},
         {"$set": {
             "verified": True,
             "verification_token": verification_token,
-            "verified_at": datetime.now(timezone.utc).isoformat(),
+            "verified_at": now.isoformat(),
         }}
+    )
+    await db.signup_otp_tokens.update_many(
+        {"email": email, "otp_id": {"$ne": matched_record["otp_id"]}, "used": False},
+        {"$set": {"used": True}}
     )
 
     return {"message": "Email verified successfully", "verification_token": verification_token}

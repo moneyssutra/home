@@ -11,7 +11,7 @@ import os
 import uuid
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://mpin-dashboard.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fintech-dash-45.preview.emergentagent.com')
 
 # Test user credentials - will be created during tests
 TEST_USER_EMAIL = f"test_invite_{uuid.uuid4().hex[:8]}@test.com"
