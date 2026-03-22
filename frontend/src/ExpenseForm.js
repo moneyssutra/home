@@ -51,6 +51,19 @@ const ExpenseForm = () => {
   const [frequency, setFrequency] = useState("");
   const [linkedAccountId, setLinkedAccountId] = useState("");
   const [isEssential, setIsEssential] = useState(null); // null = use smart default
+
+  // Smart default logic for essential classification (mirrors backend)
+  const ESSENTIAL_CATEGORIES = new Set(["Housing", "Utilities", "Food", "Medical", "Education", "Salary Paid", "EMI"]);
+  const NON_ESSENTIAL_PATTERNS = ["sip", "mutual fund", "mf ", "ppf", "nps", "elss", "etf", "gold saving", "investment"];
+  const ESSENTIAL_PATTERNS = ["emi", "loan", "rent", "insurance premium", "premium", "petrol", "diesel", "fuel", "commute", "transport", "electricity", "water bill", "gas bill", "grocery", "medicine", "school fee", "tuition"];
+  const computeSmartDefault = (name, cat) => {
+    const n = (name || "").toLowerCase();
+    for (const p of NON_ESSENTIAL_PATTERNS) { if (n.includes(p)) return false; }
+    for (const p of ESSENTIAL_PATTERNS) { if (n.includes(p)) return true; }
+    return ESSENTIAL_CATEGORIES.has(cat);
+  };
+  // Displayed value: user override if set, otherwise smart default
+  const effectiveEssential = isEssential !== null ? isEssential : computeSmartDefault(expenseName, category);
   
   // Conditional date fields
   const [selectedDay, setSelectedDay] = useState("");
@@ -408,7 +421,7 @@ const ExpenseForm = () => {
         selectedHalf: selectedHalf || null,
         selectedMonth: selectedMonth || null,
         oneTimeDate: oneTimeDate || null,
-        isEssential: isEssential,
+        isEssential: isEssential !== null ? isEssential : effectiveEssential,
       };
 
       if (id) {
@@ -513,17 +526,17 @@ const ExpenseForm = () => {
           </p>
           <div className="flex gap-2">
             <button type="button" onClick={() => setIsEssential(true)}
-              className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${isEssential === true ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/30" : ""}`}
-              style={isEssential !== true ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+              className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${effectiveEssential === true ? "border-emerald-500 bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/30" : ""}`}
+              style={effectiveEssential !== true ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
               data-testid="essential-yes-btn">Yes, Essential</button>
             <button type="button" onClick={() => setIsEssential(false)}
-              className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${isEssential === false ? "border-amber-500 bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/30" : ""}`}
-              style={isEssential !== false ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
+              className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all active:scale-[0.97] ${effectiveEssential === false ? "border-amber-500 bg-amber-500/10 text-amber-600 ring-1 ring-amber-500/30" : ""}`}
+              style={effectiveEssential !== false ? { backgroundColor: "var(--bg-subtle)", borderColor: "var(--border-light)", color: "var(--text-primary)" } : {}}
               data-testid="essential-no-btn">No, Can Be Paused</button>
           </div>
           {isEssential === null && (
             <p className="text-xs mt-2 italic" style={{ color: "var(--text-secondary)" }}>
-              Auto-detected based on category. Tap to override.
+              Auto-detected. Tap to override.
             </p>
           )}
         </div>

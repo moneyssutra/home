@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Edit3, DollarSign, Calendar, Repeat, Tag, AlertTriangle, Shield, Link2, Loader2, CheckCircle2, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, Edit3, DollarSign, Calendar, Repeat, Tag, AlertTriangle, Shield, Link2, Loader2, CheckCircle2, Clock, ChevronDown, ChevronUp, ShieldCheck } from "lucide-react";
 import axios from "axios";
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
@@ -44,6 +44,28 @@ export default function ExpenseDetail() {
   const typeColor = data.expenseType === "Fixed" ? "#EF4444" : "#F59E0B";
   const impactLevel = m.expenseToIncomePercent > 20 ? "high" : m.expenseToIncomePercent > 10 ? "medium" : "low";
 
+  // Essential classification
+  const ESSENTIAL_CATEGORIES = new Set(["Housing", "Utilities", "Food", "Medical", "Education", "Salary Paid", "EMI"]);
+  const NON_ESSENTIAL_PATTERNS = ["sip", "mutual fund", "mf ", "ppf", "nps", "elss", "etf", "gold saving", "investment"];
+  const ESSENTIAL_PATTERNS = ["emi", "loan", "rent", "insurance premium", "premium", "petrol", "diesel", "fuel", "commute", "transport", "electricity", "water bill", "gas bill", "grocery", "medicine", "school fee", "tuition"];
+  const computeEssential = (exp) => {
+    if (exp.isEssential !== undefined && exp.isEssential !== null) return exp.isEssential;
+    const name = (exp.expenseName || "").toLowerCase();
+    for (const p of NON_ESSENTIAL_PATTERNS) { if (name.includes(p)) return false; }
+    for (const p of ESSENTIAL_PATTERNS) { if (name.includes(p)) return true; }
+    return ESSENTIAL_CATEGORIES.has(exp.category);
+  };
+  const isEssential = computeEssential(data);
+
+  const toggleEssential = async () => {
+    const newVal = !isEssential;
+    try {
+      await axios.patch(`${backendUrl}/api/expenses/${id}/essential`, { isEssential: newVal }, { withCredentials: true });
+      setData(prev => ({ ...prev, isEssential: newVal }));
+      toast.success(newVal ? "Marked as essential" : "Marked as non-essential");
+    } catch { toast.error("Failed to update"); }
+  };
+
   return (
     <div className="min-h-screen pb-32" style={{ backgroundColor: "var(--bg-app)" }} data-testid="expense-detail-page">
       <header className="px-5 pt-6 pb-6" style={{ background: `linear-gradient(135deg, ${typeColor} 0%, ${typeColor}CC 100%)` }}>
@@ -54,7 +76,15 @@ export default function ExpenseDetail() {
         <div className="mb-4">
           <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-1">{data.expenseType} Expense</p>
           <h1 className="text-2xl font-bold text-white" data-testid="expense-name">{data.expenseName}</h1>
-          {data.category && <p className="text-white/70 text-sm mt-1">{data.category}</p>}
+          <div className="flex items-center gap-2 mt-1">
+            {data.category && <p className="text-white/70 text-sm">{data.category}</p>}
+            {data.expenseType === "Fixed" && (
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${isEssential ? 'bg-emerald-500/20 text-emerald-200' : 'bg-amber-500/20 text-amber-200'}`} data-testid="essential-badge">
+                <ShieldCheck className="h-3 w-3" />
+                {isEssential ? "Essential" : "Non-essential"}
+              </span>
+            )}
+          </div>
         </div>
         <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
           <div className="flex justify-between items-end">
@@ -79,6 +109,23 @@ export default function ExpenseDetail() {
             </div>
           ); })}
         </div>
+
+        {/* Essential Toggle (Fixed expenses only) */}
+        {data.expenseType === "Fixed" && (
+          <button onClick={toggleEssential} className="w-full rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-[0.98]"
+            style={{ backgroundColor: isEssential ? "#05966910" : "#F59E0B10", border: `1px solid ${isEssential ? '#05966930' : '#F59E0B30'}` }}
+            data-testid="essential-toggle-detail">
+            <ShieldCheck className="h-5 w-5 flex-shrink-0" style={{ color: isEssential ? "#059669" : "#F59E0B" }} />
+            <div className="flex-1 text-left">
+              <p className="text-xs font-semibold" style={{ color: isEssential ? "#059669" : "#F59E0B" }}>
+                {isEssential ? "Survival Essential" : "Non-essential (Pausable)"}
+              </p>
+              <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                {isEssential ? "Counted in Emergency Runway. Tap to change." : "Excluded from Emergency Runway. Tap to change."}
+              </p>
+            </div>
+          </button>
+        )}
 
         {/* Next Due Date Banner */}
         {ps.nextDueDate && (
