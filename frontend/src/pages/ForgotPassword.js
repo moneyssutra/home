@@ -135,22 +135,7 @@ const ForgotPassword = () => {
     }
   };
 
-  // ---- Wrapper ----
-  const PageShell = ({ children }) => (
-    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
-      </div>
-      <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
-        <div className="flex flex-col items-center mb-8">
-          <LogoFull height={120} className="mb-3" />
-          <p className="text-white/70 text-sm">Password Recovery</p>
-        </div>
-        {children}
-      </div>
-    </div>
-  );
+  // ---- Wrapper is defined outside component to avoid remount flicker ----
 
   // ---- Success: Link Sent ----
   if (success && mode === "link") {
@@ -433,3 +418,19 @@ const ForgotPassword = () => {
 };
 
 export default ForgotPassword;
+
+const PageShell = ({ children }) => (
+  <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, var(--brand-primary) 0%, var(--btn-primary-hover) 100%)" }}>
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute top-20 right-20 w-96 h-96 bg-white/5 rounded-full blur-3xl" />
+      <div className="absolute bottom-20 left-20 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
+    </div>
+    <div className="flex-1 flex flex-col items-center justify-center px-6 relative z-10">
+      <div className="flex flex-col items-center mb-8">
+        <LogoFull height={120} className="mb-3" />
+        <p className="text-white/70 text-sm">Password Recovery</p>
+      </div>
+      {children}
+    </div>
+  </div>
+);
