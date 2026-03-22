@@ -176,19 +176,30 @@ async def send_mpin_change_otp(request: Request, background_tasks: BackgroundTas
     import random
     otp = str(random.randint(100000, 999999))
     otp_hash = hashlib.sha256(otp.encode()).hexdigest()
+    now = datetime.now(timezone.utc)
 
-    await db.login_otp_tokens.insert_one({
-        "otp_id": str(uuid.uuid4()),
-        "email": email,
-        "user_id": user["user_id"],
-        "otp_hash": otp_hash,
-        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
-        "used": False,
-        "attempts": 0,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "purpose": "mpin_change",
-    })
+    try:
+        # Step 1: Invalidate older OTPs
+        await db.login_otp_tokens.update_many(
+            {"email": email, "purpose": "mpin_change", "used": False, "created_at": {"$lt": now.isoformat()}},
+            {"$set": {"used": True}}
+        )
+        # Step 2: Insert new
+        await db.login_otp_tokens.insert_one({
+            "otp_id": str(uuid.uuid4()),
+            "email": email,
+            "user_id": user["user_id"],
+            "otp_hash": otp_hash,
+            "expires_at": (now + timedelta(minutes=5)).isoformat(),
+            "used": False,
+            "attempts": 0,
+            "created_at": now.isoformat(),
+            "purpose": "mpin_change",
+        })
+    except Exception as e:
+        logger.error(f"mpin/send-change-otp: DB error for {email}: {e}")
 
+    # Step 3: ALWAYS trigger email
     background_tasks.add_task(send_otp_email_sync, email, otp)
     # Mask email for display
     parts = email.split("@")

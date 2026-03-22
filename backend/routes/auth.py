@@ -788,7 +788,7 @@ async def forgot_mpin(request: Request, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail="Email is required")
 
     import asyncio as _aio
-    # Parallel: user lookup + cooldown check
+    # Parallel: user lookup + cooldown check (read-only, safe to parallelize)
     user_fut = db.users.find_one(
         {"email": {"$regex": f"^{email}$", "$options": "i"}},
         {"_id": 0, "user_id": 1}
@@ -805,24 +805,34 @@ async def forgot_mpin(request: Request, background_tasks: BackgroundTasks):
         return {"message": "OTP already sent. Please wait."}
 
     otp = generate_otp()
+    now = datetime.now(timezone.utc)
 
-    # Invalidate old OTPs FIRST, then insert new one (order matters!)
-    await db.login_otp_tokens.update_many(
-        {"email": email, "purpose": "mpin_reset", "used": False},
-        {"$set": {"used": True}}
-    )
-    await db.login_otp_tokens.insert_one({
-        "otp_id": str(uuid.uuid4()),
-        "email": email,
-        "user_id": user["user_id"],
-        "otp_hash": hash_password(otp),
-        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
-        "used": False,
-        "attempts": 0,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "purpose": "mpin_reset",
-    })
+    try:
+        # Step 1: Invalidate ONLY older OTPs (created_at < now protects the new one)
+        logger.info(f"forgot-mpin: Step 1 — invalidating old OTPs for {email}")
+        await db.login_otp_tokens.update_many(
+            {"email": email, "purpose": "mpin_reset", "used": False, "created_at": {"$lt": now.isoformat()}},
+            {"$set": {"used": True}}
+        )
 
+        # Step 2: Insert new OTP
+        logger.info(f"forgot-mpin: Step 2 — inserting new OTP for {email}")
+        await db.login_otp_tokens.insert_one({
+            "otp_id": str(uuid.uuid4()),
+            "email": email,
+            "user_id": user["user_id"],
+            "otp_hash": hash_password(otp),
+            "expires_at": (now + timedelta(minutes=5)).isoformat(),
+            "used": False,
+            "attempts": 0,
+            "created_at": now.isoformat(),
+            "purpose": "mpin_reset",
+        })
+    except Exception as e:
+        logger.error(f"forgot-mpin: DB error for {email}: {e}")
+
+    # Step 3: ALWAYS trigger email (even if DB had issues)
+    logger.info(f"forgot-mpin: Step 3 — triggering email for {email}")
     background_tasks.add_task(send_otp_email_sync, email, otp)
     logger.info(f"forgot-mpin: OTP queued for {email} in {round((time.time()-t0)*1000)}ms")
     return {"message": "Verification code sent to your email."}
@@ -953,23 +963,33 @@ async def auth_start(request: Request, background_tasks: BackgroundTasks):
         return {"message": "OTP already sent", "user_exists": user is not None}
 
     otp = generate_otp()
+    now = datetime.now(timezone.utc)
 
-    # Invalidate FIRST, then insert (order matters — prevents race condition)
-    await db.login_otp_tokens.update_many(
-        {"email": identifier, "used": False},
-        {"$set": {"used": True}}
-    )
-    await db.login_otp_tokens.insert_one({
-        "otp_id": str(uuid.uuid4()),
-        "email": identifier,
-        "user_id": user["user_id"] if user else None,
-        "otp_hash": hash_password(otp),
-        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
-        "used": False,
-        "attempts": 0,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    })
+    try:
+        # Step 1: Invalidate ONLY older OTPs (created_at < now protects the new one)
+        logger.info(f"auth/start: Step 1 — invalidating old OTPs for {identifier}")
+        await db.login_otp_tokens.update_many(
+            {"email": identifier, "used": False, "created_at": {"$lt": now.isoformat()}},
+            {"$set": {"used": True}}
+        )
 
+        # Step 2: Insert new OTP
+        logger.info(f"auth/start: Step 2 — inserting new OTP for {identifier}")
+        await db.login_otp_tokens.insert_one({
+            "otp_id": str(uuid.uuid4()),
+            "email": identifier,
+            "user_id": user["user_id"] if user else None,
+            "otp_hash": hash_password(otp),
+            "expires_at": (now + timedelta(minutes=5)).isoformat(),
+            "used": False,
+            "attempts": 0,
+            "created_at": now.isoformat(),
+        })
+    except Exception as e:
+        logger.error(f"auth/start: DB error for {identifier}: {e}")
+
+    # Step 3: ALWAYS trigger email
+    logger.info(f"auth/start: Step 3 — triggering email for {identifier}")
     background_tasks.add_task(send_otp_email_sync, identifier, otp)
     logger.info(f"auth/start: OTP queued for {identifier} in {round((time.time()-t0)*1000)}ms")
     return {"message": "OTP sent", "user_exists": user is not None}
@@ -1138,17 +1158,27 @@ async def send_otp(request: SendOTPRequest, background_tasks: BackgroundTasks):
             return {"message": "OTP already sent. Please wait before requesting another."}
 
         otp = generate_otp()
-        otp_record = {
-            "otp_id": str(uuid.uuid4()),
-            "email": email,
-            "user_id": user["user_id"],
-            "otp_hash": hash_password(otp),
-            "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
-            "used": False,
-            "attempts": 0,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        }
-        await db.otp_tokens.insert_one(otp_record)
+        now = datetime.now(timezone.utc)
+        try:
+            # Step 1: Invalidate older OTPs
+            await db.otp_tokens.update_many(
+                {"email": email, "used": False, "created_at": {"$lt": now.isoformat()}},
+                {"$set": {"used": True}}
+            )
+            # Step 2: Insert new
+            await db.otp_tokens.insert_one({
+                "otp_id": str(uuid.uuid4()),
+                "email": email,
+                "user_id": user["user_id"],
+                "otp_hash": hash_password(otp),
+                "expires_at": (now + timedelta(minutes=5)).isoformat(),
+                "used": False,
+                "attempts": 0,
+                "created_at": now.isoformat(),
+            })
+        except Exception as e:
+            logger.error(f"send-otp: DB error for {email}: {e}")
+        # Step 3: ALWAYS trigger email
         background_tasks.add_task(send_otp_email_sync, email, otp)
 
     return {"message": success_msg}
@@ -1285,17 +1315,28 @@ async def send_signup_otp(request: SendOTPRequest, background_tasks: BackgroundT
         return {"message": "OTP already sent. Please wait before requesting another."}
 
     otp = generate_otp()
-    await db.signup_otp_tokens.insert_one({
-        "otp_id": str(uuid.uuid4()),
-        "email": email,
-        "otp_hash": hash_password(otp),
-        "expires_at": (datetime.now(timezone.utc) + timedelta(minutes=5)).isoformat(),
-        "verified": False,
-        "used": False,
-        "attempts": 0,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-    })
+    now = datetime.now(timezone.utc)
+    try:
+        # Step 1: Invalidate older signup OTPs
+        await db.signup_otp_tokens.update_many(
+            {"email": email, "used": False, "created_at": {"$lt": now.isoformat()}},
+            {"$set": {"used": True}}
+        )
+        # Step 2: Insert new
+        await db.signup_otp_tokens.insert_one({
+            "otp_id": str(uuid.uuid4()),
+            "email": email,
+            "otp_hash": hash_password(otp),
+            "expires_at": (now + timedelta(minutes=5)).isoformat(),
+            "verified": False,
+            "used": False,
+            "attempts": 0,
+            "created_at": now.isoformat(),
+        })
+    except Exception as e:
+        logger.error(f"send-signup-otp: DB error for {email}: {e}")
 
+    # Step 3: ALWAYS trigger email
     background_tasks.add_task(send_otp_email_sync, email, otp)
     return {"message": "Verification code sent to your email."}
 
