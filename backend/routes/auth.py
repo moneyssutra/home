@@ -806,12 +806,12 @@ async def forgot_mpin(request: Request, background_tasks: BackgroundTasks):
 
     otp = generate_otp()
 
-    # Parallel: invalidate old OTPs + insert new one
-    invalidate_fut = db.login_otp_tokens.update_many(
+    # Invalidate old OTPs FIRST, then insert new one (order matters!)
+    await db.login_otp_tokens.update_many(
         {"email": email, "purpose": "mpin_reset", "used": False},
         {"$set": {"used": True}}
     )
-    insert_fut = db.login_otp_tokens.insert_one({
+    await db.login_otp_tokens.insert_one({
         "otp_id": str(uuid.uuid4()),
         "email": email,
         "user_id": user["user_id"],
@@ -822,7 +822,6 @@ async def forgot_mpin(request: Request, background_tasks: BackgroundTasks):
         "created_at": datetime.now(timezone.utc).isoformat(),
         "purpose": "mpin_reset",
     })
-    await _aio.gather(invalidate_fut, insert_fut)
 
     background_tasks.add_task(send_otp_email_sync, email, otp)
     logger.info(f"forgot-mpin: OTP queued for {email} in {round((time.time()-t0)*1000)}ms")
@@ -955,12 +954,12 @@ async def auth_start(request: Request, background_tasks: BackgroundTasks):
 
     otp = generate_otp()
 
-    # Parallel: invalidate + insert
-    invalidate_fut = db.login_otp_tokens.update_many(
+    # Invalidate FIRST, then insert (order matters — prevents race condition)
+    await db.login_otp_tokens.update_many(
         {"email": identifier, "used": False},
         {"$set": {"used": True}}
     )
-    insert_fut = db.login_otp_tokens.insert_one({
+    await db.login_otp_tokens.insert_one({
         "otp_id": str(uuid.uuid4()),
         "email": identifier,
         "user_id": user["user_id"] if user else None,
@@ -970,7 +969,6 @@ async def auth_start(request: Request, background_tasks: BackgroundTasks):
         "attempts": 0,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
-    await _aio.gather(invalidate_fut, insert_fut)
 
     background_tasks.add_task(send_otp_email_sync, identifier, otp)
     logger.info(f"auth/start: OTP queued for {identifier} in {round((time.time()-t0)*1000)}ms")
