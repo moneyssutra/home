@@ -117,10 +117,10 @@ const Login = () => {
   const handleOtpChange = (i, v) => {
     if (!/^\d?$/.test(v)) return;
     const next = [...otp]; next[i] = v; setOtp(next);
-    if (v && i < 5) otpRefs.current[i + 1]?.focus();
+    if (v && i < 5) setTimeout(() => otpRefs.current[i + 1]?.focus(), 10);
     if (v && i === 5) { const full = next.join(""); if (full.length === 6) submitOtp(full); }
   };
-  const handleOtpKey = (i, e) => { if (e.key === "Backspace" && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus(); };
+  const handleOtpKey = (i, e) => { if (e.key === "Backspace" && !otp[i] && i > 0) setTimeout(() => otpRefs.current[i - 1]?.focus(), 10); };
   const handleOtpPaste = (e) => {
     const p = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
     if (p.length === 6) { setOtp(p.split("")); otpRefs.current[5]?.focus(); submitOtp(p); }
@@ -165,10 +165,10 @@ const Login = () => {
   const pinChange = (refs, state, setState, i, v, onComplete) => {
     if (!/^\d?$/.test(v)) return;
     const next = [...state]; next[i] = v; setState(next);
-    if (v && i < 3) refs.current[i + 1]?.focus();
+    if (v && i < 3) setTimeout(() => refs.current[i + 1]?.focus(), 10);
     if (v && i === 3 && next.join("").length === 4 && onComplete) onComplete(next.join(""));
   };
-  const pinKey = (refs, state, i, e) => { if (e.key === "Backspace" && !state[i] && i > 0) refs.current[i - 1]?.focus(); };
+  const pinKey = (refs, state, i, e) => { if (e.key === "Backspace" && !state[i] && i > 0) setTimeout(() => refs.current[i - 1]?.focus(), 10); };
 
   // Direct MPIN login (no OTP)
   const handleMpinLogin = async (pin) => {
@@ -425,7 +425,7 @@ const Login = () => {
           <OtpInputRow refs={otpRefs} state={otp} onChange={(i, v) => {
             if (!/^\d?$/.test(v)) return;
             const next = [...otp]; next[i] = v; setOtp(next);
-            if (v && i < 5) otpRefs.current[i + 1]?.focus();
+            if (v && i < 5) setTimeout(() => otpRefs.current[i + 1]?.focus(), 10);
             if (v && i === 5 && next.join("").length === 6) submitForgotMpinOtp(next.join(""));
           }} onKeyDown={handleOtpKey} onPaste={(e) => {
             const p = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);

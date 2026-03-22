@@ -1,10 +1,33 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Mail, AlertCircle, CheckCircle, ArrowLeft, Send, Loader2, Lock, Eye, EyeOff, KeyRound, LinkIcon } from "lucide-react";
 import axios from "axios";
 import { LogoFull } from "@/components/Logo";
 
 const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
+// Isolated timer component — ticking doesn't re-render parent form/inputs
+const ResendTimerRow = memo(function ResendTimerRow({ seconds, onResend }) {
+  const [timer, setTimer] = useState(seconds);
+  useEffect(() => { setTimer(seconds); }, [seconds]);
+  useEffect(() => {
+    if (timer <= 0) return;
+    const t = setTimeout(() => setTimer(timer - 1), 1000);
+    return () => clearTimeout(t);
+  }, [timer]);
+  return (
+    <div className="text-center">
+      {timer > 0 ? (
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>Resend in {timer}s</p>
+      ) : (
+        <button type="button" onClick={onResend} className="text-xs font-semibold" style={{ color: "var(--brand-primary)" }} data-testid="resend-otp-btn">
+          Resend OTP
+        </button>
+      )}
+      {timer > 0 && timer <= 45 && <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>Check spam folder if not received</p>}
+    </div>
+  );
+});
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -27,12 +50,6 @@ const ForgotPassword = () => {
   const inputRefs = useRef([]);
 
   // Countdown timer for resend
-  useEffect(() => {
-    if (resendTimer <= 0) return;
-    const t = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
-    return () => clearTimeout(t);
-  }, [resendTimer]);
-
   const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   const isValidIdentifier = (value) => {
     if (!value) return false;
@@ -85,12 +102,15 @@ const ForgotPassword = () => {
     const next = [...otp];
     next[index] = value;
     setOtp(next);
-    if (value && index < 5) inputRefs.current[index + 1]?.focus();
+    // Delay focus to after React DOM update — prevents mobile keyboard dismiss
+    if (value && index < 5) {
+      setTimeout(() => inputRefs.current[index + 1]?.focus(), 10);
+    }
   };
 
   const handleOtpKeyDown = (index, e) => {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+      setTimeout(() => inputRefs.current[index - 1]?.focus(), 10);
     }
   };
 
@@ -218,15 +238,7 @@ const ForgotPassword = () => {
             </div>
 
             {/* Resend */}
-            <div className="text-center">
-              {resendTimer > 0 ? (
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Resend in {resendTimer}s</p>
-              ) : (
-                <button type="button" onClick={handleSendOTP} className="text-xs font-semibold" style={{ color: "var(--brand-primary)" }} data-testid="resend-otp-btn">
-                  Resend OTP
-                </button>
-              )}
-            </div>
+            <ResendTimerRow seconds={resendTimer} onResend={handleSendOTP} />
 
             {/* New Password */}
             <div>
