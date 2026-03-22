@@ -6,53 +6,44 @@ MoneySutra is a comprehensive financial management app with CRED-style step-base
 ## Architecture
 - **Frontend**: React (CRA) + Tailwind + Shadcn UI
 - **Backend**: FastAPI + MongoDB Atlas
-- **Auth**: CRED-style state machine (Email → OTP → MPIN)
+- **Auth**: CRED-style state machine (Email -> OTP -> MPIN)
 - **Email**: Resend API (plain text, sync calls for reliability)
 - **SMS**: Twilio (disabled pending DLT compliance)
-- **API Config**: Centralized `apiConfig.js` using `window.location.origin` for deployment portability
-
-## What's Been Implemented
-- Full CRED-style authentication (email check → OTP → MPIN setup/login)
-- MPIN login with 3-attempt lockout (5-min cooldown)
-- Forgot MPIN via email OTP
-- MPIN change in Settings (current MPIN or OTP fallback)
-- Async OTP email delivery via FastAPI BackgroundTasks
-- Plain text OTP emails (bypasses Gmail spam filters)
-- Sequential DB writes for OTP (no race conditions)
-- Multi-OTP validation (accepts any unexpired/unused code)
-- Family workspace with combined dashboard
-- Financial Level System (backend rule engine: 0-100 score, 5 levels)
-- Emergency Runway / Survival Clock
-- Financial Control Score
-- Money Pattern / Personality Engine (20 types)
-- Shock Test Simulator
-- Future Projection Engine
-- Behavior Alerts
-- Full expense/income/investment/loan/insurance CRUD
-- Credit card tracking
-- Goals system
-- Gamification & notifications
+- **API Config**: Centralized `apiConfig.js` using `window.location.origin`
 
 ## Key Technical Decisions
 - OTP emails MUST remain plain text (Gmail blocks HTML variants)
 - Never use asyncio.gather for OTP DB writes (race condition risk)
-- OTP validation accepts ANY unexpired/unused code for the email (not just latest)
-- Twilio SMS is code-complete but disabled via ENABLE_SMS_OTP=false
-- Cooldown checks MUST filter by purpose field to avoid cross-flow contamination
-- ALL email functions are sync (no async/asyncio.to_thread — causes silent failures)
+- ALL email functions are sync (no async/asyncio.to_thread)
 - Frontend uses `window.location.origin` for API base URL (not build-time env var)
+- Emergency Runway uses only ESSENTIAL expenses (not all Fixed expenses)
+- isEssential smart defaults: name patterns override category-based defaults
 
-## Bug Fixes (Current Session - March 2026)
+## Completed Features (Current Session - March 2026)
 - Fixed `.gitignore` blocking `.env` files from deployment
 - Fixed forgot-mpin cooldown missing `purpose` filter
 - Removed all broken async/asyncio.to_thread wrappers from email_service.py
-- Fixed sms_service.py await on now-sync send_otp_email
-- Created centralized `apiConfig.js` using `window.location.origin` — fixes deployed app calling stale preview URL
-- Updated 90 frontend files to use API_BASE instead of build-time REACT_APP_BACKEND_URL
+- Created centralized `apiConfig.js` using `window.location.origin`
+- Updated 90 frontend files to use API_BASE instead of build-time env var
+- **Essential Expenses System**: Smart defaults + user override for `isEssential` flag
+  - Backend: `compute_is_essential()` in expenses.py with name pattern + category logic
+  - PATCH /api/expenses/{id}/essential endpoint for user toggles
+  - intelligence.py `_get_monthly_mandatory_expense` now filters by essential only
+  - Frontend: Essential/Non-essential breakdown in FixedExpenses header
+  - Frontend: Shield toggle per expense card in FixedExpenses list
+  - Frontend: "Survival Essential?" yes/no toggle in ExpenseForm for Fixed expenses
+  - Result: For user sandeepdash24, Monthly Essentials dropped from Rs.71K to Rs.16K (77% reduction by correctly excluding SIPs/EPF)
+
+## Smart Essential Defaults
+- **Essential categories**: Housing, Utilities, Food, Medical, Education, Salary Paid, EMI
+- **Non-essential name patterns**: sip, mutual fund, mf, ppf, nps, elss, etf, gold saving, investment
+- **Essential name patterns**: emi, loan, rent, insurance premium, premium, petrol, diesel, fuel, commute, transport, electricity, water bill, gas bill, grocery, medicine, school fee, tuition
+- Name patterns have PRIORITY over category defaults
+- User explicit override (isEssential field) has HIGHEST priority
 
 ## Prioritized Backlog
 ### P0 (Immediate)
-- User must redeploy app for production fixes to take effect
+- User must redeploy app for all fixes to take effect on production
 
 ### P1 (Next Up)
 - Financial Level System UI (frontend dashboard visual for score/level)
@@ -67,11 +58,11 @@ MoneySutra is a comprehensive financial management app with CRED-style step-base
 - Monthly financial summary email/PDF
 
 ### Refactoring
-- auth.py (1450+ lines) → split into sub-modules
-- Login.js (600+ lines) → extract components
-- ProfileSetup.js (1500+ lines) → modularize
+- auth.py (1450+ lines) -> split into sub-modules
+- Login.js (600+ lines) -> extract components
+- ProfileSetup.js (1500+ lines) -> modularize
 
 ## Credentials
-- Test User: moneyssutra@gmail.com (has MPIN + family data)
+- Test User: moneyssutra@gmail.com / MPIN: 1234
 - Test User: kumaramarendra10@gmail.com (has MPIN, firstName: Amar)
-- Email Test: chandrashekhar.iter@gmail.com
+- Test User: sandeepdash24@gmail.com (prod, has 10 Fixed expenses)
