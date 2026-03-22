@@ -31,6 +31,13 @@ BRAND_BG = "#F8FAF9"
 TEXT_PRIMARY = "#1a1a1a"
 TEXT_SECONDARY = "#666666"
 
+# ── Startup validation ──
+_resend_key = os.environ.get("RESEND_API_KEY")
+if not _resend_key:
+    logger.warning("RESEND_API_KEY is NOT set — all OTP and notification emails WILL FAIL")
+else:
+    logger.info(f"Email service ready: provider={EMAIL_PROVIDER}, sender={SENDER_EMAIL}, key=...{_resend_key[-6:]}")
+
 
 def get_email_header():
     """Returns branded email header HTML"""
@@ -257,8 +264,9 @@ def send_email_resend(to_email: str, subject: str, html_content: str) -> dict:
 
         resend.api_key = os.environ.get("RESEND_API_KEY")
         if not resend.api_key:
-            logger.error("RESEND_API_KEY not set in environment")
-            return {"success": False, "error": "RESEND_API_KEY not configured"}
+            msg = "RESEND_API_KEY not set in environment"
+            logger.error(msg)
+            raise ValueError(msg)
 
         params = {
             "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
@@ -397,8 +405,9 @@ def send_otp_email_sync(to_email: str, otp: str):
     import resend as _resend
     _resend.api_key = os.environ.get("RESEND_API_KEY")
     if not _resend.api_key:
-        logger.error(f"[BG] RESEND_API_KEY not set, cannot send OTP to {to_email}")
-        return
+        msg = f"RESEND_API_KEY not set. Cannot send OTP to {to_email}"
+        logger.error(f"[BG] {msg}")
+        raise ValueError(msg)
 
     params = {
         "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
@@ -419,7 +428,7 @@ def send_otp_email_sync(to_email: str, otp: str):
             if attempt == 0:
                 __import__("time").sleep(2)
 
-    logger.error(f"[BG] OTP email to {to_email} failed after 2 attempts")
+    raise RuntimeError(f"OTP email to {to_email} failed after 2 attempts")
 
 
 def send_email_sync(to_email: str, subject: str, html_content: str):
@@ -427,8 +436,9 @@ def send_email_sync(to_email: str, subject: str, html_content: str):
     import resend as _resend
     _resend.api_key = os.environ.get("RESEND_API_KEY")
     if not _resend.api_key:
-        logger.error(f"[BG] RESEND_API_KEY not set, cannot send to {to_email}")
-        return
+        msg = f"RESEND_API_KEY not set. Cannot send email to {to_email}"
+        logger.error(f"[BG] {msg}")
+        raise ValueError(msg)
 
     params = {
         "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
@@ -449,4 +459,4 @@ def send_email_sync(to_email: str, subject: str, html_content: str):
             if attempt == 0:
                 __import__("time").sleep(2)
 
-    logger.error(f"[BG] Email to {to_email} failed after 2 attempts")
+    raise RuntimeError(f"Email to {to_email} failed after 2 attempts")
