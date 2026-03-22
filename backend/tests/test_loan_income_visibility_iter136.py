@@ -22,7 +22,7 @@ import sys
 # Add backend path for database access
 sys.path.insert(0, '/app/backend')
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fintech-dash-45.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://financial-level-ui.preview.emergentagent.com').rstrip('/')
 
 
 def create_test_session():

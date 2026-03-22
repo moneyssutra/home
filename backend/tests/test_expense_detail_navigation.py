@@ -8,7 +8,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fintech-dash-45.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://financial-level-ui.preview.emergentagent.com')
 SESSION_TOKEN = "425f27a1-242e-4119-b67d-5bfd50d3f579"
 TEST_EXPENSE_ID = "b2a34ccc-1158-4437-be91-574e348169e7"
 

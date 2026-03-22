@@ -25,6 +25,7 @@ import {
 import BottomNav from "@/components/BottomNav";
 import AddActionSheet from "@/components/AddActionSheet";
 import { useFamilyContext } from "@/context/FamilyContext";
+import { BankLogo } from "@/utils/bankLogos";
 import API_BASE from '../utils/apiConfig';
 
 const API = API_BASE;
@@ -114,9 +115,7 @@ const AccountCard = ({ account, isActive, onRefresh, refreshingId }) => {
         {/* Top Row: Bank Logo + Name + Refresh */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-md flex items-center justify-center text-[8px] font-black tracking-wider" style={{ background: "rgba(255,255,255,0.15)", color: "#fff", backdropFilter: "blur(4px)" }}>
-              {account.logo}
-            </div>
+            <BankLogo name={account.bank} size={32} gradient={account.gradient} className="ring-1 ring-white/20" />
             <div>
               <p className="text-[13px] font-bold text-white leading-tight">{account.bank}</p>
               <p className="text-[10px] text-white/45 font-medium">{account.type}</p>
@@ -263,7 +262,7 @@ const AccountsTab = ({ accounts, refreshing, onRefreshAll, onRefreshOne, refresh
         {accounts.map((acc) => (
           <div key={acc.id} className="rounded-xl p-4 flex items-center justify-between transition-all active:scale-[0.98]" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-light)" }} data-testid={`account-row-${acc.id}`}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[9px] font-black tracking-wider text-white" style={{ background: `linear-gradient(135deg, ${acc.gradient[0]}, ${acc.gradient[1]})` }}>{acc.logo}</div>
+              <BankLogo name={acc.bank} size={40} gradient={acc.gradient} />
               <div>
                 <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{acc.bank}</p>
                 <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{acc.type} {acc.accountNumber && `· ${acc.accountNumber}`}</p>

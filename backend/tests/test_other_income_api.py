@@ -8,7 +8,7 @@ import requests
 import os
 from datetime import datetime, date
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://fintech-dash-45.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://financial-level-ui.preview.emergentagent.com').rstrip('/')
 
 # Test data - unique prefix for cleanup
 TEST_PREFIX = "TEST_OTHER_"

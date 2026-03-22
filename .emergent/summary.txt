@@ -1,140 +1,136 @@
-<analysis>**original_problem_statement**: The user is building MoneySutra, a comprehensive financial management app. The focus is on refining the UI/UX by converting all data entry forms into step-by-step sequential wizards with Completion Confetti, implementing strict dynamic category locking based on entry points, and performing a major backend architectural refactoring to centralize logic into a Financial Engine to calculate net worth, cash flow, and avoid repeated DB calls.
-
-PRODUCT REQUIREMENTS:
-1. All financial data entry forms must be step-by-step wizards with completion confetti.
-2. If a user navigates from a specific category picker (e.g., Housing), the form should dynamically update its title (e.g., Add Housing Expense), remove the category selection dropdown entirely, and merge Step 1 & Step 2 to save time.
-3. Centralize backend logic into  and  to prevent duplicate code across routes.
-4. Create a unified  endpoint for the frontend.
+<analysis>**original_problem_statement**: The user is building MoneySutra, a comprehensive financial management app. The core focus is refining UI/UX to match CRED-style aesthetics, ensuring accurate financial calculations (e.g., Emergency Runway), and stabilizing the production deployment environment (specifically fixing silent failures in background email tasks, hardcoded API URLs, and  file exclusions). 
 
 **User's preferred language**: English
 *(INSTRUCT: Next agent MUST respond in English only)*
 
 **what currently exists?** 
-A full-stack React/FastAPI/MongoDB app. All 12 financial entry forms have been successfully converted to  step-by-step wizards. A new  effect triggers on successful saves. On the backend, Phase 1 of the refactoring is complete:  is active, and a unified  endpoint is successfully returning aggregated data.
+A full-stack React/FastAPI/MongoDB app with CRED-style auth. The email architecture has been fully converted to purely synchronous calls executed via FastAPI  to prevent silent asyncio failures. The frontend dynamically routes API calls based on  for robust deployments. An intelligent expense classification engine identifies Survival Essential expenses (excluding SIPs/Investments) for accurate emergency runway calculations, with user overrides available. The bank accounts/credit cards UI fetches real bank logos dynamically via Google's Favicon API to mimic CRED's aesthetic.
 
 **Last working item**:
-- Last item agent was working: Polishing the Locked Category UX across all wizard forms. The user requested that instead of showing a disabled dropdown or static chip for pre-selected categories, the form title should dynamically change (e.g., Add Housing Expense) and the category block should be completely removed from the UI.
-- Status: IN PROGRESS
-- Agent Testing Done: N (Agent was in the middle of executing search/replace commands when the log ended).
-- Which testing method agent to use?: Frontend testing agent () is CRITICAL here because the agent fundamentally altered the step counts (merging Step 1 and 2) when categories are locked.
+- Last item agent was working: Replacing placeholder text abbreviations for banks (e.g., HDFC) with real bank logos dynamically fetched via the Google Favicon API across  and , directly aiming for a CRED-like visual experience. 
+- Status: USER VERIFICATION PENDING
+- Agent Testing Done: Y
+- Which testing method agent to use? screenshot tool
 - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-Issue 1: 🔴 Complete Locked Category field removal (P0)
-   - Attempted fixes: The agent successfully updated the dynamic titles for all 6 forms and removed the static chips from , , , , and . 
-   - Next debug checklist: . The agent identified that  still has a  block inside its . You must remove this block so that only the dynamic title displays the locked category.
-   - Why fix this issue and what will be achieved with the fix?: Fulfills the user's exact UI request to clean up redundancy.
-   - Status: IN PROGRESS
-   - Is recurring issue?: N
-   - Should Test frontend/backend/both after fix?: Frontend
-
-Issue 2: 🔴 Verify Dynamic Step Merging Validation (P0)
-   - Attempted fixes: Agent changed wizard logic so that  reduces by 1 and steps logically shift when a category is pre-selected. 
-   - Next debug checklist: Run the  targeting the wizards specifically when accessed via URL parameters (e.g., ). Ensure  logic does not break due to the shifted logical steps.
-   - Why fix this issue?: Dynamic step counts often introduce edge-case validation bugs on Next button clicks.
-   - Status: TESTING PENDING
-   - Is recurring issue?: N
-   - Should Test frontend/backend/both after fix?: Frontend
+Issue 1: Trigger Production Redeployment
+- Attempted fixes: Agent fixed the corrupted  (which was blocking  files in production), resolved hardcoded frontend API URLs across 90 files, and added explicit  raises in  to prevent silent background task failures.
+- Next debug checklist: Ask the user to trigger a manual deployment to push these critical infrastructure fixes to the live production server.
+- Why fix this issue and what will be achieved with the fix? Until redeployed, the live app will continue to suffer from OTP delivery failures and frontend CORS/Network crashes.
+- Status: BLOCKED (Awaiting User Action)
+- Is recurring issue? Y (OTP delivery failed multiple times previously due to environment/async issues)
+- Should Test frontend/backend/both after fix? Both
+- Blocked on other issue: User manual deployment
 
 **In progress Task List**:
-Task 1: 🟡 Backend Refactoring Phase 2 (P1)
-   - Where to resume: The user explicitly requested validation fixes across models using Pydantic  (preventing negative values), and fixing inconsistent naming conventions across API responses ( vs ). 
-   - What will be achieved with this?: Solidifies the backend architecture as requested in the user's High-Impact Issues list.
-   - Status: IN PROGRESS (Some models updated, but a comprehensive sweep is needed).
-   - Should Test frontend/backend/both after fix?: Backend
-   - Blocked on something: None.
+*None active.*
 
 **Upcoming and Future Tasks**
 Upcoming Tasks:
-- 🔴 (P0) Implement Financial Level System (The user highlighted this as their USP/Top Priority for the financial engine).
-- 🔴 (P0) Link real Twilio credentials for SMS/WhatsApp (currently mocked).
+- 🟡 (P1) Implement Financial Level System UI: Backend rule engine calculates score/level, needs to be integrated into the frontend dashboard visual.
 - 🟡 (P1) Finvu SDK Integration for Account Aggregator.
-- 🟡 (P1) Transaction Linking Design (link fetched bank transactions to expenses/incomes).
-- 🟡 (P1) Remove DB Calls Inside Loops (User noted N+1 query problems in list fetching routes).
+- 🟡 (P1) Transaction Linking Design: Link fetched bank transactions to expenses/incomes.
 
 Future Tasks:
-- 🟢 (P2) Backend Phase 3: Redis caching for dashboard & Pagination for lists.
-- 🟢 (P2) Auto AI Image generation for goals based on goal names.
+- 🟢 (P2) Biometric WebAuthn (Phase 2).
+- 🟢 (P2) Device Trust mapping (skip OTP for trusted devices).
+- 🟢 (P2) Upgrade in-memory TTLCache to Redis for scalability.
+- 🟢 (P2) Pagination for large lists.
 - 🟢 (P2) Monthly financial summary email/notification and PDF generation.
-- 🟢 (P2) Refactoring: Break down  (>1500 lines) and  (>700 lines).
 
 **Completed work in this session**
-- Converted , , ,  to step-by-step wizards (DONE).
-- Created  integration for all 12 wizard forms on save (DONE).
-- Created  and  (DONE).
-- Implemented  endpoint (DONE).
-- Merged Step 1 and Step 2 in wizards when accessed via Category Picker to streamline UX (DONE).
+- Fixed  corruption that was blocking  files from production deployments (DONE).
+- Rewrote  to remove  and use pure sync calls to fix silent API failure (DONE).
+- Fixed hardcoded API URLs across 90+ frontend files by implementing dynamic  (DONE).
+- Fixed inflated Monthly Essentials calculation by explicitly filtering out SIPs/Investments (DONE).
+- Implemented Survival Essential smart-defaults (regex/category based) with UI toggles on , , and  (DONE).
+- Added explicit exception raising () in email service when  is missing to prevent silent failures (DONE).
+- Integrated real bank logos using Google Favicon API in Account and Credit Card views (DONE).
 
 **Earlier issues found/mentioned but not fixed**
-Issue 1: DB N+1 Queries in Routes
-- Debug checklist: Search for  patterns in , , , etc.
-- Why to solve this issue: User explicitly flagged this as a Performance Killer that needs to be replaced with bulk queries or  JOINs.
-- Should Test frontend/backend/both after fix: Backend
-- Is recurring issue? Y
+*None.*
 
 **Known issue recurrence from previous fork**
-- Issue recurrence in previous fork: None applicable to current scope.
-- Recurrence count: 0
-- Status: RESOLVED
+- Issue recurrence in previous fork: OTP Email Delivery failures.
+- Recurrence count: 2 (First due to Gmail spam filters, then due to async wrapper silent failures and missing production  variables).
+- Status: RESOLVED (Await production deploy)
+- Note: Do *not* re-introduce  or  into . Keep it purely synchronous. 
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Dynamic Wizard Steps**: When a form is opened with a URL parameter (e.g., ),  becomes true. The form dynamically changes its title, skips the category selection step entirely, and merges the remaining inputs, reducing .
-- **Financial Engine**: Instead of individual endpoints calculating net worth or monthly income,  handles all aggregations, returning them in a single call to .
+- **Dynamic Frontend API Routing**: The frontend now uses  which points to  if deployed, falling back to localhost or preview URLs. NEVER use  directly in components anymore.
+- **Smart Defaults for Essentials**: Expenses have an  flag. If it's , the backend auto-computes it based on categories (e.g., Housing = Essential) and name patterns (e.g., SIP = Non-essential). Users can override this.
+- **Synchronous Email Execution**: Emails are handled purely synchronously via Resend SDK to prevent the event loop from hiding thread exceptions. They run safely in FastAPI's .
 
 **key DB schema**
-- Standard schemas.
+- : Added  (boolean/null).
+- :  is strictly used for queries matching prod architecture. 
 
 **changes in tech stack**
-- Added  to frontend .
+- No new packages, but integrated Google Favicon API () for real-time bank logo resolution.
 
 **All files of reference**
--  (Requires immediate edit)
+- 
+- 
+- 
+- 
+- 
+- 
+- 
+- 
 - 
 - 
 
 **Areas that need refactoring**
--  (>1500 lines)
-- DB queries inside loops across backend routes (as identified by user).
+-  (Massive monolithic file, over 1400 lines)
+- 
 
 **key api endpoints**
--  (Newly created, critical for dashboard load).
+-  (Validates user existence before OTP)
+-  (PATCH toggle for survival essentials)
+-  (Provides account/card data for UI mapping)
 
 **Critical Info for New Agent**
-- You MUST finish the UI cleanup in  immediately. Remove the  div rendering the static chip, as the title now handles this information.
-- The user provided a highly detailed 3-Phase backend refactoring plan (See Message 47). You are currently between Phase 1 and Phase 2. Refer to the user's explicit instructions regarding Pydantic validation and removing DB loops.
+- **API URL Import**: If you create a new frontend file, you MUST import  from . Do not use .
+- **Emails are SYNC**:  is entirely synchronous. Do not add  back to it. It is executed via .
+- **Production Deployment Blocker**: The user MUST deploy the application for the  environment variable fix and dynamic API URL fix to take effect. If they complain about production issues persisting, remind them to trigger a redeployment on their hosting platform.
 
 **documents and test reports created in this job**
 - 
+-  (100% pass on Expense Essentials feature)
 
 **Last 10 User Messages and any pending HUMAN messages** 
-1. **User**: Pointed out  was not converted to a wizard.
-2. **User**: Requested 1) Confetti animation on save, 2) Hardcoding/locking categories if navigated from picker, 3) Provided a massive 3-Phase Backend refactoring plan focusing on creating a central financial engine.
-3. **User**: Confirmed the agent's plan to execute the above.
-4. **User**: Refined the UI requirement: Instead of showing a static locked dropdown/chip, dynamically change the page title (e.g., Add Housing Expense) and remove the category selection entirely. Skip to the next step.
-5. **User**: *Pending* - Awaiting completion of the UI cleanup for  and subsequent testing.
+1. **User**: OTP missing on deployed app -> *Agent diagnosed missing  blocked by corrupted  and fixed it.*
+2. **User**: Verify DB check on login Continue -> *Agent verified  works perfectly.*
+3. **User**: Remove async wrapper completely from email service -> *Agent refactored to pure sync functions.*
+4. **User**: Something went wrong on deployed app (Preview URL hardcoded) -> *Agent created  and updated 90 files.*
+5. **User**: Monthly Essentials is too high, includes SIPs. Implement smart defaults + user override -> *Agent added  logic and filtered survival calculations.*
+6. **User**: Edit expenses page missing Survival Essential option, default should be No, can be paused -> *Agent added toggles to Edit/Detail pages and pre-filled smart defaults.*
+7. **User**: OTP still silently failing if prod env vars are missing. Raise exceptions -> *Agent added startup warnings and  raises in email service.*
+8. **User**: *Pending Verification* - Instead of text boxes, use real bank logos like CRED -> *Agent implemented Google Favicon API for bank logos. Awaiting user confirmation.*
 
 **Project Health Check:**
-- Broken: None (compiles successfully, but  has a redundant UI element).
-- Mocked: Twilio SMS/WhatsApp, Finvu SDK.
+- Broken: The live Production environment requires a manual deployment by the user to ingest the fixed code. 
+- Mocked: Twilio SMS (Disabled pending compliance).
 
 **3rd Party Integrations**
 - MongoDB Atlas — uses User-provided Cluster
-- Twilio SMS/WhatsApp — Mocked (Requires User API Key)
-- Emergent-managed Google Auth — Emergent Auth
--  — Local NPM package
+- Resend (Emails) — uses User API Key
+- Twilio (SMS) — uses User API Key (Present but disabled)
+- Google Favicon API — Public/No-Key
 
 **Testing status**
-- Testing agent used after significant changes: **NO**. (The agent changed step counts and merged Wizard logic *after* the last testing agent run. You MUST run  on the frontend flows).
+- Testing agent used after significant changes: YES (iteration 186)
 - Troubleshoot agent used after agent stuck in loop: NO
-- Test files created: None this session.
-- Known regressions: None detected, but highly likely in Wizard  logic due to dynamic step shifting.
+- Test files created: 
+- Known regressions: None currently.
 
 **Credentials to test flow:**
-- Test User: 
-- Admin Login:  / 
+- Test User:  / 
+- Test DB User: 
 
 **What agent forgot to execute**
-The agent completely altered the structural logic of the Wizards (reducing total steps, shifting step validation numbers based on URL parameters) and heavily modified the UI, but finished the session *without* running  to verify these complex conditional flows. You must run the testing agent on the forms using mocked URL parameters (e.g., ) to ensure they don't crash on validation or submission.</analysis>
+All tasks were completely executed. The agent was waiting on the user to visually confirm the CRED-style bank logos. Proceed to the **(P1) Financial Level System UI** implementation if the user approves the logos. Ensure you remind the user to trigger a production deployment so previous fixes take effect.</analysis>
