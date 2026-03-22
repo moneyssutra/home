@@ -10,9 +10,8 @@ To switch providers, change EMAIL_PROVIDER in .env
 """
 
 import os
-import asyncio
+import time
 import logging
-from typing import Optional
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -251,120 +250,120 @@ def get_password_changed_email(username: str) -> dict:
     return {"subject": subject, "html": html_content}
 
 
-async def send_email_resend(to_email: str, subject: str, html_content: str) -> dict:
-    """Send email using Resend API"""
+def send_email_resend(to_email: str, subject: str, html_content: str) -> dict:
+    """Send email using Resend API — simple sync call"""
     try:
         import resend
-        
+
         resend.api_key = os.environ.get("RESEND_API_KEY")
         if not resend.api_key:
             logger.error("RESEND_API_KEY not set in environment")
             return {"success": False, "error": "RESEND_API_KEY not configured"}
-        
+
         params = {
             "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
             "to": [to_email],
             "subject": subject,
             "html": html_content
         }
-        
-        email = await asyncio.to_thread(resend.Emails.send, params)
-        
-        logger.info(f"Email sent successfully to {to_email} via Resend")
+
+        t0 = time.time()
+        email = resend.Emails.send(params)
+        elapsed = round((time.time() - t0) * 1000)
+
+        logger.info(f"Email sent to {to_email} via Resend in {elapsed}ms, id={email.get('id')}")
         return {"success": True, "email_id": email.get("id")}
-        
+
     except Exception as e:
-        logger.error(f"Failed to send email via Resend: {str(e)}")
+        logger.error(f"Failed to send email via Resend to {to_email}: {str(e)}")
         return {"success": False, "error": str(e)}
 
 
-async def send_email_sendgrid(to_email: str, subject: str, html_content: str) -> dict:
+def send_email_sendgrid(to_email: str, subject: str, html_content: str) -> dict:
     """Send email using SendGrid API (for commercial scale)"""
     try:
         from sendgrid import SendGridAPIClient
         from sendgrid.helpers.mail import Mail
-        
+
         message = Mail(
             from_email=SENDER_EMAIL,
             to_emails=to_email,
             subject=subject,
             html_content=html_content
         )
-        
+
         sg = SendGridAPIClient(os.environ.get("SENDGRID_API_KEY"))
-        response = await asyncio.to_thread(sg.send, message)
-        
-        logger.info(f"Email sent successfully to {to_email} via SendGrid")
+        response = sg.send(message)
+
+        logger.info(f"Email sent to {to_email} via SendGrid, status={response.status_code}")
         return {"success": True, "status_code": response.status_code}
-        
+
     except Exception as e:
-        logger.error(f"Failed to send email via SendGrid: {str(e)}")
+        logger.error(f"Failed to send email via SendGrid to {to_email}: {str(e)}")
         return {"success": False, "error": str(e)}
 
 
-async def send_email_mailgun(to_email: str, subject: str, html_content: str) -> dict:
+def send_email_mailgun(to_email: str, subject: str, html_content: str) -> dict:
     """Send email using Mailgun API"""
     try:
-        import httpx
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"https://api.mailgun.net/v3/{os.environ.get('MAILGUN_DOMAIN')}/messages",
-                auth=("api", os.environ.get("MAILGUN_API_KEY")),
-                data={
-                    "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
-                    "to": to_email,
-                    "subject": subject,
-                    "html": html_content
-                }
-            )
-            
+        import requests
+
+        response = requests.post(
+            f"https://api.mailgun.net/v3/{os.environ.get('MAILGUN_DOMAIN')}/messages",
+            auth=("api", os.environ.get("MAILGUN_API_KEY")),
+            data={
+                "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
+                "to": to_email,
+                "subject": subject,
+                "html": html_content
+            }
+        )
+
         if response.status_code == 200:
-            logger.info(f"Email sent successfully to {to_email} via Mailgun")
+            logger.info(f"Email sent to {to_email} via Mailgun")
             return {"success": True}
         else:
+            logger.error(f"Mailgun failed for {to_email}: {response.text}")
             return {"success": False, "error": response.text}
-            
+
     except Exception as e:
-        logger.error(f"Failed to send email via Mailgun: {str(e)}")
+        logger.error(f"Failed to send email via Mailgun to {to_email}: {str(e)}")
         return {"success": False, "error": str(e)}
 
 
-async def send_email(to_email: str, subject: str, html_content: str) -> dict:
-    """
-    Main email sending function - routes to appropriate provider
-    """
+def send_email(to_email: str, subject: str, html_content: str) -> dict:
+    """Main email sending function - routes to appropriate provider (sync)"""
     provider = EMAIL_PROVIDER.lower()
-    
+
     if provider == "resend":
-        return await send_email_resend(to_email, subject, html_content)
+        return send_email_resend(to_email, subject, html_content)
     elif provider == "sendgrid":
-        return await send_email_sendgrid(to_email, subject, html_content)
+        return send_email_sendgrid(to_email, subject, html_content)
     elif provider == "mailgun":
-        return await send_email_mailgun(to_email, subject, html_content)
+        return send_email_mailgun(to_email, subject, html_content)
     else:
         logger.error(f"Unknown email provider: {provider}")
         return {"success": False, "error": f"Unknown email provider: {provider}"}
 
 
-# Convenience functions for specific email types
-async def send_username_recovery_email(to_email: str, username: str) -> dict:
+# Convenience functions for specific email types (all sync)
+def send_username_recovery_email(to_email: str, username: str) -> dict:
     """Send username recovery email"""
     email_data = get_username_recovery_email(username)
-    return await send_email(to_email, email_data["subject"], email_data["html"])
+    return send_email(to_email, email_data["subject"], email_data["html"])
 
 
-async def send_password_reset_email(to_email: str, username: str, reset_token: str) -> dict:
+def send_password_reset_email(to_email: str, username: str, reset_token: str) -> dict:
     """Send password reset email with reset link"""
     reset_link = f"{APP_URL}/reset-password?token={reset_token}"
     email_data = get_password_reset_email(username, reset_link)
-    return await send_email(to_email, email_data["subject"], email_data["html"])
+    return send_email(to_email, email_data["subject"], email_data["html"])
 
 
-async def send_password_changed_notification(to_email: str, username: str) -> dict:
+def send_password_changed_notification(to_email: str, username: str) -> dict:
     """Send password changed security notification"""
     email_data = get_password_changed_email(username)
-    return await send_email(to_email, email_data["subject"], email_data["html"])
+    return send_email(to_email, email_data["subject"], email_data["html"])
 
 
 def get_otp_email(otp: str) -> dict:
@@ -387,10 +386,10 @@ def get_otp_email(otp: str) -> dict:
     return {"subject": subject, "html": html_content}
 
 
-async def send_otp_email(to_email: str, otp: str) -> dict:
-    """Send OTP verification email"""
+def send_otp_email(to_email: str, otp: str) -> dict:
+    """Send OTP verification email (sync)"""
     email_data = get_otp_email(otp)
-    return await send_email(to_email, email_data["subject"], email_data["html"])
+    return send_email(to_email, email_data["subject"], email_data["html"])
 
 
 def send_otp_email_sync(to_email: str, otp: str):

@@ -81,7 +81,7 @@ async def send_otp(identifier: str, otp: str) -> dict:
     """
     if "@" in identifier:
         from email_service import send_otp_email
-        return await send_otp_email(identifier, otp)
+        return send_otp_email(identifier, otp)
 
     if identifier.startswith("+") and identifier[1:].isdigit():
         if not is_sms_enabled():
