@@ -394,19 +394,18 @@ async def send_otp_email(to_email: str, otp: str) -> dict:
 
 
 def send_otp_email_sync(to_email: str, otp: str):
-    """Synchronous wrapper for background task usage"""
+    """Synchronous OTP email — plain text for maximum deliverability"""
     import resend as _resend
     _resend.api_key = os.environ.get("RESEND_API_KEY")
     if not _resend.api_key:
         logger.error(f"[BG] RESEND_API_KEY not set, cannot send OTP to {to_email}")
         return
 
-    email_data = get_otp_email(otp)
     params = {
         "from": f"{SENDER_NAME} <{SENDER_EMAIL}>",
         "to": [to_email],
-        "subject": email_data["subject"],
-        "html": email_data["html"],
+        "subject": f"Your MoneySSutra OTP: {otp}",
+        "text": f"Your MoneySSutra verification code is: {otp}\n\nValid for 5 minutes. Do not share this code with anyone.\n\n- MoneySSutra Team",
     }
 
     for attempt in range(2):
