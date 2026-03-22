@@ -45,6 +45,7 @@ MoneySutra is a comprehensive financial management app with CRED-style step-base
 ## Prioritized Backlog
 ### P0 (Immediate)
 - User must redeploy app for all fixes to take effect on production
+- ~~Admin Safety Days mismatch~~ — FIXED: admin was counting ALL Fixed expenses, now uses `compute_is_essential()` to match user-facing survival-clock
 
 ### P1 (Next Up)
 - Financial Level System UI (frontend dashboard visual for score/level)

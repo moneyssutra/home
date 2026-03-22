@@ -94,7 +94,7 @@ async def _compute_user_metrics(user_id: str, now: datetime, user_name: str = ""
     from routes.utils import get_weekly_multiplier
     # Parallel DB queries
     exp_q, inc_q, goal_q, asset_q, loan_q, account_q, inv_q = await asyncio.gather(
-        db.expenses.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1, "category": 1, "frequency": 1, "expenseType": 1}).to_list(5000),
+        db.expenses.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1, "category": 1, "frequency": 1, "expenseType": 1, "isEssential": 1, "expenseName": 1}).to_list(5000),
         db.income_sources.find({"userId": user_id}, {"_id": 0, "expectedAmount": 1, "frequency": 1}).to_list(500),
         db.goals.find({"userId": user_id}, {"_id": 0, "targetAmount": 1, "currentAmount": 1}).to_list(100),
         db.assets.find({"userId": user_id}, {"_id": 0, "currentValue": 1}).to_list(500),
@@ -162,12 +162,12 @@ async def _compute_user_metrics(user_id: str, now: datetime, user_name: str = ""
         # else: illiquid (PPF, EPF, NPS Tier 1, ELSS, ULIPs, etc.)
     effective_funds = liquid_balance + (semi_liquid * 0.6)
 
-    # Safety days — use Fixed expenses as mandatory burn (matches survival-clock exactly)
-    # DO NOT add total_emi separately — EMI expenses are already in the expense list as Fixed expenses
+    # Safety days — use Fixed expenses marked as ESSENTIAL (matches survival-clock exactly)
+    # Uses compute_is_essential to apply smart defaults + user overrides
+    from routes.expenses import compute_is_essential
     monthly_mandatory = 0
     for exp in exp_q:
-        # Match survival-clock: only count Fixed (expenseType) expenses
-        if exp.get("expenseType") == "Fixed":
+        if exp.get("expenseType") == "Fixed" and compute_is_essential(exp):
             amt = float(exp.get("expectedAmount", 0) or 0)
             mult = freq_map.get(exp.get("frequency", "Monthly"), 1)
             monthly_mandatory += amt * mult
