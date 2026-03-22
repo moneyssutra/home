@@ -33,6 +33,7 @@ MoneySutra is a comprehensive financial management app with CRED-style step-base
   - Frontend: Shield toggle per expense card in FixedExpenses list
   - Frontend: "Survival Essential?" yes/no toggle in ExpenseForm for Fixed expenses
   - Result: For user sandeepdash24, Monthly Essentials dropped from Rs.71K to Rs.16K (77% reduction by correctly excluding SIPs/EPF)
+- **HD Bank Logos (CRED-style)**: Replaced blurry Google Favicon API (128px max) with HD SVG vector logos from curated open-source repo (`praveenpuglia/indian-banks`). 22 major Indian banks now use crisp SVGs; fintechs/international banks fall back to Google Favicon. Updated BankLogo component with SVG-aware sizing.
 
 ## Smart Essential Defaults
 - **Essential categories**: Housing, Utilities, Food, Medical, Education, Salary Paid, EMI

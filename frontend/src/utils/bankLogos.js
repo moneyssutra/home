@@ -1,40 +1,44 @@
 /**
- * Indian bank logo URLs using Google Favicon API (official bank logos).
+ * Indian bank logo URLs — HD SVG icons from curated open-source repo.
+ * Falls back to Google Favicon API for fintechs/international banks.
  * Used across BankAccounts, CreditCards, and any bank-related UI.
  */
 
+const gh = (slug) => `https://raw.githubusercontent.com/praveenpuglia/indian-banks/main/assets/logos/${slug}/symbol.svg`;
 const gf = (domain) => `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
 
 const BANK_LOGOS = {
-  sbi:        gf("sbi.co.in"),
-  hdfc:       gf("hdfcbank.com"),
-  icici:      gf("icicibank.com"),
-  kotak:      gf("kotak.com"),
-  axis:       gf("axisbank.com"),
-  idfc:       gf("idfcfirstbank.com"),
-  yes:        gf("yesbank.in"),
-  bob:        gf("bankofbaroda.in"),
-  baroda:     gf("bankofbaroda.in"),
-  pnb:        gf("pnbindia.in"),
-  canara:     gf("canarabank.com"),
-  union:      gf("unionbankofindia.co.in"),
-  indian:     gf("indianbank.in"),
+  // Major Indian banks — HD SVG vectors (crisp at any size)
+  sbi:        gh("sbin"),
+  hdfc:       gh("hdfc"),
+  icici:      gh("icic"),
+  kotak:      gh("kkbk"),
+  axis:       gh("utib"),
+  idfc:       gh("idfb"),
+  yes:        gh("yesb"),
+  bob:        gh("barb"),
+  baroda:     gh("barb"),
+  pnb:        gh("punb"),
+  canara:     gh("cnrb"),
+  union:      gh("ubin"),
+  indian:     gh("idib"),
+  indusind:   gh("indb"),
+  rbl:        gh("ratn"),
+  paytm:      gh("pytm"),
+  au:         gh("aubl"),
+  federal:    gh("fdrl"),
+  bandhan:    gh("bdbl"),
+  standard:   gh("scbl"),
+  chartered:  gh("scbl"),
+  iob:        gh("ioba"),
+  uco:        gh("ucba"),
+  // Fintechs & international — Google Favicon fallback
   citi:       gf("citibank.co.in"),
-  indusind:   gf("indusind.com"),
-  rbl:        gf("rblbank.com"),
   bajaj:      gf("bajajfinserv.in"),
-  paytm:      gf("paytmbank.com"),
   fi:         gf("fi.money"),
   jupiter:    gf("jupiter.money"),
   niyo:       gf("goniyo.com"),
-  au:         gf("aubank.in"),
-  federal:    gf("federalbank.co.in"),
-  bandhan:    gf("bandhanbank.com"),
   hsbc:       gf("hsbc.co.in"),
-  standard:   gf("sc.com"),
-  chartered:  gf("sc.com"),
-  iob:        gf("iob.in"),
-  uco:        gf("ucobank.com"),
   sbm:        gf("sbmbank.co.in"),
   amazon:     gf("amazon.in"),
   flipkart:   gf("flipkart.com"),
@@ -72,6 +76,9 @@ export const BankLogo = ({ name, size = 40, gradient, className = "" }) => {
   const abbr = getBankAbbr(name);
   const dim = `${size}px`;
   const rounded = size >= 40 ? "rounded-xl" : "rounded-lg";
+  const isSvg = logoUrl && logoUrl.endsWith(".svg");
+  // SVG logos are vectors — use 80% fill; raster favicons use 72%
+  const imgSize = isSvg ? "w-[80%] h-[80%]" : "w-[72%] h-[72%]";
 
   if (logoUrl) {
     return (
@@ -83,8 +90,8 @@ export const BankLogo = ({ name, size = 40, gradient, className = "" }) => {
         <img
           src={logoUrl}
           alt={name}
-          className="w-[72%] h-[72%] object-contain"
-          loading="lazy"
+          className={`${imgSize} object-contain`}
+          loading="eager"
           onError={(e) => {
             e.target.style.display = "none";
             const parent = e.target.parentElement;
