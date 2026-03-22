@@ -1,5 +1,5 @@
 """Authentication routes - Full auth logic from server.py."""
-from fastapi import APIRouter, HTTPException, Response, Request, Cookie
+from fastapi import APIRouter, HTTPException, Response, Request, Cookie, BackgroundTasks
 from typing import Optional
 from datetime import datetime, timezone, timedelta
 import uuid
@@ -8,6 +8,7 @@ import logging
 import hashlib
 import secrets
 import re
+import time
 
 from database import db
 from server_models import (
@@ -21,7 +22,13 @@ from email_service import (
     send_username_recovery_email,
     send_password_reset_email,
     send_password_changed_notification,
-    send_otp_email
+    send_otp_email,
+    send_otp_email_sync,
+    send_email_sync,
+    get_password_reset_email,
+    get_password_changed_email,
+    get_username_recovery_email,
+    APP_URL as EMAIL_APP_URL,
 )
 import jwt
 import os
@@ -509,7 +516,7 @@ async def check_availability(request: CheckAvailabilityRequest):
 
 
 @router.post("/forgot-username")
-async def forgot_username(request: ForgotUsernameRequest):
+async def forgot_username(request: ForgotUsernameRequest, background_tasks: BackgroundTasks):
     user = await db.users.find_one(
         {"email": {"$regex": f"^{request.email}$", "$options": "i"}},
         {"_id": 0, "name": 1, "email": 1, "auth_type": 1})
@@ -517,14 +524,13 @@ async def forgot_username(request: ForgotUsernameRequest):
     if user:
         if user.get("auth_type") == "jwt" or user.get("auth_type") is None:
             username = user.get("name", "User")
-            email_result = await send_username_recovery_email(user["email"], username)
-            if not email_result.get("success"):
-                logger.error(f"Failed to send username recovery email: {email_result.get('error')}")
+            email_data = get_username_recovery_email(username)
+            background_tasks.add_task(send_email_sync, user["email"], email_data["subject"], email_data["html"])
     return {"message": success_message}
 
 
 @router.post("/forgot-password")
-async def forgot_password(request: ForgotPasswordRequest):
+async def forgot_password(request: ForgotPasswordRequest, background_tasks: BackgroundTasks):
     identifier = request.username.strip()
     is_mobile = identifier.isdigit() and len(identifier) == 10
     is_email = "@" in identifier
@@ -563,14 +569,14 @@ async def forgot_password(request: ForgotPasswordRequest):
         }
         await db.password_reset_tokens.insert_one(reset_record)
         first_name = user.get("firstName", user.get("name", "User").split()[0] if user.get("name") else "User")
-        email_result = await send_password_reset_email(user["email"], first_name, reset_token)
-        if not email_result.get("success"):
-            logger.error(f"Failed to send password reset email: {email_result.get('error')}")
+        reset_link = f"{EMAIL_APP_URL}/reset-password?token={reset_token}"
+        email_data = get_password_reset_email(first_name, reset_link)
+        background_tasks.add_task(send_email_sync, user["email"], email_data["subject"], email_data["html"])
     return {"message": success_message}
 
 
 @router.post("/reset-password")
-async def reset_password(request: ResetPasswordRequest):
+async def reset_password(request: ResetPasswordRequest, background_tasks: BackgroundTasks):
     reset_record = await db.password_reset_tokens.find_one(
         {"reset_token": request.token, "used": False}, {"_id": 0})
     if not reset_record:
@@ -596,9 +602,8 @@ async def reset_password(request: ResetPasswordRequest):
     await db.user_sessions.delete_many({"user_id": user["user_id"]})
 
     username = user.get("name", "User")
-    email_result = await send_password_changed_notification(user["email"], username)
-    if not email_result.get("success"):
-        logger.error(f"Failed to send password changed notification: {email_result.get('error')}")
+    email_data = get_password_changed_email(username)
+    background_tasks.add_task(send_email_sync, user["email"], email_data["subject"], email_data["html"])
 
     return {"message": "Password reset successfully. Please log in with your new password."}
 
@@ -773,38 +778,40 @@ async def mpin_direct_login(request: Request, response: Response):
 
 
 @router.post("/forgot-mpin")
-async def forgot_mpin(request: Request):
-    """Send OTP to email for MPIN reset."""
+async def forgot_mpin(request: Request, background_tasks: BackgroundTasks):
+    """Send OTP to email for MPIN reset. Async email, parallelized DB."""
+    t0 = time.time()
     body = await request.json()
     email = (body.get("email") or "").strip().lower()
 
     if not email:
         raise HTTPException(status_code=400, detail="Email is required")
 
-    user = await db.users.find_one(
+    import asyncio as _aio
+    # Parallel: user lookup + cooldown check
+    user_fut = db.users.find_one(
         {"email": {"$regex": f"^{email}$", "$options": "i"}},
         {"_id": 0, "user_id": 1}
     )
+    cooldown_fut = db.login_otp_tokens.find_one(
+        {"email": email, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()}},
+        {"_id": 0, "otp_id": 1}
+    )
+    user, recent = await _aio.gather(user_fut, cooldown_fut)
+
     if not user:
         return {"message": "If an account exists, you will receive a verification code."}
-
-    # Rate limit: 60s cooldown
-    recent = await db.login_otp_tokens.find_one(
-        {"email": email, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()}},
-        {"_id": 0}
-    )
     if recent:
         return {"message": "OTP already sent. Please wait."}
 
     otp = generate_otp()
 
-    # Invalidate all previous unused OTPs for this email (prevents flooding)
-    await db.login_otp_tokens.update_many(
+    # Parallel: invalidate old OTPs + insert new one
+    invalidate_fut = db.login_otp_tokens.update_many(
         {"email": email, "purpose": "mpin_reset", "used": False},
         {"$set": {"used": True}}
     )
-
-    await db.login_otp_tokens.insert_one({
+    insert_fut = db.login_otp_tokens.insert_one({
         "otp_id": str(uuid.uuid4()),
         "email": email,
         "user_id": user["user_id"],
@@ -815,11 +822,10 @@ async def forgot_mpin(request: Request):
         "created_at": datetime.now(timezone.utc).isoformat(),
         "purpose": "mpin_reset",
     })
+    await _aio.gather(invalidate_fut, insert_fut)
 
-    email_result = await send_otp_email(email, otp)
-    if not email_result.get("success"):
-        logger.error(f"forgot-mpin: Failed to send OTP email to {email}: {email_result.get('error')}")
-        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again.")
+    background_tasks.add_task(send_otp_email_sync, email, otp)
+    logger.info(f"forgot-mpin: OTP queued for {email} in {round((time.time()-t0)*1000)}ms")
     return {"message": "Verification code sent to your email."}
 
 
@@ -911,8 +917,9 @@ async def reset_mpin(request: Request, response: Response):
 
 
 @router.post("/start")
-async def auth_start(request: Request):
-    """Step 1: Enter identifier (email). Check user, send OTP."""
+async def auth_start(request: Request, background_tasks: BackgroundTasks):
+    """Step 1: Enter identifier (email). Check user, send OTP. Parallelized DB."""
+    t0 = time.time()
     body = await request.json()
     identifier = (body.get("identifier") or "").strip().lower()
 
@@ -923,37 +930,37 @@ async def auth_start(request: Request):
     if not is_email:
         raise HTTPException(status_code=400, detail="Please enter a valid email address")
 
-    user = await db.users.find_one(
+    import asyncio as _aio
+    # Parallel: user lookup + hourly rate limit + cooldown
+    one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+    cooldown_threshold = (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()
+
+    user_fut = db.users.find_one(
         {"email": {"$regex": f"^{identifier}$", "$options": "i"}},
         {"_id": 0, "user_id": 1, "email": 1, "name": 1}
     )
-
-    # Rate limit: 5 OTP requests per hour per email
-    one_hour_ago = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
-    recent_count = await db.login_otp_tokens.count_documents({
-        "email": identifier,
-        "created_at": {"$gte": one_hour_ago}
+    count_fut = db.login_otp_tokens.count_documents({
+        "email": identifier, "created_at": {"$gte": one_hour_ago}
     })
+    cooldown_fut = db.login_otp_tokens.find_one(
+        {"email": identifier, "created_at": {"$gte": cooldown_threshold}},
+        {"_id": 0, "otp_id": 1}
+    )
+    user, recent_count, recent = await _aio.gather(user_fut, count_fut, cooldown_fut)
+
     if recent_count >= 5:
         raise HTTPException(status_code=429, detail="Too many OTP requests. Please try again later.")
-
-    # Cooldown: 1 per 60 seconds
-    recent = await db.login_otp_tokens.find_one(
-        {"email": identifier, "created_at": {"$gte": (datetime.now(timezone.utc) - timedelta(seconds=60)).isoformat()}},
-        {"_id": 0}
-    )
     if recent:
         return {"message": "OTP already sent", "user_exists": user is not None}
 
     otp = generate_otp()
 
-    # Invalidate previous unused login OTPs for this email
-    await db.login_otp_tokens.update_many(
+    # Parallel: invalidate + insert
+    invalidate_fut = db.login_otp_tokens.update_many(
         {"email": identifier, "used": False},
         {"$set": {"used": True}}
     )
-
-    await db.login_otp_tokens.insert_one({
+    insert_fut = db.login_otp_tokens.insert_one({
         "otp_id": str(uuid.uuid4()),
         "email": identifier,
         "user_id": user["user_id"] if user else None,
@@ -963,11 +970,10 @@ async def auth_start(request: Request):
         "attempts": 0,
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
+    await _aio.gather(invalidate_fut, insert_fut)
 
-    email_result = await send_otp_email(identifier, otp)
-    if not email_result.get("success"):
-        logger.error(f"Failed to send login OTP: {email_result.get('error')}")
-
+    background_tasks.add_task(send_otp_email_sync, identifier, otp)
+    logger.info(f"auth/start: OTP queued for {identifier} in {round((time.time()-t0)*1000)}ms")
     return {"message": "OTP sent", "user_exists": user is not None}
 
 
@@ -1110,7 +1116,7 @@ async def mpin_setup_and_login(request: Request, response: Response):
 
 
 @router.post("/send-otp")
-async def send_otp(request: SendOTPRequest):
+async def send_otp(request: SendOTPRequest, background_tasks: BackgroundTasks):
     """Send 6-digit OTP to email for password reset."""
     email = request.email.strip().lower()
     if not email:
@@ -1145,10 +1151,7 @@ async def send_otp(request: SendOTPRequest):
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
         await db.otp_tokens.insert_one(otp_record)
-
-        email_result = await send_otp_email(email, otp)
-        if not email_result.get("success"):
-            logger.error(f"Failed to send OTP email: {email_result.get('error')}")
+        background_tasks.add_task(send_otp_email_sync, email, otp)
 
     return {"message": success_msg}
 
@@ -1208,7 +1211,7 @@ async def verify_otp(request: VerifyOTPRequest):
 
 
 @router.post("/reset-password-otp")
-async def reset_password_otp(request: ResetPasswordOTPRequest):
+async def reset_password_otp(request: ResetPasswordOTPRequest, background_tasks: BackgroundTasks):
     """Reset password after OTP verification (combined verify + reset in one step)."""
     email = request.email.strip().lower()
     otp = request.otp.strip()
@@ -1255,15 +1258,14 @@ async def reset_password_otp(request: ResetPasswordOTPRequest):
     await db.user_sessions.delete_many({"user_id": user["user_id"]})
 
     username = user.get("name", "User")
-    email_result = await send_password_changed_notification(user["email"], username)
-    if not email_result.get("success"):
-        logger.error(f"Failed to send password changed notification: {email_result.get('error')}")
+    email_data = get_password_changed_email(username)
+    background_tasks.add_task(send_email_sync, user["email"], email_data["subject"], email_data["html"])
 
     return {"message": "Password reset successfully. Please log in with your new password."}
 
 
 @router.post("/send-signup-otp")
-async def send_signup_otp(request: SendOTPRequest):
+async def send_signup_otp(request: SendOTPRequest, background_tasks: BackgroundTasks):
     """Send OTP to verify email during signup."""
     email = request.email.strip().lower()
     if not email:
@@ -1296,10 +1298,7 @@ async def send_signup_otp(request: SendOTPRequest):
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
 
-    email_result = await send_otp_email(email, otp)
-    if not email_result.get("success"):
-        logger.error(f"Failed to send signup OTP email: {email_result.get('error')}")
-
+    background_tasks.add_task(send_otp_email_sync, email, otp)
     return {"message": "Verification code sent to your email."}
 
 

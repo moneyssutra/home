@@ -1,6 +1,6 @@
 """MPIN Authentication — Set, verify, and login with a 4-digit PIN."""
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Request, HTTPException, Response
+from fastapi import APIRouter, Request, HTTPException, Response, BackgroundTasks
 import bcrypt
 import uuid
 import hashlib
@@ -8,6 +8,7 @@ import logging
 
 from database import db
 from routes.auth import get_current_user
+from email_service import send_otp_email_sync
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/mpin")
@@ -152,7 +153,7 @@ async def change_mpin(request: Request):
 
 
 @router.post("/send-change-otp")
-async def send_mpin_change_otp(request: Request):
+async def send_mpin_change_otp(request: Request, background_tasks: BackgroundTasks):
     """Send OTP to authenticated user's email for MPIN change (forgot current MPIN)."""
     user = await _get_user_or_401(request)
     user_doc = await db.users.find_one(
@@ -188,11 +189,7 @@ async def send_mpin_change_otp(request: Request):
         "purpose": "mpin_change",
     })
 
-    from email_service import send_otp_email
-    email_result = await send_otp_email(email, otp)
-    if not email_result.get("success"):
-        logger.error(f"MPIN change OTP: Failed to send email to {email}: {email_result.get('error')}")
-        raise HTTPException(status_code=500, detail="Failed to send verification email. Please try again.")
+    background_tasks.add_task(send_otp_email_sync, email, otp)
     # Mask email for display
     parts = email.split("@")
     masked = parts[0][:2] + "***@" + parts[1] if len(parts) == 2 else email

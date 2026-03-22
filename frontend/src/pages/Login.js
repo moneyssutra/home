@@ -567,6 +567,7 @@ const ResendRow = ({ timer, onResend }) => (
   <div className="text-center">
     {timer > 0 ? <p className="text-xs" style={{ color: "var(--text-muted)" }}>Resend in {timer}s</p>
       : <button onClick={onResend} className="text-xs font-semibold" style={{ color: "var(--brand-primary)" }} data-testid="resend-otp-btn">Resend OTP</button>}
+    {timer > 0 && timer <= 45 && <p className="text-[10px] mt-1" style={{ color: "var(--text-muted)" }}>Check spam folder if not received</p>}
   </div>
 );
 const DotIndicator = ({ filled }) => (

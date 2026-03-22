@@ -121,6 +121,17 @@ All 12 financial data entry forms converted to step-by-step wizards using Wizard
 - Backend register endpoint checks `emailVerificationToken` - rejects unverified emails
 - Tested: iteration_182 - 13/13 backend tests, all frontend UI flows verified
 
+### Async Email Architecture (Mar 2026)
+- Converted ALL 8 email send calls (auth.py + mpin.py) from blocking `await` to FastAPI `BackgroundTasks`
+- Flow: Generate OTP → Save to DB → RETURN RESPONSE → Send email in background
+- Added `send_otp_email_sync` and `send_email_sync` with 2-attempt retry (2s backoff)
+- Parallelized MongoDB queries with `asyncio.gather` (user lookup + cooldown in parallel, invalidate + insert in parallel)
+- Lightweight OTP email template (subject includes OTP code, minimal HTML for fast rendering)
+- Delivery logging: `[BG] OTP email sent to X in Yms (id=Z)`
+- Results: API response ~700ms (from 3.5s+), DB ops ~500ms (from 2.1s), email 222ms async
+- Added "Check spam folder" hint on OTP page after 15s
+- Invalidate old unused OTPs before creating new ones (prevents email flooding)
+
 ### Dashboard Family View Counts Fix (Mar 2026)
 - Fixed bug where toggling to "Family View" showed 0 for all top-level counts (assetCount, investmentCount, accountCount, etc.)
 - Root cause: `/api/family/combined-summary` wasn't returning count fields; `Dashboard.js` `fetchFamilyDashboard` wasn't mapping them
