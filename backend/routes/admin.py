@@ -1381,3 +1381,43 @@ async def get_onboarding_stats(request: Request):
         "conversionRate": round((completed / started * 100) if started > 0 else 0, 1),
         "stepStats": step_stats,
     }
+
+
+# ────────────────────────────────────────────
+# DIAGNOSTIC — Test Email Delivery
+# ────────────────────────────────────────────
+
+@router.post("/test-email")
+async def test_email(request: Request):
+    """Admin diagnostic: send a test email to verify Resend + sender domain are working."""
+    await _require_admin(request)
+    body = await request.json()
+    to_email = (body.get("email") or "").strip()
+    if not to_email:
+        raise HTTPException(status_code=400, detail="email is required")
+
+    from email_service import SENDER_EMAIL, SENDER_NAME, EMAIL_PROVIDER, send_email
+
+    resend_key = os.environ.get("RESEND_API_KEY", "")
+    diagnostics = {
+        "provider": EMAIL_PROVIDER,
+        "sender": f"{SENDER_NAME} <{SENDER_EMAIL}>",
+        "resendKeyPresent": bool(resend_key),
+        "resendKeySuffix": f"...{resend_key[-6:]}" if resend_key else "MISSING",
+        "targetEmail": to_email,
+    }
+
+    result = send_email(
+        to_email,
+        "MoneySSutra Email Diagnostic Test",
+        f"<p>This is a diagnostic test email from MoneySSutra admin panel.</p>"
+        f"<p>Sender: {SENDER_NAME} &lt;{SENDER_EMAIL}&gt;</p>"
+        f"<p>Provider: {EMAIL_PROVIDER}</p>"
+        f"<p>If you received this, your email pipeline is working correctly.</p>"
+    )
+
+    diagnostics["sendResult"] = result
+    diagnostics["success"] = result.get("success", False)
+
+    logger.info(f"[ADMIN] Test email to {to_email}: {diagnostics}")
+    return diagnostics

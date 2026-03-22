@@ -18,19 +18,11 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# Email Provider Configuration — NO unsafe fallbacks
+# Email Provider Configuration — verified domain fallbacks only
 EMAIL_PROVIDER = os.environ.get("EMAIL_PROVIDER", "resend")
-SENDER_EMAIL = os.environ.get("SENDER_EMAIL")
-SENDER_NAME = os.environ.get("SENDER_NAME")
-APP_URL = os.environ.get("APP_URL")
-
-if not SENDER_EMAIL:
-    logger.critical("SENDER_EMAIL is NOT set — emails will fail. Set it to noreply@moneyssutra.com")
-    raise RuntimeError("SENDER_EMAIL environment variable is required")
-if not SENDER_NAME:
-    SENDER_NAME = "MoneySSutra Support"
-if not APP_URL:
-    APP_URL = "https://moneyssutra.com"
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "noreply@moneyssutra.com")
+SENDER_NAME = os.environ.get("SENDER_NAME", "MoneySSutra Support")
+APP_URL = os.environ.get("APP_URL", "https://moneyssutra.com")
 
 # MoneySSutra Brand Colors
 BRAND_PRIMARY = "#00D09C"  # Mint Green
@@ -43,9 +35,8 @@ TEXT_SECONDARY = "#666666"
 _resend_key = os.environ.get("RESEND_API_KEY")
 if not _resend_key:
     logger.critical("RESEND_API_KEY is NOT set — all OTP and notification emails WILL FAIL")
-    raise RuntimeError("RESEND_API_KEY environment variable is required")
-
-logger.info(f"Email service ready: provider={EMAIL_PROVIDER}, sender={SENDER_EMAIL}, key=...{_resend_key[-6:]}")
+else:
+    logger.info(f"Email service ready: provider={EMAIL_PROVIDER}, sender={SENDER_EMAIL}, key=...{_resend_key[-6:]}")
 
 
 def get_email_header():
